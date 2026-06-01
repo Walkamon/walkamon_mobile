@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   // Light mode — Cozy Forest Theme
-  static const lightBackground = Color(0xFFFFF8F0);
+  static const lightBackground = Color(0xFFDBDED0);
   static const lightForeground = Color(0xFF4A5D23);
   static const lightCard = Color(0xFFFFFFFF);
   static const lightPrimary = Color(0xFF76A084);
@@ -14,7 +14,7 @@ abstract final class AppColors {
   static const lightLuminaGlow = Color(0xFFA7F3D0);
 
   // Dark mode — Deep Cozy Forest
-  static const darkBackground = Color(0xFF2C3A30);
+  static const darkBackground = Color(0xFF1E2E24);
   static const darkForeground = Color(0xFFFFF8F0);
   static const darkCard = Color(0xFF4A5A4E);
   static const darkPrimary = Color(0xFF8DB59C);
