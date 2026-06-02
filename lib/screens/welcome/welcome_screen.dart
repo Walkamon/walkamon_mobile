@@ -24,14 +24,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final onPrimary = Theme.of(context).colorScheme.onPrimary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
+    final mutedForeground =
+        isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark
-        ? AppColors.darkForeground
-        : AppColors.lightForeground;
+    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -132,7 +129,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Container(height: 2, color: muted),
+                                      child: Container(
+                                        height: 2,
+                                        color: muted,
+                                      ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -149,7 +149,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       ),
                                     ),
                                     Expanded(
-                                      child: Container(height: 2, color: muted),
+                                      child: Container(
+                                        height: 2,
+                                        color: muted,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -190,7 +193,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 }
 
 class _AnimatedFadeSlide extends StatefulWidget {
-  const _AnimatedFadeSlide({required this.child, required this.delay});
+  const _AnimatedFadeSlide({
+    required this.child,
+    required this.delay,
+  });
 
   final Widget child;
   final Duration delay;
@@ -233,7 +239,10 @@ class _AnimatedFadeSlideState extends State<_AnimatedFadeSlide>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _opacity,
-      child: SlideTransition(position: _offset, child: widget.child),
+      child: SlideTransition(
+        position: _offset,
+        child: widget.child,
+      ),
     );
   }
 }
@@ -306,7 +315,10 @@ class _OutlineButton extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -436,7 +448,10 @@ class _SettingsOverlay extends StatelessWidget {
                             ),
                             IconButton(
                               onPressed: onClose,
-                              icon: Icon(Icons.close, color: mutedForeground),
+                              icon: Icon(
+                                Icons.close,
+                                color: mutedForeground,
+                              ),
                             ),
                           ],
                         ),
