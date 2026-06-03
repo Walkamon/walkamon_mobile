@@ -30,11 +30,7 @@ class MainLayout extends StatelessWidget {
           child: Column(
             children: [
               // flex-1 — expands to fill available space, clips overflow
-              Expanded(
-                child: ClipRect(
-                  child: child,
-                ),
-              ),
+              Expanded(child: ClipRect(child: child)),
 
               // <BottomNavigation /> pinned at bottom
               // TODO: uncomment when BottomNavigation is created

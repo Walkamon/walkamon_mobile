@@ -37,10 +37,7 @@ class RootLayout extends StatelessWidget {
         SnackBar(
           content: Text(
             message,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -63,8 +60,7 @@ class RootLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // bg-[#f8fcfd] dark:bg-slate-950
-    final bgColor = isDark ? AppColors.darkBackground : const Color(0xFFF8FCFD);
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Material(
       color: bgColor,
@@ -72,11 +68,6 @@ class RootLayout extends StatelessWidget {
         children: [
           // ─── Global Background Texture ───────────────────────────────
           // fixed inset-0 pointer-events-none opacity-[0.02]
-          const Positioned.fill(
-            child: IgnorePointer(
-              child: _PawPrintTexture(),
-            ),
-          ),
 
           // ─── Main Content (<Outlet />) ────────────────────────────────
           child,

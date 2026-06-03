@@ -78,122 +78,121 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.arrow_back, color: primary, size: 24),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 360),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return FadeTransition(
+      opacity: _opacityAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Stack(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 80,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Lạc Mất Mật Mã?',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: primary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Đừng lo! Hãy cho chúng tôi biết email của bạn và chúng tôi sẽ gửi một tín hiệu phép thuật để đánh thức nó.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: mutedForeground,
+                          fontWeight: FontWeight.w500,
+                          height: 1.6,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              'Lạc Mất Mật Mã?',
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: primary,
-                              ),
+                            Icon(
+                              Icons.directions_walk,
+                              size: 22,
+                              color: primary,
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Đừng lo! Hãy cho chúng tôi biết email của bạn và chúng tôi sẽ gửi một tín hiệu phép thuật để đánh thức nó.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: mutedForeground,
-                                fontWeight: FontWeight.w500,
-                                height: 1.6,
-                              ),
-                            ),
-                            const SizedBox(height: 28),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: cardColor,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.directions_walk,
-                                    size: 22,
-                                    color: primary,
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _emailController,
-                                      keyboardType: TextInputType.emailAddress,
-                                      textInputAction: TextInputAction.send,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: theme.colorScheme.onSurface,
-                                          ),
-                                      decoration: InputDecoration(
-                                        hintText: 'Email',
-                                        hintStyle: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              color: theme.colorScheme.onSurface
-                                                  .withAlpha(
-                                                    (0.6 * 255).round(),
-                                                  ),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                        border: InputBorder.none,
-                                        isDense: true,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.send,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  hintStyle: theme.textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.onSurface
+                                            .withAlpha((0.6 * 255).round()),
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      onFieldSubmitted: (_) => _handleReset(),
-                                    ),
-                                  ),
-                                ],
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                ),
+                                onFieldSubmitted: (_) => _handleReset(),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton(
-                              onPressed: _handleReset,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primary,
-                                foregroundColor: onPrimary,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                ),
-                                textStyle: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              child: const Text('Gửi Tín Hiệu'),
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _handleReset,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          textStyle: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: const Text('Gửi Tín Hiệu'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 16,
+              left: 24,
+              child: SafeArea(
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

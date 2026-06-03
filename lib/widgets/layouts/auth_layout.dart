@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 /// Equivalent of the React AuthLayout component.
 ///
-/// Provides a full-screen, scrollable, centered column container
-/// with consistent padding for auth screens.
+/// Provides a full-screen, scrollable, centered container
+/// with consistent padding for auth screens. Use `CustomScrollView`
+/// with `SliverFillRemaining` to ensure the child takes up at least
+/// the screen height, solving infinite layout issues.
 ///
 /// Usage:
 /// ```dart
@@ -18,34 +20,26 @@ class AuthLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // bg-transparent — inherit scaffold background
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            // max-w-md ≈ 448px
             constraints: const BoxConstraints(maxWidth: 448),
             child: ScrollConfiguration(
-              // hide-scrollbars
               behavior: _HideScrollbarBehavior(),
-              child: SingleChildScrollView(
-                // px-6 py-10 → horizontal 24, vertical 40
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 40,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    // min-h-[100dvh]
-                    minHeight: MediaQuery.of(context).size.height,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [child],
+              child: CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 0,
+                        vertical: 0,
+                      ),
+                      child: child,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -62,6 +56,5 @@ class _HideScrollbarBehavior extends ScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) =>
-      child;
+  ) => child;
 }
