@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
+import '../../core/theme/app_colors.dart';
 
 class SproutLogo extends StatefulWidget {
   const SproutLogo({super.key, this.size = 96});
@@ -23,9 +23,10 @@ class _SproutLogoState extends State<SproutLogo>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _bounce = Tween<double>(begin: 0, end: -6).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _bounce = Tween<double>(
+      begin: 0,
+      end: -6,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -37,8 +38,9 @@ class _SproutLogoState extends State<SproutLogo>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final glowColor =
-        isDark ? AppColors.darkLuminaGlow : AppColors.lightLuminaGlow;
+    final glowColor = isDark
+        ? AppColors.darkLuminaGlow
+        : AppColors.lightLuminaGlow;
 
     return SizedBox(
       width: widget.size,

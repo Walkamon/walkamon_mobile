@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
-import 'screens/auth/forgot_password_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/otp_screen.dart';
-import 'screens/placeholder/placeholder_screen.dart';
-import 'screens/welcome/welcome_screen.dart';
+import 'features/auth/forgot_password_screen.dart';
+import 'features/auth/login_screen.dart';
+import 'features/auth/otp_screen.dart';
+import 'features/placeholder/placeholder_screen.dart';
+import 'features/welcome/welcome_screen.dart';
 
 void main() {
   runApp(const WalkamonApp());
