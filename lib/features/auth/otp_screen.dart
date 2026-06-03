@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../widgets/egg_shape.dart';
+import '../../widgets/common/egg_shape.dart';
 
 class OTPScreen extends StatefulWidget {
   const OTPScreen({super.key});
