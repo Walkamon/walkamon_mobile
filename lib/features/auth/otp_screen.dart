@@ -110,119 +110,116 @@ class _OTPScreenState extends State<OTPScreen>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.arrow_back, color: primary, size: 24),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 360),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Mật Mã Thức Tỉnh',
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: primary,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Nhập 4 con số ma thuật đã được gửi đến hòm thư của bạn',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: mutedForeground,
-                                fontWeight: FontWeight.w500,
-                                height: 1.6,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(_controllers.length, (
-                                index,
-                              ) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                  ),
-                                  child: EggOtpField(
-                                    controller: _controllers[index],
-                                    focusNode: _focusNodes[index],
-                                    primary: primary,
-                                    textStyle: theme.textTheme.headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: primary,
-                                        ),
-                                    onChanged: (value) =>
-                                        _handleChange(index, value),
-                                    onSubmitted: () {
-                                      if (index == _controllers.length - 1) {
-                                        _handleVerify();
-                                      }
-                                    },
-                                  ),
-                                );
-                              }),
-                            ),
-
-                            const SizedBox(height: 24),
-                            ElevatedButton(
-                              onPressed: _handleVerify,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primary,
-                                foregroundColor: onPrimary,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                ),
-                                textStyle: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              child: const Text('Xác Nhận Thức Tỉnh'),
-                            ),
-                            const SizedBox(height: 22),
-                            Center(
-                              child: TextButton(
-                                onPressed: () {},
-                                child: Text(
-                                  'Gửi lại phép thuật',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.secondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+    return FadeTransition(
+      opacity: _opacityAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Stack(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 80,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Mật Mã Thức Tỉnh',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: primary,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Nhập 4 con số ma thuật đã được gửi đến hòm thư của bạn',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: mutedForeground,
+                          fontWeight: FontWeight.w500,
+                          height: 1.6,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_controllers.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: EggOtpField(
+                              controller: _controllers[index],
+                              focusNode: _focusNodes[index],
+                              primary: primary,
+                              textStyle: theme.textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: primary,
+                                  ),
+                              onChanged: (value) => _handleChange(index, value),
+                              onSubmitted: () {
+                                if (index == _controllers.length - 1) {
+                                  _handleVerify();
+                                }
+                              },
+                            ),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _handleVerify,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          textStyle: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: const Text('Xác Nhận Thức Tỉnh'),
+                      ),
+                      const SizedBox(height: 22),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Gửi lại phép thuật',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 16,
+              left: 24,
+              child: SafeArea(
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

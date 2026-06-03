@@ -17,10 +17,6 @@ class GoogleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.string(
-      _svg,
-      width: size,
-      height: size,
-    );
+    return SvgPicture.string(_svg, width: size, height: size);
   }
 }

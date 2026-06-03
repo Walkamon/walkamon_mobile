@@ -5,7 +5,9 @@ import 'package:walkamon_mobile/main.dart';
 import 'package:walkamon_mobile/providers/game_state_provider.dart';
 
 void main() {
-  testWidgets('Welcome screen renders Walkamon title', (WidgetTester tester) async {
+  testWidgets('Welcome screen renders Walkamon title', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       ChangeNotifierProvider(
         create: (_) => GameStateProvider(),

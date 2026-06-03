@@ -10,10 +10,7 @@ class PlaceholderScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
       ),
     );
   }
