@@ -13,9 +13,7 @@ BoxDecoration eggDecoration({
   final rx = width / 2;
   return BoxDecoration(
     color: color,
-    border: borderColor != null && borderWidth > 0
-        ? Border.all(color: borderColor, width: borderWidth)
-        : null,
+    // Removed border to eliminate yellow line on focus
     borderRadius: BorderRadius.only(
       topLeft: Radius.elliptical(rx, height * 0.60),
       topRight: Radius.elliptical(rx, height * 0.60),
@@ -70,7 +68,6 @@ class _EggOtpFieldState extends State<EggOtpField> {
   @override
   Widget build(BuildContext context) {
     final focused = widget.focusNode.hasFocus;
-
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -90,6 +87,7 @@ class _EggOtpFieldState extends State<EggOtpField> {
             textAlign: TextAlign.center,
             style: widget.textStyle,
             maxLength: 1,
+            showCursor: false,
             decoration: const InputDecoration(
               border: InputBorder.none,
               counterText: '',

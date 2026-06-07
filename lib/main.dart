@@ -6,11 +6,12 @@ import 'providers/game_state_provider.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
 
-import 'features/auth/forgot_password_screen.dart';
-import 'features/auth/login_screen.dart';
-import 'features/auth/otp_screen.dart';
-import 'features/placeholder/placeholder_screen.dart';
-import 'features/welcome/welcome_screen.dart';
+import 'screen/auth/forgot_password_screen.dart';
+import 'screen/auth/login_screen.dart';
+import 'screen/auth/otp_register_screen.dart';
+import 'screen/auth/register_screen.dart';
+import 'screen/placeholder/placeholder_screen.dart';
+import 'screen/welcome/welcome_screen.dart';
 
 void main() {
   runApp(const WalkamonApp());
@@ -53,7 +54,7 @@ class WalkamonApp extends StatelessWidget {
               // Auth screens — wrapped in AuthLayout (scrollable, max-w-md)
               '/auth/login': (_) => const AuthLayout(child: LoginScreen()),
               '/auth/register': (_) =>
-                  const AuthLayout(child: PlaceholderScreen(title: 'Đăng Ký')),
+                  const AuthLayout(child: RegisterScreen()),
               '/auth/forgot': (_) =>
                   const AuthLayout(child: ForgotPasswordScreen()),
               '/auth/otp': (_) => const AuthLayout(child: OTPScreen()),
