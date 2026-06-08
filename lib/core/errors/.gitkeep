@@ -1,0 +1,3 @@
+/*
+     Định nghĩa các lỗi tùy biến (Ví dụ: NetworkFailure, CacheFailure, AuthException) giúp kiểm soát lỗi tập trung.
+*/

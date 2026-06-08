@@ -1,5 +1,5 @@
 /// Hàm chuyển dịch các thông báo lỗi liên quan đến RegisterScreen.
-String translateRegisterError(String error) {
+String translateError(String error) {
   final err = error.trim().toLowerCase();
   
   if (err.contains('email already exists') || err.contains('email is already registered')) {
@@ -26,3 +26,6 @@ String translateRegisterError(String error) {
   
   return error.isNotEmpty ? error : 'Đã xảy ra lỗi không xác định.';
 }
+
+// Backward compatible alias
+String translateRegisterError(String error) => translateError(error);

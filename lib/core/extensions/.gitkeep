@@ -1,0 +1,3 @@
+/*
+Chứa các phương thức mở rộng (Extension Methods) giúp viết code Dart ngắn gọn hơn (Ví dụ: Định dạng chuỗi ngày tháng trực tiếp từ biến DateTime).
+*/
