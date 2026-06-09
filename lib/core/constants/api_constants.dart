@@ -7,4 +7,12 @@ class ApiConstants {
   static const String resendOtp = '/api/auth/register/resend-otp';
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetForgotPassword = '/api/auth/forgot-password/reset';
+
+  // Item Endpoints
+  static const String items = '/api/items';
+  static String itemById(String id) => '/api/items/$id';
+
+  // Item Type Endpoints
+  static const String itemTypes = '/api/item-types';
+  static String itemTypeById(String id) => '/api/item-types/$id';
 }
