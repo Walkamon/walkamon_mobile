@@ -17,6 +17,21 @@ String translateError(String error) {
   if (err.contains('too many requests') || err.contains('rate limit')) {
     return 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau vài phút.';
   }
+  if (err.contains('otp request is invalid')) {
+    return 'Mã yêu cầu OTP không hợp lệ.';
+  }
+  if (err.contains('otp has expired')) {
+    return 'Mã OTP đã hết hạn.';
+  }
+  if (err.contains('otp is invalid')) {
+    return 'Mã OTP không chính xác.';
+  }
+  if (err.contains('new password is required')) {
+    return 'Vui lòng nhập mật khẩu mới.';
+  }
+  if (err.contains('new password must')) {
+    return 'Mật khẩu mới chưa đáp ứng yêu cầu bảo mật.';
+  }
   if (err.contains('internal server error')) {
     return 'Lỗi hệ thống từ máy chủ. Vui lòng thử lại sau.';
   }
