@@ -10,6 +10,7 @@ import 'screen/auth/forgot_password_screen.dart';
 import 'screen/auth/login_screen.dart';
 import 'screen/auth/otp_register_screen.dart';
 import 'screen/auth/register_screen.dart';
+import 'screen/auth/reset_password_screen.dart';
 import 'screen/placeholder/placeholder_screen.dart';
 import 'screen/welcome/welcome_screen.dart';
 
@@ -57,6 +58,8 @@ class WalkamonApp extends StatelessWidget {
                   const AuthLayout(child: RegisterScreen()),
               '/auth/forgot': (_) =>
                   const AuthLayout(child: ForgotPasswordScreen()),
+                '/auth/reset-password': (_) =>
+                  const AuthLayout(child: ResetPasswordScreen()),
               '/auth/otp': (_) => const AuthLayout(child: OTPScreen()),
 
               // Main app — will be wrapped in MainLayout once BottomNav is ready

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/register_screen_error_translator.dart';
+import '../../data/repositories/forgot_password_screen_repository.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,9 +15,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final ForgotPasswordScreenRepository _authRepository =
+      ForgotPasswordScreenRepository();
   late final AnimationController _animationController;
   late final Animation<double> _opacityAnimation;
   late final Animation<Offset> _slideAnimation;
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
 
   @override
   void initState() {
@@ -43,8 +50,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     super.dispose();
   }
 
-  String? _emailErrorMessage() {
-    final trimmed = _emailController.text.trim();
+  String? _validateEmail(String? value) {
+    final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
       return 'Email không được để trống.';
     }
@@ -54,16 +61,57 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     return null;
   }
 
-  void _handleReset() {
-    final errorMessage = _emailErrorMessage();
-    if (errorMessage != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+  Future<void> _handleReset() async {
+    setState(() {
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    Navigator.pushNamed(context, '/auth/otp');
+    setState(() {
+      _isLoading = true;
+    });
+
+    final response = await _authRepository.forgotPassword(
+      email: _emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response.success && response.data != null) {
+      Navigator.pushNamed(
+        context,
+        '/auth/reset-password',
+        arguments: {
+          'requestCode': response.data!.requestCode,
+          'email': _emailController.text.trim(),
+        },
+      );
+      return;
+    }
+
+    if (response.success) {
+      setState(() {
+        _successMessage =
+            'Nếu email tồn tại, một mã OTP đặt lại mật khẩu đã được gửi.';
+      });
+      return;
+    }
+
+    setState(() {
+      _errorMessage = translateError(
+        response.message.isNotEmpty
+            ? response.message
+            : 'Không thể gửi yêu cầu đặt lại mật khẩu.',
+      );
+    });
   }
 
   @override
@@ -92,87 +140,146 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 360),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Lạc Mất Mật Mã?',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: primary,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Lạc Mất Mật Mã?',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: primary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Đừng lo! Hãy cho chúng tôi biết email của bạn và chúng tôi sẽ gửi một tín hiệu phép thuật để đánh thức nó.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: mutedForeground,
-                          fontWeight: FontWeight.w500,
-                          height: 1.6,
+                        const SizedBox(height: 12),
+                        Text(
+                          'Nhập email đã đăng ký, chúng tôi sẽ gửi mã OTP để bạn đặt lại mật khẩu.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: mutedForeground,
+                            fontWeight: FontWeight.w500,
+                            height: 1.6,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.directions_walk,
-                              size: 22,
-                              color: primary,
+                        const SizedBox(height: 20),
+                        if (_errorMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.send,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Email',
-                                  hintStyle: theme.textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: theme.colorScheme.onSurface
-                                            .withAlpha((0.6 * 255).round()),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                ),
-                                onFieldSubmitted: (_) => _handleReset(),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: theme.colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _handleReset,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (_successMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              _successMessage!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(32),
                           ),
-                          textStyle: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.directions_walk,
+                                size: 22,
+                                color: primary,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.send,
+                                  validator: _validateEmail,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Email',
+                                    hintStyle: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withAlpha((0.6 * 255).round()),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                  onFieldSubmitted: (_) => _handleReset(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: const Text('Gửi Tín Hiệu'),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleReset,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            textStyle: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text('Gửi Tín Hiệu'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
