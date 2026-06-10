@@ -62,11 +62,34 @@ class _LoginScreenState extends State<LoginScreen>
 
   // ── Business logic ────────────────────────────────────────────────────────
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
+    // 1. Kiểm tra validate form nếu có
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    context.read<GameStateProvider>().login();
-    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    final provider = context.read<GameStateProvider>();
+
+    // 2. Truyền text từ các Controller vào hàm login
+    final success = await provider.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    // 3. Điều hướng nếu thành công hoặc hiển thị SnackBar nếu thất bại
+    if (success) {
+      Navigator.pushReplacementNamed(
+        context,
+        '/home',
+      ); // hoặc route màn hình chính của bạn
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Đăng nhập thất bại.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -217,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
 
             // ── Back button với Opacity & Soft Shadow ───────────────────────
-            // ── Back button Tối Giản (Đã bỏ khung tròn, giữ Opacity & Shadow tinh tế) ──
+            // ── Back button Tối Giản  ──
             Positioned(
               top: 16,
               left:
@@ -230,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen>
                     padding: EdgeInsets.zero,
                     onPressed: () => Navigator.pushNamedAndRemoveUntil(
                       context,
-                      '/home',
+                      '/',
                       (route) => false,
                     ),
                     // Sử dụng drop-shadow trực tiếp lên biểu tượng để tạo chiều sâu mờ
