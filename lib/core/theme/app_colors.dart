@@ -14,6 +14,7 @@ abstract final class AppColors {
   static const lightLuminaGlow = Color(0xFFA7F3D0);
   static const lightLife = Color(0xFF4ADE80);
   static const lightBond = Color(0xFFF472B6);
+  static const lightDew = Color(0xFF38BDF8);
 
   // Dark mode — Deep Cozy Forest
   static const darkBackground = Color(0xFF1E2E24);
@@ -28,4 +29,5 @@ abstract final class AppColors {
   static const darkLuminaGlow = Color(0xFF8DB59C);
   static const darkLife = Color(0xFF34D399);
   static const darkBond = Color(0xFFEC4899);
+  static const darkDew = Color(0xFF7DD3FC);
 }

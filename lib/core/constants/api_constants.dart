@@ -8,6 +8,7 @@ class ApiConstants {
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetForgotPassword = '/api/auth/forgot-password/reset';
   static const String login = '/api/auth/login';
+  static const String logout = '/api/auth/logout';
 
   // Item Endpoints
   static const String items = '/api/items';
@@ -16,4 +17,9 @@ class ApiConstants {
   // Item Type Endpoints
   static const String itemTypes = '/api/item-types';
   static String itemTypeById(String id) => '/api/item-types/$id';
+
+  // Shop Endpoints
+  static const String shopItems = '/api/ShopItem';
+  static String shopItemById(String id) => '/api/ShopItem/$id';
+  static String buyShopItem(String id) => '/api/ShopItem/$id/purchase';
 }

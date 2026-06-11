@@ -88,10 +88,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (response.success && response.data != null) {
       Navigator.pushNamed(
         context,
-        '/auth/reset-password',
+        '/auth/otp',
         arguments: {
           'requestCode': response.data!.requestCode,
           'email': _emailController.text.trim(),
+          'nextRoute': '/auth/reset-password',
         },
       );
       return;
