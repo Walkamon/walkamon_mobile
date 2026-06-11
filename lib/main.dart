@@ -8,7 +8,7 @@ import 'widgets/layouts/auth_layout.dart';
 
 import 'screen/auth/forgot_password_screen.dart';
 import 'screen/auth/login_screen.dart';
-import 'screen/auth/otp_register_screen.dart';
+import 'screen/auth/otp_verification_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
