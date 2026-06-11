@@ -13,6 +13,8 @@ import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
 import 'screen/placeholder/placeholder_screen.dart';
+import 'screen/settings/seting.dart';
+import 'screen/shop/shop_screen.dart';
 import 'screen/welcome/welcome_screen.dart';
 
 void main() {
@@ -66,6 +68,8 @@ class WalkamonApp extends StatelessWidget {
               // Main app — will be wrapped in MainLayout once BottomNav is ready
               '/home': (_) => const PlaceholderScreen(title: 'Home'),
               '/inventory': (_) => const InventoryScreen(),
+              '/shop': (_) => const ShopScreen(),
+              '/settings': (_) => const SettingScreen(),
             },
           );
         },

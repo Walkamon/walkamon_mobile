@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
-import '../data/repositories/login_screen_repository.dart';
+
+import '../core/auth/token_storage.dart';
 import '../core/utils/login_screen_error_translator.dart';
+import '../data/repositories/login_screen_repository.dart';
+import '../data/repositories/setting_screen_repository.dart';
 
 class GameUser {
   const GameUser({
@@ -41,8 +44,8 @@ class GameSettings {
 }
 
 class GameStateProvider extends ChangeNotifier {
-  // Khởi tạo repository gọi API
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
+  final SettingScreenRepository _settingRepository = SettingScreenRepository();
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
@@ -82,11 +85,12 @@ class GameStateProvider extends ChangeNotifier {
     // Kiểm tra dựa trên flag 'success' và 'data' từ cấu trúc ApiResponse thực tế của bạn
     if (response.success && response.data != null) {
       // Đăng nhập thành công -> Map data từ LoginResponse vào GameUser cũ
+      TokenStorage.setToken(response.data!.token);
       _user = GameUser(
         name:
             response.data!.username ??
-            'Walker', // Lấy từ API hoặc dùng mặc định
-        level: 12, // Giữ nguyên các thông số mẫu ban đầu của bạn
+            'Walker',
+        level: 12,
         steps: 12000,
         coins: 1500,
       );
@@ -100,8 +104,15 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await _settingRepository.logout();
+
+    TokenStorage.clear();
     _user = null;
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -128,5 +139,22 @@ class GameStateProvider extends ChangeNotifier {
   void setHasSeenStory(bool seen) {
     _hasSeenStory = seen;
     notifyListeners();
+  }
+
+  bool canAfford(int price) => _user != null && _user!.coins >= price;
+
+  int get coins => _user?.coins ?? 1240;
+
+  Future<bool> buyShopItem({required int price}) async {
+    if (_user == null || _user!.coins < price) return false;
+
+    _user = GameUser(
+      name: _user!.name,
+      level: _user!.level,
+      steps: _user!.steps,
+      coins: _user!.coins - price,
+    );
+    notifyListeners();
+    return true;
   }
 }

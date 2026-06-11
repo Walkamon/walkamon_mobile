@@ -26,6 +26,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
   String? _requestCode;
   String? _email;
+  String? _otp;
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
@@ -34,10 +35,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_requestCode == null) {
-      final args = ModalRoute.of(context)?.settings.arguments
-          as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       _requestCode = args?['requestCode'] as String?;
       _email = args?['email'] as String?;
+      _otp = args?['otp'] as String?;
+      if (_otp != null && _otp!.isNotEmpty) {
+        _otpController.text = _otp!;
+      }
     }
   }
 
@@ -118,13 +123,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
       return;
     }
 
+    final otp = _otp ?? _otpController.text.trim();
+
     setState(() {
       _isLoading = true;
     });
 
     final response = await _authRepository.resetForgotPassword(
       requestCode: _requestCode!,
-      otp: _otpController.text.trim(),
+      otp: otp,
       newPassword: _newPasswordController.text,
     );
 
@@ -194,9 +201,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _email == null
-                              ? 'Nhập mã OTP trong email và chọn mật khẩu mới.'
-                              : 'Mã OTP đã được gửi đến $_email. Nhập mã và chọn mật khẩu mới.',
+                          _otp == null
+                              ? (_email == null
+                                    ? 'Nhập mã OTP trong email và chọn mật khẩu mới.'
+                                    : 'Mã OTP đã được gửi đến $_email. Nhập mã và chọn mật khẩu mới.')
+                              : (_email == null
+                                    ? 'Mã OTP đã được xác thực. Nhập mật khẩu mới.'
+                                    : 'Mã OTP đã được xác thực cho $_email. Nhập mật khẩu mới.'),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: mutedForeground,
                             fontWeight: FontWeight.w500,
@@ -226,43 +237,46 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                           ),
                           const SizedBox(height: 12),
                         ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: TextFormField(
-                            controller: _otpController,
-                            keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.next,
-                            maxLength: 6,
-                            validator: _validateOtp,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
+                        if (_otp == null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 16,
                             ),
-                            decoration: InputDecoration(
-                              counterText: '',
-                              hintText: 'Mã OTP 6 số',
-                              hintStyle: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withAlpha((0.6 * 255).round()),
-                                fontWeight: FontWeight.w600,
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: TextFormField(
+                              controller: _otpController,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              maxLength: 6,
+                              validator: _validateOtp,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSurface,
                               ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              prefixIcon: Icon(
-                                Icons.verified_rounded,
-                                color: primary,
+                              decoration: InputDecoration(
+                                counterText: '',
+                                hintText: 'Mã OTP 6 số',
+                                hintStyle: theme.textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withAlpha((0.6 * 255).round()),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                prefixIcon: Icon(
+                                  Icons.verified_rounded,
+                                  color: primary,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 16),
+                        ],
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 18,
@@ -284,8 +298,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                             decoration: InputDecoration(
                               hintText: 'Mật khẩu mới',
                               hintStyle: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withAlpha((0.6 * 255).round()),
+                                color: theme.colorScheme.onSurface.withAlpha(
+                                  (0.6 * 255).round(),
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                               border: InputBorder.none,
@@ -332,8 +347,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                             decoration: InputDecoration(
                               hintText: 'Xác nhận mật khẩu',
                               hintStyle: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withAlpha((0.6 * 255).round()),
+                                color: theme.colorScheme.onSurface.withAlpha(
+                                  (0.6 * 255).round(),
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                               border: InputBorder.none,

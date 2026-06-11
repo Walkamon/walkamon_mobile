@@ -4,11 +4,15 @@
 
 import 'package:dio/dio.dart';
 
+import '../auth/token_storage.dart';
+
 class AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Tạm thời chỉ chuyển tiếp request. 
-    // Khi có SharedPreferences / Secure Storage lưu token, ta sẽ lấy và gán vào header tại đây.
+    final token = TokenStorage.token;
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     super.onRequest(options, handler);
   }
 }
