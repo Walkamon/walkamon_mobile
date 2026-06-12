@@ -4,6 +4,8 @@ import '../core/auth/token_storage.dart';
 import '../core/utils/login_screen_error_translator.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
+import '../data/repositories/profile_view_screen_repository.dart';
+import '../data/models/profile_view_response.dart';
 
 class GameUser {
   const GameUser({
@@ -11,34 +13,54 @@ class GameUser {
     required this.level,
     required this.steps,
     required this.coins,
+    this.email = '',
+    this.id = '',
+    this.joinDate = 'Tháng 6, 2026',
+    // ── THÊM MỚI: Các trường thực tế từ DB Walkamon ──
+    this.bio = '',
+    this.gender = 'Chưa rõ',
+    this.dob = 'Chưa cập nhật',
+    this.avatarUrl = '',
   });
 
   final String name;
   final int level;
   final int steps;
   final int coins;
+  final String email;
+  final String id;
+  final String joinDate;
+  // ── THÊM MỚI ──
+  final String bio;
+  final String gender;
+  final String dob;
+  final String avatarUrl;
 }
 
 class GameSettings {
   const GameSettings({
-    this.darkMode = false,
+    this.darkMode = true,
     this.soundEnabled = true,
     this.notifications = true,
+    this.languageCode = 'vi-VN',
   });
 
   final bool darkMode;
   final bool soundEnabled;
   final bool notifications;
+  final String languageCode;
 
   GameSettings copyWith({
     bool? darkMode,
     bool? soundEnabled,
     bool? notifications,
+    String? languageCode,
   }) {
     return GameSettings(
       darkMode: darkMode ?? this.darkMode,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       notifications: notifications ?? this.notifications,
+      languageCode: languageCode ?? this.languageCode,
     );
   }
 }
@@ -46,6 +68,10 @@ class GameSettings {
 class GameStateProvider extends ChangeNotifier {
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
+  final ProfileViewScreenRepository _profileRepository;
+
+  // Cập nhật Constructor nhận vào repository được truyền từ tầng trên (hoặc Service Locator)
+  GameStateProvider(this._profileRepository);
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
@@ -54,6 +80,9 @@ class GameStateProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+
+  bool _isProfileLoading = false;
+  String? _profileErrorMessage;
 
   GameUser? get user => _user;
   GameSettings get settings => _settings;
@@ -64,12 +93,14 @@ class GameStateProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  bool get isProfileLoading => _isProfileLoading;
+  String? get profileErrorMessage => _profileErrorMessage;
+
   void setUser(GameUser? user) {
     _user = user;
     notifyListeners();
   }
 
-  // Chuyển thành Future<bool> và nhận diện dữ liệu email, password từ UI truyền xuống
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = null;
@@ -82,22 +113,25 @@ class GameStateProvider extends ChangeNotifier {
 
     _isLoading = false;
 
-    // Kiểm tra dựa trên flag 'success' và 'data' từ cấu trúc ApiResponse thực tế của bạn
     if (response.success && response.data != null) {
       // Đăng nhập thành công -> Map data từ LoginResponse vào GameUser cũ
       TokenStorage.setToken(response.data!.token);
+
       _user = GameUser(
-        name:
-            response.data!.username ??
-            'Walker',
-        level: 12,
-        steps: 12000,
-        coins: 1500,
+        id: response.data!.userId ?? '8492',
+        name: response.data!.username ?? 'Walker',
+        email: email,
+
+        // ── ĐÃ SỬA CHỖ NÀY: Dùng số cứng để không bị lỗi undefined_getter ──
+        level: 1,
+        steps: 0,
+        coins: 0,
+        joinDate: 'Tháng 6, 2026',
       );
+
       notifyListeners();
       return true;
     } else {
-      // Đọc chính xác thuộc tính 'message' từ ApiResponse để mang đi thông dịch sang tiếng Việt
       _errorMessage = translateError(response.message);
       notifyListeners();
       return false;
@@ -108,12 +142,64 @@ class GameStateProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await _settingRepository.logout();
+    try {
+      await _settingRepository.logout();
+    } catch (e) {
+      // Bỏ qua lỗi gọi API
+    }
 
     TokenStorage.clear();
     _user = null;
+    _profileErrorMessage = null;
     _isLoading = false;
     notifyListeners();
+  }
+
+  // ── Nhận dữ liệu trực tiếp từ Repository ──
+  Future<bool> fetchProfileDetail() async {
+    _isProfileLoading = true;
+    _profileErrorMessage = null;
+    notifyListeners();
+
+    try {
+      // Gọi Repo trả thẳng về Model ProfileViewResponse sạch sẽ
+      final profileData = await _profileRepository.getUserProfile();
+      _isProfileLoading = false;
+
+      // Đồng bộ nạp dữ liệu từ DB thực tế vào đối tượng GameUser hiện tại
+      _user = GameUser(
+        name: profileData.username,
+        level: _user?.level ?? 1, // Cày cuốc từ hệ thống game
+        steps: _user?.steps ?? 0, // Đồng bộ từ bảng daily_steps
+        coins: _user?.coins ?? 0, // Đồng bộ từ ví tiền wallets
+        email: profileData.email,
+        id: _user?.id ?? '',
+        joinDate: _user?.joinDate ?? 'Tháng 6, 2026',
+        bio: profileData.bio,
+        gender: profileData.gender,
+        dob: profileData.formattedDob,
+        avatarUrl: profileData.avatarUrl,
+      );
+
+      // Cập nhật cấu hình ứng dụng từ profile_settings người dùng lưu trong DB
+      _settings = _settings.copyWith(
+        // Tạm thời comment dòng này lại để khi fetch API Profile không bị ghi đè theme hiện tại của app
+        // darkMode: profileData.themeCode == 'dark',
+        notifications: profileData.notificationsEnabled,
+        languageCode: profileData.languageCode,
+      );
+
+      _hasSeenStory = profileData.hasSeenStory;
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isProfileLoading = false;
+      // Dịch lỗi nếu e là chuỗi hoặc dùng lỗi hệ thống mặc định
+      _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
   }
 
   void updateSettings({
