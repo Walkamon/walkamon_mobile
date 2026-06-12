@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,6 +21,12 @@ class _LoginScreenState extends State<LoginScreen>
   late final AnimationController _animController;
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
+
+  // Biến trạng thái ẩn/hiện mật khẩu (Con mắt)
+  bool _obscurePassword = true;
+
+  // Biến lưu trữ thông báo lỗi để hiển thị trực tiếp trên giao diện dạng dọc
+  String? _inlineErrorMessage;
 
   @override
   void initState() {
@@ -63,12 +70,14 @@ class _LoginScreenState extends State<LoginScreen>
   // ── Business logic ────────────────────────────────────────────────────────
 
   Future<void> _handleLogin() async {
-    // 1. Kiểm tra validate form nếu có
+    setState(() {
+      _inlineErrorMessage = null; // Reset xóa thông báo lỗi cũ
+    });
+
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final provider = context.read<GameStateProvider>();
 
-    // 2. Truyền text từ các Controller vào hàm login
     final success = await provider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -76,19 +85,17 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (!mounted) return;
 
-    // 3. Điều hướng nếu thành công hoặc hiển thị SnackBar nếu thất bại
     if (success) {
-      Navigator.pushReplacementNamed(
-        context,
-        '/home',
-      ); // hoặc route màn hình chính của bạn
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.errorMessage ?? 'Đăng nhập thất bại.'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      // Đọc chuỗi lỗi từ Provider ném lên
+      final rawError = provider.errorMessage ?? 'Đăng nhập thất bại.';
+      final cleanError = rawError.replaceAll('Exception: ', '').trim();
+
+      setState(() {
+        // ── KÍCH HOẠT DỊCH SANG TIẾNG VIỆT VÀ ĐƯA LÊN BANNER UI ──
+        _inlineErrorMessage = translateLoginError(cleanError);
+      });
     }
   }
 
@@ -112,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen>
         position: _slide,
         child: Stack(
           children: [
-            // Center content
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -127,7 +133,6 @@ class _LoginScreenState extends State<LoginScreen>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // h1
                         Text(
                           'Chào mừng trở lại!',
                           style: theme.textTheme.headlineMedium?.copyWith(
@@ -144,7 +149,88 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 1.6,
                           ),
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 32),
+
+                        // ── STYLE BANNER LỖI CAO CẤP MƯỢT MÀ GIỮ NGUYÊN ──
+                        if (_inlineErrorMessage != null) ...[
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.06,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: theme.colorScheme.error.withValues(
+                                  alpha: 0.18,
+                                ),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.colorScheme.error.withValues(
+                                    alpha: 0.03,
+                                  ),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.error.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.report_problem_rounded,
+                                    color: theme.colorScheme.error,
+                                    size: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Gặp sự cố lữ hành',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme.colorScheme.error
+                                                  .withValues(alpha: 0.7),
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.3,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _inlineErrorMessage!,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color: theme.colorScheme.error,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
 
                         // ── Email field ──────────────────────────────
                         _PillField(
@@ -159,21 +245,36 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 16),
 
-                        // ── Password field ───────────────────────────
+                        // ── Password field (ĐÃ FIX: Đưa lại suffixWidget vào đúng chỗ) ──
                         _PillField(
                           controller: _passwordController,
                           hint: 'Mật khẩu',
                           icon: Icons.key_rounded,
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           cardColor: cardColor,
                           primary: primary,
                           validator: _validatePassword,
                           onFieldSubmitted: (_) => _handleLogin(),
+                          suffixWidget: IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_rounded
+                                  : Icons.visibility_rounded,
+                              size: 20,
+                              color: primary.withValues(alpha: 0.6),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
                         const SizedBox(height: 8),
 
-                        // ── Forgot password ──────────────────────────
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -196,7 +297,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 24),
 
-                        // ── Submit button ─────────────────────────────
                         _TapScaleButton(
                           onPressed: _handleLogin,
                           backgroundColor: primary,
@@ -205,7 +305,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 40),
 
-                        // ── Register link ─────────────────────────────
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -239,12 +338,9 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
 
-            // ── Back button với Opacity & Soft Shadow ───────────────────────
-            // ── Back button Tối Giản  ──
             Positioned(
               top: 16,
-              left:
-                  16, // Nhích vào một chút nhìn sẽ cân đối hơn khi không còn khung tròn
+              left: 16,
               child: SafeArea(
                 child: SizedBox(
                   width: 40,
@@ -256,14 +352,10 @@ class _LoginScreenState extends State<LoginScreen>
                       '/',
                       (route) => false,
                     ),
-                    // Sử dụng drop-shadow trực tiếp lên biểu tượng để tạo chiều sâu mờ
                     icon: Icon(
                       Icons.arrow_back,
-                      color: primary.withValues(
-                        alpha: 0.9,
-                      ), // Giảm gắt màu nhẹ nhàng
-                      size:
-                          24, // Tăng nhẹ size icon lên 24 nhìn sẽ đứng form hơn
+                      color: primary.withValues(alpha: 0.9),
+                      size: 24,
                       shadows: [
                         Shadow(
                           color: Colors.black.withValues(alpha: 0.1),
@@ -283,8 +375,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ── Pill-shaped input field (Đã tinh chỉnh bóng mịn, bỏ border) ─────────────────
-
+// ── Pill-shaped input field (ĐÃ FIX: Đưa suffixWidget vào Constructor để nhận dữ liệu) ──
 class _PillField extends StatelessWidget {
   const _PillField({
     required this.controller,
@@ -297,6 +388,7 @@ class _PillField extends StatelessWidget {
     this.textInputAction,
     this.validator,
     this.onFieldSubmitted,
+    this.suffixWidget, // Thêm dòng khai báo này vào đây để tránh lỗi
   });
 
   final TextEditingController controller;
@@ -309,6 +401,7 @@ class _PillField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onFieldSubmitted;
+  final Widget? suffixWidget; // Thêm biến lưu trữ Widget con mắt ẩn/hiện
 
   @override
   Widget build(BuildContext context) {
@@ -317,26 +410,19 @@ class _PillField extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
-        color: cardColor.withValues(
-          alpha: 0.95,
-        ), // Kết hợp Opacity nền nhẹ nhàng
+        color: cardColor.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(32),
-        // Đã BỎ Border thô hoàn toàn
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04), // Đổ bóng siêu dịu
+            color: Colors.black.withValues(alpha: 0.04),
             offset: const Offset(0, 4),
-            blurRadius: 16, // Tăng độ nhòe cho bóng mịn hơn
+            blurRadius: 16,
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: primary.withValues(alpha: 0.85),
-          ), // Giảm gắt màu icon
+          Icon(icon, size: 20, color: primary.withValues(alpha: 0.85)),
           const SizedBox(width: 14),
           Expanded(
             child: TextFormField(
@@ -361,14 +447,17 @@ class _PillField extends StatelessWidget {
               onFieldSubmitted: onFieldSubmitted,
             ),
           ),
+          if (suffixWidget != null) ...[
+            const SizedBox(width: 10),
+            suffixWidget!,
+          ],
         ],
       ),
     );
   }
 }
 
-// ── Tap-scale submit button (Bóng đổ mịn tự nhiên) ───────────────────────────
-
+// ── Tap-scale submit button ───────────────────────────
 class _TapScaleButton extends StatefulWidget {
   const _TapScaleButton({
     required this.onPressed,
@@ -402,13 +491,11 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
-              // Lớp bóng mịn diện rộng để tạo chiều sâu cao cấp
               BoxShadow(
                 color: widget.backgroundColor.withValues(alpha: 0.15),
                 offset: const Offset(0, 8),
                 blurRadius: 20,
               ),
-              // Lớp bóng định hình khối sát chân nút
               BoxShadow(
                 color: widget.backgroundColor.withValues(alpha: 0.1),
                 offset: const Offset(0, 2),
@@ -428,7 +515,7 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
                   widget.label,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 17, // Giảm nhẹ 1px nhìn sẽ thanh thoát hơn hẳn
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: widget.foregroundColor,
                     letterSpacing: 0.5,
