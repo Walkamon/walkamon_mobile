@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/screen/home/home_screen.dart';
+
+import 'core/network/api_client.dart';
+import 'data/datasources/remote/profile_view_screen_datasource.dart';
+import 'data/repositories/profile_view_screen_repository.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
@@ -12,10 +17,12 @@ import 'screen/auth/otp_verification_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
-import 'screen/placeholder/placeholder_screen.dart';
 import 'screen/settings/seting.dart';
 import 'screen/shop/shop_screen.dart';
+
 import 'screen/welcome/welcome_screen.dart';
+import 'screen/profile/profile_menu_screen.dart';
+import 'screen/profile/profile_view_screen.dart';
 
 void main() {
   runApp(const WalkamonApp());
@@ -26,8 +33,13 @@ class WalkamonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiClient = ApiClient();
+    final profileRepository = ProfileViewScreenRepository(
+      ProfileViewScreenDatasource(apiClient),
+    );
+
     return ChangeNotifierProvider(
-      create: (_) => GameStateProvider(),
+      create: (_) => GameStateProvider(profileRepository),
       child: Consumer<GameStateProvider>(
         builder: (context, gameState, _) {
           return MaterialApp(
@@ -41,35 +53,101 @@ class WalkamonApp extends StatelessWidget {
                 ? ThemeMode.dark
                 : ThemeMode.light,
 
-            // ── RootLayout + Toaster (replaces ThemeProvider + Sonner) ─
-            // Wraps every screen in the paw-print background texture.
             scaffoldMessengerKey: RootLayout.messengerKey,
             builder: (context, child) => RootLayout(child: child!),
 
-            // ── Routes ─────────────────────────────────────────────────
+            // ── CẤU HÌNH ĐIỀU HƯỚNG AN TOÀN (ROUTE GUARD) ──────────────────
             initialRoute: '/',
-            routes: {
-              // Welcome — full-screen, no auth chrome
-              '/': (_) => const WelcomeScreen(),
 
-              // Story placeholder
-              '/story': (_) => const PlaceholderScreen(title: 'Story'),
+            onGenerateRoute: (settings) {
+              // 1. Lấy trạng thái đăng nhập thực tế của người dùng từ Provider
+              final bool isLogged = gameState.isAuthenticated;
+              final String? routeName = settings.name;
 
-              // Auth screens — wrapped in AuthLayout (scrollable, max-w-md)
-              '/auth/login': (_) => const AuthLayout(child: LoginScreen()),
-              '/auth/register': (_) =>
-                  const AuthLayout(child: RegisterScreen()),
-              '/auth/forgot': (_) =>
-                  const AuthLayout(child: ForgotPasswordScreen()),
-                '/auth/reset-password': (_) =>
-                  const AuthLayout(child: ResetPasswordScreen()),
-              '/auth/otp': (_) => const AuthLayout(child: OTPScreen()),
+              // 2. Định nghĩa danh sách các Route cần bảo mật (Private)
+              final privateRoutes = [
+                '/home',
+                '/inventory',
+                '/shop', // Đã thêm route mới
+                '/settings', // Đã thêm route mới
+                '/profile',
+                '/profile/view',
+              ];
 
-              // Main app — will be wrapped in MainLayout once BottomNav is ready
-              '/home': (_) => const PlaceholderScreen(title: 'Home'),
-              '/inventory': (_) => const InventoryScreen(),
-              '/shop': (_) => const ShopScreen(),
-              '/settings': (_) => const SettingScreen(),
+              // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
+              if (!isLogged && privateRoutes.contains(routeName)) {
+                return MaterialPageRoute(
+                  builder: (_) => const AuthLayout(child: LoginScreen()),
+                  settings: const RouteSettings(
+                    name: '/auth/login',
+                  ), // Giữ đúng lịch sử định tuyến
+                );
+              }
+
+              // 4. LOGIC CHẶN CỬA 2 (Tùy chọn UX): Đã đăng nhập rồi mà cố quay lại trang Welcome hoặc Login
+              // -> Tự động chuyển thẳng họ vào trang chủ /home luôn cho tiện.
+              if (isLogged &&
+                  (routeName == '/' ||
+                      routeName == '/auth/login' ||
+                      routeName == '/auth/register')) {
+                return MaterialPageRoute(
+                  builder: (_) => const HomeScreen(title: 'Home'),
+                  settings: const RouteSettings(name: '/home'),
+                );
+              }
+
+              // 5. Nếu vượt qua các bộ lọc trên, tiến hành phân phối màn hình như bình thường
+              WidgetBuilder builder;
+              switch (routeName) {
+                // Các tuyến đường Public công cộng
+                case '/':
+                  builder = (_) => const WelcomeScreen();
+                  break;
+                case '/auth/login':
+                  builder = (_) => const AuthLayout(child: LoginScreen());
+                  break;
+                case '/auth/register':
+                  builder = (_) => const AuthLayout(child: RegisterScreen());
+                  break;
+                case '/auth/forgot':
+                  builder = (_) =>
+                      const AuthLayout(child: ForgotPasswordScreen());
+                  break;
+                case '/auth/reset-password':
+                  builder = (_) =>
+                      const AuthLayout(child: ResetPasswordScreen());
+                  break;
+                case '/auth/otp':
+                  builder = (_) => const AuthLayout(child: OTPScreen());
+                  break;
+
+                // Các tuyến đường Private bảo mật
+                case '/home':
+                  builder = (_) => const HomeScreen(title: 'Home');
+                  break;
+                case '/inventory':
+                  builder = (_) => const InventoryScreen();
+                  break;
+                case '/shop':
+                  builder = (_) => const ShopScreen(); // Đã thêm màn hình Shop
+                  break;
+                case '/settings':
+                  builder = (_) =>
+                      const SettingScreen(); // Đã thêm màn hình Settings
+                  break;
+                case '/profile':
+                  builder = (_) => const ProfileMenuScreen();
+                  break;
+                case '/profile/view':
+                  builder = (_) => const ProfileViewScreen();
+                  break;
+
+                // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng
+                default:
+                  builder = (_) => const WelcomeScreen();
+              }
+
+              return MaterialPageRoute(builder: builder, settings: settings);
             },
           );
         },

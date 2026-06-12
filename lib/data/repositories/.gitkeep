@@ -1,3 +1,0 @@
-/*
-Nơi đưa ra quyết định: "Khi giao diện yêu cầu lấy thông tin Pet, tôi nên lấy từ local (offline) hay remote (gọi mạng)?". Nó kết hợp dữ liệu giữa Local và Remote rồi trả kết quả cuối cùng cho UI.
-*/

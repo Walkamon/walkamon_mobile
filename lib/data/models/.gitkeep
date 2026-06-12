@@ -1,3 +1,0 @@
-/*
-    Server trả JSON ➡️ Parse thẳng vào PetModel (data/models) ➡️ UI hiển thị luôn.
-*/
