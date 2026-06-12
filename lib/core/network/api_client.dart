@@ -16,7 +16,7 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.post(path, data: data);
-      
+
       if (response.data is Map<String, dynamic>) {
         return ApiResponse<T>.fromJson(
           response.data as Map<String, dynamic>,
@@ -42,11 +42,7 @@ class ApiClient {
         message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
       );
     } catch (e) {
-      return ApiResponse<T>(
-        success: false,
-        status: -1,
-        message: e.toString(),
-      );
+      return ApiResponse<T>(success: false, status: -1, message: e.toString());
     }
   }
 
@@ -57,7 +53,7 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.get(path, queryParameters: queryParameters);
-      
+
       if (response.data is Map<String, dynamic>) {
         return ApiResponse<T>.fromJson(
           response.data as Map<String, dynamic>,
@@ -83,11 +79,81 @@ class ApiClient {
         message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
       );
     } catch (e) {
+      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+    }
+  }
+
+  Future<ApiResponse<T>> put<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic json)? fromJsonT,
+  }) async {
+    try {
+      final response = await _dio.put(path, data: data);
+
+      if (response.data is Map<String, dynamic>) {
+        return ApiResponse<T>.fromJson(
+          response.data as Map<String, dynamic>,
+          fromJsonT,
+        );
+      } else {
+        return ApiResponse<T>(
+          success: false,
+          status: response.statusCode ?? 0,
+          message: 'Dữ liệu phản hồi không đúng định dạng.',
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data is Map<String, dynamic>) {
+        return ApiResponse<T>.fromJson(
+          e.response!.data as Map<String, dynamic>,
+          fromJsonT,
+        );
+      }
       return ApiResponse<T>(
         success: false,
-        status: -1,
-        message: e.toString(),
+        status: e.response?.statusCode ?? 0,
+        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
       );
+    } catch (e) {
+      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+    }
+  }
+
+  Future<ApiResponse<T>> delete<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic json)? fromJsonT,
+  }) async {
+    try {
+      final response = await _dio.delete(path, data: data);
+
+      if (response.data is Map<String, dynamic>) {
+        return ApiResponse<T>.fromJson(
+          response.data as Map<String, dynamic>,
+          fromJsonT,
+        );
+      } else {
+        return ApiResponse<T>(
+          success: false,
+          status: response.statusCode ?? 0,
+          message: 'Dữ liệu phản hồi không đúng định dạng.',
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data is Map<String, dynamic>) {
+        return ApiResponse<T>.fromJson(
+          e.response!.data as Map<String, dynamic>,
+          fromJsonT,
+        );
+      }
+      return ApiResponse<T>(
+        success: false,
+        status: e.response?.statusCode ?? 0,
+        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+      );
+    } catch (e) {
+      return ApiResponse<T>(success: false, status: -1, message: e.toString());
     }
   }
 }
