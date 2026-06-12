@@ -9,6 +9,7 @@ class ProfileViewResponse {
   final String themeCode;
   final bool hasSeenStory;
   final bool notificationsEnabled;
+  final String createdAt;
 
   ProfileViewResponse({
     required this.email,
@@ -21,6 +22,7 @@ class ProfileViewResponse {
     required this.themeCode,
     required this.hasSeenStory,
     required this.notificationsEnabled,
+    required this.createdAt,
   });
 
   factory ProfileViewResponse.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class ProfileViewResponse {
       themeCode: json['themeCode'] ?? 'dark',
       hasSeenStory: json['hasSeenStory'] ?? false,
       notificationsEnabled: json['notificationsEnabled'] ?? true,
+      createdAt: json['createdAt'] as String? ?? '',
     );
   }
 

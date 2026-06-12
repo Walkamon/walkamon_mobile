@@ -19,6 +19,23 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
     });
   }
 
+  // Hàm helper dùng để chuyển đổi chuỗi định dạng từ API ISO (yyyy-MM-ddTHH:mm:ss) sang dd/MM/yyyy
+  String _formatJoinDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return 'Chưa cập nhật';
+    try {
+      // Ép kiểu chuỗi của Backend trả về sang đối tượng DateTime
+      final parsedDate = DateTime.parse(rawDate);
+      // Trả về chuỗi định dạng dd/MM/yyyy sạch đẹp
+      final day = parsedDate.day.toString().padLeft(2, '0');
+      final month = parsedDate.month.toString().padLeft(2, '0');
+      final year = parsedDate.year;
+      return '$day/$month/$year';
+    } catch (e) {
+      // Phòng hờ nếu biến joinDate của bồ trong model đã được định dạng sẵn trước đó rồi
+      return rawDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -120,6 +137,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     );
                   }
 
+                  // Kiểm tra trạng thái trống của bio để hiển thị "Chưa cập nhật" hay chữ thường
+                  final bool isBioEmpty =
+                      user.bio.trim().isEmpty || user.bio == 'Chưa cập nhật';
+
                   // 4. HIỂN THỊ DỮ LIỆU TỪ DATABASE THÀNH CÔNG
                   return ListView(
                     physics: const BouncingScrollPhysics(),
@@ -183,18 +204,18 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (user.bio.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              user.bio,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark ? Colors.white70 : Colors.black54,
-                                fontStyle: FontStyle.italic,
-                              ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isBioEmpty ? 'Chưa cập nhật' : user.bio,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: isBioEmpty
+                                  ? Colors.grey
+                                  : (isDark ? Colors.white70 : Colors.black54),
                             ),
-                          ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -228,13 +249,19 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             _DetailRow(
                               icon: Icons.person_rounded,
                               label: 'Giới tính',
-                              value: user.gender,
+                              value: switch (user.gender.toLowerCase()) {
+                                'male' => 'Nam',
+                                'female' => 'Nữ',
+                                'other' => 'Khác',
+                                _ => user.gender,
+                              },
                             ),
                             Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.card_membership_rounded,
                               label: 'Ngày tham gia',
-                              value: user.joinDate,
+                              // ĐÃ ĐỊNH DẠNG LẠI CHUỖI CREATEDAT SANG DD/MM/YYYY TẠI ĐÂY
+                              value: _formatJoinDate(user.joinDate),
                             ),
                           ],
                         ),
@@ -243,12 +270,12 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
 
                       // Nút Đăng xuất
                       ElevatedButton(
-                        onPressed: () {
-                          context.read<GameStateProvider>().logout();
-                          // Điều hướng quay lại màn hình Login và xóa sạch lịch sử điều hướng trước đó
+                        onPressed: () async {
+                          await context.read<GameStateProvider>().logout();
+                          if (!context.mounted) return;
                           Navigator.pushNamedAndRemoveUntil(
                             context,
-                            '/auth/login', 
+                            '/auth/login',
                             (route) => false,
                           );
                         },

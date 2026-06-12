@@ -23,6 +23,7 @@ import 'screen/shop/shop_screen.dart';
 import 'screen/welcome/welcome_screen.dart';
 import 'screen/profile/profile_menu_screen.dart';
 import 'screen/profile/profile_view_screen.dart';
+import 'screen/profile/edit_profile_screen.dart';
 
 void main() {
   runApp(const WalkamonApp());
@@ -68,10 +69,11 @@ class WalkamonApp extends StatelessWidget {
               final privateRoutes = [
                 '/home',
                 '/inventory',
-                '/shop', // Đã thêm route mới
-                '/settings', // Đã thêm route mới
+                '/shop',
+                '/settings',
                 '/profile',
                 '/profile/view',
+                '/profile/edit',
               ];
 
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
@@ -140,6 +142,10 @@ class WalkamonApp extends StatelessWidget {
                   break;
                 case '/profile/view':
                   builder = (_) => const ProfileViewScreen();
+                  break;
+
+                case '/profile/edit':
+                  builder = (_) => const EditProfileScreen();
                   break;
 
                 // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng

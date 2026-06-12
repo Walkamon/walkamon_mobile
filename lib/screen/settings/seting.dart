@@ -79,8 +79,12 @@ class _LogoutButtonState extends State<_LogoutButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: widget.isLoading ? null : (_) => setState(() => _pressed = true),
-      onTapUp: widget.isLoading ? null : (_) => setState(() => _pressed = false),
+      onTapDown: widget.isLoading
+          ? null
+          : (_) => setState(() => _pressed = true),
+      onTapUp: widget.isLoading
+          ? null
+          : (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
       onTap: widget.isLoading ? null : widget.onPressed,
       child: AnimatedScale(

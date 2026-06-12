@@ -118,15 +118,13 @@ class GameStateProvider extends ChangeNotifier {
       TokenStorage.setToken(response.data!.token);
 
       _user = GameUser(
-        id: response.data!.userId ?? '8492',
-        name: response.data!.username ?? 'Walker',
+        id: response.data!.userId ?? '0',
+        name: response.data!.username ?? 'Lữ Hành Giả',
         email: email,
-
-        // ── ĐÃ SỬA CHỖ NÀY: Dùng số cứng để không bị lỗi undefined_getter ──
         level: 1,
         steps: 0,
         coins: 0,
-        joinDate: 'Tháng 6, 2026',
+        joinDate: 'Chưa có dữ liệu',
       );
 
       notifyListeners();
@@ -174,7 +172,9 @@ class GameStateProvider extends ChangeNotifier {
         coins: _user?.coins ?? 0, // Đồng bộ từ ví tiền wallets
         email: profileData.email,
         id: _user?.id ?? '',
-        joinDate: _user?.joinDate ?? 'Tháng 6, 2026',
+        joinDate: profileData.createdAt.isNotEmpty
+            ? profileData.createdAt
+            : 'Chưa có dữ liệu',
         bio: profileData.bio,
         gender: profileData.gender,
         dob: profileData.formattedDob,
@@ -196,6 +196,68 @@ class GameStateProvider extends ChangeNotifier {
     } catch (e) {
       _isProfileLoading = false;
       // Dịch lỗi nếu e là chuỗi hoặc dùng lỗi hệ thống mặc định
+      _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ── THÊM MỚI: Xử lý lưu thông tin chỉnh sửa hồ sơ lên API & RAM ──
+  Future<bool> updateProfile({
+    required String name,
+    required String gender,
+    required DateTime dob,
+    required String bio,
+    String? localAvatarPath,
+    Uint8List? imageBytes,
+  }) async {
+    _isProfileLoading = true;
+    _profileErrorMessage = null;
+    notifyListeners();
+
+    try {
+      final cleanBio = bio.trim().isEmpty ? "Chưa cập nhật" : bio.trim();
+      // Định dạng ngày sinh sang chuỗi yyyy-MM-dd để Backend C# nhận diện đúng kiểu dữ liệu
+      final dobStringForApi =
+          "${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}";
+
+      // Định dạng dd/MM/yyyy giúp gán trực tiếp vào GameUser hiển thị ngay lên UI không bị lệch format
+      final dobStringForUi =
+          "${dob.day.toString().padLeft(2, '0')}/${dob.month.toString().padLeft(2, '0')}/${dob.year}";
+
+      // Gọi repository đẩy dữ liệu cập nhật xuống datasource
+      await _profileRepository.updateUserProfile(
+        username: name,
+        gender: gender,
+        dob: dobStringForApi,
+        bio: cleanBio,
+        // localAvatarPath: localAvatarPath, // (Bật lên nếu repo nhận path)
+        imageBytes: imageBytes, // (Bật lên nếu repo nhận bytes)
+      );
+
+      _isProfileLoading = false;
+
+      // Cập nhật nóng vào RAM cục bộ để toàn bộ màn hình Game thay đổi tức thì mà không cần reload app
+      if (_user != null) {
+        _user = GameUser(
+          name: name,
+          level: _user!.level,
+          steps: _user!.steps,
+          coins: _user!.coins,
+          email: _user!.email,
+          id: _user!.id,
+          joinDate: _user!.joinDate,
+          bio: bio,
+          gender: gender,
+          dob: dobStringForUi,
+          avatarUrl: _user!.avatarUrl,
+        );
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isProfileLoading = false;
       _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
       return false;
