@@ -21,10 +21,34 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic json)? fromJsonT,
   ) {
+    // 1. Lấy message chuẩn nếu có
+    String parsedMessage = json['message']?.toString() ?? '';
+
+    // 2. Xử lý trường hợp backend C# trả về lỗi FluentValidation (RFC 7807 ProblemDetails)
+    if (parsedMessage.isEmpty && json.containsKey('errors') && json['errors'] is Map) {
+      final Map<String, dynamic> validationErrors = json['errors'];
+      List<String> allMessages = [];
+
+      validationErrors.forEach((key, value) {
+        if (value is List) {
+          allMessages.addAll(value.map((item) => item.toString()));
+        } else if (value is String) {
+          allMessages.add(value);
+        }
+      });
+
+      if (allMessages.isNotEmpty) {
+        parsedMessage = allMessages.join(', ');
+      }
+    } else if (parsedMessage.isEmpty && json.containsKey('title')) {
+      // Fallback lấy title của lỗi HTTP
+      parsedMessage = json['title'].toString();
+    }
+
     return ApiResponse<T>(
       success: json['success'] ?? false,
       status: json['status'] ?? 0,
-      message: json['message'] ?? '',
+      message: parsedMessage,
       data: (json['data'] != null && fromJsonT != null)
           ? fromJsonT(json['data'])
           : null,
