@@ -202,6 +202,11 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
+  void setLanguageCode(String languageCode) {
+    _settings = _settings.copyWith(languageCode: languageCode);
+    notifyListeners();
+  }
+
   // ── THÊM MỚI: Xử lý lưu thông tin chỉnh sửa hồ sơ lên API & RAM ──
   Future<bool> updateProfile({
     required String name,
@@ -264,6 +269,45 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> sendFeedback({
+    required String content,
+    required String feedbackTypeCode,
+  }) async {
+    // Deprecated: simple bool. Newer implementation handled below in sendFeedbackWithCooldown.
+    try {
+      return await _settingRepository.sendFeedback(
+        content: content,
+        feedbackTypeCode: feedbackTypeCode,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Result object for feedback send attempts
+
+  // Sends feedback with a 24-hour cooldown stored in SharedPreferences.
+  Future<FeedbackResult> sendFeedbackWithCooldown({
+    required String content,
+    required String feedbackTypeCode,
+  }) async {
+    try {
+      // Removed cooldown: always attempt to send feedback immediately.
+      final ok = await _settingRepository.sendFeedback(
+        content: content,
+        feedbackTypeCode: feedbackTypeCode,
+      );
+
+      if (ok) {
+        return FeedbackResult(success: true);
+      }
+
+      return FeedbackResult(success: false, message: 'Gửi phản hồi thất bại.');
+    } catch (e) {
+      return FeedbackResult(success: false, message: e.toString());
+    }
+  }
+
   void updateSettings({
     bool? darkMode,
     bool? soundEnabled,
@@ -305,4 +349,12 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
     return true;
   }
+}
+
+class FeedbackResult {
+  final bool success;
+  final String? message;
+  final Duration? retryAfter;
+
+  FeedbackResult({required this.success, this.message, this.retryAfter});
 }
