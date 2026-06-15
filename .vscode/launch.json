@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "walkamon_mobile",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "walkamon_mobile (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "walkamon_mobile (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "Flutter Web (Port 8080)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--web-port",
+                "8080",
+                "--web-browser-flag",
+                "--disable-web-security"
+            ]
+        },
+         {
+            "name": "Flutter Mobile Emulator (Port 8181)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dds-port",
+                "8181"
+            ]
+        }
+    ]
+}

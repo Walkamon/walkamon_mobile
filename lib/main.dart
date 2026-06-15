@@ -14,10 +14,11 @@ import 'widgets/layouts/auth_layout.dart';
 import 'screen/auth/forgot_password_screen.dart';
 import 'screen/auth/login_screen.dart';
 import 'screen/auth/otp_verification_screen.dart';
+import 'screen/auth/otp_register_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
-import 'screen/settings/seting.dart';
+import 'screen/settings/seting_screen.dart';
 import 'screen/shop/shop_screen.dart';
 
 import 'screen/welcome/welcome_screen.dart';
@@ -119,8 +120,12 @@ class WalkamonApp extends StatelessWidget {
                   builder = (_) =>
                       const AuthLayout(child: ResetPasswordScreen());
                   break;
-                case '/auth/otp':
-                  builder = (_) => const AuthLayout(child: OTPScreen());
+                case '/auth/otp_verification':
+                  builder = (_) => const AuthLayout(child: OTP_Verification());
+                  break;
+
+                case '/auth/otp_register':
+                  builder = (_) => const AuthLayout(child: OTP_Register());
                   break;
 
                 // Các tuyến đường Private bảo mật

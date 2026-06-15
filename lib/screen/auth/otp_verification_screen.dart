@@ -7,14 +7,14 @@ import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
 
-class OTPScreen extends StatefulWidget {
-  const OTPScreen({super.key});
+class OTP_Verification extends StatefulWidget {
+  const OTP_Verification({super.key});
 
   @override
-  State<OTPScreen> createState() => _OTPScreenState();
+  State<OTP_Verification> createState() => _OTP_VerificationState();
 }
 
-class _OTPScreenState extends State<OTPScreen>
+class _OTP_VerificationState extends State<OTP_Verification>
     with SingleTickerProviderStateMixin {
   final List<TextEditingController> _controllers = List.generate(
     6,
