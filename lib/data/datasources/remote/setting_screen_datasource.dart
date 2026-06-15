@@ -14,4 +14,19 @@ class SettingScreenDatasource {
       return false;
     }
   }
+
+  Future<bool> sendFeedback({
+    required String content,
+    required String feedbackTypeCode,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.userFeedback,
+        data: {'Content': content, 'FeedbackTypeCode': feedbackTypeCode},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException {
+      return false;
+    }
+  }
 }

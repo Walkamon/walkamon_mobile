@@ -6,4 +6,14 @@ class SettingScreenRepository {
   Future<bool> logout() {
     return _remoteDataSource.logout();
   }
+
+  Future<bool> sendFeedback({
+    required String content,
+    required String feedbackTypeCode,
+  }) {
+    return _remoteDataSource.sendFeedback(
+      content: content,
+      feedbackTypeCode: feedbackTypeCode,
+    );
+  }
 }

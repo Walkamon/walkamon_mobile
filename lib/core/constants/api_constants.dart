@@ -10,6 +10,9 @@ class ApiConstants {
   static const String changePassword = '/api/auth/change-password';
   static const String login = '/api/auth/login';
   static const String logout = '/api/auth/logout';
+  
+  // settings Endpoints
+  static const String userFeedback = '/api/user-feedback';
 
   // Item Endpoints
   static const String items = '/api/items';
