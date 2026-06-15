@@ -1,11 +1,13 @@
 /// Hàm chuyển dịch các thông báo lỗi liên quan đến RegisterScreen.
 String translateError(String error) {
   final err = error.trim().toLowerCase();
-  
-  if (err.contains('email already exists') || err.contains('email is already registered')) {
+
+  if (err.contains('email already exists') ||
+      err.contains('email is already registered')) {
     return 'Email này đã được đăng ký sử dụng.';
   }
-  if (err.contains('username already exists') || err.contains('username is taken')) {
+  if (err.contains('username already exists') ||
+      err.contains('username is taken')) {
     return 'Tên tài khoản này đã tồn tại.';
   }
   if (err.contains('password is too weak') || err.contains('weak password')) {
@@ -35,10 +37,21 @@ String translateError(String error) {
   if (err.contains('internal server error')) {
     return 'Lỗi hệ thống từ máy chủ. Vui lòng thử lại sau.';
   }
-  if (err.contains('connection error') || err.contains('network error') || err.contains('xmlhttprequest')) {
+  if (err.contains('password must contain at least one uppercase letter')) {
+    return 'Mật khẩu phải chứa ít nhất một chữ hoa.';
+  }
+  if (err.contains('password must contain at least one number')) {
+    return 'Mật khẩu phải chứa ít nhất một chữ số.';
+  }
+  if (err.contains('password must contain at least one special character')) {
+    return 'Mật khẩu phải chứa ít nhất một ký tự đặc biệt.';
+  }
+  if (err.contains('connection error') ||
+      err.contains('network error') ||
+      err.contains('xmlhttprequest')) {
     return 'Lỗi kết nối mạng. Vui lòng kiểm tra lại kết nối internet.';
   }
-  
+
   return error.isNotEmpty ? error : 'Đã xảy ra lỗi không xác định.';
 }
 

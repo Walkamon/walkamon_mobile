@@ -6,14 +6,14 @@ import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
 
-class OTPScreen extends StatefulWidget {
-  const OTPScreen({super.key});
+class OTP_Register extends StatefulWidget {
+  const OTP_Register({super.key});
 
   @override
-  State<OTPScreen> createState() => _OTPScreenState();
+  State<OTP_Register> createState() => _OTP_RegisterState();
 }
 
-class _OTPScreenState extends State<OTPScreen>
+class _OTP_RegisterState extends State<OTP_Register>
     with SingleTickerProviderStateMixin {
   final List<TextEditingController> _controllers = List.generate(
     6,

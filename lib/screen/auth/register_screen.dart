@@ -122,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       if (mounted) {
         Navigator.pushNamed(
           context,
-          '/auth/otp',
+          '/auth/otp_register',
           arguments: {
             'email': _emailController.text.trim(),
             'requestCode': response.data!.requestCode,
