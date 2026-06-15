@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -216,25 +217,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                         ),
                         const SizedBox(height: 20),
                         if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.onErrorContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
+                          ErrorMessageWidget(message: _errorMessage!),
                           const SizedBox(height: 12),
                         ],
                         if (_otp == null) ...[

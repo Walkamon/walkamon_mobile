@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/register_screen_repository.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -197,25 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
                         // Error Banner
                         if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.onErrorContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
+                          ErrorMessageWidget(message: _errorMessage!),
                           const SizedBox(height: 20),
                         ],
 
@@ -246,85 +229,83 @@ class _RegisterScreenState extends State<RegisterScreen>
                         ),
                         const SizedBox(height: 16),
 
-                         // ── Password field ───────────────────────────
-                         _PillField(
-                           controller: _passwordController,
-                           hint: 'Mật khẩu',
-                           icon: Icons.key_rounded, // Thay KeyRound
-                           obscureText: _obscurePassword,
-                           textInputAction: TextInputAction.next,
-                           cardColor: cardColor,
-                           primary: primary,
-                           validator: _validatePassword,
-                           enabled: !_isLoading,
-                         ),
-                         const SizedBox(height: 16),
- 
-                         // ── Confirm Password field ───────────────────
-                         _PillField(
-                           controller: _confirmPasswordController,
-                           hint: 'Xác nhận mật khẩu',
-                           icon: Icons.key_rounded,
-                           obscureText: _obscurePassword,
-                           textInputAction: TextInputAction.done,
-                           cardColor: cardColor,
-                           primary: primary,
-                           validator: _validateConfirmPassword,
-                           enabled: !_isLoading,
-                           onFieldSubmitted: (_) => _handleRegister(),
-                         ),
-                         const SizedBox(height: 12),
- 
-                         // ── Checkbox Show/Hide Password ───────────────
-                         Padding(
-                           padding: const EdgeInsets.symmetric(horizontal: 4),
-                           child: Row(
-                             children: [
-                               SizedBox(
-                                 width: 24,
-                                 height: 24,
-                                 child: Checkbox(
-                                   value: !_obscurePassword,
-                                   onChanged: _isLoading
-                                       ? null
-                                       : (val) {
-                                           setState(() {
-                                             _obscurePassword = !val!;
-                                           });
-                                         },
-                                   activeColor: primary,
-                                   shape: RoundedRectangleBorder(
-                                     borderRadius: BorderRadius.circular(4),
-                                   ),
-                                 ),
-                               ),
-                               const SizedBox(width: 8),
-                               GestureDetector(
-                                 onTap: _isLoading
-                                     ? null
-                                     : () {
-                                         setState(() {
-                                           _obscurePassword = !_obscurePassword;
-                                         });
-                                       },
-                                 child: Text(
-                                   'Hiển thị mật khẩu',
-                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                     color: mutedForeground,
-                                     fontWeight: FontWeight.w600,
-                                   ),
-                                 ),
-                               ),
-                             ],
-                           ),
-                         ),
-                         const SizedBox(height: 20),
+                        // ── Password field ───────────────────────────
+                        _PillField(
+                          controller: _passwordController,
+                          hint: 'Mật khẩu',
+                          icon: Icons.key_rounded, // Thay KeyRound
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.next,
+                          cardColor: cardColor,
+                          primary: primary,
+                          validator: _validatePassword,
+                          enabled: !_isLoading,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── Confirm Password field ───────────────────
+                        _PillField(
+                          controller: _confirmPasswordController,
+                          hint: 'Xác nhận mật khẩu',
+                          icon: Icons.key_rounded,
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          cardColor: cardColor,
+                          primary: primary,
+                          validator: _validateConfirmPassword,
+                          enabled: !_isLoading,
+                          onFieldSubmitted: (_) => _handleRegister(),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // ── Checkbox Show/Hide Password ───────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: !_obscurePassword,
+                                  onChanged: _isLoading
+                                      ? null
+                                      : (val) {
+                                          setState(() {
+                                            _obscurePassword = !val!;
+                                          });
+                                        },
+                                  activeColor: primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: _isLoading
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                child: Text(
+                                  'Hiển thị mật khẩu',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: mutedForeground,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
 
                         // ── Submit button ─────────────────────────────
                         _isLoading
-                            ? const Center(
-                                child: CircularProgressIndicator(),
-                              )
+                            ? const Center(child: CircularProgressIndicator())
                             : _TapScaleButton(
                                 onPressed: _handleRegister,
                                 backgroundColor: primary,

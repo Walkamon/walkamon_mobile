@@ -5,6 +5,7 @@ import '../../core/utils/register_screen_error_translator.dart';
 
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 class OTP_Register extends StatefulWidget {
   const OTP_Register({super.key});
@@ -33,7 +34,8 @@ class _OTP_RegisterState extends State<OTP_Register>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_currentRequestCode == null) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       _currentRequestCode = args?['requestCode'] as String?;
     }
   }
@@ -72,9 +74,8 @@ class _OTP_RegisterState extends State<OTP_Register>
   bool get _isOtpComplete =>
       _controllers.every((c) => c.text.trim().length == 1);
 
-  bool get _isOtpDigitsOnly => _controllers.every(
-        (c) => RegExp(r'^\d$').hasMatch(c.text.trim()),
-      );
+  bool get _isOtpDigitsOnly =>
+      _controllers.every((c) => RegExp(r'^\d$').hasMatch(c.text.trim()));
 
   String? _otpErrorMessage() {
     final errors = <String>[];
@@ -152,7 +153,9 @@ class _OTP_RegisterState extends State<OTP_Register>
     } else {
       setState(() {
         _errorMessage = translateError(
-          response.message.isNotEmpty ? response.message : 'Mã OTP không hợp lệ.',
+          response.message.isNotEmpty
+              ? response.message
+              : 'Mã OTP không hợp lệ.',
         );
       });
     }
@@ -187,7 +190,9 @@ class _OTP_RegisterState extends State<OTP_Register>
     } else {
       setState(() {
         _errorMessage = translateError(
-          response.message.isNotEmpty ? response.message : 'Gửi lại mã OTP thất bại.',
+          response.message.isNotEmpty
+              ? response.message
+              : 'Gửi lại mã OTP thất bại.',
         );
       });
     }
@@ -241,25 +246,7 @@ class _OTP_RegisterState extends State<OTP_Register>
 
                       // Error Banner
                       if (_errorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            _errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: theme.colorScheme.onErrorContainer,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
+                        ErrorMessageWidget(message: _errorMessage!),
                         const SizedBox(height: 20),
                       ],
 
@@ -337,7 +324,9 @@ class _OTP_RegisterState extends State<OTP_Register>
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text('Xác Nhận Thức Tỉnh'),

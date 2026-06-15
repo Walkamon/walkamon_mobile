@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -88,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (response.success && response.data != null) {
       Navigator.pushNamed(
         context,
-        '/auth/otp',
+        '/auth/otp_verification',
         arguments: {
           'requestCode': response.data!.requestCode,
           'email': _emailController.text.trim(),
@@ -165,25 +166,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                         ),
                         const SizedBox(height: 20),
                         if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.onErrorContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
+                          ErrorMessageWidget(message: _errorMessage!),
                           const SizedBox(height: 12),
                         ],
                         if (_successMessage != null) ...[
