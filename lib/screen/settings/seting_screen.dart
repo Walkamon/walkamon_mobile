@@ -40,13 +40,50 @@ class _SettingScreenState extends State<SettingScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
-              _LogoutButton(
-                accent: accent,
-                accentForeground: accentForeground,
-                isLoading: _isLoggingOut,
-                onPressed: _handleLogout,
+              Text(
+                'Tài khoản & Bảo mật',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.25),
+                  ),
+                ),
+                child: _SettingsButton(
+                  label: 'Đổi mật khẩu tài khoản',
+                  icon: Icons.key_rounded,
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/auth/change-password'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.25),
+                  ),
+                ),
+                child: _SettingsButton(
+                  label: 'Đăng xuất tài khoản',
+                  icon: Icons.logout_rounded,
+                  onPressed: _handleLogout,
+                  isWarning: true,
+                  isLoading: _isLoggingOut,
+                ),
               ),
             ],
           ),
@@ -56,24 +93,26 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 }
 
-class _LogoutButton extends StatefulWidget {
-  const _LogoutButton({
-    required this.accent,
-    required this.accentForeground,
-    required this.isLoading,
+class _SettingsButton extends StatefulWidget {
+  const _SettingsButton({
+    required this.icon,
+    required this.label,
     required this.onPressed,
+    this.isWarning = false,
+    this.isLoading = false,
   });
 
-  final Color accent;
-  final Color accentForeground;
-  final bool isLoading;
+  final IconData icon;
+  final String label;
   final VoidCallback onPressed;
+  final bool isWarning;
+  final bool isLoading;
 
   @override
-  State<_LogoutButton> createState() => _LogoutButtonState();
+  State<_SettingsButton> createState() => _SettingsButtonState();
 }
 
-class _LogoutButtonState extends State<_LogoutButton> {
+class _SettingsButtonState extends State<_SettingsButton> {
   bool _pressed = false;
 
   @override
@@ -88,57 +127,49 @@ class _LogoutButtonState extends State<_LogoutButton> {
       onTapCancel: () => setState(() => _pressed = false),
       onTap: widget.isLoading ? null : widget.onPressed,
       child: AnimatedScale(
-        scale: _pressed ? 0.96 : 1,
+        scale: _pressed ? 0.98 : 1,
         duration: const Duration(milliseconds: 100),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          width: double.infinity,
-          transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
-          decoration: BoxDecoration(
-            color: widget.accent,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: _pressed
-                ? null
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      offset: const Offset(0, 4),
-                      blurRadius: 0,
-                    ),
-                  ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: widget.isLoading
-                ? Center(
-                    child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: widget.accentForeground,
-                      ),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.logout,
-                        size: 18,
-                        color: widget.accentForeground,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Đăng Xuất Tài Khoản',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: widget.accentForeground,
-                        ),
-                      ),
-                    ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          color: Colors.transparent,
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                size: 20,
+                color: widget.isWarning
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: widget.isWarning
+                        ? Theme.of(context).colorScheme.error
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
+                ),
+              ),
+              if (widget.isLoading)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                )
+              else
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.65),
+                ),
+            ],
           ),
         ),
       ),

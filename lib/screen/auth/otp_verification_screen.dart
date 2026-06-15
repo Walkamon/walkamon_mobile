@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
@@ -211,9 +212,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
     });
     final response = _isForgotPasswordFlow
         ? await _resendForgotPasswordOtp()
-        : await _authRepository.resendOtp(
-            requestCode: _currentRequestCode!,
-          );
+        : await _authRepository.resendOtp(requestCode: _currentRequestCode!);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
@@ -288,25 +287,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
 
                       // Error Banner
                       if (_errorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            _errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: theme.colorScheme.onErrorContainer,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
+                        ErrorMessageWidget(message: _errorMessage!),
                         const SizedBox(height: 20),
                       ],
 

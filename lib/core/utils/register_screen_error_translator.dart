@@ -46,6 +46,9 @@ String translateError(String error) {
   if (err.contains('password must contain at least one special character')) {
     return 'Mật khẩu phải chứa ít nhất một ký tự đặc biệt.';
   }
+  if (err.contains('password must contain at least one lowercase letter')) {
+    return 'Mật khẩu phải chứa ít nhất một chữ cái viết thường.';
+  }
   if (err.contains('connection error') ||
       err.contains('network error') ||
       err.contains('xmlhttprequest')) {

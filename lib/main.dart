@@ -17,6 +17,7 @@ import 'screen/auth/otp_verification_screen.dart';
 import 'screen/auth/otp_register_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
+import 'screen/settings/change_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
 import 'screen/settings/seting_screen.dart';
 import 'screen/shop/shop_screen.dart';
@@ -75,6 +76,7 @@ class WalkamonApp extends StatelessWidget {
                 '/profile',
                 '/profile/view',
                 '/profile/edit',
+                '/auth/change-password',
               ];
 
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
@@ -119,6 +121,9 @@ class WalkamonApp extends StatelessWidget {
                 case '/auth/reset-password':
                   builder = (_) =>
                       const AuthLayout(child: ResetPasswordScreen());
+                  break;
+                case '/auth/change-password':
+                  builder = (_) => const ChangePasswordScreen();
                   break;
                 case '/auth/otp_verification':
                   builder = (_) => const AuthLayout(child: OTP_Verification());

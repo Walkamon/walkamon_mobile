@@ -7,6 +7,7 @@ class ApiConstants {
   static const String resendOtp = '/api/auth/register/resend-otp';
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetForgotPassword = '/api/auth/forgot-password/reset';
+  static const String changePassword = '/api/auth/change-password';
   static const String login = '/api/auth/login';
   static const String logout = '/api/auth/logout';
 
