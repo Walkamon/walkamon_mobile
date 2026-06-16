@@ -54,4 +54,47 @@ class LoginScreenDatasource {
       throw Exception(e.toString());
     }
   }
+
+  Future<ApiResponse<LoginResponse>> googleLogin({
+    required String idToken,
+  }) async {
+    try {
+      return await _apiClient.post<LoginResponse>(
+        ApiConstants.googleLogin,
+        data: {'idToken': idToken},
+        fromJsonT: (json) =>
+            LoginResponse.fromJson(json as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final errorData = e.response!.data;
+
+        if (errorData is Map) {
+          if (errorData.containsKey('message')) {
+            throw Exception(errorData['message']);
+          }
+
+          if (errorData.containsKey('errors')) {
+            final Map<String, dynamic> validationErrors = errorData['errors'];
+            List<String> allMessages = [];
+
+            validationErrors.forEach((key, value) {
+              if (value is List) {
+                allMessages.addAll(value.map((item) => item.toString()));
+              } else if (value is String) {
+                allMessages.add(value);
+              }
+            });
+
+            if (allMessages.isNotEmpty) {
+              throw Exception(allMessages.join(', '));
+            }
+          }
+        }
+      }
+      throw Exception("Khong the ket noi den may chu. Vui long thu lai!");
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 }

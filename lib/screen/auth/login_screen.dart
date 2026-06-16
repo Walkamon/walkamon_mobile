@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/google_icon.dart';
+
+const _googleServerClientId =
+    '644682972598-d5h58a3b0g8c0ag6lm1bcdf9k5mh4vch.apps.googleusercontent.com';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   // Biến lưu trữ thông báo lỗi để hiển thị trực tiếp trên giao diện dạng dọc
   String? _inlineErrorMessage;
+  static Future<void>? _googleSignInInitFuture;
 
   @override
   void initState() {
@@ -100,6 +106,62 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
+
+  Future<void> _ensureGoogleSignInInitialized() {
+    _googleSignInInitFuture ??= GoogleSignIn.instance.initialize(
+      serverClientId: _googleServerClientId,
+    );
+    return _googleSignInInitFuture!;
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _inlineErrorMessage = null;
+    });
+
+    final provider = context.read<GameStateProvider>();
+
+    try {
+      await _ensureGoogleSignInInitialized();
+
+      if (!GoogleSignIn.instance.supportsAuthenticate()) {
+        throw Exception('Google Sign-In is not supported on this platform.');
+      }
+
+      final googleUser = await GoogleSignIn.instance.authenticate(
+        scopeHint: const ['email', 'profile'],
+      );
+      final idToken = googleUser.authentication.idToken;
+
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Không lấy được Google idToken.');
+      }
+
+      final success = await provider.googleLogin(idToken: idToken);
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        final rawError = provider.errorMessage ?? 'Đăng nhập Google thất bại.';
+        setState(() {
+          _inlineErrorMessage = translateLoginError(
+            rawError.replaceAll('Exception: ', '').trim(),
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint('Google login failed: $e');
+      if (!mounted) return;
+      final rawError = e.toString().replaceAll('Exception: ', '').trim();
+      setState(() {
+        _inlineErrorMessage = translateLoginError(
+          rawError.isNotEmpty ? rawError : 'Đăng nhập Google thất bại.',
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +365,15 @@ class _LoginScreenState extends State<LoginScreen>
                           foregroundColor: onPrimary,
                           label: 'Bắt Đầu Hành Trình',
                         ),
+                        const SizedBox(height: 12),
+
+                        _TapScaleButton(
+                          onPressed: _handleGoogleLogin,
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          label: 'Đăng nhập bằng Google',
+                          leading: const GoogleIcon(size: 20),
+                        ),
                         const SizedBox(height: 40),
 
                         Row(
@@ -464,12 +535,14 @@ class _TapScaleButton extends StatefulWidget {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.label,
+    this.leading,
   });
 
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Color foregroundColor;
   final String label;
+  final Widget? leading;
 
   @override
   State<_TapScaleButton> createState() => _TapScaleButtonState();
@@ -510,16 +583,32 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
               borderRadius: BorderRadius.circular(32),
               onTap: widget.onPressed,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  widget.label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: widget.foregroundColor,
-                    letterSpacing: 0.5,
-                  ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.leading != null) ...[
+                      widget.leading!,
+                      const SizedBox(width: 10),
+                    ],
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: widget.foregroundColor,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

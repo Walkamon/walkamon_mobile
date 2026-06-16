@@ -9,8 +9,9 @@ class ApiConstants {
   static const String resetForgotPassword = '/api/auth/forgot-password/reset';
   static const String changePassword = '/api/auth/change-password';
   static const String login = '/api/auth/login';
+  static const String googleLogin = '/api/auth/google-login';
   static const String logout = '/api/auth/logout';
-  
+
   // settings Endpoints
   static const String userFeedback = '/api/user-feedback';
 

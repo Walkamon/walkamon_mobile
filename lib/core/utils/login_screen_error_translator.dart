@@ -2,6 +2,11 @@ String translateError(String error) {
   // Chuyển toàn bộ chuỗi lỗi về chữ thường để so sánh chính xác nhất
   final err = error.trim().toLowerCase();
 
+  if (err.contains('28444') ||
+      err.contains('developer console is not set up correctly')) {
+    return 'Google Login chưa được cấu hình đúng. Vui lòng kiểm tra package name, SHA-1/SHA-256 và OAuth client trong Google Console.';
+  }
+
   // ── 1. LỖI NGHIỆP VỤ LOGIC TỪ BACKEND C# ──────────────────────────────────
   if (err.contains('user not found')) {
     return 'Tài khoản email này không tồn tại.';
