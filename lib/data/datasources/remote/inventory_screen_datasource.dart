@@ -1,42 +1,40 @@
-import 'package:dio/dio.dart';
-
-import '../../../../core/constants/api_constants.dart';
-import '../../../../core/network/dio_provider.dart';
-import '../../models/item_response.dart';
-import '../../models/item_type_response.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_response.dart';
+import '../../models/inventory_item_response.dart';
 
 class InventoryScreenDatasource {
-  final Dio _dio = DioProvider.instance;
+  final ApiClient _apiClient = ApiClient();
 
-  Future<List<ItemResponse>> getAllItems() async {
-    final response = await _dio.get(ApiConstants.items);
-    final data = response.data;
-
-    if (data is List) {
-      return data
-          .map((e) => ItemResponse.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-    throw DioException(
-      requestOptions: response.requestOptions,
-      message: 'Dữ liệu phản hồi không đúng định dạng.',
+  Future<ApiResponse<List<InventoryItemResponse>>> getInventory() async {
+    return await _apiClient.get<List<InventoryItemResponse>>(
+      ApiConstants.inventory,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map(
+                (e) => InventoryItemResponse.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
+        }
+        return <InventoryItemResponse>[];
+      },
     );
   }
 
-  Future<List<ItemTypeResponse>> getAllItemTypes() async {
-    final response = await _dio.get(ApiConstants.itemTypes);
-    final data = response.data;
+  Future<ApiResponse<InventoryItemResponse>> getItemById(String itemId) async {
+    return await _apiClient.get<InventoryItemResponse>(
+      ApiConstants.inventoryItemById(itemId),
+      fromJsonT: (json) =>
+          InventoryItemResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
 
-    if (data is List) {
-      return data
-          .map((e) => ItemTypeResponse.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-    throw DioException(
-      requestOptions: response.requestOptions,
-      message: 'Dữ liệu phản hồi không đúng định dạng.',
+  Future<ApiResponse<dynamic>> useItem(String itemId) async {
+    return await _apiClient.post<dynamic>(
+      ApiConstants.useInventoryItem,
+      data: {'itemId': itemId},
+      fromJsonT: (json) => json,
     );
   }
 }

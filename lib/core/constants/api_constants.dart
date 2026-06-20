@@ -22,8 +22,15 @@ class ApiConstants {
   static const String itemTypes = '/api/item-types';
   static String itemTypeById(String id) => '/api/item-types/$id';
 
+  // Inventory Endpoints
+  static const String inventory = '/api/inventory';
+  static String inventoryItemById(String id) => '/api/inventory/items/$id';
+  static const String useInventoryItem = '/api/inventory/use';
+
   // Shop Endpoints
-  static const String shopItems = '/api/ShopItem';
-  static String shopItemById(String id) => '/api/ShopItem/$id';
-  static String buyShopItem(String id) => '/api/ShopItem/$id/purchase';
+  static const String shopItems = '/api/shop';
+  // Deprecated: individual shop item endpoints are no longer used by client
+  static String shopItemById(String id) => '/api/shop/$id';
+  // New buy endpoint (expects POST with body { shopItemId, quantity })
+  static const String buyShop = '/api/shop/buy';
 }

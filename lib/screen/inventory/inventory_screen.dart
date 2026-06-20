@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../data/repositories/inventory_screen_repository.dart';
 
 enum InventoryCategory { food, materials }
 
-class _InventorySlotItem {
-  const _InventorySlotItem({
-    required this.id,
+class _InventoryDisplayItem {
+  const _InventoryDisplayItem({
+    required this.itemId,
     required this.name,
-    required this.count,
-    required this.description,
-    required this.statBonus,
-    required this.color,
-    required this.icon,
-    required this.actionLabel,
+    required this.quantity,
+    required this.category,
+    this.itemTypeName,
+    this.image,
+    this.description,
+    this.effectTypeCode,
+    this.effectValue,
   });
 
-  final int id;
+  final String itemId;
   final String name;
-  final int count;
-  final String description;
-  final String statBonus;
-  final Color color;
-  final IconData icon;
-  final String actionLabel;
+  final int quantity;
+  final InventoryCategory category;
+  final String? itemTypeName;
+  final String? image;
+  final String? description;
+  final String? effectTypeCode;
+  final int? effectValue;
 }
 
 class _InventoryCategoryTab {
@@ -48,96 +51,91 @@ class InventoryScreen extends StatefulWidget {
 class _InventoryScreenState extends State<InventoryScreen> {
   static const int _gridSlotCount = 24;
 
-  InventoryCategory _activeCategory = InventoryCategory.food;
-  final Map<InventoryCategory, int?> _selectedItemIds = {
-    InventoryCategory.food: null,
-    InventoryCategory.materials: null,
-  };
+  final InventoryScreenRepository _repository = InventoryScreenRepository();
+  bool _isLoading = true;
   bool _showItemPopup = false;
-
-  late final Map<InventoryCategory, List<_InventorySlotItem>> _itemsData;
+  String? _errorMessage;
+  String? _usingItemId;
+  String? _selectedItemId;
+  List<_InventoryDisplayItem> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _itemsData = _buildMockItems();
+    _loadInventory();
   }
 
-  Map<InventoryCategory, List<_InventorySlotItem>> _buildMockItems() {
-    return {
-      InventoryCategory.food: const [
-        _InventorySlotItem(
-          id: 2,
-          name: 'Bình Hồi Năng Lượng',
-          count: 5,
-          description:
-              'Nước uống đặc biệt giúp Lumina phục hồi Sinh Mệnh Lực ngay lập tức.',
-          statBonus: '+50% Sinh Mệnh Lực',
-          color: AppColors.lightLife,
-          icon: Icons.water_drop_outlined,
-          actionLabel: 'Sử Dụng',
-        ),
-        _InventorySlotItem(
-          id: 3,
-          name: 'Bình Hồi Gắn Kết',
-          count: 2,
-          description:
-              'Bình uống ngọt ngào giúp tăng cường Độ Gắn Kết với Lumina.',
-          statBonus: '+30% Độ Gắn Kết',
-          color: AppColors.lightBond,
-          icon: Icons.cake_outlined,
-          actionLabel: 'Sử Dụng',
-        ),
-      ],
-      InventoryCategory.materials: const [
-        _InventorySlotItem(
-          id: 4,
-          name: 'Thẻ Đổi Tên',
-          count: 1,
-          description:
-              'Vật phẩm đặc biệt cho phép bạn thay đổi tên của Tinh Linh đồng hành.',
-          statBonus: 'Đổi tên vật nuôi',
-          color: AppColors.lightPrimary,
-          icon: Icons.auto_awesome,
-          actionLabel: 'Sử Dụng',
-        ),
-        _InventorySlotItem(
-          id: 5,
-          name: 'Thẻ Giảm Cooldown',
-          count: 3,
-          description:
-              'Giảm ngay 2 giờ thời gian chờ (cooldown) cho các hoạt động của Tinh Linh.',
-          statBonus: '-2 Giờ Chờ',
-          color: Color(0xFF6366F1),
-          icon: Icons.star_outline,
-          actionLabel: 'Sử Dụng',
-        ),
-      ],
-    };
+  InventoryCategory _resolveCategory(String itemTypeName) {
+    final type = itemTypeName.toLowerCase();
+    if (type.contains('food') ||
+        type.contains('tiêu hao') ||
+        type.contains('consume') ||
+        type.contains('consumable')) {
+      return InventoryCategory.food;
+    }
+    return InventoryCategory.materials;
   }
 
-  List<_InventoryCategoryTab> _categories(bool isDark) {
-    return [
-      _InventoryCategoryTab(
-        id: InventoryCategory.food,
-        label: 'Tiêu hao',
-        icon: Icons.inventory_2_outlined,
-      ),
-      _InventoryCategoryTab(
-        id: InventoryCategory.materials,
-        label: 'Nguyên liệu',
-        icon: Icons.auto_awesome,
-      ),
-    ];
-  }
-
-  void _handleCategoryChange(InventoryCategory category) {
-    setState(() => _activeCategory = category);
-  }
-
-  void _handleSelectItem(int id) {
+  Future<void> _loadInventory() async {
     setState(() {
-      _selectedItemIds[_activeCategory] = id;
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final apiItems = await _repository.getInventory();
+      final food = <_InventoryDisplayItem>[];
+      final materials = <_InventoryDisplayItem>[];
+
+      for (final item in apiItems) {
+        final mapped = _InventoryDisplayItem(
+          itemId: item.itemId,
+          name: item.itemName,
+          quantity: item.quantity,
+          category: _resolveCategory(item.itemTypeName),
+          itemTypeName: item.itemTypeName,
+          image: item.image,
+          description: item.description,
+          effectTypeCode: item.effectTypeCode,
+          effectValue: item.effectValue,
+        );
+
+        if (mapped.category == InventoryCategory.food) {
+          food.add(mapped);
+        } else {
+          materials.add(mapped);
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _items = [...food, ...materials];
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _items = [];
+        _errorMessage = 'Không tải được túi đồ.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<_InventoryDisplayItem> get _currentItems => _items;
+
+  _InventoryDisplayItem? get _selectedItem {
+    final selectedId = _selectedItemId;
+    if (selectedId == null) return null;
+    for (final item in _items) {
+      if (item.itemId == selectedId) return item;
+    }
+    return null;
+  }
+
+  void _handleSelectItem(String itemId) {
+    setState(() {
+      _selectedItemId = itemId;
       _showItemPopup = true;
     });
   }
@@ -146,38 +144,87 @@ class _InventoryScreenState extends State<InventoryScreen> {
     setState(() => _showItemPopup = false);
   }
 
-  _InventorySlotItem? get _selectedItem {
-    final selectedId = _selectedItemIds[_activeCategory];
-    if (selectedId == null) return null;
-
-    final items = _itemsData[_activeCategory] ?? [];
-    for (final item in items) {
-      if (item.id == selectedId) return item;
+  String _formatEffect(_InventoryDisplayItem item) {
+    final code = item.effectTypeCode?.trim();
+    final value = item.effectValue;
+    if (code != null && code.isNotEmpty && value != null) {
+      final prefix = value > 0 ? '+' : '';
+      return '$prefix$value $code';
     }
-    return null;
+    if (code != null && code.isNotEmpty) return code;
+    return 'Không có hiệu ứng';
   }
 
-  List<_InventorySlotItem> get _currentItems =>
-      _itemsData[_activeCategory] ?? [];
+  Color _itemColor(_InventoryDisplayItem item, bool isDark) {
+    final effect = (item.effectTypeCode ?? '').toLowerCase();
+    if (effect.contains('life') || effect == 'sml') {
+      return isDark ? AppColors.darkLife : AppColors.lightLife;
+    }
+    if (effect.contains('bond')) {
+      return isDark ? AppColors.darkBond : AppColors.lightBond;
+    }
+    if (effect.contains('energy')) {
+      return const Color(0xFF6366F1);
+    }
+    return isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+  }
 
-  int? get _selectedItemId => _selectedItemIds[_activeCategory];
+  IconData _itemIcon(_InventoryDisplayItem item) {
+    final effect = (item.effectTypeCode ?? '').toLowerCase();
+    if (effect.contains('life') || effect == 'sml') {
+      return Icons.water_drop_outlined;
+    }
+    if (effect.contains('bond')) {
+      return Icons.cake_outlined;
+    }
+    if (effect.contains('energy')) {
+      return Icons.bolt_outlined;
+    }
+    return Icons.auto_awesome;
+  }
+
+  Future<void> _handleUse(_InventoryDisplayItem item) async {
+    setState(() => _usingItemId = item.itemId);
+    try {
+      final resp = await _repository.useItem(item.itemId);
+      if (resp.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Đã sử dụng: ${item.name}')),
+          );
+        }
+        _closeItemPopup();
+        await _loadInventory();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sử dụng thất bại: ${resp.message}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi sử dụng: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _usingItemId = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final cardColor = theme.colorScheme.surface;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark
-        ? AppColors.darkForeground
-        : AppColors.lightForeground;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
+    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
+    final mutedForeground =
+        isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final primary = theme.colorScheme.primary;
     final selectedItem = _selectedItem;
+    final hasAnyItem = _items.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -195,26 +242,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   mutedForeground: mutedForeground,
                   onBack: () => Navigator.pushNamed(context, '/home'),
                 ),
-                const SizedBox(height: 24),
-                _CategoryTabs(
-                  categories: _categories(isDark),
-                  activeCategory: _activeCategory,
-                  cardColor: cardColor,
-                  borderColor: borderColor,
-                  primary: primary,
-                  mutedForeground: mutedForeground,
-                  foreground: foreground,
-                  onCategoryChanged: _handleCategoryChange,
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Expanded(
-                  child: _ItemGrid(
-                    slotCount: _gridSlotCount,
-                    items: _currentItems,
-                    selectedItemId: _selectedItemId,
-                    borderColor: borderColor,
-                    onSelectItem: _handleSelectItem,
-                  ),
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : !hasAnyItem
+                          ? Center(
+                              child: Text(
+                                _errorMessage ?? 'Không có vật phẩm nào.',
+                                style: TextStyle(color: mutedForeground),
+                              ),
+                            )
+                          : _ItemGrid(
+                              slotCount: _gridSlotCount,
+                              items: _currentItems,
+                              selectedItemId: _selectedItemId,
+                              borderColor: borderColor,
+                              isDark: isDark,
+                              itemColor: _itemColor,
+                              itemIcon: _itemIcon,
+                              onSelectItem: _handleSelectItem,
+                            ),
                 ),
               ],
             ),
@@ -230,7 +278,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
               accent: accent,
               primary: primary,
               isDark: isDark,
+              isUsing: _usingItemId == selectedItem.itemId,
+              statBonus: _formatEffect(selectedItem),
+              itemColor: _itemColor(selectedItem, isDark),
+              itemIcon: _itemIcon(selectedItem),
               onClose: _closeItemPopup,
+              onUse: () => _handleUse(selectedItem),
             ),
         ],
       ),
@@ -263,9 +316,7 @@ class _InventoryHeader extends StatelessWidget {
           children: [
             Material(
               color: cardColor,
-              shape: CircleBorder(
-                side: BorderSide(color: borderColor),
-              ),
+              shape: CircleBorder(side: BorderSide(color: borderColor)),
               elevation: 1,
               shadowColor: Colors.black.withValues(alpha: 0.05),
               child: InkWell(
@@ -306,7 +357,6 @@ class _CategoryTabs extends StatelessWidget {
     required this.borderColor,
     required this.primary,
     required this.mutedForeground,
-    required this.foreground,
     required this.onCategoryChanged,
   });
 
@@ -316,7 +366,6 @@ class _CategoryTabs extends StatelessWidget {
   final Color borderColor;
   final Color primary;
   final Color mutedForeground;
-  final Color foreground;
   final ValueChanged<InventoryCategory> onCategoryChanged;
 
   @override
@@ -343,9 +392,7 @@ class _CategoryTabs extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: isActive
-                        ? Border.all(color: borderColor)
-                        : null,
+                    border: isActive ? Border.all(color: borderColor) : null,
                     boxShadow: isActive
                         ? [
                             BoxShadow(
@@ -391,14 +438,20 @@ class _ItemGrid extends StatelessWidget {
     required this.items,
     required this.selectedItemId,
     required this.borderColor,
+    required this.isDark,
+    required this.itemColor,
+    required this.itemIcon,
     required this.onSelectItem,
   });
 
   final int slotCount;
-  final List<_InventorySlotItem> items;
-  final int? selectedItemId;
+  final List<_InventoryDisplayItem> items;
+  final String? selectedItemId;
   final Color borderColor;
-  final ValueChanged<int> onSelectItem;
+  final bool isDark;
+  final Color Function(_InventoryDisplayItem item, bool isDark) itemColor;
+  final IconData Function(_InventoryDisplayItem item) itemIcon;
+  final ValueChanged<String> onSelectItem;
 
   @override
   Widget build(BuildContext context) {
@@ -416,16 +469,17 @@ class _ItemGrid extends StatelessWidget {
           return _AnimatedItemSlot(
             index: index,
             item: item,
-            isSelected: selectedItemId == item.id,
-            onTap: () => onSelectItem(item.id),
+            isSelected: selectedItemId == item.itemId,
+            color: itemColor(item, isDark),
+            icon: itemIcon(item),
+            isDark: isDark,
+            onTap: () => onSelectItem(item.itemId),
           );
         }
 
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withValues(
-              alpha: 0.05,
-            ),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: borderColor.withValues(alpha: 0.4)),
           ),
@@ -440,12 +494,18 @@ class _AnimatedItemSlot extends StatefulWidget {
     required this.index,
     required this.item,
     required this.isSelected,
+    required this.color,
+    required this.icon,
+    required this.isDark,
     required this.onTap,
   });
 
   final int index;
-  final _InventorySlotItem item;
+  final _InventoryDisplayItem item;
   final bool isSelected;
+  final Color color;
+  final IconData icon;
+  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -483,14 +543,14 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasImage = widget.item.image != null && widget.item.image!.isNotEmpty;
 
     return FadeTransition(
       opacity: _opacity,
       child: ScaleTransition(
         scale: _scale,
         child: Material(
-          color: widget.item.color,
+          color: widget.color,
           borderRadius: BorderRadius.circular(24),
           elevation: widget.isSelected ? 4 : 1,
           shadowColor: Colors.black.withValues(alpha: 0.15),
@@ -503,9 +563,7 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: widget.isSelected
-                      ? (isDark
-                            ? AppColors.darkBackground
-                            : Colors.white)
+                      ? (widget.isDark ? AppColors.darkBackground : Colors.white)
                       : Colors.transparent,
                   width: 3,
                 ),
@@ -513,17 +571,30 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(
-                    widget.item.icon,
-                    size: 36,
-                    color: Colors.white,
-                    shadows: const [
-                      Shadow(
-                        color: Color(0x33000000),
-                        blurRadius: 2,
+                  if (hasImage)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.network(
+                        widget.item.image!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          widget.icon,
+                          size: 36,
+                          color: Colors.white,
+                        ),
                       ),
-                    ],
-                  ),
+                    )
+                  else
+                    Icon(
+                      widget.icon,
+                      size: 36,
+                      color: Colors.white,
+                      shadows: const [
+                        Shadow(color: Color(0x33000000), blurRadius: 2),
+                      ],
+                    ),
                   Positioned(
                     right: 8,
                     bottom: 8,
@@ -537,7 +608,7 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'x${widget.item.count}',
+                        'x${widget.item.quantity}',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -567,10 +638,15 @@ class _ItemDetailPopup extends StatelessWidget {
     required this.accent,
     required this.primary,
     required this.isDark,
+    required this.isUsing,
+    required this.statBonus,
+    required this.itemColor,
+    required this.itemIcon,
     required this.onClose,
+    required this.onUse,
   });
 
-  final _InventorySlotItem item;
+  final _InventoryDisplayItem item;
   final Color cardColor;
   final Color borderColor;
   final Color foreground;
@@ -579,10 +655,17 @@ class _ItemDetailPopup extends StatelessWidget {
   final Color accent;
   final Color primary;
   final bool isDark;
+  final bool isUsing;
+  final String statBonus;
+  final Color itemColor;
+  final IconData itemIcon;
   final VoidCallback onClose;
+  final VoidCallback onUse;
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = item.image != null && item.image!.isNotEmpty;
+
     return GestureDetector(
       onTap: onClose,
       child: Container(
@@ -651,14 +734,25 @@ class _ItemDetailPopup extends StatelessWidget {
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: item.color,
+                            color: itemColor,
                             borderRadius: BorderRadius.circular(24),
                           ),
-                          child: Icon(
-                            item.icon,
-                            size: 40,
-                            color: Colors.white,
-                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: hasImage
+                              ? Image.network(
+                                  item.image!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    itemIcon,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  itemIcon,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -684,7 +778,7 @@ class _ItemDetailPopup extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            item.statBonus,
+                            statBonus,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -694,7 +788,9 @@ class _ItemDetailPopup extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          item.description,
+                          item.description?.trim().isNotEmpty == true
+                              ? item.description!.trim()
+                              : 'Chưa có mô tả.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -717,12 +813,12 @@ class _ItemDetailPopup extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _PopupButton(
-                                label: item.actionLabel,
+                                label: isUsing ? 'Đang xử lý...' : 'Sử Dụng',
                                 backgroundColor: accent,
                                 foregroundColor: isDark
                                     ? AppColors.darkPrimaryForeground
                                     : AppColors.lightPrimaryForeground,
-                                onPressed: onClose,
+                                onPressed: isUsing ? null : onUse,
                               ),
                             ),
                           ],
@@ -751,7 +847,7 @@ class _PopupButton extends StatelessWidget {
   final String label;
   final Color backgroundColor;
   final Color foregroundColor;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
