@@ -29,8 +29,15 @@ class ApiConstants {
 
   // Shop Endpoints
   static const String shopItems = '/api/shop';
-  // Deprecated: individual shop item endpoints are no longer used by client
   static String shopItemById(String id) => '/api/shop/$id';
-  // New buy endpoint (expects POST with body { shopItemId, quantity })
   static const String buyShop = '/api/shop/buy';
+
+  // Mission Endpoints
+  static const String missions = '/api/missions';
+  static String claimMission(String missionId) => '/api/missions/$missionId/claim';
+
+  // Challenge Endpoints
+  static const String challengeRandom = '/api/challenges/random';
+  static String cancelChallenge(String userMissionId) =>
+      '/api/challenges/$userMissionId/cancel';
 }
