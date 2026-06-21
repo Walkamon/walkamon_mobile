@@ -195,19 +195,12 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.pushNamed(context, '/settings'),
                   ),
                   const SizedBox(height: 16),
-                  // _buildFloatingIconBtn(
-                  //   context: context,
-                  //   icon: Icons.calendar_today_outlined,
-                  //   hasBadge: true, // Chấm cam thông báo
-                  //   onTap: () => Navigator.pushNamed(context, '/daily-reward'),
-                  // ),
-                  // const SizedBox(height: 16),
-                  // _buildFloatingIconBtn(
-                  //   context: context,
-                  //   icon: Icons.receipt_long_outlined,
-                  //   hasBadge: true, // Chấm cam thông báo
-                  //   onTap: () => Navigator.pushNamed(context, '/quests'),
-                  // ),
+                  _buildFloatingIconBtn(
+                    context: context,
+                    icon: Icons.receipt_long_outlined,
+                    hasBadge: true,
+                    onTap: () => Navigator.pushNamed(context, '/missions'),
+                  ),
                 ],
               ),
             ),

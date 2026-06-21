@@ -19,6 +19,7 @@ import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/auth/change_password_screen.dart';
 import 'screen/inventory/inventory_screen.dart';
+import 'screen/missions/missions_screen.dart';
 import 'screen/settings/seting_screen.dart';
 import 'screen/shop/shop_screen.dart';
 
@@ -72,6 +73,7 @@ class WalkamonApp extends StatelessWidget {
                 '/home',
                 '/inventory',
                 '/shop',
+                '/missions',
                 '/settings',
                 '/profile',
                 '/profile/view',
@@ -142,6 +144,9 @@ class WalkamonApp extends StatelessWidget {
                   break;
                 case '/shop':
                   builder = (_) => const ShopScreen(); // Đã thêm màn hình Shop
+                  break;
+                case '/missions':
+                  builder = (_) => const MissionsScreen();
                   break;
                 case '/settings':
                   builder = (_) =>
