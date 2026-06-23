@@ -106,6 +106,16 @@ class _OTP_RegisterState extends State<OTP_Register>
     }
   }
 
+  // --- THÊM DUY NHẤT HÀM NÀY ĐỂ XỬ LÝ LÙI Ô KHI BẤM XÓA ---
+  void _handleBackspace(int index) {
+    if (index > 0) {
+      setState(() {
+        _controllers[index - 1].text = '';
+      });
+      _focusNodes[index - 1].requestFocus();
+    }
+  }
+
   void _handleVerify() async {
     final errorMessage = _otpErrorMessage();
     setState(() {
@@ -294,6 +304,7 @@ class _OTP_RegisterState extends State<OTP_Register>
                                     fontSize: 20,
                                   ),
                               onChanged: (value) => _handleChange(index, value),
+                              onBackspace: () => _handleBackspace(index), // --- THÊM DÒNG NÀY ĐỂ FIX LỖI ---
                               onSubmitted: () {
                                 if (index == _controllers.length - 1) {
                                   _handleVerify();

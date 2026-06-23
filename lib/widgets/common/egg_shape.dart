@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Hình trứng dọc: đỉnh hẹp (60%), đáy tròn rộng (40%).
-/// Tương đương CSS: border-radius: 50% / 60% 60% 40% 40%
 BoxDecoration eggDecoration({
   required double width,
   required double height,
@@ -13,13 +12,15 @@ BoxDecoration eggDecoration({
   final rx = width / 2;
   return BoxDecoration(
     color: color,
-    // Removed border to eliminate yellow line on focus
     borderRadius: BorderRadius.only(
       topLeft: Radius.elliptical(rx, height * 0.60),
       topRight: Radius.elliptical(rx, height * 0.60),
       bottomLeft: Radius.elliptical(rx, height * 0.40),
       bottomRight: Radius.elliptical(rx, height * 0.40),
     ),
+    border: borderColor != null && borderWidth > 0
+        ? Border.all(color: borderColor, width: borderWidth)
+        : null,
   );
 }
 
@@ -32,6 +33,7 @@ class EggOtpField extends StatefulWidget {
     required this.primary,
     this.textStyle,
     required this.onChanged,
+    required this.onBackspace, // Callback xử lý khi bấm xóa ô trống
     this.onSubmitted,
     this.width = 54,
     this.height = 80,
@@ -42,6 +44,7 @@ class EggOtpField extends StatefulWidget {
   final Color primary;
   final TextStyle? textStyle;
   final ValueChanged<String> onChanged;
+  final VoidCallback onBackspace;
   final VoidCallback? onSubmitted;
   final double width;
   final double height;
@@ -80,23 +83,37 @@ class _EggOtpFieldState extends State<EggOtpField> {
           borderWidth: focused ? 2 : 0,
         ),
         child: Center(
-          child: TextField(
-            controller: widget.controller,
-            focusNode: widget.focusNode,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            style: widget.textStyle,
-            maxLength: 1,
-            showCursor: false,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              counterText: '',
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
+          // Bọc KeyboardListener để bắt phím Backspace từ bàn phím hệ thống
+          child: KeyboardListener(
+            focusNode: FocusNode(), // FocusNode nội bộ để lắng nghe sự kiện phím độc lập
+            onKeyEvent: (KeyEvent event) {
+              if (event is KeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.backspace) {
+                  // Nếu ô hiện tại trống và bấm nút xóa -> kích hoạt quay lại ô trước
+                  if (widget.controller.text.isEmpty) {
+                    widget.onBackspace();
+                  }
+                }
+              }
+            },
+            child: TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: widget.textStyle,
+              maxLength: 1,
+              showCursor: false,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                counterText: '',
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: widget.onChanged,
+              onSubmitted: (_) => widget.onSubmitted?.call(),
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
-            onChanged: widget.onChanged,
-            onSubmitted: (_) => widget.onSubmitted?.call(),
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
         ),
       ),

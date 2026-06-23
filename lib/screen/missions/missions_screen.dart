@@ -6,6 +6,7 @@ import '../../data/models/player_challenge_response.dart';
 import '../../data/models/player_mission_response.dart';
 import '../../data/repositories/missions_screen_repository.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 enum MissionTab { mission, challenge }
 
@@ -227,9 +228,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
       await _loadData();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể nhận thưởng: $e')),
-        );
+        _showError('Không thể nhận thưởng: $e');
       }
     } finally {
       if (mounted) setState(() => _claimingMissionId = null);
@@ -256,10 +255,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
           });
         }
       } else {
-        _showMessage(resp.message);
+        _showError(resp.message);
       }
     } catch (e) {
-      _showMessage('Không thể nhận thử thách: $e');
+      _showError('Không thể nhận thử thách: $e');
     } finally {
       if (mounted) setState(() => _creatingChallenge = null);
     }
@@ -281,10 +280,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
         }
         _showMessage('Đã hủy thử thách.');
       } else {
-        _showMessage(resp.message);
+        _showError(resp.message);
       }
     } catch (e) {
-      _showMessage('Không thể hủy thử thách: $e');
+      _showError('Không thể hủy thử thách: $e');
     } finally {
       if (mounted) setState(() => _cancellingChallengeId = null);
     }
@@ -294,6 +293,18 @@ class _MissionsScreenState extends State<MissionsScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: ErrorMessageWidget(message: message),
+      ),
     );
   }
 
