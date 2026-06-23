@@ -115,6 +115,21 @@ class _OTP_VerificationState extends State<OTP_Verification>
     }
   }
 
+  void _handleBackspace(int index) {
+    // Called when user presses backspace on an empty field.
+    if (index <= 0) return;
+    setState(() {
+      _controllers[index - 1].text = '';
+      _controllers[index - 1].selection = const TextSelection.collapsed(offset: 0);
+    });
+    // Defer focus request to next frame to avoid assertion error
+    Future.microtask(() {
+      if (mounted) {
+        _focusNodes[index - 1].requestFocus();
+      }
+    });
+  }
+
   void _handleVerify() async {
     final errorMessage = _otpErrorMessage();
     setState(() {
@@ -334,6 +349,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
                                     color: primary,
                                     fontSize: 20,
                                   ),
+                              onBackspace: () => _handleBackspace(index),
                               onChanged: (value) => _handleChange(index, value),
                               onSubmitted: () {
                                 if (index == _controllers.length - 1) {
