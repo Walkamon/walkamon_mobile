@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
-import '../../widgets/common/google_icon.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -102,41 +100,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
-
-  Future<void> _handleGoogleLogin() async {
-    setState(() {
-      _inlineErrorMessage = null;
-    });
-
-    final provider = context.read<GameStateProvider>();
-
-    try {
-      final idToken = await GoogleSignInAuth.getIdToken();
-      final success = await provider.googleLogin(idToken: idToken);
-
-      if (!mounted) return;
-
-      if (success) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        final rawError = provider.errorMessage ?? 'Đăng nhập Google thất bại.';
-        setState(() {
-          _inlineErrorMessage = translateLoginError(
-            rawError.replaceAll('Exception: ', '').trim(),
-          );
-        });
-      }
-    } catch (e) {
-      debugPrint('Google login failed: $e');
-      if (!mounted) return;
-      final rawError = e.toString().replaceAll('Exception: ', '').trim();
-      setState(() {
-        _inlineErrorMessage = translateLoginError(
-          rawError.isNotEmpty ? rawError : 'Đăng nhập Google thất bại.',
-        );
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,16 +303,6 @@ class _LoginScreenState extends State<LoginScreen>
                           foregroundColor: onPrimary,
                           label: 'Bắt Đầu Hành Trình',
                         ),
-                        const SizedBox(height: 12),
-
-                        _TapScaleButton(
-                          onPressed: _handleGoogleLogin,
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
-                          label: 'Đăng nhập bằng Google',
-                          leading: const GoogleIcon(size: 20),
-                        ),
-                        const SizedBox(height: 40),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -510,14 +463,12 @@ class _TapScaleButton extends StatefulWidget {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.label,
-    this.leading,
   });
 
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Color foregroundColor;
   final String label;
-  final Widget? leading;
 
   @override
   State<_TapScaleButton> createState() => _TapScaleButtonState();
@@ -566,10 +517,6 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (widget.leading != null) ...[
-                      widget.leading!,
-                      const SizedBox(width: 10),
-                    ],
                     Flexible(
                       child: Text(
                         widget.label,
