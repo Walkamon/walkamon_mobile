@@ -1,32 +1,27 @@
-import 'package:dio/dio.dart';
-
 import '../../../core/constants/api_constants.dart';
-import '../../../core/network/dio_provider.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_response.dart';
 
 class SettingScreenDatasource {
-  final Dio _dio = DioProvider.instance;
+  final ApiClient _apiClient = ApiClient();
 
   Future<bool> logout() async {
     try {
-      final response = await _dio.post(ApiConstants.logout);
-      return response.statusCode == 200;
-    } on DioException {
+      final response = await _apiClient.post<dynamic>(ApiConstants.logout);
+      return response.success;
+    } catch (_) {
       return false;
     }
   }
 
-  Future<bool> sendFeedback({
+  Future<ApiResponse<void>> sendFeedback({
     required String content,
     required String feedbackTypeCode,
   }) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.userFeedback,
-        data: {'Content': content, 'FeedbackTypeCode': feedbackTypeCode},
-      );
-      return response.statusCode == 200 || response.statusCode == 201;
-    } on DioException {
-      return false;
-    }
+    return await _apiClient.post<void>(
+      ApiConstants.userFeedback,
+      data: {'Content': content, 'FeedbackTypeCode': feedbackTypeCode},
+      fromJsonT: (_) => null,
+    );
   }
 }
