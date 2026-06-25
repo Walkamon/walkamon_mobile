@@ -5,7 +5,6 @@ import '../core/utils/login_screen_error_translator.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
-import '../data/models/profile_view_response.dart';
 
 class GameUser {
   const GameUser({
@@ -121,6 +120,37 @@ class GameStateProvider extends ChangeNotifier {
         id: response.data!.userId ?? '0',
         name: response.data!.username ?? 'Lữ Hành Giả',
         email: email,
+        level: 1,
+        steps: 0,
+        coins: 0,
+        joinDate: 'Chưa có dữ liệu',
+      );
+
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = translateError(response.message);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> googleLogin({required String idToken}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final response = await _loginRepository.googleLogin(idToken: idToken);
+
+    _isLoading = false;
+
+    if (response.success && response.data != null) {
+      TokenStorage.setToken(response.data!.token);
+
+      _user = GameUser(
+        id: response.data!.userId ?? '0',
+        name: response.data!.username ?? 'Lữ Hành Giả',
+        email: '',
         level: 1,
         steps: 0,
         coins: 0,

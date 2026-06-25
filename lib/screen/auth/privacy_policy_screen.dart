@@ -165,7 +165,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
                                         accent: accent,
                                       ),
                                       const SizedBox(height: 16),
-                                      
+
                                       _buildSubSection(
                                         title: '1. Đăng ký và bảo mật tài khoản',
                                         content: '• Xác thực thông tin: Để tham gia chơi trò chơi, người dùng bắt buộc phải cung cấp đầy đủ, chính xác các thông tin tại Việt Nam. Theo nghị định 147/2024/NĐ-CP của Chính phủ Việt Nam, việc xác thực tài khoản bắt buộc thực hiện qua số điện thoại di động tại Việt Nam, và chỉ những tài khoản đã xác thực mới được tham gia chơi.\n'
@@ -298,7 +298,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
                                         mutedForeground: mutedForeground,
                                       ),
                                       const SizedBox(height: 16),
-                                      
+
                                       // Ngày cập nhật
                                       Align(
                                         alignment: Alignment.centerRight,

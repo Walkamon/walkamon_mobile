@@ -303,7 +303,6 @@ class _LoginScreenState extends State<LoginScreen>
                           foregroundColor: onPrimary,
                           label: 'Bắt Đầu Hành Trình',
                         ),
-                        const SizedBox(height: 40),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -510,16 +509,28 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
               borderRadius: BorderRadius.circular(32),
               onTap: widget.onPressed,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  widget.label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: widget.foregroundColor,
-                    letterSpacing: 0.5,
-                  ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: widget.foregroundColor,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

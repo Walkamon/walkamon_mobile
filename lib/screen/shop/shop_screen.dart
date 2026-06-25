@@ -198,7 +198,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       color: foreground,
                     ),
                   ),
-                 
+
                   const SizedBox(height: 20),
                   Expanded(
                     child: _isLoading

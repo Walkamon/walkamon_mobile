@@ -94,7 +94,7 @@ class WalkamonApp extends StatelessWidget {
                 '/daily-reward',
                 '/notifications',
                 '/spirit/detail',
-               
+
                 '/seed',
                 '/name-pet',
               ];

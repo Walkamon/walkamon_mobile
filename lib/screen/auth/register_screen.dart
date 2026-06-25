@@ -568,7 +568,7 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     final disabledBg = isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.08);
     final disabledFg = isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.3);
 
