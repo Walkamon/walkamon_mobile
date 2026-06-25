@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/shop_screen_repository.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/error_message_widget.dart';
 
 class _ShopDisplayItem {
   const _ShopDisplayItem({
@@ -92,6 +93,18 @@ class _ShopScreenState extends State<ShopScreen> {
     setState(() => _selectedItem = null);
   }
 
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: ErrorMessageWidget(message: message),
+      ),
+    );
+  }
+
   Future<void> _handleBuy(_ShopDisplayItem item) async {
     setState(() => _buyingItemId = item.shopItemId);
     try {
@@ -137,16 +150,12 @@ class _ShopScreenState extends State<ShopScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Mua thất bại: ${resp.message}')),
-          );
+          _showError('Mua thất bại: ${resp.message}');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi mua: ${e.toString()}')),
-        );
+        _showError('Lỗi khi mua: ${e.toString()}');
       }
     } finally {
       if (mounted) setState(() => _buyingItemId = null);
@@ -171,11 +180,13 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBody: true,
+      bottomNavigationBar: _buildBottomNavigation(context),
       body: SafeArea(
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -194,10 +205,14 @@ class _ShopScreenState extends State<ShopScreen> {
                         ? const Center(child: CircularProgressIndicator())
                         : _items.isEmpty
                             ? Center(
-                                child: Text(
-                                  _errorMessage ?? 'Không có shop item nào.',
-                                  style: TextStyle(color: mutedForeground),
-                                ),
+                                child: _errorMessage != null
+                                    ? ErrorMessageWidget(
+                                        message: _errorMessage!,
+                                      )
+                                    : Text(
+                                        'Không có shop item nào.',
+                                        style: TextStyle(color: mutedForeground),
+                                      ),
                               )
                             : ListView.separated(
                                 itemCount: _items.length,
@@ -381,4 +396,174 @@ class _ShopScreenState extends State<ShopScreen> {
       ],
     );
   }
+
+  Widget _buildBottomNavigation(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final barBgColor = isDark ? const Color(0xFF25332A) : const Color(0xFFE5DCCF);
+    final activeBgColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+    final activeIconColor = isDark ? const Color(0xFF1E2E24) : const Color(0xFFFFF8F0);
+    final inactiveColor = isDark
+        ? AppColors.darkMutedForeground.withValues(alpha: 0.66)
+        : AppColors.lightMutedForeground.withValues(alpha: 0.66);
+
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: barBgColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                iconWidget: Icon(Icons.bolt_rounded, size: 22, color: inactiveColor),
+                label: 'Cộng Đồng',
+                color: inactiveColor,
+                onTap: () => Navigator.pushNamed(context, '/friends'),
+              ),
+              _buildNavItem(
+                iconWidget: _SwordsIcon(size: 22, color: inactiveColor),
+                label: 'PvP',
+                color: inactiveColor,
+                onTap: () => Navigator.pushNamed(context, '/pvp'),
+              ),
+              const SizedBox(width: 64),
+              _buildNavItem(
+                iconWidget: Icon(Icons.backpack_outlined, size: 22, color: inactiveColor),
+                label: 'Túi Đồ',
+                color: inactiveColor,
+                onTap: () => Navigator.pushNamed(context, '/inventory'),
+              ),
+              _buildNavItem(
+                iconWidget: Icon(Icons.storefront_outlined, size: 22, color: inactiveColor),
+                label: 'Cửa Hàng',
+                color: inactiveColor,
+                onTap: () => Navigator.pushNamed(context, '/shop'),
+              ),
+            ],
+          ),
+          Positioned(
+            top: -18,
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/home',
+                (route) => false,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: activeBgColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: activeBgColor.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(Icons.home_rounded, size: 28, color: activeIconColor),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Trang Chủ',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkForeground : AppColors.lightForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required Widget iconWidget,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          iconWidget,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwordsIcon extends StatelessWidget {
+  const _SwordsIcon({this.size = 22, this.color});
+
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _SwordsPainter(color: color ?? Colors.white),
+    );
+  }
+}
+
+class _SwordsPainter extends CustomPainter {
+  const _SwordsPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final w = size.width;
+    final h = size.height;
+    canvas.drawLine(Offset(w * 0.25, h * 0.75), Offset(w * 0.75, h * 0.25), paint);
+    canvas.drawLine(Offset(w * 0.2, h * 0.55), Offset(w * 0.45, h * 0.8), paint);
+    canvas.drawLine(Offset(w * 0.75, h * 0.75), Offset(w * 0.25, h * 0.25), paint);
+    canvas.drawLine(Offset(w * 0.8, h * 0.55), Offset(w * 0.55, h * 0.8), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SwordsPainter oldDelegate) => oldDelegate.color != color;
 }
