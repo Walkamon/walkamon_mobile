@@ -18,6 +18,8 @@ import 'screen/auth/otp_register_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/auth/change_password_screen.dart';
+import 'screen/auth/privacy_policy_screen.dart';
+
 import 'screen/inventory/inventory_screen.dart';
 import 'screen/missions/missions_screen.dart';
 import 'screen/settings/seting_screen.dart';
@@ -134,6 +136,10 @@ class WalkamonApp extends StatelessWidget {
                 case '/auth/otp_register':
                   builder = (_) => const AuthLayout(child: OTP_Register());
                   break;
+                case '/auth/privacy':
+                  builder = (_) => const AuthLayout(child: PrivacyPolicyScreen());
+                  break;
+
 
                 // Các tuyến đường Private bảo mật
                 case '/home':

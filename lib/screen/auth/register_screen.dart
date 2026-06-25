@@ -28,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _isLoading = false;
   String? _errorMessage;
   bool _obscurePassword = true;
+  bool _acceptTerms = false;
 
   @override
   void initState() {
@@ -301,6 +302,70 @@ class _RegisterScreenState extends State<RegisterScreen>
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16),
+
+                        // ── Checkbox Agree to Privacy Policy & Terms ───────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: _acceptTerms,
+                                  onChanged: _isLoading
+                                      ? null
+                                      : (val) {
+                                          setState(() {
+                                            _acceptTerms = val ?? false;
+                                          });
+                                        },
+                                  activeColor: primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: _isLoading
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _acceptTerms = !_acceptTerms;
+                                          });
+                                        },
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: mutedForeground,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.3,
+                                      ),
+                                      children: [
+                                        const TextSpan(text: 'Tôi đã đọc và đồng ý với '),
+                                        WidgetSpan(
+                                          alignment: PlaceholderAlignment.middle,
+                                          child: _HoverLinkText(
+                                            text: 'Chính sách và quy định sử dụng',
+                                            onTap: () {
+                                              Navigator.pushNamed(context, '/auth/privacy');
+                                            },
+                                            normalColor: accent,
+                                            hoverColor: primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 20),
 
                         // ── Submit button ─────────────────────────────
@@ -311,6 +376,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 backgroundColor: primary,
                                 foregroundColor: onPrimary,
                                 label: 'Bắt Đầu Khế Ước',
+                                enabled: _acceptTerms,
                               ),
                         const SizedBox(height: 30),
 
@@ -482,12 +548,14 @@ class _TapScaleButton extends StatefulWidget {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.label,
+    this.enabled = true,
   });
 
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Color foregroundColor;
   final String label;
+  final bool enabled;
 
   @override
   State<_TapScaleButton> createState() => _TapScaleButtonState();
@@ -498,35 +566,46 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final disabledBg = isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.08);
+    final disabledFg = isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.3);
+
+    final bgColor = widget.enabled ? widget.backgroundColor : disabledBg;
+    final fgColor = widget.enabled ? widget.foregroundColor : disabledFg;
+
     return GestureDetector(
-      onTapDown: (_) => setState(() => _scale = 0.95),
-      onTapUp: (_) => setState(() => _scale = 1.0),
-      onTapCancel: () => setState(() => _scale = 1.0),
+      onTapDown: widget.enabled ? (_) => setState(() => _scale = 0.95) : null,
+      onTapUp: widget.enabled ? (_) => setState(() => _scale = 1.0) : null,
+      onTapCancel: widget.enabled ? () => setState(() => _scale = 1.0) : null,
       child: AnimatedScale(
-        scale: _scale,
+        scale: widget.enabled ? _scale : 1.0,
         duration: const Duration(milliseconds: 100),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: widget.backgroundColor.withValues(alpha: 0.15),
-                offset: const Offset(0, 8),
-                blurRadius: 20,
-              ),
-              BoxShadow(
-                color: widget.backgroundColor.withValues(alpha: 0.1),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
+            boxShadow: widget.enabled
+                ? [
+                    BoxShadow(
+                      color: widget.backgroundColor.withValues(alpha: 0.15),
+                      offset: const Offset(0, 8),
+                      blurRadius: 20,
+                    ),
+                    BoxShadow(
+                      color: widget.backgroundColor.withValues(alpha: 0.1),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ]
+                : [],
           ),
           child: Material(
-            color: widget.backgroundColor,
+            color: bgColor,
             borderRadius: BorderRadius.circular(32),
             child: InkWell(
               borderRadius: BorderRadius.circular(32),
-              onTap: widget.onPressed,
+              onTap: widget.enabled ? widget.onPressed : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
@@ -535,13 +614,56 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: widget.foregroundColor,
+                    color: fgColor,
                     letterSpacing: 0.5,
                   ),
                 ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverLinkText extends StatefulWidget {
+  const _HoverLinkText({
+    required this.text,
+    required this.onTap,
+    required this.normalColor,
+    required this.hoverColor,
+  });
+
+  final String text;
+  final VoidCallback onTap;
+  final Color normalColor;
+  final Color hoverColor;
+
+  @override
+  State<_HoverLinkText> createState() => _HoverLinkTextState();
+}
+
+class _HoverLinkTextState extends State<_HoverLinkText> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 150),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _isHovered ? widget.hoverColor : widget.normalColor,
+            decoration: _isHovered ? TextDecoration.underline : TextDecoration.none,
+          ),
+          child: Text(widget.text),
         ),
       ),
     );
