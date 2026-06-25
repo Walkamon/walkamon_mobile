@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/seed');
     } else {
       // Đọc chuỗi lỗi từ Provider ném lên
       final rawError = provider.errorMessage ?? 'Đăng nhập thất bại.';

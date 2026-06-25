@@ -23,6 +23,9 @@ import 'screen/spirit/spirit_detail_screen.dart';
 import 'screen/friends/friends_screen.dart';
 import 'screen/gameplay/pvp_screen.dart';
 import 'screen/welcome/daily_reward_screen.dart';
+import 'screen/welcome/story_screen.dart';
+import 'screen/welcome/name_pet_screen.dart';
+import 'screen/welcome/seed_screen.dart';
 import 'screen/notifications/notifications_screen.dart';
 
 import 'screen/inventory/inventory_screen.dart';
@@ -91,6 +94,9 @@ class WalkamonApp extends StatelessWidget {
                 '/daily-reward',
                 '/notifications',
                 '/spirit/detail',
+               
+                '/seed',
+                '/name-pet',
               ];
 
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
@@ -192,6 +198,15 @@ class WalkamonApp extends StatelessWidget {
                   break;
                 case '/spirit/detail':
                   builder = (_) => const SpiritDetailScreen();
+                  break;
+                case '/story':
+                  builder = (_) => const StoryScreen();
+                  break;
+                case '/seed':
+                  builder = (_) => const SeedScreen();
+                  break;
+                case '/name-pet':
+                  builder = (_) => const NamePetScreen();
                   break;
 
                 // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng
