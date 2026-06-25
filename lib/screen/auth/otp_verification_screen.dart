@@ -115,6 +115,16 @@ class _OTP_VerificationState extends State<OTP_Verification>
     }
   }
 
+  // Hàm xử lý quay lại ô trước và xóa dữ liệu khi nhấn phím Delete/Backspace liên tục
+  void _handleBackspace(int index) {
+    if (index > 0) {
+      setState(() {
+        _controllers[index - 1].text = '';
+      });
+      _focusNodes[index - 1].requestFocus();
+    }
+  }
+
   void _handleVerify() async {
     final errorMessage = _otpErrorMessage();
     setState(() {
@@ -249,165 +259,167 @@ class _OTP_VerificationState extends State<OTP_Verification>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
 
-    return FadeTransition(
-      opacity: _opacityAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Stack(
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 80,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'OTP',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: primary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Nhập 6 chữ số OTP đã được gửi đến hòm thư của bạn',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: mutedForeground,
-                          fontWeight: FontWeight.w500,
-                          height: 1.6,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Error Banner
-                      if (_errorMessage != null) ...[
-                        ErrorMessageWidget(message: _errorMessage!),
-                        const SizedBox(height: 20),
-                      ],
-
-                      // Success Banner
-                      if (_successMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+    return Scaffold( // Đảm bảo bọc bằng Scaffold để hiển thị giao diện chuẩn xác
+      body: FadeTransition(
+        opacity: _opacityAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Stack(
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 80,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 360),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'OTP',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: primary,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.green.shade200),
-                          ),
-                          child: Text(
-                            _successMessage!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.green.shade800,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Nhập 6 chữ số OTP đã được gửi đến hòm thư của bạn',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: mutedForeground,
+                            fontWeight: FontWeight.w500,
+                            height: 1.6,
                           ),
                         ),
                         const SizedBox(height: 20),
-                      ],
 
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_controllers.length, (index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: EggOtpField(
-                              width: 44,
-                              height: 65,
-                              controller: _controllers[index],
-                              focusNode: _focusNodes[index],
-                              primary: primary,
-                              textStyle: theme.textTheme.headlineSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: primary,
-                                    fontSize: 20,
-                                  ),
-                              onChanged: (value) => _handleChange(index, value),
-                              onSubmitted: () {
-                                if (index == _controllers.length - 1) {
-                                  _handleVerify();
-                                }
-                              },
+                        // Error Banner
+                        if (_errorMessage != null) ...[
+                          ErrorMessageWidget(message: _errorMessage!),
+                          const SizedBox(height: 20),
+                        ],
+
+                        // Success Banner
+                        if (_successMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
-                          );
-                        }),
-                      ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.green.shade200),
+                            ),
+                            child: Text(
+                              _successMessage!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.green.shade800,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
 
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _handleVerify,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          textStyle: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_controllers.length, (index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: EggOtpField(
+                                width: 44,
+                                height: 65,
+                                controller: _controllers[index],
+                                focusNode: _focusNodes[index],
+                                primary: primary,
+                                textStyle: theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: primary,
+                                      fontSize: 20,
+                                    ),
+                                onChanged: (value) => _handleChange(index, value),
+                                onBackspace: () => _handleBackspace(index), // Truyền hàm xóa liên tục
+                                onSubmitted: () {
+                                  if (index == _controllers.length - 1) {
+                                    _handleVerify();
+                                  }
+                                },
+                              ),
+                            );
+                          }),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text('Xác Nhận OTP'),
-                      ),
-                      const SizedBox(height: 22),
-                      Center(
-                        child: TextButton(
-                          onPressed: _isLoading ? null : _handleResendOtp,
-                          child: Text(
-                            'Gửi lại OTP',
-                            style: theme.textTheme.bodyMedium?.copyWith(
+
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleVerify,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            textStyle: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: _isLoading
-                                  ? mutedForeground
-                                  : theme.colorScheme.secondary,
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text('Xác Nhận OTP'),
+                        ),
+                        const SizedBox(height: 22),
+                        Center(
+                          child: TextButton(
+                            onPressed: _isLoading ? null : _handleResendOtp,
+                            child: Text(
+                              'Gửi lại OTP',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: _isLoading
+                                    ? mutedForeground
+                                    : theme.colorScheme.secondary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              top: 16,
-              left: 24,
-              child: SafeArea(
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
+              Positioned(
+                top: 16,
+                left: 24,
+                child: SafeArea(
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.arrow_back, color: primary, size: 24),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

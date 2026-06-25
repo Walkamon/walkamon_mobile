@@ -1,52 +1,39 @@
-import 'package:dio/dio.dart';
-
 import '../../../core/constants/api_constants.dart';
-import '../../../core/network/dio_provider.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_response.dart';
 import '../../models/shop_item_response.dart';
 
 class ShopScreenDatasource {
-  final Dio _dio = DioProvider.instance;
+  final ApiClient _apiClient = ApiClient();
 
-  Future<List<ShopItemResponse>> getAllShopItems() async {
-    final response = await _dio.get(ApiConstants.shopItems);
-    final data = response.data;
-
-    if (data is List) {
-      return data
-          .map((e) => ShopItemResponse.fromJson(e as Map<String, dynamic>))
-          .where((item) => item.isActive)
-          .toList();
-    }
-
-    throw DioException(
-      requestOptions: response.requestOptions,
-      message: 'Dữ liệu phản hồi không đúng định dạng.',
+  Future<ApiResponse<List<ShopItemResponse>>> getAllShopItems() async {
+    return await _apiClient.get<List<ShopItemResponse>>(
+      ApiConstants.shopItems,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((e) => ShopItemResponse.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+        return <ShopItemResponse>[];
+      },
     );
   }
 
-  Future<ShopItemResponse> getShopItemById(String id) async {
-    final response = await _dio.get(ApiConstants.shopItemById(id));
-    final data = response.data;
-
-    if (data is Map<String, dynamic>) {
-      return ShopItemResponse.fromJson(data);
-    }
-
-    throw DioException(
-      requestOptions: response.requestOptions,
-      message: 'Dữ liệu phản hồi không đúng định dạng.',
+  Future<ApiResponse<ShopItemResponse>> getShopItemById(String id) async {
+    return await _apiClient.get<ShopItemResponse>(
+      ApiConstants.shopItemById(id),
+      fromJsonT: (json) => ShopItemResponse.fromJson(json as Map<String, dynamic>),
     );
   }
 
-  Future<bool> buyShopItem(String shopItemId, {int quantity = 1}) async {
-    try {
-      final response = await _dio.post(
-        ApiConstants.buyShopItem(shopItemId),
-        data: {'quantity': quantity},
-      );
-      return response.statusCode == 200 || response.statusCode == 201;
-    } on DioException {
-      return false;
-    }
+  /// Calls POST /api/shop/buy with body { shopItemId, quantity }
+  Future<ApiResponse<dynamic>> buyShopItem(String shopItemId, {int quantity = 1}) async {
+    final body = {'shopItemId': shopItemId, 'quantity': quantity};
+    return await _apiClient.post<dynamic>(
+      ApiConstants.buyShop,
+      data: body,
+      fromJsonT: (json) => json,
+    );
   }
 }

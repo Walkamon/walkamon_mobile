@@ -305,10 +305,11 @@ class GameStateProvider extends ChangeNotifier {
   }) async {
     // Deprecated: simple bool. Newer implementation handled below in sendFeedbackWithCooldown.
     try {
-      return await _settingRepository.sendFeedback(
+      final response = await _settingRepository.sendFeedback(
         content: content,
         feedbackTypeCode: feedbackTypeCode,
       );
+      return response.success;
     } catch (_) {
       return false;
     }
@@ -316,23 +317,36 @@ class GameStateProvider extends ChangeNotifier {
 
   // Result object for feedback send attempts
 
-  // Sends feedback with a 24-hour cooldown stored in SharedPreferences.
+  // Sends feedback with backend-enforced 24-hour cooldown.
   Future<FeedbackResult> sendFeedbackWithCooldown({
     required String content,
     required String feedbackTypeCode,
   }) async {
     try {
-      // Removed cooldown: always attempt to send feedback immediately.
-      final ok = await _settingRepository.sendFeedback(
+      final response = await _settingRepository.sendFeedback(
         content: content,
         feedbackTypeCode: feedbackTypeCode,
       );
 
-      if (ok) {
+      if (response.success) {
         return FeedbackResult(success: true);
       }
 
-      return FeedbackResult(success: false, message: 'Gửi phản hồi thất bại.');
+      final message = response.message.isNotEmpty
+          ? response.message
+          : 'Gửi phản hồi thất bại.';
+
+      final isCooldownError =
+          response.status == 400 &&
+          (message.toLowerCase().contains('24') ||
+              message.toLowerCase().contains('24 giờ') ||
+              message.toLowerCase().contains('24 hours'));
+
+      return FeedbackResult(
+        success: false,
+        message: message,
+        retryAfter: isCooldownError ? const Duration(hours: 24) : null,
+      );
     } catch (e) {
       return FeedbackResult(success: false, message: e.toString());
     }

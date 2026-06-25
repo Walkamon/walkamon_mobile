@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/google_icon.dart';
-
-const _googleServerClientId =
-    '644682972598-d5h58a3b0g8c0ag6lm1bcdf9k5mh4vch.apps.googleusercontent.com';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   // Biến lưu trữ thông báo lỗi để hiển thị trực tiếp trên giao diện dạng dọc
   String? _inlineErrorMessage;
-  static Future<void>? _googleSignInInitFuture;
 
   @override
   void initState() {
@@ -92,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/seed');
     } else {
       // Đọc chuỗi lỗi từ Provider ném lên
       final rawError = provider.errorMessage ?? 'Đăng nhập thất bại.';
@@ -107,13 +103,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
-  Future<void> _ensureGoogleSignInInitialized() {
-    _googleSignInInitFuture ??= GoogleSignIn.instance.initialize(
-      serverClientId: _googleServerClientId,
-    );
-    return _googleSignInInitFuture!;
-  }
-
   Future<void> _handleGoogleLogin() async {
     setState(() {
       _inlineErrorMessage = null;
@@ -122,21 +111,7 @@ class _LoginScreenState extends State<LoginScreen>
     final provider = context.read<GameStateProvider>();
 
     try {
-      await _ensureGoogleSignInInitialized();
-
-      if (!GoogleSignIn.instance.supportsAuthenticate()) {
-        throw Exception('Google Sign-In is not supported on this platform.');
-      }
-
-      final googleUser = await GoogleSignIn.instance.authenticate(
-        scopeHint: const ['email', 'profile'],
-      );
-      final idToken = googleUser.authentication.idToken;
-
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception('Không lấy được Google idToken.');
-      }
-
+      final idToken = await GoogleSignInAuth.getIdToken();
       final success = await provider.googleLogin(idToken: idToken);
 
       if (!mounted) return;
