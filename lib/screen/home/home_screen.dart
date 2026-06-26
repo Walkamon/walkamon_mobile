@@ -24,7 +24,6 @@ class _DewdropIcon extends StatelessWidget {
 class _DewdropPainter extends CustomPainter {
   const _DewdropPainter({required this.color});
   final Color color;
-
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -37,7 +36,14 @@ class _DewdropPainter extends CustomPainter {
       ..moveTo(12 * sx, 2.5 * sy)
       ..cubicTo(12 * sx, 2.5 * sy, 4.5 * sx, 9.5 * sy, 4.5 * sx, 14 * sy)
       ..cubicTo(4.5 * sx, 18.14 * sy, 7.86 * sx, 21.5 * sy, 12 * sx, 21.5 * sy)
-      ..cubicTo(16.14 * sx, 21.5 * sy, 19.5 * sx, 18.14 * sy, 19.5 * sx, 14 * sy)
+      ..cubicTo(
+        16.14 * sx,
+        21.5 * sy,
+        19.5 * sx,
+        18.14 * sy,
+        19.5 * sx,
+        14 * sy,
+      )
       ..cubicTo(19.5 * sx, 9.5 * sy, 12 * sx, 2.5 * sy, 12 * sx, 2.5 * sy)
       ..close();
 
@@ -78,15 +84,26 @@ class _SwordsPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Kiếm 1: từ dưới trái lên trên phải
-    canvas.drawLine(Offset(w * 0.25, h * 0.75), Offset(w * 0.75, h * 0.25), paint);
-    // Gờ kiếm 1 (thanh ngang chuôi)
-    canvas.drawLine(Offset(w * 0.2, h * 0.55), Offset(w * 0.45, h * 0.8), paint);
-
-    // Kiếm 2: từ dưới phải lên trên trái
-    canvas.drawLine(Offset(w * 0.75, h * 0.75), Offset(w * 0.25, h * 0.25), paint);
-    // Gờ kiếm 2 (thanh ngang chuôi)
-    canvas.drawLine(Offset(w * 0.8, h * 0.55), Offset(w * 0.55, h * 0.8), paint);
+    canvas.drawLine(
+      Offset(w * 0.25, h * 0.75),
+      Offset(w * 0.75, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.2, h * 0.55),
+      Offset(w * 0.45, h * 0.8),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.75, h * 0.75),
+      Offset(w * 0.25, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.8, h * 0.55),
+      Offset(w * 0.55, h * 0.8),
+      paint,
+    );
   }
 
   @override
@@ -113,7 +130,9 @@ class _StatBarState extends State<_StatBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final mutedFg = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,6 +219,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _energyLevel = 68;
   int _healthLevel = 80;
   bool _feedAnim = false;
+  bool _stepExpanded = false;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
     _FloatingBubble(id: 1, top: 0.20, left: 0.12, size: 30),
@@ -228,12 +248,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
-    _glowScale = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut),
-    );
-    _glowOpacity = Tween<double>(begin: 0.35, end: 0.65).animate(
-      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut),
-    );
+    _glowScale = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
+    _glowOpacity = Tween<double>(
+      begin: 0.35,
+      end: 0.65,
+    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
 
     // Feed ripple
     _rippleCtrl = AnimationController(
@@ -268,10 +290,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _bondingLevel = (_bondingLevel + 2).clamp(0, 100);
       _feedAnim = true;
       final id = DateTime.now().millisecondsSinceEpoch;
-      _floatingNums.add(_FloatingNum(
-        id: id,
-        xOffset: (math.Random().nextDouble() * 40 - 20),
-      ));
+      _floatingNums.add(
+        _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
+      );
     });
 
     _rippleCtrl.forward(from: 0);
@@ -317,8 +338,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final double stepPct = (dailySteps / goalSteps).clamp(0.0, 1.0);
 
     final dewColor = isDark ? AppColors.darkDew : AppColors.lightDew;
-    final luminaGlow = isDark ? AppColors.darkLuminaGlow : AppColors.lightLuminaGlow;
-    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final luminaGlow = isDark
+        ? AppColors.darkLuminaGlow
+        : AppColors.lightLuminaGlow;
+    final mutedFg = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
     final energyColor = isDark ? AppColors.darkDew : AppColors.lightDew;
     final lifeColor = isDark ? AppColors.darkLife : AppColors.lightLife;
     final bondColor = isDark ? AppColors.darkBond : AppColors.lightBond;
@@ -339,62 +364,55 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // 1. Steps bar
+                      // 1. Warning message
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          constraints: const BoxConstraints(minHeight: 36),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withOpacity(0.75),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder,
+                            ),
+                          ),
+                          child: Row(
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.directions_walk, size: 12, color: mutedFg),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Hôm Nay',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: mutedFg,
-                                        ),
-                                      ),
-                                    ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF8FAF8F)
+                                      : const Color(0xFF253426),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '12+',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark ? Colors.black : Colors.white,
                                   ),
-                                  Text(
-                                    '${_formatNumber(dailySteps)} / ${_formatNumber(goalSteps)}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                              const SizedBox(height: 4),
-                              // Progress bar
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(begin: 0, end: stepPct),
-                                duration: const Duration(milliseconds: 800),
-                                curve: Curves.easeOutCubic,
-                                builder: (_, val, __) => Container(
-                                  height: 8,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: val,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: primary,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Chơi game quá 180 phút một ngày sẽ ảnh hưởng xấu đến sức khỏe',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -402,81 +420,180 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-
-                      // 2. Dewdrop currency
-                      Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _DewdropIcon(size: 16, color: dewColor),
-                            const SizedBox(width: 6),
-                            Text(
-                              '1,240',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: theme.colorScheme.onSurface,
+                      const SizedBox(width: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 2. Step bar (compact -> expands on tap)
+                          GestureDetector(
+                            key: const ValueKey('step_compact'),
+                            onTap: () => showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                insetPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 24,
+                                ),
+                                child: Container(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 320,
+                                  ),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    18,
+                                    16,
+                                    16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface
+                                        .withOpacity(0.95),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.darkBorder
+                                          : AppColors.lightBorder,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.topRight,
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              Navigator.of(context).pop(),
+                                          child: Container(
+                                            width: 32,
+                                            height: 32,
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.lightBorder,
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 18,
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.directions_walk,
+                                                size: 14,
+                                                color: mutedFg,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Hôm Nay',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: mutedFg,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            '${_formatNumber(dailySteps)} / ${_formatNumber(goalSteps)}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w800,
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TweenAnimationBuilder<double>(
+                                        tween: Tween(begin: 0.0, end: stepPct),
+                                        duration: const Duration(
+                                          milliseconds: 800,
+                                        ),
+                                        curve: Curves.easeOutCubic,
+                                        builder: (_, val, __) => Container(
+                                          height: 10,
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppColors.darkMuted
+                                                : AppColors.lightMuted,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: val,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: primary,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Số bước chân bạn đã đi trong ngày hôm nay',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // 3. Level / Profile
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/profile'),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                             child: Container(
                               height: 36,
-                              padding: const EdgeInsets.only(left: 8, right: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surface.withOpacity(0.7),
+                                color: theme.colorScheme.surface.withOpacity(
+                                  0.75,
+                                ),
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 10,
-                                    backgroundColor: primary.withOpacity(0.2),
-                                    child: Icon(Icons.person, size: 11, color: primary),
+                                  Icon(
+                                    Icons.directions_walk,
+                                    size: 14,
+                                    color: mutedFg,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Text(
-                                    'Lv. ${user?.level ?? 1}',
+                                    'Step',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
                                       color: theme.colorScheme.onSurface,
                                     ),
                                   ),
@@ -484,7 +601,106 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          // 3. Dewdrop currency
+                          Container(
+                            height: 36,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _DewdropIcon(size: 16, color: dewColor),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '1,240',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // 4. Level / Profile
+                          GestureDetector(
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/profile'),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: Container(
+                                  height: 36,
+                                  padding: const EdgeInsets.only(
+                                    left: 8,
+                                    right: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface
+                                        .withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.darkBorder
+                                          : AppColors.lightBorder,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 10,
+                                        backgroundColor: primary.withOpacity(
+                                          0.2,
+                                        ),
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 11,
+                                          color: primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Lv. ${user?.level ?? 1}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -548,12 +764,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
 
                       // Floating dew bubbles (drawn on top of the circles)
-                      ..._bubbles.map((bubble) => _BubbleWidget(
-                        key: ValueKey(bubble.id),
-                        bubble: bubble,
-                        dewColor: dewColor,
-                        onCollect: () => _collectBubble(bubble.id),
-                      )),
+                      ..._bubbles.map(
+                        (bubble) => _BubbleWidget(
+                          key: ValueKey(bubble.id),
+                          bubble: bubble,
+                          dewColor: dewColor,
+                          onCollect: () => _collectBubble(bubble.id),
+                        ),
+                      ),
 
                       // Pet sprite placeholder
                       GestureDetector(
@@ -565,14 +783,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             alignment: Alignment.center,
                             children: [
                               // Pet visual
-                              _LuminaSprite(mood: _getMood(), primary: primary, luminaGlow: luminaGlow),
+                              _LuminaSprite(
+                                mood: _getMood(),
+                                primary: primary,
+                                luminaGlow: luminaGlow,
+                              ),
 
                               // Floating "+♥" numbers on feed
-                              ..._floatingNums.map((n) => _FloatingHeartWidget(
-                                key: ValueKey(n.id),
-                                xOffset: n.xOffset,
-                                primary: primary,
-                              )),
+                              ..._floatingNums.map(
+                                (n) => _FloatingHeartWidget(
+                                  key: ValueKey(n.id),
+                                  xOffset: n.xOffset,
+                                  primary: primary,
+                                ),
+                              ),
 
                               // Ripple pulse on feed tap
                               if (_feedAnim)
@@ -581,7 +805,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   builder: (_, __) => Transform.scale(
                                     scale: 0.6 + _rippleCtrl.value * 1.1,
                                     child: Opacity(
-                                      opacity: (1 - _rippleCtrl.value).clamp(0, 1),
+                                      opacity: (1 - _rippleCtrl.value).clamp(
+                                        0,
+                                        1,
+                                      ),
                                       child: Container(
                                         width: 200,
                                         height: 200,
@@ -615,90 +842,99 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         padding: const EdgeInsets.only(top: 60, right: 12),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(32),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface.withOpacity(0.85),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface.withOpacity(
+                                  0.85,
                                 ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Header
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => Navigator.pushNamed(context, '/spirit/detail'),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'TRẠNG THÁI LUMINA',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w900,
-                                              color: mutedFg,
-                                              letterSpacing: 1.5,
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Header
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => Navigator.pushNamed(
+                                          context,
+                                          '/spirit/detail',
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'TRẠNG THÁI LUMINA',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w900,
+                                                color: mutedFg,
+                                                letterSpacing: 1.5,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            width: 20,
-                                            height: 20,
-                                            decoration: BoxDecoration(
-                                              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                'i',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: mutedFg,
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? AppColors.darkMuted
+                                                    : AppColors.lightMuted,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  'i',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: mutedFg,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _StatBar(
-                                  label: 'Năng Lượng',
-                                  value: _energyLevel,
-                                  barColor: energyColor,
-                                ),
-                                const SizedBox(height: 12),
-                                _StatBar(
-                                  label: 'Sinh Mệnh Lực',
-                                  value: _healthLevel,
-                                  barColor: Colors.orange,
-                                ),
-                                const SizedBox(height: 12),
-                                _StatBar(
-                                  label: 'Độ Gắn Kết',
-                                  value: _bondingLevel,
-                                  barColor: Colors.green,
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _StatBar(
+                                    label: 'Năng Lượng',
+                                    value: _energyLevel,
+                                    barColor: energyColor,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _StatBar(
+                                    label: 'Sinh Mệnh Lực',
+                                    value: _healthLevel,
+                                    barColor: Colors.orange,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _StatBar(
+                                    label: 'Độ Gắn Kết',
+                                    value: _bondingLevel,
+                                    barColor: Colors.green,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       ), // Added missing closing parenthesis for Padding
                       Positioned(
                         top: 0,
@@ -774,8 +1010,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
               ),
             ),
-
-
           ],
         ),
       ),
@@ -829,7 +1063,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   width: 9,
                   height: 9,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                    color: isDark
+                        ? AppColors.darkAccent
+                        : AppColors.lightAccent,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: theme.colorScheme.surface,
@@ -849,10 +1085,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final barBgColor = isDark ? const Color(0xFF25332A) : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-    final activeIconColor = isDark ? const Color(0xFF1E2E24) : const Color(0xFFFFF8F0);
-    final inactiveColor = isDark ? AppColors.darkMutedForeground.withOpacity(0.6) : AppColors.lightMutedForeground.withOpacity(0.6);
+    final barBgColor = isDark
+        ? const Color(0xFF25332A)
+        : const Color(0xFFE5DCCF);
+    final activeBgColor = isDark
+        ? AppColors.darkPrimary
+        : AppColors.lightPrimary;
+    final activeIconColor = isDark
+        ? const Color(0xFF1E2E24)
+        : const Color(0xFFFFF8F0);
+    final inactiveColor = isDark
+        ? AppColors.darkMutedForeground.withOpacity(0.6)
+        : AppColors.lightMutedForeground.withOpacity(0.6);
 
     return Container(
       height: 80,
@@ -876,7 +1120,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(Icons.bolt_rounded, size: 22, color: inactiveColor),
+                iconWidget: Icon(
+                  Icons.bolt_rounded,
+                  size: 22,
+                  color: inactiveColor,
+                ),
                 label: 'Cộng Đồng',
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/friends'),
@@ -889,13 +1137,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               const SizedBox(width: 64), // Giữ chỗ cho nút giữa nổi
               _buildNavItem(
-                iconWidget: Icon(Icons.backpack_outlined, size: 22, color: inactiveColor),
+                iconWidget: Icon(
+                  Icons.backpack_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
                 label: 'Túi Đồ',
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(Icons.storefront_outlined, size: 22, color: inactiveColor),
+                iconWidget: Icon(
+                  Icons.storefront_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
                 label: 'Cửa Hàng',
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/shop'),
@@ -941,7 +1197,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkForeground : AppColors.lightForeground,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -1034,10 +1292,7 @@ class _LuminaSpriteState extends State<_LuminaSprite>
       animation: _bounceCtrl,
       builder: (_, child) {
         final bounce = math.sin(_bounceCtrl.value * math.pi) * 8;
-        return Transform.translate(
-          offset: Offset(0, -bounce),
-          child: child,
-        );
+        return Transform.translate(offset: Offset(0, -bounce), child: child);
       },
       child: Container(
         width: 140,
@@ -1057,10 +1312,7 @@ class _LuminaSpriteState extends State<_LuminaSprite>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _getMoodEmoji(),
-                style: const TextStyle(fontSize: 64),
-              ),
+              Text(_getMoodEmoji(), style: const TextStyle(fontSize: 64)),
               const SizedBox(height: 8),
               Text(
                 'Lumina',
@@ -1183,7 +1435,9 @@ class _BubbleWidgetState extends State<_BubbleWidget>
       builder: (_, __) {
         final yOffset = math.sin(_floatCtrl.value * math.pi) * 12;
         return Positioned(
-          top: (widget.bubble.top * MediaQuery.of(context).size.height * 0.5) + yOffset,
+          top:
+              (widget.bubble.top * MediaQuery.of(context).size.height * 0.5) +
+              yOffset,
           left: widget.bubble.left * MediaQuery.of(context).size.width,
           child: GestureDetector(
             onTap: widget.onCollect,
