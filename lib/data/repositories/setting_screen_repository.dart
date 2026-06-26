@@ -1,4 +1,5 @@
 import '../datasources/remote/setting_screen_datasource.dart';
+import '../../core/network/api_response.dart';
 
 class SettingScreenRepository {
   final SettingScreenDatasource _remoteDataSource = SettingScreenDatasource();
@@ -7,7 +8,7 @@ class SettingScreenRepository {
     return _remoteDataSource.logout();
   }
 
-  Future<bool> sendFeedback({
+  Future<ApiResponse<void>> sendFeedback({
     required String content,
     required String feedbackTypeCode,
   }) {

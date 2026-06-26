@@ -20,6 +20,16 @@ import 'screen/auth/otp_register_screen.dart';
 import 'screen/auth/register_screen.dart';
 import 'screen/auth/reset_password_screen.dart';
 import 'screen/auth/change_password_screen.dart';
+import 'screen/auth/privacy_policy_screen.dart';
+import 'screen/spirit/spirit_detail_screen.dart';
+import 'screen/friends/friends_screen.dart';
+import 'screen/gameplay/pvp_screen.dart';
+import 'screen/welcome/daily_reward_screen.dart';
+import 'screen/welcome/story_screen.dart';
+import 'screen/welcome/name_pet_screen.dart';
+import 'screen/welcome/seed_screen.dart';
+import 'screen/notifications/notifications_screen.dart';
+
 import 'screen/inventory/inventory_screen.dart';
 import 'screen/missions/missions_screen.dart';
 import 'screen/settings/seting_screen.dart';
@@ -104,6 +114,14 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/profile/view',
                 '/profile/edit',
                 '/auth/change-password',
+                '/friends',
+                '/pvp',
+                '/daily-reward',
+                '/notifications',
+                '/spirit/detail',
+
+                '/seed',
+                '/name-pet',
               ];
 
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
@@ -159,6 +177,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 case '/auth/otp_register':
                   builder = (_) => const AuthLayout(child: OTP_Register());
                   break;
+                case '/auth/privacy':
+                  builder = (_) => const AuthLayout(child: PrivacyPolicyScreen());
+                  break;
+
 
                 // Các tuyến đường Private bảo mật
                 case '/home':
@@ -186,6 +208,30 @@ class _WalkamonAppState extends State<WalkamonApp> {
 
                 case '/profile/edit':
                   builder = (_) => const EditProfileScreen();
+                  break;
+                case '/friends':
+                  builder = (_) => const FriendsScreen();
+                  break;
+                case '/pvp':
+                  builder = (_) => const PvPScreen();
+                  break;
+                case '/daily-reward':
+                  builder = (_) => const DailyRewardScreen();
+                  break;
+                case '/notifications':
+                  builder = (_) => const NotificationsScreen();
+                  break;
+                case '/spirit/detail':
+                  builder = (_) => const SpiritDetailScreen();
+                  break;
+                case '/story':
+                  builder = (_) => const StoryScreen();
+                  break;
+                case '/seed':
+                  builder = (_) => const SeedScreen();
+                  break;
+                case '/name-pet':
+                  builder = (_) => const NamePetScreen();
                   break;
 
                 // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng

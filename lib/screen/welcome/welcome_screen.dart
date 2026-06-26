@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/google_icon.dart';
@@ -18,6 +21,39 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _bgmEnabled = true;
   bool _sfxEnabled = true;
   bool _fps60 = false;
+
+  Future<void> _handleGoogleLogin() async {
+    final provider = context.read<GameStateProvider>();
+
+    try {
+      final idToken = await GoogleSignInAuth.getIdToken();
+      final success = await provider.googleLogin(idToken: idToken);
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/home');
+        return;
+      }
+
+      _showGoogleLoginError(provider.errorMessage);
+    } catch (e) {
+      if (!mounted) return;
+      _showGoogleLoginError(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  void _showGoogleLoginError(String? message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message?.trim().isNotEmpty == true
+              ? message!.trim()
+              : 'Dang nhap Google that bai.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +179,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   borderColor: borderColor,
                                   foregroundColor: foreground,
                                   mutedColor: muted,
-                                  onPressed: () => Navigator.pushNamed(context, '/home'),
+                                  onPressed: _handleGoogleLogin,
                                 ),
                               ],
                             ),
@@ -204,6 +240,7 @@ class _AnimatedFadeSlideState extends State<_AnimatedFadeSlide>
   late final AnimationController _controller;
   late final Animation<double> _opacity;
   late final Animation<Offset> _offset;
+  Timer? _startTimer;
 
   @override
   void initState() {
@@ -218,13 +255,18 @@ class _AnimatedFadeSlideState extends State<_AnimatedFadeSlide>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    Future<void>.delayed(widget.delay, () {
-      if (mounted) _controller.forward();
-    });
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _startTimer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _startTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

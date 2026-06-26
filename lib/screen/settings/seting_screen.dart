@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 
@@ -63,7 +64,9 @@ class _SettingScreenState extends State<SettingScreen> {
     // Show errors or cooldown messages inside the popup instead of SnackBar
     if (result.retryAfter != null) {
       setState(() {
-        _feedbackMessage = result.message ?? 'Vui lòng đợi trước khi gửi lại.';
+        _feedbackMessage = translateSendFeedbackError(
+          result.message ?? 'Vui lòng đợi trước khi gửi lại.',
+        );
       });
       return;
     }
@@ -85,8 +88,9 @@ class _SettingScreenState extends State<SettingScreen> {
       });
     } else {
       setState(() {
-        _feedbackMessage =
-            result.message ?? 'Gửi phản hồi thất bại. Vui lòng thử lại sau.';
+        _feedbackMessage = translateSendFeedbackError(
+          result.message ?? 'Gửi phản hồi thất bại. Vui lòng thử lại sau.',
+        );
       });
     }
   }
