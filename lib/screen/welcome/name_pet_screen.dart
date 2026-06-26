@@ -66,21 +66,7 @@ class _NamePetScreenState extends State<NamePetScreen>
     final name = _nameController.text.trim();
 
     if (currentUser != null) {
-      gameState.setUser(
-        GameUser(
-          id: currentUser.id,
-          email: currentUser.email,
-          name: name,
-          level: currentUser.level,
-          steps: currentUser.steps,
-          coins: currentUser.coins,
-          joinDate: currentUser.joinDate,
-          bio: currentUser.bio,
-          gender: currentUser.gender,
-          dob: currentUser.dob,
-          avatarUrl: currentUser.avatarUrl,
-        ),
-      );
+      gameState.setUser(currentUser.copyWith(name: name));
     }
 
     if (!mounted) return;

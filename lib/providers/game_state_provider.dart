@@ -174,7 +174,6 @@ class GameStateProvider extends ChangeNotifier {
         name: response.data!.username ?? 'Lữ Hành Giả',
         email: '',
         level: 1,
-        steps: 0,
         coins: 0,
         joinDate: 'Chưa có dữ liệu',
       );
