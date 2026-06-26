@@ -215,9 +215,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  int _bondingLevel = 87;
-  int _energyLevel = 68;
-  int _healthLevel = 80;
+  int _bondingLevel = 50;
+  int _energyLevel = 50;
+  int _healthLevel = 50;
   bool _feedAnim = false;
   bool _stepExpanded = false;
   final List<_FloatingNum> _floatingNums = [];
@@ -410,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 8,
                                     fontWeight: FontWeight.w600,
                                     color: theme.colorScheme.onSurface,
                                   ),
@@ -780,6 +780,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           width: 200,
                           height: 200,
                           child: Stack(
+                            clipBehavior: Clip.none,
                             alignment: Alignment.center,
                             children: [
                               // Pet visual
@@ -810,8 +811,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         1,
                                       ),
                                       child: Container(
-                                        width: 200,
-                                        height: 200,
+                                        width: 220,
+                                        height: 220,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -1312,7 +1313,7 @@ class _LuminaSpriteState extends State<_LuminaSprite>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_getMoodEmoji(), style: const TextStyle(fontSize: 64)),
+              Icon(Icons.spa_outlined, size: 64, color: widget.primary),
               const SizedBox(height: 8),
               Text(
                 'Lumina',
