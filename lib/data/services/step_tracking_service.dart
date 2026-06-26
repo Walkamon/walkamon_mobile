@@ -68,22 +68,25 @@ class StepTrackingService extends WidgetsBindingObserver {
       return;
     }
 
-    await stopForUser();
-    _activeUserId = userId;
+    try {
+      await stopForUser();
+      _activeUserId = userId;
 
-    final today = _formatVietnamDate(_currentTimeProvider());
-    final storedState = await _store.loadState(userId);
-    if (storedState != null && storedState.stepDate == today) {
-      _stepDate = storedState.stepDate;
-      _dailyTotalSteps = storedState.dailyTotalSteps;
-      _pendingDeltaSteps = storedState.pendingDeltaSteps;
-      _lastSensorCount = storedState.lastSensorCount;
-    } else {
-      await _resetForDate(today);
+      final today = _formatVietnamDate(_currentTimeProvider());
+      final storedState = await _store.loadState(userId);
+      if (storedState != null && storedState.stepDate == today) {
+        _stepDate = storedState.stepDate;
+        _dailyTotalSteps = storedState.dailyTotalSteps;
+        _pendingDeltaSteps = storedState.pendingDeltaSteps;
+        _lastSensorCount = storedState.lastSensorCount;
+      } else {
+        await _resetForDate(today);
+      }
+
+      onStepsChanged?.call(_dailyTotalSteps);
+      if (_isForeground) await resumeTracking();
+    } catch (e) {
     }
-
-    onStepsChanged?.call(_dailyTotalSteps);
-    if (_isForeground) await resumeTracking();
   }
 
   Future<void> resumeTracking() async {

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 import '../../widgets/common/google_icon.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -32,6 +33,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       if (!mounted) return;
 
       if (success) {
+        final userId = provider.user?.id ?? '';
+        if (userId.isNotEmpty && mounted) {
+          await context.read<StepTrackingProvider>().startForUser(userId);
+        }
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/home');
         return;
       }
