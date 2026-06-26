@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -86,6 +87,11 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (success) {
+      final userId = provider.user?.id ?? '';
+      if (userId.isNotEmpty && mounted) {
+        await context.read<StepTrackingProvider>().startForUser(userId);
+      }
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       // Đọc chuỗi lỗi từ Provider ném lên

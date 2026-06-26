@@ -2,6 +2,7 @@ import 'dart:ui'; // Bắt buộc phải có để sử dụng BackdropFilter (g
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.title});
@@ -14,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     final user = gameState.user;
 
     // Giả lập các biến tính toán bước chân giống như React
-    final int dailySteps = user?.steps ?? 6420;
+    final int dailySteps = context.watch<StepTrackingProvider>().dailySteps;
     const int goalSteps = 10000;
     final double stepPct = (dailySteps / goalSteps).clamp(0.0, 1.0);
 

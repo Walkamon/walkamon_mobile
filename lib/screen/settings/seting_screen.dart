@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -24,6 +25,7 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _handleLogout() async {
     if (_isLoggingOut) return;
     setState(() => _isLoggingOut = true);
+    await context.read<StepTrackingProvider>().stopForUser();
     await context.read<GameStateProvider>().logout();
     if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
