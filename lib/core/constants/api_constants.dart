@@ -1,6 +1,5 @@
 class ApiConstants {
   static const String baseUrl = 'https://walkamon.azurewebsites.net';
-
   // Auth Endpoints
   static const String register = '/api/auth/register';
   static const String verifyOtp = '/api/auth/register/verify';
@@ -14,6 +13,9 @@ class ApiConstants {
 
   // settings Endpoints
   static const String userFeedback = '/api/user-feedback';
+
+  // Daily Step Endpoints
+  static const String dailySteps = '/api/daily-steps';
 
   // Item Endpoints
   static const String items = '/api/items';

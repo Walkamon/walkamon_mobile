@@ -203,21 +203,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
       final result = await _repository.claimMission(quest.missionId);
       final user = provider.user;
       if (user != null) {
-        provider.setUser(
-          GameUser(
-            name: user.name,
-            level: user.level,
-            steps: user.steps,
-            coins: result.walletBalance,
-            email: user.email,
-            id: user.id,
-            joinDate: user.joinDate,
-            bio: user.bio,
-            gender: user.gender,
-            dob: user.dob,
-            avatarUrl: user.avatarUrl,
-          ),
-        );
+        provider.setUser(user.copyWith(coins: result.walletBalance));
       }
 
       if (mounted) {

@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/screen/home/home_screen.dart';
 
 import 'core/network/api_client.dart';
+import 'core/permissions/startup_permission_service.dart';
 import 'data/datasources/remote/profile_view_screen_datasource.dart';
 import 'data/repositories/profile_view_screen_repository.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
+import 'providers/step_tracking_provider.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
 
@@ -42,8 +44,24 @@ void main() {
   runApp(const WalkamonApp());
 }
 
-class WalkamonApp extends StatelessWidget {
-  const WalkamonApp({super.key});
+class WalkamonApp extends StatefulWidget {
+  const WalkamonApp({super.key, this.startupPermissionService});
+
+  final StartupPermissionService? startupPermissionService;
+
+  @override
+  State<WalkamonApp> createState() => _WalkamonAppState();
+}
+
+class _WalkamonAppState extends State<WalkamonApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await (widget.startupPermissionService ?? StartupPermissionService())
+          .requestOnce();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +70,15 @@ class WalkamonApp extends StatelessWidget {
       ProfileViewScreenDatasource(apiClient),
     );
 
-    return ChangeNotifierProvider(
-      create: (_) => GameStateProvider(profileRepository),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => GameStateProvider(profileRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => StepTrackingProvider(),
+        ),
+      ],
       child: Consumer<GameStateProvider>(
         builder: (context, gameState, _) {
           return MaterialApp(

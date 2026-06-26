@@ -124,20 +124,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
         final provider = context.read<GameStateProvider>();
         if (newCoins != null && provider.user != null) {
-          final old = provider.user!;
-          provider.setUser(GameUser(
-            name: old.name,
-            level: old.level,
-            steps: old.steps,
-            coins: newCoins,
-            email: old.email,
-            id: old.id,
-            joinDate: old.joinDate,
-            bio: old.bio,
-            gender: old.gender,
-            dob: old.dob,
-            avatarUrl: old.avatarUrl,
-          ));
+          provider.setUser(provider.user!.copyWith(coins: newCoins));
         } else {
           // Fallback: locally deduct price
           await context.read<GameStateProvider>().buyShopItem(price: item.price);

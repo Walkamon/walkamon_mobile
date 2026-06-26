@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 // ── Dewdrop Icon (SVG → CustomPaint) ────────────────────────────────────────
 class _DewdropIcon extends StatelessWidget {
@@ -310,7 +311,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final gameState = Provider.of<GameStateProvider>(context);
     final user = gameState.user;
 
-    final int dailySteps = user?.steps ?? 6420;
+    // Giả lập các biến tính toán bước chân giống như React
+    final int dailySteps = context.watch<StepTrackingProvider>().dailySteps;
     const int goalSteps = 10000;
     final double stepPct = (dailySteps / goalSteps).clamp(0.0, 1.0);
 

@@ -10,7 +10,6 @@ class GameUser {
   const GameUser({
     required this.name,
     required this.level,
-    required this.steps,
     required this.coins,
     this.email = '',
     this.id = '',
@@ -24,7 +23,6 @@ class GameUser {
 
   final String name;
   final int level;
-  final int steps;
   final int coins;
   final String email;
   final String id;
@@ -34,6 +32,32 @@ class GameUser {
   final String gender;
   final String dob;
   final String avatarUrl;
+
+  GameUser copyWith({
+    String? name,
+    int? level,
+    int? coins,
+    String? email,
+    String? id,
+    String? joinDate,
+    String? bio,
+    String? gender,
+    String? dob,
+    String? avatarUrl,
+  }) {
+    return GameUser(
+      name: name ?? this.name,
+      level: level ?? this.level,
+      coins: coins ?? this.coins,
+      email: email ?? this.email,
+      id: id ?? this.id,
+      joinDate: joinDate ?? this.joinDate,
+      bio: bio ?? this.bio,
+      gender: gender ?? this.gender,
+      dob: dob ?? this.dob,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+    );
+  }
 }
 
 class GameSettings {
@@ -69,7 +93,6 @@ class GameStateProvider extends ChangeNotifier {
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
   final ProfileViewScreenRepository _profileRepository;
 
-  // Cập nhật Constructor nhận vào repository được truyền từ tầng trên (hoặc Service Locator)
   GameStateProvider(this._profileRepository);
 
   GameUser? _user;
@@ -121,7 +144,6 @@ class GameStateProvider extends ChangeNotifier {
         name: response.data!.username ?? 'Lữ Hành Giả',
         email: email,
         level: 1,
-        steps: 0,
         coins: 0,
         joinDate: 'Chưa có dữ liệu',
       );
@@ -198,7 +220,6 @@ class GameStateProvider extends ChangeNotifier {
       _user = GameUser(
         name: profileData.username,
         level: _user?.level ?? 1, // Cày cuốc từ hệ thống game
-        steps: _user?.steps ?? 0, // Đồng bộ từ bảng daily_steps
         coins: _user?.coins ?? 0, // Đồng bộ từ ví tiền wallets
         email: profileData.email,
         id: _user?.id ?? '',
@@ -237,6 +258,8 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+
+
   // ── THÊM MỚI: Xử lý lưu thông tin chỉnh sửa hồ sơ lên API & RAM ──
   Future<bool> updateProfile({
     required String name,
@@ -274,18 +297,11 @@ class GameStateProvider extends ChangeNotifier {
 
       // Cập nhật nóng vào RAM cục bộ để toàn bộ màn hình Game thay đổi tức thì mà không cần reload app
       if (_user != null) {
-        _user = GameUser(
+        _user = _user!.copyWith(
           name: name,
-          level: _user!.level,
-          steps: _user!.steps,
-          coins: _user!.coins,
-          email: _user!.email,
-          id: _user!.id,
-          joinDate: _user!.joinDate,
           bio: bio,
           gender: gender,
           dob: dobStringForUi,
-          avatarUrl: _user!.avatarUrl,
         );
       }
 
@@ -384,15 +400,12 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> buyShopItem({required int price}) async {
     if (_user == null || _user!.coins < price) return false;
 
-    _user = GameUser(
-      name: _user!.name,
-      level: _user!.level,
-      steps: _user!.steps,
-      coins: _user!.coins - price,
-    );
+    _user = _user!.copyWith(coins: _user!.coins - price);
     notifyListeners();
     return true;
   }
+
+
 }
 
 class FeedbackResult {

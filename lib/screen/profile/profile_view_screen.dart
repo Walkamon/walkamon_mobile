@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/game_state_provider.dart'; // Giữ nguyên đường dẫn của bồ
+import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
@@ -271,6 +272,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       // Nút Đăng xuất
                       ElevatedButton(
                         onPressed: () async {
+                          await context.read<StepTrackingProvider>().stopForUser();
                           await context.read<GameStateProvider>().logout();
                           if (!context.mounted) return;
                           Navigator.pushNamedAndRemoveUntil(
