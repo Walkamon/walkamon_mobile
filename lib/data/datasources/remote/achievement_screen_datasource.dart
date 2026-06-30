@@ -1,3 +1,4 @@
+import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../models/achievement_response.dart';
@@ -9,7 +10,7 @@ class AchievementScreenDatasource {
 
   Future<ApiResponse<List<AchievementResponse>>> getAchievements() async {
     return await _apiClient.get<List<AchievementResponse>>(
-      '/api/achievements',
+      ApiConstants.achievements,
       fromJsonT: (json) {
         if (json is List) {
           return json
