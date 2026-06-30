@@ -39,6 +39,7 @@ import 'screen/welcome/welcome_screen.dart';
 import 'screen/profile/profile_menu_screen.dart';
 import 'screen/profile/profile_view_screen.dart';
 import 'screen/profile/edit_profile_screen.dart';
+import 'screen/achievements/View_achievement_list_screen.dart';
 
 void main() {
   runApp(const WalkamonApp());
@@ -75,9 +76,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
         ChangeNotifierProvider(
           create: (_) => GameStateProvider(profileRepository),
         ),
-        ChangeNotifierProvider(
-          create: (_) => StepTrackingProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
       ],
       child: Consumer<GameStateProvider>(
         builder: (context, gameState, _) {
@@ -113,6 +112,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/profile',
                 '/profile/view',
                 '/profile/edit',
+                '/profile/achievements',
                 '/auth/change-password',
                 '/friends',
                 '/pvp',
@@ -178,9 +178,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const AuthLayout(child: OTP_Register());
                   break;
                 case '/auth/privacy':
-                  builder = (_) => const AuthLayout(child: PrivacyPolicyScreen());
+                  builder = (_) =>
+                      const AuthLayout(child: PrivacyPolicyScreen());
                   break;
-
 
                 // Các tuyến đường Private bảo mật
                 case '/home':
@@ -208,6 +208,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
 
                 case '/profile/edit':
                   builder = (_) => const EditProfileScreen();
+                  break;
+                case '/profile/achievements':
+                  builder = (_) => const ViewAchievementListScreen();
                   break;
                 case '/friends':
                   builder = (_) => const FriendsScreen();

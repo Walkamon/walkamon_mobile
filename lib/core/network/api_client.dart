@@ -16,25 +16,10 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.post(path, data: data);
-
-      if (response.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          response.data as Map<String, dynamic>,
-          fromJsonT,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          status: response.statusCode ?? 0,
-          message: 'Dữ liệu phản hồi không đúng định dạng.',
-        );
-      }
+      return _parseResponse<T>(response, fromJsonT);
     } on DioException catch (e) {
-      if (e.response != null && e.response!.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          e.response!.data as Map<String, dynamic>,
-          fromJsonT,
-        );
+      if (e.response != null) {
+        return _parseResponse<T>(e.response!, fromJsonT);
       }
       return ApiResponse<T>(
         success: false,
@@ -53,25 +38,10 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.get(path, queryParameters: queryParameters);
-
-      if (response.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          response.data as Map<String, dynamic>,
-          fromJsonT,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          status: response.statusCode ?? 0,
-          message: 'Dữ liệu phản hồi không đúng định dạng.',
-        );
-      }
+      return _parseResponse<T>(response, fromJsonT);
     } on DioException catch (e) {
-      if (e.response != null && e.response!.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          e.response!.data as Map<String, dynamic>,
-          fromJsonT,
-        );
+      if (e.response != null) {
+        return _parseResponse<T>(e.response!, fromJsonT);
       }
       return ApiResponse<T>(
         success: false,
@@ -90,25 +60,10 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.put(path, data: data);
-
-      if (response.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          response.data as Map<String, dynamic>,
-          fromJsonT,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          status: response.statusCode ?? 0,
-          message: 'Dữ liệu phản hồi không đúng định dạng.',
-        );
-      }
+      return _parseResponse<T>(response, fromJsonT);
     } on DioException catch (e) {
-      if (e.response != null && e.response!.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          e.response!.data as Map<String, dynamic>,
-          fromJsonT,
-        );
+      if (e.response != null) {
+        return _parseResponse<T>(e.response!, fromJsonT);
       }
       return ApiResponse<T>(
         success: false,
@@ -127,25 +82,10 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.patch(path, data: data);
-
-      if (response.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          response.data as Map<String, dynamic>,
-          fromJsonT,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          status: response.statusCode ?? 0,
-          message: 'Dữ liệu phản hồi không đúng định dạng.',
-        );
-      }
+      return _parseResponse<T>(response, fromJsonT);
     } on DioException catch (e) {
-      if (e.response != null && e.response!.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          e.response!.data as Map<String, dynamic>,
-          fromJsonT,
-        );
+      if (e.response != null) {
+        return _parseResponse<T>(e.response!, fromJsonT);
       }
       return ApiResponse<T>(
         success: false,
@@ -164,25 +104,10 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.delete(path, data: data);
-
-      if (response.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          response.data as Map<String, dynamic>,
-          fromJsonT,
-        );
-      } else {
-        return ApiResponse<T>(
-          success: false,
-          status: response.statusCode ?? 0,
-          message: 'Dữ liệu phản hồi không đúng định dạng.',
-        );
-      }
+      return _parseResponse<T>(response, fromJsonT);
     } on DioException catch (e) {
-      if (e.response != null && e.response!.data is Map<String, dynamic>) {
-        return ApiResponse<T>.fromJson(
-          e.response!.data as Map<String, dynamic>,
-          fromJsonT,
-        );
+      if (e.response != null) {
+        return _parseResponse<T>(e.response!, fromJsonT);
       }
       return ApiResponse<T>(
         success: false,
@@ -192,5 +117,32 @@ class ApiClient {
     } catch (e) {
       return ApiResponse<T>(success: false, status: -1, message: e.toString());
     }
+  }
+
+  ApiResponse<T> _parseResponse<T>(
+    Response<dynamic> response,
+    T Function(dynamic json)? fromJsonT,
+  ) {
+    if (response.data is Map<String, dynamic>) {
+      return ApiResponse<T>.fromJson(
+        response.data as Map<String, dynamic>,
+        fromJsonT,
+      );
+    }
+
+    if (response.data is List) {
+      return ApiResponse<T>(
+        success: true,
+        status: response.statusCode ?? 200,
+        message: 'Thành công',
+        data: fromJsonT != null ? fromJsonT(response.data) : null,
+      );
+    }
+
+    return ApiResponse<T>(
+      success: false,
+      status: response.statusCode ?? 0,
+      message: 'Dữ liệu phản hồi không đúng định dạng.',
+    );
   }
 }
