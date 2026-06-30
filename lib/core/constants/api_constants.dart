@@ -43,4 +43,7 @@ class ApiConstants {
   static const String challengeRandom = '/api/challenges/random';
   static String cancelChallenge(String userMissionId) =>
       '/api/challenges/$userMissionId/cancel';
+
+  // Achievement Endpoints
+    static const String achievements = '/api/achievements';
 }
