@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/network/api_client.dart';
+import '../../data/datasources/remote/achievement_screen_datasource.dart';
+import '../../data/repositories/achievement_screen_repository.dart';
 import '../../providers/game_state_provider.dart';
 
 class ProfileMenuScreen extends StatefulWidget {
@@ -10,13 +13,42 @@ class ProfileMenuScreen extends StatefulWidget {
 }
 
 class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
+  int? _achievementCount;
+  bool _isAchievementCountLoading = true;
+  String? _achievementCountError;
+  late final AchievementScreenRepository _achievementRepository;
+
   @override
   void initState() {
     super.initState();
+    _achievementRepository = AchievementScreenRepository(
+      AchievementScreenDatasource(ApiClient()),
+    );
+    _loadAchievementCount();
+
     // ── TỰ ĐỘNG GỌI API KHI VỪA VÀO MÀN HÌNH ─────────────────────────────────
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GameStateProvider>().fetchProfileDetail();
     });
+  }
+
+  Future<void> _loadAchievementCount() async {
+    try {
+      final achievements = await _achievementRepository.getAchievements();
+      if (!mounted) return;
+      setState(() {
+        _achievementCount = achievements
+            .where((item) => item.isUnlocked)
+            .length;
+        _isAchievementCountLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _achievementCountError = e.toString();
+        _isAchievementCountLoading = false;
+      });
+    }
   }
 
   @override
@@ -247,7 +279,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       icon: Icons.emoji_events_rounded,
                       iconColor: Colors.amber,
                       title: 'Kho Thành Tựu',
-                      subtitle: 'Đã thu thập 7 danh hiệu',
+                      subtitle: _isAchievementCountLoading
+                          ? 'Đang tải...'
+                          : _achievementCountError != null
+                          ? 'Không tải được thành tựu'
+                          : 'Đã thu thập ${_achievementCount ?? 0} danh hiệu',
                       onTap: () =>
                           Navigator.pushNamed(context, '/profile/achievements'),
                     ),
