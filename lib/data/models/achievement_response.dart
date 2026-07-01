@@ -43,10 +43,20 @@ class AchievementResponse {
       rewardItems: json['rewardItems'] is List
           ? List.from(json['rewardItems'])
           : const [],
-      isUnlocked: json['isUnlocked'] == true,
-      canClaim: json['canClaim'] == true,
+      isUnlocked: _parseBool(json['isUnlocked']),
+      canClaim: _parseBool(json['canClaim']),
       unlockedAt: json['unlockedAt']?.toString(),
       claimedAt: json['claimedAt']?.toString(),
     );
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      final normalized = value.toLowerCase().trim();
+      return normalized == 'true' || normalized == '1';
+    }
+    return false;
   }
 }
