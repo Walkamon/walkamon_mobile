@@ -18,4 +18,12 @@ class FriendsRepository {
   Future<void> sendFriendRequest(String receiverId) {
     return datasource.sendFriendRequest(receiverId);
   }
+
+  Future<List<FriendRequestResponse>> getSentFriendRequests() {
+    return datasource.getSentFriendRequests();
+  }
+
+  Future<void> cancelFriendRequest(String requestId) {
+    return datasource.cancelFriendRequest(requestId);
+  }
 }

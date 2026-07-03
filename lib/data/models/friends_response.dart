@@ -20,3 +20,28 @@ class FriendsResponse {
     );
   }
 }
+
+class FriendRequestResponse {
+  final String requestId;
+  final String statusCode;
+  final String createdAt;
+  final FriendsResponse user;
+
+  FriendRequestResponse({
+    required this.requestId,
+    required this.statusCode,
+    required this.createdAt,
+    required this.user,
+  });
+
+  factory FriendRequestResponse.fromJson(Map<String, dynamic> json) {
+    return FriendRequestResponse(
+      requestId: json['requestId'] ?? '',
+      statusCode: json['statusCode'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+      user: FriendsResponse.fromJson(
+        Map<String, dynamic>.from(json['user'] ?? {}),
+      ),
+    );
+  }
+}

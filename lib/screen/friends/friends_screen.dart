@@ -40,7 +40,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => _showFriendRequestsPopup(context),
                     icon: const Icon(Icons.notifications_none, size: 18),
                     label: const Text(
                       "Yêu cầu",
@@ -101,7 +101,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
           const SizedBox(height: 16),
 
-         Expanded(
+          Expanded(
             child: friends.isEmpty
                 ? Center(
                     child: Column(
@@ -233,6 +233,20 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFriendRequestsPopup(BuildContext context) {
+    final friendsRepo = context.read<FriendsRepository>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => Provider.value(
+        value: friendsRepo,
+        child: const FriendRequestsBottomSheet(),
       ),
     );
   }
@@ -745,6 +759,411 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                         );
                       },
                     ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FriendRequestsBottomSheet extends StatefulWidget {
+  const FriendRequestsBottomSheet({super.key});
+
+  @override
+  State<FriendRequestsBottomSheet> createState() =>
+      _FriendRequestsBottomSheetState();
+}
+
+class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
+  bool _isSentTab = false;
+  List<FriendRequestResponse> _sentRequests = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSentRequests();
+    });
+  }
+
+  Future<void> _loadSentRequests() async {
+    setState(() => _isLoading = true);
+    try {
+      final repo = context.read<FriendsRepository>();
+      final results = await repo.getSentFriendRequests();
+      final pendingRequests = results.where((req) {
+        return req.statusCode.toLowerCase() == 'pending';
+      }).toList();
+
+      if (!mounted) return;
+
+      setState(() => _sentRequests = pendingRequests);
+    } catch (e) {
+      if (!mounted) return;
+      _showNotification("Không thể tải danh sách lời mời.", false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _cancelRequest(FriendRequestResponse request) async {
+    try {
+      final repo = context.read<FriendsRepository>();
+      await repo.cancelFriendRequest(request.requestId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _sentRequests = List.from(_sentRequests)
+          ..removeWhere((item) => item.requestId == request.requestId);
+      });
+
+      _showNotification("Đã thu hồi lời mời kết bạn!", true);
+    } catch (e) {
+      if (!mounted) return;
+      _showNotification("Hủy yêu cầu thất bại. Thử lại sau!", false);
+    }
+  }
+
+  void _showNotification(String message, bool isSuccess) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.25),
+      barrierDismissible: false,
+      builder: (ctx) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (ctx.mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
+        });
+
+        final colorScheme = Theme.of(context).colorScheme;
+        final bgColor = isSuccess ? colorScheme.primary : colorScheme.error;
+        final contentColor = isSuccess
+            ? colorScheme.onPrimary
+            : colorScheme.onError;
+
+        return Align(
+          alignment: Alignment.center,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.75,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: contentColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSuccess
+                        ? Icons.check_circle_outline
+                        : Icons.warning_amber_rounded,
+                    color: contentColor,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: contentColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Hộp Thư Kết Bạn",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Nút Tab phong cách Game
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(
+                    child: Text(
+                      "Lời mời đã nhận",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  selected: !_isSentTab,
+                  selectedColor: colorScheme.primary,
+                  labelStyle: TextStyle(
+                    color: !_isSentTab
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurface,
+                  ),
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: (val) => setState(() => _isSentTab = false),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Center(
+                    child: Text(
+                      "Đã gửi đi",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  selected: _isSentTab,
+                  selectedColor: colorScheme.primary,
+                  labelStyle: TextStyle(
+                    color: _isSentTab
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurface,
+                  ),
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: (val) {
+                    if (!_isSentTab) {
+                      setState(() => _isSentTab = true);
+                      _loadSentRequests();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.45,
+            ),
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: colorScheme.primary,
+                    ),
+                  )
+                : !_isSentTab
+                ? Center(
+                    child: Text(
+                      "Tính năng Lời mời đã nhận đang phát triển...",
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                  )
+                : _sentRequests.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Text(
+                        "Bạn chưa gửi lời mời nào gần đây.",
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _sentRequests.length,
+                    itemBuilder: (context, index) {
+                      final req = _sentRequests[index];
+                      final targetUser = req.user;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          // Đồng bộ màu nền thẻ giống Thêm Bạn
+                          color: colorScheme.primaryContainer.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: colorScheme.primary.withOpacity(0.1),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // 1. AVATAR GAME đồng bộ
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: colorScheme.primary.withOpacity(0.5),
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child:
+                                    targetUser.avatarUrl != null &&
+                                        targetUser.avatarUrl!.isNotEmpty
+                                    ? Image.network(
+                                        targetUser.avatarUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          Icons.pets,
+                                          color: colorScheme.primary,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.pets,
+                                        color: colorScheme.primary,
+                                        size: 26,
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+
+                            // 2. THÔNG TIN NGƯỜI CHƠI (Tên, Level, ID)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    targetUser.username,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      letterSpacing: 0.2,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      // Tag Level
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.amber.withOpacity(
+                                              0.5,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              size: 12,
+                                              color: Colors.amber,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              "Lv.1",
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.amber.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Tag ID
+                                      Text(
+                                        "ID: #${targetUser.userId.substring(0, 6).toUpperCase()}",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurfaceVariant
+                                              .withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // 3. NÚT HỦY đồng bộ kích thước với nút Thêm
+                            ElevatedButton(
+                              onPressed: () => _cancelRequest(req),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.secondary,
+                                foregroundColor: colorScheme.onSecondary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 0,
+                                ),
+                                minimumSize: const Size(
+                                  0,
+                                  36,
+                                ), // Đồng bộ size 36 giống hệt nút "Thêm"
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                "Hủy",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
           ),
         ],
