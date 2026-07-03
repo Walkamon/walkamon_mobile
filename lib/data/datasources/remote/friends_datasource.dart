@@ -7,6 +7,29 @@ class FriendsDatasource {
 
   FriendsDatasource(this.apiClient);
 
+  Future<List<FriendRequestResponse>> getReceivedFriendRequests() async {
+    try {
+      final response = await apiClient.get<List<FriendRequestResponse>>(
+        ApiConstants.receivedFriendRequests,
+        fromJsonT: (json) {
+          if (json is List) {
+            return json
+                .map(
+                  (e) => FriendRequestResponse.fromJson(
+                    Map<String, dynamic>.from(e as Map),
+                  ),
+                )
+                .toList();
+          }
+          return [];
+        },
+      );
+      return response.data ?? [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<FriendRequestResponse>> getSentFriendRequests() async {
     try {
       final response = await apiClient.get<List<FriendRequestResponse>>(
