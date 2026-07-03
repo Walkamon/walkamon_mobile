@@ -685,46 +685,6 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        // Huy hiệu Level (Giả lập)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.amber.withOpacity(
-                                              0.2,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.amber.withOpacity(
-                                                0.5,
-                                              ),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.star_rounded,
-                                                size: 12,
-                                                color: Colors.amber,
-                                              ),
-                                              const SizedBox(width: 2),
-                                              Text(
-                                                "Lv.1", // Sau này Backend có Level thì thay bằng: player.level.toString()
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.amber.shade700,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
                                         // Player Tag (Cắt 6 ký tự đầu của userId)
                                         Text(
                                           "ID: #${player.userId.substring(0, 6).toUpperCase()}",
@@ -859,6 +819,33 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
     } catch (e) {
       if (!mounted) return;
       _showNotification("Hủy yêu cầu thất bại. Thử lại sau!", false);
+    }
+  }
+
+  Future<void> _respondToRequest(
+    FriendRequestResponse request,
+    bool isAccepted,
+  ) async {
+    try {
+      final repo = context.read<FriendsRepository>();
+      await repo.respondToFriendRequest(request.requestId, isAccepted);
+
+      if (!mounted) return;
+      setState(() {
+        // Xóa lời mời này khỏi danh sách đang hiển thị sau khi cập nhật thành công
+        _receivedRequests = List.from(_receivedRequests)
+          ..removeWhere((item) => item.requestId == request.requestId);
+      });
+
+      _showNotification(
+        isAccepted
+            ? "Đã chấp nhận lời mời kết bạn!"
+            : "Đã từ chối lời mời kết bạn.",
+        true,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showNotification("Thao tác thất bại. Vui lòng thử lại sau!", false);
     }
   }
 
@@ -1161,14 +1148,52 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                 ),
                               )
                             else
-                              Text(
-                                "Chờ phản hồi...",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: () =>
+                                        _respondToRequest(req, true),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: colorScheme.secondary,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.all(8),
+                                      minimumSize: const Size(36, 36),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.check_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 12),
+
+                                  IconButton(
+                                    onPressed: () =>
+                                        _respondToRequest(req, false),
+                                    style: IconButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+
+                                        side: BorderSide(
+                                          color: colorScheme.secondary,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      padding: const EdgeInsets.all(8),
+                                      minimumSize: const Size(36, 36),
+                                    ),
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      color: colorScheme.secondary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
                               ),
                           ],
                         ),

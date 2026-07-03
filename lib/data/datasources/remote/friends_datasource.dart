@@ -30,6 +30,24 @@ class FriendsDatasource {
     }
   }
 
+  Future<void> respondToFriendRequest(String requestId, bool isAccepted) async {
+    try {
+      final response = await apiClient.put(
+        ApiConstants.respondToFriendRequest(requestId),
+        data: {'isAccepted': isAccepted}, // Payload chuẩn theo backend của bạn
+      );
+
+      if (!response.success &&
+          !response.message.toLowerCase().contains("success")) {
+        throw Exception(
+          response.message.isNotEmpty ? response.message : "Thao tác thất bại",
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<FriendRequestResponse>> getSentFriendRequests() async {
     try {
       final response = await apiClient.get<List<FriendRequestResponse>>(
