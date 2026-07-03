@@ -50,6 +50,7 @@ class ApiConstants {
 
   // Friend Endpoints
   static const String searchPlayers = '/api/friends/available-users';
+  static const String friends = '/api/friends';
   static const String sendFriendRequest = '/api/friends/requests';
   static const String sentFriendRequests = '/api/friends/requests/sent';
   static String cancelFriendRequest(String requestId) =>

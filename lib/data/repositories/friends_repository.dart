@@ -11,6 +11,10 @@ class FriendsRepository {
     return datasource.getAvailableUsers();
   }
 
+  Future<List<FriendsResponse>> getFriends() {
+    return datasource.getFriends();
+  }
+
   Future<List<FriendRequestResponse>> getReceivedFriendRequests() {
     return datasource.getReceivedFriendRequests();
   }
