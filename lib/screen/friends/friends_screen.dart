@@ -12,9 +12,39 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  List<dynamic> friends = [];
-
+  List<FriendsResponse> friends = [];
+  bool isLoading = true;
   String searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFriends();
+    });
+  }
+
+  Future<void> _loadFriends() async {
+    setState(() => isLoading = true);
+    try {
+      final repo = context.read<FriendsRepository>();
+      final data = await repo.getFriends();
+      if (mounted) {
+        setState(() => friends = data);
+      }
+    } catch (e) {
+      debugPrint("Lỗi tải danh sách bạn bè: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi tải danh sách: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +52,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     final filteredFriends = friends
         .where(
-          (f) => f['name'].toString().toLowerCase().contains(
-            searchQuery.toLowerCase(),
-          ),
+          (f) => f.username.toLowerCase().contains(searchQuery.toLowerCase()),
         )
         .toList();
 
@@ -159,62 +187,60 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             Stack(
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: colorScheme.surfaceVariant,
+                                  radius: 25, // Kích thước avatar lớn, rõ ràng
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  backgroundImage:
+                                      (friend.avatarUrl != null &&
+                                          friend.avatarUrl!.isNotEmpty)
+                                      ? NetworkImage(friend.avatarUrl!)
+                                      : null,
                                   child: Text(
-                                    friend['name'][0],
+                                    friend.username.isNotEmpty
+                                        ? friend.username[0].toUpperCase()
+                                        : '?',
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: friend['status'] == 'online'
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: colorScheme.surface,
-                                        width: 2,
-                                      ),
+                                      color: Colors.white, // Chữ trắng nổi bật
+                                      fontWeight:
+                                          FontWeight.w900, // Chữ siêu đậm
+                                      fontSize: 25, // Kích thước chữ cái lớn
                                     ),
                                   ),
                                 ),
                               ],
                             ),
+
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    friend['name'],
+                                    friend.username,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
                                   ),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.local_fire_department,
-                                        size: 14,
-                                        color: Colors.orange,
+                                  const SizedBox(height: 4),
+
+                                  if (friend.bio != null &&
+                                      friend.bio!.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      friend.bio!,
+                                      maxLines:
+                                          1, // Giới hạn 1 dòng để tránh vỡ giao diện
+                                      overflow: TextOverflow
+                                          .ellipsis, // Hiện dấu ... nếu quá dài
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: colorScheme.onSurfaceVariant
+                                            .withOpacity(0.8),
+                                        fontStyle: FontStyle
+                                            .italic, // Để chữ nghiêng cho đẹp mắt
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${friend['streak']} ngày',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -222,9 +248,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               icon: Icon(
                                 Icons.person_remove,
                                 size: 20,
-                                color: colorScheme.onSurfaceVariant,
+                                color: colorScheme.error.withOpacity(0.8),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                // TODO: Thêm hàm xử lý Xóa bạn
+                              },
                             ),
                           ],
                         ),

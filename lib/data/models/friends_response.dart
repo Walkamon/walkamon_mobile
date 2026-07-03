@@ -3,12 +3,14 @@ class FriendsResponse {
   final String username;
   final String email;
   final String? avatarUrl;
+  final String? bio;
 
   FriendsResponse({
     required this.userId,
     required this.username,
     required this.email,
     this.avatarUrl,
+    this.bio,
   });
 
   factory FriendsResponse.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class FriendsResponse {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       avatarUrl: json['avatarUrl'],
+      bio: json['bio'],
     );
   }
 }
