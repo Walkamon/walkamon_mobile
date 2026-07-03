@@ -54,4 +54,5 @@ class ApiConstants {
   static const String sentFriendRequests = '/api/friends/requests/sent';
   static String cancelFriendRequest(String requestId) =>
       '/api/friends/requests/$requestId';
+  static const String receivedFriendRequests = '/api/friends/requests/received';
 }

@@ -238,16 +238,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _showFriendRequestsPopup(BuildContext context) {
-    final friendsRepo = context.read<FriendsRepository>();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (modalContext) => Provider.value(
-        value: friendsRepo,
-        child: const FriendRequestsBottomSheet(),
-      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: const FriendRequestsBottomSheet(),
+        );
+      },
     );
   }
 
@@ -362,8 +364,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
       ), // Làm tối nền nhẹ phía sau để nổi bật popup giữa màn hình
       barrierDismissible: false,
       builder: (dialogContext) {
-        // Tự động đóng popup sau 2.2 giây
-        Future.delayed(const Duration(milliseconds: 2200), () {
+        Future.delayed(const Duration(milliseconds: 1000), () {
           if (dialogContext.mounted && Navigator.canPop(dialogContext)) {
             Navigator.pop(dialogContext);
           }
@@ -379,7 +380,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
             : colorScheme.onError;
 
         return Align(
-          alignment: Alignment.center, // 🎯 Đưa popup ra CHÍNH GIỮA màn hình
+          alignment: Alignment.center, // Đưa popup ra CHÍNH GIỮA màn hình
           child: Material(
             color: Colors.transparent,
             child: Container(
@@ -585,21 +586,30 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
 
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.4,
+              maxHeight: MediaQuery.of(context).size.height * 0.45,
             ),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text("Không có người chơi nào khả dụng"),
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [CircularProgressIndicator()],
                     ),
+                  )
+                : _searchResults.isEmpty
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Text("Không có người chơi nào khả dụng"),
+                      ),
+                    ],
                   )
                 : SingleChildScrollView(
                     child: ListView.builder(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final player = _searchResults[index];
@@ -778,6 +788,7 @@ class FriendRequestsBottomSheet extends StatefulWidget {
 class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
   bool _isSentTab = false;
   List<FriendRequestResponse> _sentRequests = [];
+  List<FriendRequestResponse> _receivedRequests = [];
   bool _isLoading = false;
 
   @override
@@ -785,7 +796,29 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSentRequests();
+      _loadReceivedRequests();
     });
+  }
+
+  Future<void> _loadReceivedRequests() async {
+    setState(() => _isLoading = true);
+    try {
+      final repo = context.read<FriendsRepository>();
+      final results = await repo.getReceivedFriendRequests();
+
+      // Lọc lấy những yêu cầu pending
+      final pendingRequests = results
+          .where((req) => req.statusCode.toLowerCase() == 'pending')
+          .toList();
+
+      if (!mounted) return;
+      setState(() => _receivedRequests = pendingRequests);
+    } catch (e) {
+      if (!mounted) return;
+      _showNotification("Không thể tải lời mời đã nhận.", false);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadSentRequests() async {
@@ -835,7 +868,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
       barrierColor: Colors.black.withOpacity(0.25),
       barrierDismissible: false,
       builder: (ctx) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
+        Future.delayed(const Duration(milliseconds: 1000), () {
           if (ctx.mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
         });
 
@@ -898,6 +931,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final currentList = _isSentTab ? _sentRequests : _receivedRequests;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
       decoration: BoxDecoration(
@@ -945,10 +980,16 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  onSelected: (val) => setState(() => _isSentTab = false),
+                  onSelected: (val) {
+                    if (_isSentTab) {
+                      setState(() => _isSentTab = false);
+                      _loadReceivedRequests();
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 8),
+
               Expanded(
                 child: ChoiceChip(
                   label: const Center(
@@ -985,33 +1026,34 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
               maxHeight: MediaQuery.of(context).size.height * 0.45,
             ),
             child: _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      color: colorScheme.primary,
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [CircularProgressIndicator()],
                     ),
                   )
-                : !_isSentTab
-                ? Center(
-                    child: Text(
-                      "Tính năng Lời mời đã nhận đang phát triển...",
-                      style: TextStyle(color: colorScheme.onSurfaceVariant),
-                    ),
-                  )
-                : _sentRequests.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Text(
-                        "Bạn chưa gửi lời mời nào gần đây.",
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
-                      ),
+                : currentList.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isSentTab
+                              ? "Bạn chưa gửi lời mời nào gần đây."
+                              : "Không có lời mời kết bạn nào.",
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
                     shrinkWrap: true,
-                    itemCount: _sentRequests.length,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: currentList.length,
                     itemBuilder: (context, index) {
-                      final req = _sentRequests[index];
+                      final req = currentList[index];
                       final targetUser = req.user;
 
                       return Container(
@@ -1080,44 +1122,6 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                   const SizedBox(height: 6),
                                   Row(
                                     children: [
-                                      // Tag Level
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.amber.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.amber.withOpacity(
-                                              0.5,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.star_rounded,
-                                              size: 12,
-                                              color: Colors.amber,
-                                            ),
-                                            const SizedBox(width: 2),
-                                            Text(
-                                              "Lv.1",
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.amber.shade700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
                                       // Tag ID
                                       Text(
                                         "ID: #${targetUser.userId.substring(0, 6).toUpperCase()}",
@@ -1133,33 +1137,39 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                 ],
                               ),
                             ),
-
-                            // 3. NÚT HỦY đồng bộ kích thước với nút Thêm
-                            ElevatedButton(
-                              onPressed: () => _cancelRequest(req),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.secondary,
-                                foregroundColor: colorScheme.onSecondary,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 0,
+                            if (_isSentTab)
+                              ElevatedButton(
+                                onPressed: () => _cancelRequest(req),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.secondary,
+                                  foregroundColor: colorScheme.onSecondary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 0,
+                                  ),
+                                  minimumSize: const Size(0, 36),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                                minimumSize: const Size(
-                                  0,
-                                  36,
-                                ), // Đồng bộ size 36 giống hệt nút "Thêm"
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                child: const Text(
+                                  "Hủy",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                "Hủy",
+                              )
+                            else
+                              Text(
+                                "Chờ phản hồi...",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
+                                  color: colorScheme.primary,
                                   fontWeight: FontWeight.bold,
+                                  fontStyle: FontStyle.italic,
                                 ),
                               ),
-                            ),
                           ],
                         ),
                       );
