@@ -6,12 +6,15 @@ import 'core/network/api_client.dart';
 import 'core/permissions/startup_permission_service.dart';
 import 'data/datasources/remote/profile_view_screen_datasource.dart';
 import 'data/repositories/profile_view_screen_repository.dart';
+import 'data/datasources/remote/friends_datasource.dart';
+import 'data/repositories/friends_repository.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
 import 'providers/step_tracking_provider.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
+import 'widgets/layouts/main_layout.dart'; // <-- ĐÃ THÊM IMPORT NÀY
 
 import 'screen/auth/forgot_password_screen.dart';
 import 'screen/auth/login_screen.dart';
@@ -23,6 +26,7 @@ import 'screen/auth/change_password_screen.dart';
 import 'screen/auth/privacy_policy_screen.dart';
 import 'screen/spirit/spirit_detail_screen.dart';
 import 'screen/friends/friends_screen.dart';
+import 'screen/social/social_screen.dart';
 import 'screen/gameplay/pvp_screen.dart';
 import 'screen/welcome/daily_reward_screen.dart';
 import 'screen/welcome/story_screen.dart';
@@ -70,6 +74,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
     final profileRepository = ProfileViewScreenRepository(
       ProfileViewScreenDatasource(apiClient),
     );
+    final friendsRepository = FriendsRepository(FriendsDatasource(apiClient));
 
     return MultiProvider(
       providers: [
@@ -77,6 +82,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
           create: (_) => GameStateProvider(profileRepository),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
+        Provider<FriendsRepository>(create: (_) => friendsRepository),
       ],
       child: Consumer<GameStateProvider>(
         builder: (context, gameState, _) {
@@ -115,6 +121,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/profile/achievements',
                 '/auth/change-password',
                 '/friends',
+                '/social',
                 '/pvp',
                 '/daily-reward',
                 '/notifications',
@@ -213,7 +220,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const ViewAchievementListScreen();
                   break;
                 case '/friends':
-                  builder = (_) => const FriendsScreen();
+                  builder = (_) => const MainLayout(child: SocialScreen());
+                  break;
+                case '/social':
+                  builder = (_) => const MainLayout(child: SocialScreen());
                   break;
                 case '/pvp':
                   builder = (_) => const PvPScreen();

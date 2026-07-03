@@ -37,7 +37,8 @@ class ApiConstants {
 
   // Mission Endpoints
   static const String missions = '/api/missions';
-  static String claimMission(String missionId) => '/api/missions/$missionId/claim';
+  static String claimMission(String missionId) =>
+      '/api/missions/$missionId/claim';
 
   // Challenge Endpoints
   static const String challengeRandom = '/api/challenges/random';
@@ -45,5 +46,12 @@ class ApiConstants {
       '/api/challenges/$userMissionId/cancel';
 
   // Achievement Endpoints
-    static const String achievements = '/api/achievements';
+  static const String achievements = '/api/achievements';
+
+  // Friend Endpoints
+  static const String searchPlayers = '/api/friends/available-users';
+  static const String sendFriendRequest = '/api/friends/requests';
+  static const String sentFriendRequests = '/api/friends/requests/sent';
+  static String cancelFriendRequest(String requestId) =>
+      '/api/friends/requests/$requestId';
 }
