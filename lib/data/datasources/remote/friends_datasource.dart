@@ -7,6 +7,25 @@ class FriendsDatasource {
 
   FriendsDatasource(this.apiClient);
 
+  Future<void> removeFriend(String friendId) async {
+    try {
+      final response = await apiClient.delete(
+        ApiConstants.removeFriend(friendId),
+      );
+
+      if (!response.success &&
+          !response.message.toLowerCase().contains('success')) {
+        throw Exception(
+          response.message.isNotEmpty
+              ? response.message
+              : "Xóa bạn bè thất bại",
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<FriendsResponse>> getFriends() async {
     try {
       final response = await apiClient.get<List<FriendsResponse>>(

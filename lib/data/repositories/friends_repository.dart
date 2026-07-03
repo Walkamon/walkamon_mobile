@@ -11,6 +11,10 @@ class FriendsRepository {
     return datasource.getAvailableUsers();
   }
 
+  Future<void> removeFriend(String friendId) {
+    return datasource.removeFriend(friendId);
+  }
+
   Future<List<FriendsResponse>> getFriends() {
     return datasource.getFriends();
   }
