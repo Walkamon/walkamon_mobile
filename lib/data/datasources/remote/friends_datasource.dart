@@ -7,6 +7,48 @@ class FriendsDatasource {
 
   FriendsDatasource(this.apiClient);
 
+  Future<List<FriendRequestResponse>> getSentFriendRequests() async {
+    try {
+      final response = await apiClient.get<List<FriendRequestResponse>>(
+        ApiConstants.sentFriendRequests,
+        fromJsonT: (json) {
+          if (json is List) {
+            return json
+                .map(
+                  (e) => FriendRequestResponse.fromJson(
+                    Map<String, dynamic>.from(e as Map),
+                  ),
+                )
+                .toList();
+          }
+          return [];
+        },
+      );
+      return response.data ?? [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> cancelFriendRequest(String requestId) async {
+    try {
+      final response = await apiClient.delete(
+        ApiConstants.cancelFriendRequest(requestId),
+      );
+
+      if (!response.success &&
+          !response.message.toLowerCase().contains('success')) {
+        throw Exception(
+          response.message.isNotEmpty
+              ? response.message
+              : "Hủy yêu cầu kết bạn thất bại",
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<FriendsResponse>> getAvailableUsers() async {
     try {
       final response = await apiClient.get<List<FriendsResponse>>(
@@ -69,13 +111,12 @@ class FriendsDatasource {
   Future<void> sendFriendRequest(String receiverId) async {
     final response = await apiClient.post(
       ApiConstants.sendFriendRequest,
-      data: {
-        'receiverUserId': receiverId,
-      },
+      data: {'receiverUserId': receiverId},
     );
     if (!response.success && !response.message.contains("successfully")) {
       throw Exception(
-          response.message.isNotEmpty ? response.message : "Gửi lời mời thất bại");
+        response.message.isNotEmpty ? response.message : "Gửi lời mời thất bại",
+      );
     }
   }
 }
