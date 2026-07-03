@@ -404,10 +404,27 @@ class _FriendsScreenState extends State<FriendsScreen> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: const FriendRequestsBottomSheet(),
+          child: FriendRequestsBottomSheet(
+            onFriendAccepted: (newFriend) {
+              if (mounted) {
+                // Optimistic UI Update: Thêm ngay bạn mới vào danh sách tại chỗ
+                setState(() {
+                  // Chỉ thêm nếu danh sách chưa có bạn này
+                  if (!friends.any((f) => f.userId == newFriend.userId)) {
+                    friends.add(newFriend);
+                  }
+                });
+              }
+            },
+          ),
         );
       },
-    );
+    ).then((_) {
+      // Cũng refresh dữ liệu khi đóng popup phòng hờ
+      if (mounted) {
+        _loadFriends();
+      }
+    });
   }
 
   void _showAddFriendPopup(BuildContext context) {
@@ -895,7 +912,9 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
 }
 
 class FriendRequestsBottomSheet extends StatefulWidget {
-  const FriendRequestsBottomSheet({super.key});
+  final void Function(FriendsResponse)? onFriendAccepted;
+
+  const FriendRequestsBottomSheet({super.key, this.onFriendAccepted});
 
   @override
   State<FriendRequestsBottomSheet> createState() =>
@@ -993,6 +1012,11 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
         _receivedRequests = List.from(_receivedRequests)
           ..removeWhere((item) => item.requestId == request.requestId);
       });
+
+      // Gọi callback để load lại danh sách bạn bè phía sau và truyền luôn dữ liệu người bạn (Optimistic UI)
+      if (isAccepted && widget.onFriendAccepted != null) {
+        widget.onFriendAccepted!(request.user);
+      }
 
       _showNotification(
         isAccepted
