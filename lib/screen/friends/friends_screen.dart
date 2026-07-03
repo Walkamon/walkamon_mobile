@@ -46,6 +46,137 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
+  Future<void> _removeFriend(FriendsResponse friend) async {
+    // 1. Hiển thị popup xác nhận trước khi xóa
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Xóa bạn bè",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            "Bạn có chắc chắn muốn xóa ${friend.username} khỏi danh sách bạn bè?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                "Hủy",
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.secondary,
+                foregroundColor: colorScheme.onSecondary,
+              ),
+              child: const Text(
+                "Xóa",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 2. Nếu người dùng chọn Hủy thì dừng lại
+    if (confirm != true) return;
+
+    // 3. Gọi API xóa bạn
+    try {
+      final repo = context.read<FriendsRepository>();
+      await repo.removeFriend(friend.userId);
+
+      if (mounted) {
+        // Cập nhật lại danh sách trên UI bằng cách xóa phần tử
+        setState(() {
+          friends.removeWhere((f) => f.userId == friend.userId);
+        });
+
+        // Hiện popup thông báo Xóa thành công
+        _showNotification('Đã hủy kết bạn với ${friend.username}!', true);
+      }
+    } catch (e) {
+      if (mounted) {
+        // Hiện popup thông báo Lỗi
+        _showNotification('Lỗi xóa bạn bè, vui lòng thử lại!', false);
+      }
+    }
+  }
+
+  void _showNotification(String message, bool isSuccess) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.25),
+      barrierDismissible: false,
+      builder: (ctx) {
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (ctx.mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
+        });
+
+        final colorScheme = Theme.of(context).colorScheme;
+        final bgColor = isSuccess ? colorScheme.primary : colorScheme.error;
+        final contentColor = isSuccess
+            ? colorScheme.onPrimary
+            : colorScheme.onError;
+
+        return Align(
+          alignment: Alignment.center,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.75,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: contentColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSuccess
+                        ? Icons.check_circle_outline
+                        : Icons.warning_amber_rounded,
+                    color: contentColor,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: contentColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -248,11 +379,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               icon: Icon(
                                 Icons.person_remove,
                                 size: 20,
-                                color: colorScheme.error.withOpacity(0.8),
+                                color: colorScheme.secondary.withOpacity(0.8),
                               ),
-                              onPressed: () {
-                                // TODO: Thêm hàm xử lý Xóa bạn
-                              },
+                              onPressed: () => _removeFriend(friend),
                             ),
                           ],
                         ),
