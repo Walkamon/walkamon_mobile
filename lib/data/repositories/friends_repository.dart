@@ -15,6 +15,10 @@ class FriendsRepository {
     return datasource.getReceivedFriendRequests();
   }
 
+  Future<void> respondToFriendRequest(String requestId, bool isAccepted) {
+    return datasource.respondToFriendRequest(requestId, isAccepted);
+  }
+
   Future<List<FriendsResponse>> searchPlayers(String query) {
     return datasource.searchPlayers(query);
   }
