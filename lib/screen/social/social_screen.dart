@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../friends/friends_screen.dart';
-// import 'leaderboard_screen.dart'; // Mở ra khi bạn làm màn Leaderboard
+import '../leaderboard/leaderboard_screen.dart';
 
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
@@ -114,11 +114,9 @@ class _SocialScreenState extends State<SocialScreen> {
                       ), // Đừng quên giữ lại ValueKey
                       isEmbedded: true,
                     )
-                  : const Center(
-                      key: ValueKey(
-                        'leaderboard_tab',
-                      ), // Đừng quên giữ lại ValueKey
-                      child: Text('Leaderboard Screen'),
+                  : const LeaderboardScreen(
+                      key: ValueKey('leaderboard_tab'),
+                      isEmbedded: true,
                     ),
             ),
           ),
