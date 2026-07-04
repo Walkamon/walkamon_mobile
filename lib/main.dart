@@ -41,8 +41,10 @@ import 'screen/shop/shop_screen.dart';
 
 import 'screen/welcome/welcome_screen.dart';
 import 'screen/profile/profile_menu_screen.dart';
+import 'screen/profile/activity_stats_screen.dart';
 import 'screen/profile/profile_view_screen.dart';
 import 'screen/profile/edit_profile_screen.dart';
+import 'screen/profile/step_goal_screen.dart';
 import 'screen/achievements/View_achievement_list_screen.dart';
 
 void main() {
@@ -117,8 +119,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/settings',
                 '/profile',
                 '/profile/view',
+                '/profile/activity',
                 '/profile/edit',
                 '/profile/achievements',
+                '/step-goal',
                 '/auth/change-password',
                 '/friends',
                 '/social',
@@ -211,6 +215,12 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/profile/view':
                   builder = (_) => const ProfileViewScreen();
+                  break;
+                case '/profile/activity':
+                  builder = (_) => const ActivityStatsScreen();
+                  break;
+                case '/step-goal':
+                  builder = (_) => const StepGoalScreen();
                   break;
 
                 case '/profile/edit':

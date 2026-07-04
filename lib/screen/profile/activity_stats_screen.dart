@@ -1,0 +1,1202 @@
+import 'package:flutter/material.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../data/datasources/remote/activity_stats_datasource.dart';
+import '../../data/models/daily_step_statistic_response.dart';
+import '../../data/repositories/activity_stats_repository.dart';
+
+enum _MainTab { stats, history }
+
+enum ActivityTimeRange { daily, weekly, monthly }
+
+String formatStepCount(int steps) {
+  return steps.toString().replaceAllMapped(
+        RegExp(r'\B(?=(\d{3})+(?!\d))'),
+        (_) => '.',
+      );
+}
+
+class StepChartPoint {
+  const StepChartPoint({
+    required this.label,
+    required this.steps,
+  });
+
+  final String label;
+  final int steps;
+}
+
+class StepStatsResponse {
+  const StepStatsResponse({
+    required this.title,
+    required this.averageLabel,
+    required this.totalSteps,
+    required this.averageSteps,
+    required this.totalDistanceKm,
+    required this.goal,
+    required this.chartData,
+  });
+
+  final String title;
+  final String averageLabel;
+  final int totalSteps;
+  final int averageSteps;
+  final double totalDistanceKm;
+  final int goal;
+  final List<StepChartPoint> chartData;
+}
+
+class StepHistoryItem {
+  const StepHistoryItem({
+    required this.formattedDate,
+    required this.steps,
+    required this.goal,
+  });
+
+  final String formattedDate;
+  final int steps;
+  final int goal;
+
+  bool get isGoalReached => goal > 0 && steps >= goal;
+}
+
+List<StepChartPoint> buildChartPointsForRange({
+  required ActivityTimeRange range,
+  required List<DailyStepStatisticItemResponse> data,
+}) {
+  if (range != ActivityTimeRange.monthly) {
+    return data.map((item) {
+      return StepChartPoint(
+        label: item.label,
+        steps: item.stepCount,
+      );
+    }).toList();
+  }
+
+  if (data.isEmpty) {
+    return const [];
+  }
+
+  const bucketCount = 4;
+  final itemsPerBucket = (data.length / bucketCount).ceil();
+
+  return List.generate(bucketCount, (index) {
+    final start = index * itemsPerBucket;
+    final end = (start + itemsPerBucket).clamp(0, data.length);
+    final bucketData = data.sublist(start, end);
+    final totalSteps = bucketData.fold<int>(
+      0,
+      (sum, item) => sum + item.stepCount,
+    );
+
+    return StepChartPoint(
+      label: 'Tuần ${index + 1}',
+      steps: totalSteps,
+    );
+  });
+}
+
+class ActivityStatsScreenRepository {
+  ActivityStatsScreenRepository({ActivityStatsRepository? repository})
+      : _repository = repository ?? ActivityStatsRepository();
+
+  final ActivityStatsRepository _repository;
+
+  Future<StepStatsResponse> getStats(ActivityTimeRange range) async {
+    final response = await _repository.getStatistic(range.toDatasourceRange());
+    final chartData = buildChartPointsForRange(
+      range: range,
+      data: response.data,
+    );
+    final totalSteps = chartData.fold(0, (sum, point) => sum + point.steps);
+    final averageSteps =
+        chartData.isEmpty ? 0 : (totalSteps / chartData.length).round();
+
+    return StepStatsResponse(
+      title: range.title,
+      averageLabel: range.averageLabel,
+      totalSteps: totalSteps,
+      averageSteps: averageSteps,
+      totalDistanceKm: totalSteps * 0.0007,
+      goal: range.goal,
+      chartData: chartData,
+    );
+  }
+
+  Future<List<StepHistoryItem>> getHistory() async {
+    final response =
+        await _repository.getStatistic(ActivityStatsRange.weekly);
+
+    return buildChartPointsForRange(
+      range: ActivityTimeRange.weekly,
+      data: response.data,
+    ).reversed.map((point) {
+      return StepHistoryItem(
+        formattedDate: point.label,
+        steps: point.steps,
+        goal: ActivityTimeRange.weekly.goal,
+      );
+    }).toList();
+  }
+}
+
+extension on ActivityTimeRange {
+  ActivityStatsRange toDatasourceRange() {
+    return switch (this) {
+      ActivityTimeRange.daily => ActivityStatsRange.daily,
+      ActivityTimeRange.weekly => ActivityStatsRange.weekly,
+      ActivityTimeRange.monthly => ActivityStatsRange.monthly,
+    };
+  }
+
+  int get goal {
+    return switch (this) {
+      ActivityTimeRange.daily => 3000,
+      ActivityTimeRange.weekly => 10000,
+      ActivityTimeRange.monthly => 60000,
+    };
+  }
+
+  String get title {
+    return switch (this) {
+      ActivityTimeRange.daily => 'Hoạt động hôm nay',
+      ActivityTimeRange.weekly => 'Hoạt động tuần này',
+      ActivityTimeRange.monthly => 'Hoạt động tháng này',
+    };
+  }
+
+  String get averageLabel {
+    return switch (this) {
+      ActivityTimeRange.daily => 'Tổng',
+      ActivityTimeRange.weekly => 'Trung bình',
+      ActivityTimeRange.monthly => 'Trung bình',
+    };
+  }
+}
+
+class ActivityStatsScreen extends StatefulWidget {
+  const ActivityStatsScreen({super.key});
+
+  @override
+  State<ActivityStatsScreen> createState() => _ActivityStatsScreenState();
+}
+
+class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
+  final ActivityStatsScreenRepository _repository =
+      ActivityStatsScreenRepository();
+
+  _MainTab _activeTab = _MainTab.stats;
+  ActivityTimeRange _timeRange = ActivityTimeRange.weekly;
+
+  bool _isStatsLoading = true;
+  bool _isHistoryLoading = true;
+  String? _statsError;
+  String? _historyError;
+
+  StepStatsResponse? _stats;
+  List<StepHistoryItem> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+    _loadHistory();
+  }
+
+  Future<void> _loadStats() async {
+    setState(() {
+      _isStatsLoading = true;
+      _statsError = null;
+    });
+
+    try {
+      final stats = await _repository.getStats(_timeRange);
+      if (!mounted) return;
+      setState(() {
+        _stats = stats;
+        _isStatsLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _statsError = e.toString().replaceAll('Exception: ', '');
+        _isStatsLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() {
+      _isHistoryLoading = true;
+      _historyError = null;
+    });
+
+    try {
+      final history = await _repository.getHistory();
+      if (!mounted) return;
+      setState(() {
+        _history = history;
+        _isHistoryLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _historyError = e.toString().replaceAll('Exception: ', '');
+        _isHistoryLoading = false;
+      });
+    }
+  }
+
+  void _onTimeRangeChanged(ActivityTimeRange range) {
+    if (_timeRange == range) return;
+    setState(() => _timeRange = range);
+    _loadStats();
+  }
+
+  int _chartGoal(StepStatsResponse stats) {
+    if (stats.goal > 0) return stats.goal;
+    return switch (_timeRange) {
+      ActivityTimeRange.daily => 3000,
+      ActivityTimeRange.weekly => 10000,
+      ActivityTimeRange.monthly => 60000,
+    };
+  }
+
+  int _displayTotal(StepStatsResponse stats) {
+    if (stats.totalSteps > 0) return stats.totalSteps;
+    return stats.chartData.fold(0, (sum, point) => sum + point.steps);
+  }
+
+  int _displayAverage(StepStatsResponse stats) {
+    if (stats.averageSteps > 0) return stats.averageSteps;
+    if (stats.chartData.isEmpty) return 0;
+    return (_displayTotal(stats) / stats.chartData.length).round();
+  }
+
+  double _displayDistance(StepStatsResponse stats) {
+    if (stats.totalDistanceKm > 0) return stats.totalDistanceKm;
+    return _displayTotal(stats) * 0.0007;
+  }
+
+  String _averageSuffix() {
+    return _timeRange == ActivityTimeRange.monthly ? 'bước' : 'bước/ngày';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = theme.colorScheme.surface;
+    final primary = theme.colorScheme.primary;
+    final onPrimary = theme.colorScheme.onPrimary;
+    final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              _Header(onBack: () => Navigator.pop(context)),
+              const SizedBox(height: 24),
+              _MainTabBar(
+                activeTab: _activeTab,
+                cardColor: cardColor,
+                borderColor: borderColor,
+                primary: primary,
+                onPrimary: onPrimary,
+                mutedForeground: mutedForeground,
+                onChanged: (tab) => setState(() => _activeTab = tab),
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) {
+                    final offset = _activeTab == _MainTab.stats
+                        ? Tween<Offset>(
+                            begin: const Offset(-0.05, 0),
+                            end: Offset.zero,
+                          )
+                        : Tween<Offset>(
+                            begin: const Offset(0.05, 0),
+                            end: Offset.zero,
+                          );
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: offset.animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _activeTab == _MainTab.stats
+                      ? _buildStatsTab(
+                          key: const ValueKey('stats'),
+                          theme: theme,
+                          cardColor: cardColor,
+                          borderColor: borderColor,
+                          primary: primary,
+                          muted: muted,
+                          mutedForeground: mutedForeground,
+                          foreground: foreground,
+                        )
+                      : _buildHistoryTab(
+                          key: const ValueKey('history'),
+                          cardColor: cardColor,
+                          borderColor: borderColor,
+                          primary: primary,
+                          muted: muted,
+                          mutedForeground: mutedForeground,
+                          foreground: foreground,
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsTab({
+    required Key key,
+    required ThemeData theme,
+    required Color cardColor,
+    required Color borderColor,
+    required Color primary,
+    required Color muted,
+    required Color mutedForeground,
+    required Color foreground,
+  }) {
+    if (_isStatsLoading) {
+      return Center(key: key, child: CircularProgressIndicator(color: primary));
+    }
+
+    if (_statsError != null) {
+      return _ErrorState(
+        key: key,
+        message: _statsError!,
+        onRetry: _loadStats,
+        primary: primary,
+      );
+    }
+
+    final stats = _stats!;
+    final goal = _chartGoal(stats);
+    final total = _displayTotal(stats);
+    final average = _displayAverage(stats);
+    final distance = _displayDistance(stats);
+
+    return ListView(
+      key: key,
+      physics: const BouncingScrollPhysics(),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TimeRangeSelector(
+                timeRange: _timeRange,
+                muted: muted,
+                cardColor: cardColor,
+                borderColor: borderColor,
+                mutedForeground: mutedForeground,
+                foreground: foreground,
+                onChanged: _onTimeRangeChanged,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _timeRange == ActivityTimeRange.daily
+                          ? Icons.schedule_outlined
+                          : _timeRange == ActivityTimeRange.monthly
+                              ? Icons.directions_walk_outlined
+                              : Icons.trending_up_outlined,
+                      color: primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stats.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: foreground,
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: mutedForeground,
+                            ),
+                            children: [
+                              TextSpan(text: '${stats.averageLabel}: '),
+                              TextSpan(
+                                text: formatStepCount(average),
+                                style: TextStyle(color: primary),
+                              ),
+                              TextSpan(text: ' ${_averageSuffix()}'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                height: 256,
+                child: stats.chartData.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Chưa có dữ liệu biểu đồ',
+                          style: TextStyle(
+                            color: mutedForeground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : _StepsBarChart(
+                        data: stats.chartData,
+                        goal: goal,
+                        primary: primary,
+                        muted: muted,
+                        mutedForeground: mutedForeground,
+                        borderColor: borderColor,
+                        barWidth: _timeRange == ActivityTimeRange.monthly
+                            ? 40
+                            : 32,
+                      ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _SummaryCard(
+                label: 'Tổng bước',
+                value: formatStepCount(total),
+                cardColor: cardColor,
+                borderColor: borderColor,
+                foreground: foreground,
+                mutedForeground: mutedForeground,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _SummaryCard(
+                label: 'Khoảng cách',
+                value: distance.toStringAsFixed(1),
+                suffix: 'km',
+                cardColor: cardColor,
+                borderColor: borderColor,
+                foreground: foreground,
+                mutedForeground: mutedForeground,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildHistoryTab({
+    required Key key,
+    required Color cardColor,
+    required Color borderColor,
+    required Color primary,
+    required Color muted,
+    required Color mutedForeground,
+    required Color foreground,
+  }) {
+    if (_isHistoryLoading) {
+      return Center(key: key, child: CircularProgressIndicator(color: primary));
+    }
+
+    if (_historyError != null) {
+      return _ErrorState(
+        key: key,
+        message: _historyError!,
+        onRetry: _loadHistory,
+        primary: primary,
+      );
+    }
+
+    if (_history.isEmpty) {
+      return Center(
+        key: key,
+        child: Text(
+          'Chưa có lịch sử hoạt động',
+          style: TextStyle(
+            color: mutedForeground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      key: key,
+      physics: const BouncingScrollPhysics(),
+      itemCount: _history.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final item = _history[index];
+        return _HistoryCard(
+          item: item,
+          cardColor: cardColor,
+          borderColor: borderColor,
+          primary: primary,
+          muted: muted,
+          mutedForeground: mutedForeground,
+          foreground: foreground,
+        );
+      },
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = theme.colorScheme.surface;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Material(
+            color: cardColor,
+            shape: CircleBorder(
+              side: BorderSide(color: borderColor),
+            ),
+            elevation: 1,
+            shadowColor: Colors.black.withValues(alpha: 0.05),
+            child: InkWell(
+              onTap: onBack,
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  size: 20,
+                  color: mutedForeground,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          'Hoạt Động',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MainTabBar extends StatelessWidget {
+  const _MainTabBar({
+    required this.activeTab,
+    required this.cardColor,
+    required this.borderColor,
+    required this.primary,
+    required this.onPrimary,
+    required this.mutedForeground,
+    required this.onChanged,
+  });
+
+  final _MainTab activeTab;
+  final Color cardColor;
+  final Color borderColor;
+  final Color primary;
+  final Color onPrimary;
+  final Color mutedForeground;
+  final ValueChanged<_MainTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: cardColor.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        children: [
+          _MainTabButton(
+            label: 'Thống Kê',
+            icon: Icons.bar_chart_rounded,
+            isActive: activeTab == _MainTab.stats,
+            primary: primary,
+            onPrimary: onPrimary,
+            mutedForeground: mutedForeground,
+            onTap: () => onChanged(_MainTab.stats),
+          ),
+          _MainTabButton(
+            label: 'Lịch Sử',
+            icon: Icons.calendar_month_outlined,
+            isActive: activeTab == _MainTab.history,
+            primary: primary,
+            onPrimary: onPrimary,
+            mutedForeground: mutedForeground,
+            onTap: () => onChanged(_MainTab.history),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MainTabButton extends StatelessWidget {
+  const _MainTabButton({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    required this.primary,
+    required this.onPrimary,
+    required this.mutedForeground,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final Color primary;
+  final Color onPrimary;
+  final Color mutedForeground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isActive ? onPrimary : mutedForeground,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isActive ? onPrimary : mutedForeground,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TimeRangeSelector extends StatelessWidget {
+  const _TimeRangeSelector({
+    required this.timeRange,
+    required this.muted,
+    required this.cardColor,
+    required this.borderColor,
+    required this.mutedForeground,
+    required this.foreground,
+    required this.onChanged,
+  });
+
+  final ActivityTimeRange timeRange;
+  final Color muted;
+  final Color cardColor;
+  final Color borderColor;
+  final Color mutedForeground;
+  final Color foreground;
+  final ValueChanged<ActivityTimeRange> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: muted.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: ActivityTimeRange.values.map((range) {
+          final isActive = timeRange == range;
+          final label = switch (range) {
+            ActivityTimeRange.daily => 'Ngày',
+            ActivityTimeRange.weekly => 'Tuần',
+            ActivityTimeRange.monthly => 'Tháng',
+          };
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(range),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: isActive ? cardColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isActive
+                      ? Border.all(color: borderColor.withValues(alpha: 0.5))
+                      : null,
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? foreground : mutedForeground,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _StepsBarChart extends StatelessWidget {
+  const _StepsBarChart({
+    required this.data,
+    required this.goal,
+    required this.primary,
+    required this.muted,
+    required this.mutedForeground,
+    required this.borderColor,
+    required this.barWidth,
+  });
+
+  final List<StepChartPoint> data;
+  final int goal;
+  final Color primary;
+  final Color muted;
+  final Color mutedForeground;
+  final Color borderColor;
+  final double barWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxY = data
+        .map((e) => e.steps.toDouble())
+        .fold<double>(goal.toDouble(), (prev, v) => v > prev ? v : prev);
+
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 36,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(5, (index) {
+                    final value = maxY - (maxY * index / 4);
+                    return Text(
+                      _compactNumber(value),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: mutedForeground,
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(5, (_) {
+                        return Container(
+                          height: 1,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    Positioned.fill(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: data.map((point) {
+                          final reached = point.steps >= goal;
+                          final heightFactor = maxY <= 0
+                              ? 0.0
+                              : (point.steps / maxY).clamp(0.0, 1.0);
+
+                          return Tooltip(
+                            message: '${formatStepCount(point.steps)} bước',
+                            child: FractionallySizedBox(
+                              heightFactor: heightFactor,
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                width: barWidth,
+                                decoration: BoxDecoration(
+                                  color: reached ? primary : muted,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 44),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: data.map((point) {
+              return Expanded(
+                child: Text(
+                  point.label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: mutedForeground,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _compactNumber(double value) {
+    if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(value >= 10000 ? 0 : 1)}k';
+    }
+    return value.toInt().toString();
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.label,
+    required this.value,
+    required this.cardColor,
+    required this.borderColor,
+    required this.foreground,
+    required this.mutedForeground,
+    this.suffix,
+  });
+
+  final String label;
+  final String value;
+  final String? suffix;
+  final Color cardColor;
+  final Color borderColor;
+  final Color foreground;
+  final Color mutedForeground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: mutedForeground,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          RichText(
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: foreground,
+              ),
+              children: [
+                TextSpan(text: value),
+                if (suffix != null)
+                  TextSpan(
+                    text: ' $suffix',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryCard extends StatelessWidget {
+  const _HistoryCard({
+    required this.item,
+    required this.cardColor,
+    required this.borderColor,
+    required this.primary,
+    required this.muted,
+    required this.mutedForeground,
+    required this.foreground,
+  });
+
+  final StepHistoryItem item;
+  final Color cardColor;
+  final Color borderColor;
+  final Color primary;
+  final Color muted;
+  final Color mutedForeground;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                item.formattedDate,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: mutedForeground,
+                ),
+              ),
+              if (item.isGoalReached)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'ĐẠT MỤC TIÊU',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: primary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                formatStepCount(item.steps),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: foreground,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '/ ${formatStepCount(item.goal)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: mutedForeground,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: item.goal <= 0
+                  ? 0
+                  : (item.steps / item.goal).clamp(0.0, 1.0),
+              minHeight: 8,
+              backgroundColor: muted,
+              color: item.isGoalReached ? primary : Colors.amber.shade400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({
+    super.key,
+    required this.message,
+    required this.onRetry,
+    required this.primary,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+  final Color primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(
+              'Thử lại',
+              style: TextStyle(
+                color: primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
