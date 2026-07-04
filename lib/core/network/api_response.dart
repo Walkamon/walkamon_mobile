@@ -19,14 +19,22 @@ class ApiResponse<T> {
 
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
-    T Function(dynamic json)? fromJsonT,
-  ) {
+    T Function(dynamic json)? fromJsonT, {
+    int? defaultStatus,
+  }) {
+    dynamic read(String camelKey, String pascalKey) {
+      if (json.containsKey(camelKey)) return json[camelKey];
+      return json[pascalKey];
+    }
+
     // 1. Lấy message chuẩn nếu có
-    String parsedMessage = json['message']?.toString() ?? '';
+    String parsedMessage = read('message', 'Message')?.toString() ?? '';
 
     // 2. Xử lý trường hợp backend C# trả về lỗi FluentValidation (RFC 7807 ProblemDetails)
-    if (parsedMessage.isEmpty && json.containsKey('errors') && json['errors'] is Map) {
-      final Map<String, dynamic> validationErrors = json['errors'];
+    final errors = read('errors', 'Errors');
+    if (parsedMessage.isEmpty && errors is Map) {
+      final Map<String, dynamic> validationErrors =
+          Map<String, dynamic>.from(errors);
       List<String> allMessages = [];
 
       validationErrors.forEach((key, value) {
@@ -40,19 +48,30 @@ class ApiResponse<T> {
       if (allMessages.isNotEmpty) {
         parsedMessage = allMessages.join(', ');
       }
-    } else if (parsedMessage.isEmpty && json.containsKey('title')) {
+    } else if (parsedMessage.isEmpty && read('title', 'Title') != null) {
       // Fallback lấy title của lỗi HTTP
-      parsedMessage = json['title'].toString();
+      parsedMessage = read('title', 'Title').toString();
     }
 
+    final rawSuccess = read('success', 'Success');
+    final rawStatus = read('status', 'Status');
+    final rawData = read('data', 'Data');
+    final statusValue = int.tryParse(rawStatus?.toString() ?? '') ??
+        defaultStatus ??
+        0;
+
+    final successValue = rawSuccess == true ||
+        rawSuccess?.toString() == 'true' ||
+        (rawSuccess == null && rawStatus == null && statusValue >= 200 && statusValue < 300);
+
     return ApiResponse<T>(
-      success: json['success'] ?? false,
-      status: json['status'] ?? 0,
+      success: successValue,
+      status: statusValue,
       message: parsedMessage,
-      data: (json['data'] != null && fromJsonT != null)
-          ? fromJsonT(json['data'])
+      data: (rawData != null && fromJsonT != null)
+          ? fromJsonT(rawData)
           : null,
-      traceId: json['traceId'] as String?,
+      traceId: read('traceId', 'TraceId')?.toString(),
     );
   }
 }
