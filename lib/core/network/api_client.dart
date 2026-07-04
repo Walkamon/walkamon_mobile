@@ -124,9 +124,44 @@ class ApiClient {
     T Function(dynamic json)? fromJsonT,
   ) {
     if (response.data is Map<String, dynamic>) {
+      final json = response.data as Map<String, dynamic>;
+      final hasSuccess = json.containsKey('success') || json.containsKey('Success');
+      final hasStatus = json.containsKey('status') || json.containsKey('Status');
+      final hasMessage = json.containsKey('message') || json.containsKey('Message');
+      final hasData = json.containsKey('data') || json.containsKey('Data');
+      final hasTraceId = json.containsKey('traceId') || json.containsKey('TraceId');
+      final isWrappedResponse =
+          hasSuccess || hasStatus || hasMessage || hasTraceId;
+
+      if (!isWrappedResponse) {
+        return ApiResponse<T>(
+          success: true,
+          status: response.statusCode ?? 200,
+          message: 'Thành công',
+          data: fromJsonT != null ? fromJsonT(json) : null,
+        );
+      }
+
+      final hasOnlySuccessMessage = hasMessage &&
+          !hasSuccess &&
+          !hasStatus &&
+          !hasData &&
+          !hasTraceId;
+      final statusCode = response.statusCode ?? 0;
+
+      if (hasOnlySuccessMessage && statusCode >= 200 && statusCode < 300) {
+        return ApiResponse<T>(
+          success: true,
+          status: statusCode,
+          message:
+              (json['message'] ?? json['Message'])?.toString() ?? 'Thành công',
+        );
+      }
+
       return ApiResponse<T>.fromJson(
-        response.data as Map<String, dynamic>,
+        json,
         fromJsonT,
+        defaultStatus: statusCode,
       );
     }
 

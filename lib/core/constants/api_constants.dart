@@ -17,6 +17,13 @@ class ApiConstants {
   // Daily Step Endpoints
   static const String dailySteps = '/api/daily-steps';
 
+  // Step Goal Endpoints
+  static const String stepGoal = '/api/Step-Goal';
+  static const String stepGoalProgress = '/api/Step-Goal/progress';
+  static const String stepGoalCurrentStreak = '/api/Step-Goal/current-streak';
+  static const String stepGoalLongestStreak = '/api/Step-Goal/longest-streak';
+  static const String stepGoalClaim = '/api/Step-Goal/claim';
+
   // Item Endpoints
   static const String items = '/api/items';
   static String itemById(String id) => '/api/items/$id';
