@@ -66,4 +66,7 @@ class ApiConstants {
   static const String receivedFriendRequests = '/api/friends/requests/received';
   static String respondToFriendRequest(String requestId) =>
       '/api/friends/requests/$requestId';
+
+  // Notification Endpoints
+  static const String updateNotification = '/api/notifications/settings';
 }

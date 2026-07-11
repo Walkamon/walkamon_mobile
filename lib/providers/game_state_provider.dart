@@ -6,6 +6,9 @@ import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
 
+// ── THÊM MỚI: Import Notification Repository ──
+import '../data/repositories/notification_repository.dart';
+
 class GameUser {
   const GameUser({
     required this.name,
@@ -14,7 +17,6 @@ class GameUser {
     this.email = '',
     this.id = '',
     this.joinDate = 'Tháng 6, 2026',
-    // ── THÊM MỚI: Các trường thực tế từ DB Walkamon ──
     this.bio = '',
     this.gender = 'Chưa rõ',
     this.dob = 'Chưa cập nhật',
@@ -27,7 +29,6 @@ class GameUser {
   final String email;
   final String id;
   final String joinDate;
-  // ── THÊM MỚI ──
   final String bio;
   final String gender;
   final String dob;
@@ -64,7 +65,7 @@ class GameSettings {
   const GameSettings({
     this.darkMode = true,
     this.soundEnabled = true,
-    this.notifications = true,
+    this.notifications = true, // Đã có sẵn thuộc tính notifications[cite: 5]
     this.languageCode = 'vi-VN',
   });
 
@@ -93,7 +94,11 @@ class GameStateProvider extends ChangeNotifier {
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
   final ProfileViewScreenRepository _profileRepository;
 
-  GameStateProvider(this._profileRepository);
+  // ── THÊM MỚI: Khai báo Notification Repository ──
+  final NotificationRepository _notificationRepository;
+
+  // ── THÊM MỚI: Yêu cầu NotificationRepository khi khởi tạo Provider ──
+  GameStateProvider(this._profileRepository, this._notificationRepository);
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
@@ -136,7 +141,6 @@ class GameStateProvider extends ChangeNotifier {
     _isLoading = false;
 
     if (response.success && response.data != null) {
-      // Đăng nhập thành công -> Map data từ LoginResponse vào GameUser cũ
       TokenStorage.setToken(response.data!.token);
 
       _user = GameUser(
@@ -204,22 +208,19 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Nhận dữ liệu trực tiếp từ Repository ──
   Future<bool> fetchProfileDetail() async {
     _isProfileLoading = true;
     _profileErrorMessage = null;
     notifyListeners();
 
     try {
-      // Gọi Repo trả thẳng về Model ProfileViewResponse sạch sẽ
       final profileData = await _profileRepository.getUserProfile();
       _isProfileLoading = false;
 
-      // Đồng bộ nạp dữ liệu từ DB thực tế vào đối tượng GameUser hiện tại
       _user = GameUser(
         name: profileData.username,
-        level: _user?.level ?? 1, // Cày cuốc từ hệ thống game
-        coins: _user?.coins ?? 0, // Đồng bộ từ ví tiền wallets
+        level: _user?.level ?? 1,
+        coins: _user?.coins ?? 0,
         email: profileData.email,
         id: _user?.id ?? '',
         joinDate: profileData.createdAt.isNotEmpty
@@ -231,10 +232,7 @@ class GameStateProvider extends ChangeNotifier {
         avatarUrl: profileData.avatarUrl,
       );
 
-      // Cập nhật cấu hình ứng dụng từ profile_settings người dùng lưu trong DB
       _settings = _settings.copyWith(
-        // Tạm thời comment dòng này lại để khi fetch API Profile không bị ghi đè theme hiện tại của app
-        // darkMode: profileData.themeCode == 'dark',
         notifications: profileData.notificationsEnabled,
         languageCode: profileData.languageCode,
       );
@@ -245,7 +243,6 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isProfileLoading = false;
-      // Dịch lỗi nếu e là chuỗi hoặc dùng lỗi hệ thống mặc định
       _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
       return false;
@@ -257,9 +254,27 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── THÊM MỚI: Hàm xử lý Bật/Tắt Notification gọi xuống Backend ──
+  Future<void> setNotificationsEnabled(bool value) async {
+    // 1. Lấy giá trị cũ từ biến private _settings
+    final oldValue = _settings.notifications;
 
+    // 2. Cập nhật State ngay lập tức vào _settings để giao diện phản hồi mượt mà
+    _settings = _settings.copyWith(notifications: value);
+    notifyListeners();
 
-  // ── THÊM MỚI: Xử lý lưu thông tin chỉnh sửa hồ sơ lên API & RAM ──
+    try {
+      // 3. Gửi request lên server
+      await _notificationRepository.updateNotification(value);
+    } catch (e) {
+      // 4. Hoàn tác lại giá trị cũ vào _settings nếu API báo lỗi
+      _settings = _settings.copyWith(notifications: oldValue);
+      notifyListeners();
+
+      debugPrint('Cập nhật thông báo thất bại: $e');
+    }
+  }
+
   Future<bool> updateProfile({
     required String name,
     required String gender,
@@ -274,27 +289,22 @@ class GameStateProvider extends ChangeNotifier {
 
     try {
       final cleanBio = bio.trim().isEmpty ? "Chưa cập nhật" : bio.trim();
-      // Định dạng ngày sinh sang chuỗi yyyy-MM-dd để Backend C# nhận diện đúng kiểu dữ liệu
       final dobStringForApi =
           "${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}";
 
-      // Định dạng dd/MM/yyyy giúp gán trực tiếp vào GameUser hiển thị ngay lên UI không bị lệch format
       final dobStringForUi =
           "${dob.day.toString().padLeft(2, '0')}/${dob.month.toString().padLeft(2, '0')}/${dob.year}";
 
-      // Gọi repository đẩy dữ liệu cập nhật xuống datasource
       await _profileRepository.updateUserProfile(
         username: name,
         gender: gender,
         dob: dobStringForApi,
         bio: cleanBio,
-        // localAvatarPath: localAvatarPath, // (Bật lên nếu repo nhận path)
-        imageBytes: imageBytes, // (Bật lên nếu repo nhận bytes)
+        imageBytes: imageBytes,
       );
 
       _isProfileLoading = false;
 
-      // Cập nhật nóng vào RAM cục bộ để toàn bộ màn hình Game thay đổi tức thì mà không cần reload app
       if (_user != null) {
         _user = _user!.copyWith(
           name: name,
@@ -318,7 +328,6 @@ class GameStateProvider extends ChangeNotifier {
     required String content,
     required String feedbackTypeCode,
   }) async {
-    // Deprecated: simple bool. Newer implementation handled below in sendFeedbackWithCooldown.
     try {
       final response = await _settingRepository.sendFeedback(
         content: content,
@@ -330,9 +339,6 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  // Result object for feedback send attempts
-
-  // Sends feedback with backend-enforced 24-hour cooldown.
   Future<FeedbackResult> sendFeedbackWithCooldown({
     required String content,
     required String feedbackTypeCode,
@@ -403,8 +409,6 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
     return true;
   }
-
-
 }
 
 class FeedbackResult {
