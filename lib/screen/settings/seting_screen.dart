@@ -120,6 +120,41 @@ class _SettingScreenState extends State<SettingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // ================= KHỐI 1: THÊM MỚI HỆ THỐNG =================
+                    Text(
+                      'Hệ thống',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.25),
+                        ),
+                      ),
+                      child: _SettingsSwitch(
+                        label: 'Thông báo nhắc nhở',
+                        subtitle: 'Nhận lịch nhắc cho thú cưng ăn, đi bộ',
+                        icon: Icons.notifications_none_rounded,
+                        value: gameState.settings.notifications,
+                        onChanged: (newValue) {
+                          context
+                              .read<GameStateProvider>()
+                              .setNotificationsEnabled(newValue);
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
                     Text(
                       'Tính năng & Hỗ trợ',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -575,6 +610,64 @@ class _SettingsButtonState extends State<_SettingsButton> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SettingsSwitch extends StatelessWidget {
+  const _SettingsSwitch({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Theme.of(context).colorScheme.primary,
+          ),
+        ],
       ),
     );
   }

@@ -47,6 +47,9 @@ import 'screen/profile/edit_profile_screen.dart';
 import 'screen/profile/step_goal_screen.dart';
 import 'screen/achievements/View_achievement_list_screen.dart';
 
+import 'data/datasources/remote/notification_datasource.dart';
+import 'data/repositories/notification_repository.dart';
+
 void main() {
   runApp(const WalkamonApp());
 }
@@ -78,10 +81,16 @@ class _WalkamonAppState extends State<WalkamonApp> {
     );
     final friendsRepository = FriendsRepository(FriendsDatasource(apiClient));
 
+    final notificationDatasource = NotificationDatasourceImpl(apiClient);
+    final notificationRepository = NotificationRepositoryImpl(
+      datasource: notificationDatasource,
+    );
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => GameStateProvider(profileRepository),
+          create: (_) =>
+              GameStateProvider(profileRepository, notificationRepository),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
         Provider<FriendsRepository>(create: (_) => friendsRepository),
