@@ -44,3 +44,43 @@ class NotificationItem {
     );
   }
 }
+
+class NotificationDetail {
+  final String notificationId;
+  final String title;
+  final String body;
+  final DateTime createdAt;
+  final String? typeCode;
+  final String? icon;
+  final String? imageUrl;
+  final bool isRead;
+  final DateTime? readAt;
+
+  NotificationDetail({
+    required this.notificationId,
+    required this.title,
+    required this.body,
+    required this.createdAt,
+    this.typeCode,
+    this.icon,
+    this.imageUrl,
+    required this.isRead,
+    this.readAt,
+  });
+
+  factory NotificationDetail.fromJson(Map<String, dynamic> json) {
+    return NotificationDetail(
+      notificationId: json['notificationId']?.toString() ?? '',
+      title: json['title'] ?? '',
+      body: json['body'] ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      typeCode: json['typeCode'],
+      icon: json['icon'],
+      imageUrl: json['imageUrl'],
+      isRead: json['isRead'] ?? false,
+      readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
+    );
+  }
+}

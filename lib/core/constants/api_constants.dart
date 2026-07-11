@@ -70,4 +70,5 @@ class ApiConstants {
   // Notification Endpoints
   static const String updateNotification = '/api/notifications/settings';
   static const String getNotifications = '/api/notifications';
+  static String notificationDetail(String id) => '/api/notifications/$id';
 }
