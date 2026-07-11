@@ -4,6 +4,7 @@ import '../../../core/constants/api_constants.dart';
 
 abstract class NotificationDatasource {
   Future<NotificationResponse> updateNotification(bool enabled);
+  Future<List<NotificationItem>> getNotifications(int page, int pageSize);
 }
 
 class NotificationDatasourceImpl implements NotificationDatasource {
@@ -35,6 +36,33 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       return response.data!;
     } catch (e) {
       print("Lỗi NotificationDatasource: $e");
+      rethrow;
+    }
+  }
+
+  Future<List<NotificationItem>> getNotifications(
+    int page,
+    int pageSize,
+  ) async {
+    try {
+      final response = await apiClient.get<List<NotificationItem>>(
+        '${ApiConstants.getNotifications}?page=$page&pageSize=$pageSize', //[cite: 2]
+        fromJsonT: (json) {
+          final data = json as Map<String, dynamic>;
+          final list = data['notifications'] as List; //[cite: 2]
+          return list
+              .map((e) => NotificationItem.fromJson(e as Map<String, dynamic>))
+              .toList();
+        },
+      );
+
+      if (!response.success) {
+        throw Exception(response.message ?? "Lỗi tải thông báo");
+      }
+
+      return response.data ?? [];
+    } catch (e) {
+      print("Lỗi getNotifications: $e");
       rethrow;
     }
   }

@@ -69,4 +69,5 @@ class ApiConstants {
 
   // Notification Endpoints
   static const String updateNotification = '/api/notifications/settings';
+  static const String getNotifications = '/api/notifications';
 }
