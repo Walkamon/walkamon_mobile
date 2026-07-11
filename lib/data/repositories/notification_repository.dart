@@ -14,4 +14,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<NotificationResponse> updateNotification(bool enabled) {
     return datasource.updateNotification(enabled);
   }
+
+  @override
+  Future<NotificationDetail> getNotificationDetail(String id) {
+    return datasource.getNotificationDetail(id);
+  }
 }
