@@ -8,12 +8,13 @@ importScripts(
 
 // Khởi tạo Firebase trong file chạy ngầm
 firebase.initializeApp({
-  apiKey: "AIzaSyBpWnU-W9RpetKUBnMMT1q3iHgr1bm-ons",
-  authDomain: "walkamon-25d80.firebaseapp.com",
-  projectId: "walkamon-25d80",
-  storageBucket: "walkamon-25d80.firebasestorage.app",
-  messagingSenderId: "180347659752",
-  appId: "1:180347659752:web:2c656d329a1fd1a48ff05d",
+  apiKey: "AIzaSyAgKFB69wu2nQOfgROIxeAU2rpRrxXTMRE",
+  authDomain: "walkamon-ec4cb.firebaseapp.com",
+  projectId: "walkamon-ec4cb",
+  storageBucket: "walkamon-ec4cb.firebasestorage.app",
+  messagingSenderId: "119004588752",
+  appId: "1:119004588752:web:da13394f58825b1bacccd5",
+  measurementId: "G-ZLS2JRK0VN",
 });
 
 // Thiết lập nhận thông báo

@@ -50,19 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBpWnU-W9RpetKUBnMMT1q3iHgr1bm-ons',
-    appId: '1:180347659752:web:2c656d329a1fd1a48ff05d',
-    messagingSenderId: '180347659752',
-    projectId: 'walkamon-25d80',
-    authDomain: 'walkamon-25d80.firebaseapp.com',
-    storageBucket: 'walkamon-25d80.firebasestorage.app',
+    apiKey: 'AIzaSyAgKFB69wu2nQOfgROIxeAU2rpRrxXTMRE',
+    appId: '1:119004588752:web:da13394f58825b1bacccd5',
+    messagingSenderId: '119004588752',
+    projectId: 'walkamon-ec4cb',
+    authDomain: 'walkamon-ec4cb.firebaseapp.com',
+    storageBucket: 'walkamon-ec4cb.firebasestorage.app',
+    measurementId: 'G-ZLS2JRK0VN',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDNBo_Fm_D3A_X9uiyZIhIP_EjL06o6rNI',
-    appId: '1:180347659752:android:9038d7094dec4ff18ff05d',
-    messagingSenderId: '180347659752',
-    projectId: 'walkamon-25d80',
-    storageBucket: 'walkamon-25d80.firebasestorage.app',
+    apiKey: 'AIzaSyAFX9f02lISgJHfJcYu73A9KF_54dQ8EeY',
+    appId: '1:119004588752:android:44cbdef95340ccaeacccd5',
+    messagingSenderId: '119004588752',
+    projectId: 'walkamon-ec4cb',
+    storageBucket: 'walkamon-ec4cb.firebasestorage.app',
   );
 }

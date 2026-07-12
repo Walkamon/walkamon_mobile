@@ -102,21 +102,6 @@ class _LoginScreenState extends State<LoginScreen>
 
         // Gọi hàm setup Token (Không cần await để app không bị khựng lại chờ Firebase)
         fcmService.setupToken();
-        FirebaseMessaging.instance
-            .getToken(
-              vapidKey:
-                  'BK7pQppHjYJ2Zk-ZuYG4JaEIhup0ntsFhXbDAsqrruOblIUtUZkwGBE3m-gGFZ1Rvf-VpXv6zdJ5N0dL_EOgnRs',
-            )
-            .then((token) {
-              // debugPrint("=========================================");
-              // debugPrint("FCM TOKEN CỦA TÔI LÀ: $token");
-              // debugPrint("=========================================");
-            })
-            .catchError((err) {
-              // debugPrint(
-              //   "Không lấy được Token, chạy trên Web/Máy ảo có thể bị lỗi này: $err",
-              // );
-            });
       } catch (e) {
         debugPrint("Lỗi khởi tạo thông báo: $e");
       }

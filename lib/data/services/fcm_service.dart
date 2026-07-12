@@ -4,18 +4,25 @@ import '../repositories/notification_repository.dart';
 class FCMService {
   final NotificationRepository _notificationRepo;
 
+  // Khai báo VAPID Key thành một biến hằng số để dùng chung, dễ quản lý và không bị hardcode lặp lại
+  static const String _vapidKey =
+      'BMxWbOxZH9lDYXnxLUxI3UwzpetJuohK-CyakFI_AvCiroNhLe2tifo3-J8dKuB5UeftPcT1wL2n5sJn2sITR8c';
+
   FCMService(this._notificationRepo);
 
   /// Gọi hàm này NGAY SAU KHI đăng nhập thành công
   Future<void> setupToken() async {
     try {
+      // print("=== ĐÃ CHẠY VÀO HÀM SETUPTOKEN ===");
       // 1. Xin quyền hiển thị thông báo (Cần thiết cho iOS & Android 13+)
       NotificationSettings settings = await FirebaseMessaging.instance
           .requestPermission();
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // 2. Lấy Token từ Firebase
-        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        // 2. Lấy Token từ Firebase (Truyền VAPID Key cho Web)
+        String? fcmToken = await FirebaseMessaging.instance.getToken(
+          vapidKey: _vapidKey,
+        );
 
         if (fcmToken != null && fcmToken.isNotEmpty) {
           // 3. Gửi Token lên Backend
@@ -37,7 +44,11 @@ class FCMService {
   /// Gọi hàm này TRƯỚC KHI thực hiện xóa dữ liệu local để đăng xuất
   Future<void> deactivateToken() async {
     try {
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      // Thêm vapidKey vào đây để Web lấy Token cũ đi hủy không bị lỗi
+      String? fcmToken = await FirebaseMessaging.instance.getToken(
+        vapidKey: _vapidKey,
+      );
+
       if (fcmToken != null && fcmToken.isNotEmpty) {
         await _notificationRepo.deactivateDeviceToken(fcmToken);
         print("Đã hủy kích hoạt FCM Token thành công");
