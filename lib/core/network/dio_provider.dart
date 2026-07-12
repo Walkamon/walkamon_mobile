@@ -17,9 +17,7 @@ class DioProvider {
           baseUrl: ApiConstants.baseUrl,
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
-          headers: {
-            'Accept': '*/*',
-          },
+          headers: {'Accept': '*/*'},
         ),
       );
 
@@ -27,12 +25,12 @@ class DioProvider {
       _instance!.interceptors.add(AuthInterceptor());
 
       // Thêm LogInterceptor để in log request/response
-      _instance!.interceptors.add(
-        LogInterceptor(
-          requestBody: true,
-          responseBody: true,
-        ),
-      );
+      // _instance!.interceptors.add(
+      //   LogInterceptor(
+      //     requestBody: true,
+      //     responseBody: true,
+      //   ),
+      // );
     }
     return _instance!;
   }

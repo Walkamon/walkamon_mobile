@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/auth/token_storage.dart';
 import '../core/utils/login_screen_error_translator.dart';
@@ -161,6 +162,49 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> tryAutoLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
+
+      // Kiểm tra xem có key hay không
+      if (!prefs.containsKey('access_token')) {
+        print(
+          "[AutoLogin] Không tìm thấy key 'access_token' trong SharedPreferences!",
+        );
+        return false;
+      }
+
+      final token = prefs.getString('access_token');
+      if (token == null || token.isEmpty) {
+        print("[AutoLogin] Token tìm thấy bị rỗng hoặc null!");
+        return false;
+      }
+
+      print(
+        "AutoLogin] Tìm thấy Token: ${token.substring(0, token.length > 10 ? 10 : token.length)}...",
+      );
+      TokenStorage.setToken(token);
+
+      print("[AutoLogin] Đang gọi fetchProfileDetail()...");
+      final successFetch = await fetchProfileDetail();
+
+      if (successFetch) {
+        print("[AutoLogin] Tự động đăng nhập THÀNH CÔNG!");
+        return true;
+      } else {
+        print(
+          "[AutoLogin] Gọi fetchProfileDetail() THẤT BẠI (Token có thể hết hạn)!",
+        );
+        await logout();
+        return false;
+      }
+    } catch (e) {
+      print("[AutoLogin] Lỗi hệ thống khi tự động đăng nhập: $e");
+      return false;
+    }
+  }
+
   Future<bool> googleLogin({required String idToken}) async {
     _isLoading = true;
     _errorMessage = null;
@@ -196,11 +240,17 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 1. Gọi API logout lên server trước khi xóa token
       await _settingRepository.logout();
     } catch (e) {
       // Bỏ qua lỗi gọi API
     }
 
+    // 2. Xóa token dưới thiết bị
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+
+    // 3. Xóa token trên RAM và reset trạng thái app
     TokenStorage.clear();
     _user = null;
     _profileErrorMessage = null;
