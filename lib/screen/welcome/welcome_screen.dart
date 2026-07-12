@@ -23,6 +23,42 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _sfxEnabled = true;
   bool _fps60 = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Tạo một khoảng hoãn nhỏ (100ms) để Flutter Web ổn định Engine rồi mới quét dữ liệu
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _checkAutoLogin();
+      }
+    });
+  }
+
+  Future<void> _checkAutoLogin() async {
+    try {
+      final authProvider = context.read<GameStateProvider>();
+      bool isLoggedIn = await authProvider.tryAutoLogin();
+
+      if (!mounted) return;
+
+      if (isLoggedIn) {
+        final userId = authProvider.user?.id ?? '';
+
+        if (userId.isNotEmpty && mounted) {
+          context.read<StepTrackingProvider>().startForUser(userId);
+        }
+
+        if (!mounted) return;
+
+        // Chuyển trang trực tiếp
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      // Bọc catch để nếu có lỗi ngầm xảy ra, app không bị đứng hình trắng xóa
+      debugPrint("Lỗi AutoLogin ngầm: $e");
+    }
+  }
+
   Future<void> _handleGoogleLogin() async {
     final provider = context.read<GameStateProvider>();
 
@@ -73,7 +109,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         : AppColors.lightMutedForeground;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
+    final foreground = isDark
+        ? AppColors.darkForeground
+        : AppColors.lightForeground;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -138,7 +176,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   label: 'Khám Phá Ngay',
                                   backgroundColor: primary,
                                   foregroundColor: onPrimary,
-                                  onPressed: () => Navigator.pushNamed(context, '/story'),
+                                  onPressed: () =>
+                                      Navigator.pushNamed(context, '/story'),
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
@@ -147,7 +186,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       child: _OutlineButton(
                                         label: 'Đăng Nhập',
                                         color: primary,
-                                        onPressed: () => Navigator.pushNamed(context, '/auth/login'),
+                                        onPressed: () => Navigator.pushNamed(
+                                          context,
+                                          '/auth/login',
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -155,7 +197,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       child: _OutlineButton(
                                         label: 'Đăng Ký',
                                         color: primary,
-                                        onPressed: () => Navigator.pushNamed(context, '/auth/register'),
+                                        onPressed: () => Navigator.pushNamed(
+                                          context,
+                                          '/auth/register',
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -163,9 +208,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 const SizedBox(height: 16),
                                 Row(
                                   children: [
-                                    Expanded(child: Container(height: 2, color: muted)),
+                                    Expanded(
+                                      child: Container(height: 2, color: muted),
+                                    ),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
                                       child: Text(
                                         'HOẶC',
                                         style: TextStyle(
@@ -176,7 +225,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                         ),
                                       ),
                                     ),
-                                    Expanded(child: Container(height: 2, color: muted)),
+                                    Expanded(
+                                      child: Container(height: 2, color: muted),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -215,14 +266,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               onSfxChanged: (value) {
                 setState(() => _sfxEnabled = value);
                 context.read<GameStateProvider>().updateSettings(
-                      soundEnabled: value,
-                    );
+                  soundEnabled: value,
+                );
               },
               onFps60Changed: (value) => setState(() => _fps60 = value),
               onDarkModeChanged: (value) {
                 context.read<GameStateProvider>().updateSettings(
-                      darkMode: value,
-                    );
+                  darkMode: value,
+                );
               },
             ),
         ],
@@ -789,7 +840,9 @@ class _Toggle extends StatelessWidget {
         height: 24,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: active
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(999),
         ),
         child: AnimatedAlign(
@@ -837,9 +890,10 @@ class _HeroLogoState extends State<_HeroLogo>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _bounce = Tween<double>(begin: 0, end: -5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _bounce = Tween<double>(
+      begin: 0,
+      end: -5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -851,9 +905,13 @@ class _HeroLogoState extends State<_HeroLogo>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final glowColor = isDark ? const Color(0xFF7DB9A1) : const Color(0xFF10B981);
+    final glowColor = isDark
+        ? const Color(0xFF7DB9A1)
+        : const Color(0xFF10B981);
     final innerColor = isDark ? Colors.white : Colors.white;
-    final strokeColor = isDark ? const Color(0xFF7DB9A1) : const Color(0xFF10B981);
+    final strokeColor = isDark
+        ? const Color(0xFF7DB9A1)
+        : const Color(0xFF10B981);
 
     return SizedBox(
       width: widget.size,
@@ -861,7 +919,10 @@ class _HeroLogoState extends State<_HeroLogo>
       child: AnimatedBuilder(
         animation: _bounce,
         builder: (context, child) {
-          return Transform.translate(offset: Offset(0, _bounce.value), child: child);
+          return Transform.translate(
+            offset: Offset(0, _bounce.value),
+            child: child,
+          );
         },
         child: Stack(
           alignment: Alignment.center,
@@ -959,7 +1020,11 @@ class _HeroLogoPainter extends CustomPainter {
     canvas.drawPath(rightCurve, strokePaint);
 
     // central ring
-    canvas.drawCircle(const Offset(50, 55), 18, Paint()..color = primaryColor.withValues(alpha: 0.8));
+    canvas.drawCircle(
+      const Offset(50, 55),
+      18,
+      Paint()..color = primaryColor.withValues(alpha: 0.8),
+    );
     canvas.drawCircle(const Offset(50, 55), 14, innerPaint);
 
     // star
@@ -991,11 +1056,31 @@ class _HeroLogoPainter extends CustomPainter {
     canvas.drawPath(rightLeaf, fillPaint);
 
     // sparkles
-    _drawSparkle(canvas, const Offset(15, 24), primaryColor.withValues(alpha: 0.72));
-    _drawSparkle(canvas, const Offset(90, 24), primaryColor.withValues(alpha: 0.72));
-    _drawSparkle(canvas, const Offset(52, 10), primaryColor.withValues(alpha: 0.72));
-    _drawSparkle(canvas, const Offset(20, 70), primaryColor.withValues(alpha: 0.72));
-    _drawSparkle(canvas, const Offset(85, 70), primaryColor.withValues(alpha: 0.72));
+    _drawSparkle(
+      canvas,
+      const Offset(15, 24),
+      primaryColor.withValues(alpha: 0.72),
+    );
+    _drawSparkle(
+      canvas,
+      const Offset(90, 24),
+      primaryColor.withValues(alpha: 0.72),
+    );
+    _drawSparkle(
+      canvas,
+      const Offset(52, 10),
+      primaryColor.withValues(alpha: 0.72),
+    );
+    _drawSparkle(
+      canvas,
+      const Offset(20, 70),
+      primaryColor.withValues(alpha: 0.72),
+    );
+    _drawSparkle(
+      canvas,
+      const Offset(85, 70),
+      primaryColor.withValues(alpha: 0.72),
+    );
 
     canvas.restore();
   }
