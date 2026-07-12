@@ -71,4 +71,7 @@ class ApiConstants {
   static const String updateNotification = '/api/notifications/settings';
   static const String getNotifications = '/api/notifications';
   static String notificationDetail(String id) => '/api/notifications/$id';
+  static const String registerDeviceToken = '/api/notifications/device-tokens';
+  static const String deactivateDeviceToken =
+      '/api/notifications/device-tokens/deactivate';
 }

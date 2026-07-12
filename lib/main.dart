@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/screen/home/home_screen.dart';
@@ -50,7 +51,11 @@ import 'screen/achievements/View_achievement_list_screen.dart';
 import 'data/datasources/remote/notification_datasource.dart';
 import 'data/repositories/notification_repository.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WalkamonApp());
 }
 
