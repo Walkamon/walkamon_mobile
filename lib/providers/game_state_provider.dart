@@ -7,8 +7,8 @@ import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
 
-// ── THÊM MỚI: Import Notification Repository ──
 import '../data/repositories/notification_repository.dart';
+import '../data/services/fcm_service.dart';
 
 class GameUser {
   const GameUser({
@@ -95,11 +95,17 @@ class GameStateProvider extends ChangeNotifier {
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
   final ProfileViewScreenRepository _profileRepository;
 
+  final FCMService _fcmService;
+
   // ── THÊM MỚI: Khai báo Notification Repository ──
   final NotificationRepository _notificationRepository;
 
   // ── THÊM MỚI: Yêu cầu NotificationRepository khi khởi tạo Provider ──
-  GameStateProvider(this._profileRepository, this._notificationRepository);
+  GameStateProvider(
+    this._profileRepository,
+    this._notificationRepository,
+    this._fcmService,
+  );
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
@@ -154,6 +160,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
+      _fcmService.setupToken();
       return true;
     } else {
       _errorMessage = translateError(response.message);
@@ -191,6 +198,7 @@ class GameStateProvider extends ChangeNotifier {
 
       if (successFetch) {
         print("[AutoLogin] Tự động đăng nhập THÀNH CÔNG!");
+        _fcmService.setupToken();
         return true;
       } else {
         print(
@@ -227,6 +235,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
+      _fcmService.setupToken();
       return true;
     } else {
       _errorMessage = translateError(response.message);
@@ -238,6 +247,12 @@ class GameStateProvider extends ChangeNotifier {
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
+
+    try {
+      await _fcmService.deactivateToken();
+    } catch (e) {
+      debugPrint('Huỷ FCM Token thất bại: $e');
+    }
 
     try {
       // 1. Gọi API logout lên server trước khi xóa token

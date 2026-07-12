@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/screen/home/home_screen.dart';
@@ -51,6 +50,8 @@ import 'screen/achievements/View_achievement_list_screen.dart';
 import 'data/datasources/remote/notification_datasource.dart';
 import 'data/repositories/notification_repository.dart';
 
+import 'data/services/fcm_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -94,8 +95,11 @@ class _WalkamonAppState extends State<WalkamonApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) =>
-              GameStateProvider(profileRepository, notificationRepository),
+          create: (_) => GameStateProvider(
+            profileRepository,
+            notificationRepository,
+            FCMService(notificationRepository),
+          ),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
         Provider<FriendsRepository>(create: (_) => friendsRepository),
