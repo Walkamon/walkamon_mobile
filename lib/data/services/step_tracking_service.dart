@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter/widgets.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -62,6 +64,11 @@ class StepTrackingService extends WidgetsBindingObserver {
   bool get isTracking => _stepSubscription != null;
 
   Future<void> startForUser(String userId) async {
+    if (kIsWeb) {
+      // debugPrint("======> Chạy trên Web: Bỏ qua toàn bộ logic đếm bước chân.");
+      return;
+    }
+
     if (_disposed || userId.isEmpty) return;
     if (_activeUserId == userId) {
       await resumeTracking();
@@ -85,11 +92,12 @@ class StepTrackingService extends WidgetsBindingObserver {
 
       onStepsChanged?.call(_dailyTotalSteps);
       if (_isForeground) await resumeTracking();
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   Future<void> resumeTracking() async {
+    if (kIsWeb) return;
+
     _isForeground = true;
     if (_disposed || _activeUserId == null) return;
 
@@ -111,6 +119,8 @@ class StepTrackingService extends WidgetsBindingObserver {
   }
 
   Future<void> pauseTracking() async {
+    if (kIsWeb) return;
+
     _isForeground = false;
     _syncTimer?.cancel();
     _syncTimer = null;
@@ -121,6 +131,8 @@ class StepTrackingService extends WidgetsBindingObserver {
   }
 
   Future<void> stopForUser() async {
+    if (kIsWeb) return;
+
     _syncTimer?.cancel();
     _syncTimer = null;
     await _stepSubscription?.cancel();
@@ -239,6 +251,7 @@ class StepTrackingService extends WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (kIsWeb) return;
     if (state == AppLifecycleState.resumed) {
       unawaited(resumeTracking());
     } else {

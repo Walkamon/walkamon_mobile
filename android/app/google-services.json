@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "119004588752",
-    "project_id": "walkamon-ec4cb",
-    "storage_bucket": "walkamon-ec4cb.firebasestorage.app"
+    "project_number": "180347659752",
+    "project_id": "walkamon-25d80",
+    "storage_bucket": "walkamon-25d80.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:119004588752:android:44cbdef95340ccaeacccd5",
+        "mobilesdk_app_id": "1:180347659752:android:9038d7094dec4ff18ff05d",
         "android_client_info": {
           "package_name": "com.example.walkamon_mobile"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAFX9f02lISgJHfJcYu73A9KF_54dQ8EeY"
+          "current_key": "AIzaSyDNBo_Fm_D3A_X9uiyZIhIP_EjL06o6rNI"
         }
       ],
       "services": {

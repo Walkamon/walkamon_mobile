@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
+
+import '../../core/network/api_client.dart';
+import '../../data/datasources/remote/notification_datasource.dart';
+import '../../data/repositories/notification_repository.dart';
+import '../../data/services/fcm_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -87,6 +93,34 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (success) {
+      try {
+        // Khởi tạo các class cần thiết (Nếu dự án dùng GetIt/Provider thì có thể lấy ra trực tiếp)
+        final notificationRepo = NotificationRepositoryImpl(
+          datasource: NotificationDatasourceImpl(ApiClient()),
+        );
+        final fcmService = FCMService(notificationRepo);
+
+        // Gọi hàm setup Token (Không cần await để app không bị khựng lại chờ Firebase)
+        fcmService.setupToken();
+        FirebaseMessaging.instance
+            .getToken(
+              vapidKey:
+                  'BK7pQppHjYJ2Zk-ZuYG4JaEIhup0ntsFhXbDAsqrruOblIUtUZkwGBE3m-gGFZ1Rvf-VpXv6zdJ5N0dL_EOgnRs',
+            )
+            .then((token) {
+              // debugPrint("=========================================");
+              // debugPrint("FCM TOKEN CỦA TÔI LÀ: $token");
+              // debugPrint("=========================================");
+            })
+            .catchError((err) {
+              // debugPrint(
+              //   "Không lấy được Token, chạy trên Web/Máy ảo có thể bị lỗi này: $err",
+              // );
+            });
+      } catch (e) {
+        debugPrint("Lỗi khởi tạo thông báo: $e");
+      }
+
       final userId = provider.user?.id ?? '';
       if (userId.isNotEmpty && mounted) {
         await context.read<StepTrackingProvider>().startForUser(userId);
@@ -99,7 +133,6 @@ class _LoginScreenState extends State<LoginScreen>
       final cleanError = rawError.replaceAll('Exception: ', '').trim();
 
       setState(() {
-        // ── KÍCH HOẠT DỊCH SANG TIẾNG VIỆT VÀ ĐƯA LÊN BANNER UI ──
         _inlineErrorMessage = translateLoginError(cleanError);
       });
     }

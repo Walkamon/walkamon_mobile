@@ -6,6 +6,8 @@ abstract class NotificationDatasource {
   Future<NotificationResponse> updateNotification(bool enabled);
   Future<List<NotificationItem>> getNotifications(int page, int pageSize);
   Future<NotificationDetail> getNotificationDetail(String id);
+  Future<void> registerDeviceToken(String fcmToken);
+  Future<void> deactivateDeviceToken(String fcmToken);
 }
 
 class NotificationDatasourceImpl implements NotificationDatasource {
@@ -14,6 +16,23 @@ class NotificationDatasourceImpl implements NotificationDatasource {
   NotificationDatasourceImpl(this.apiClient);
 
   @override
+  Future<void> registerDeviceToken(String fcmToken) async {
+    final response = await apiClient.post(
+      ApiConstants.registerDeviceToken,
+      data: {'fcmToken': fcmToken}, //
+    );
+    if (!response.success) throw Exception(response.message);
+  }
+
+  @override
+  Future<void> deactivateDeviceToken(String fcmToken) async {
+    final response = await apiClient.post(
+      ApiConstants.deactivateDeviceToken,
+      data: {'fcmToken': fcmToken}, //
+    );
+    if (!response.success) throw Exception(response.message);
+  }
+
   Future<NotificationResponse> updateNotification(bool enabled) async {
     try {
       // 1. Thêm <NotificationResponse> và truyền fromJsonT để ApiClient biết cách dịch JSON
