@@ -215,9 +215,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  int _bondingLevel = 50;
-  int _energyLevel = 50;
-  int _healthLevel = 50;
   bool _feedAnim = false;
   bool _stepExpanded = false;
   final List<_FloatingNum> _floatingNums = [];
@@ -268,6 +265,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
+
+    // Fetch pet status from API
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gameState = context.read<GameStateProvider>();
+      gameState.fetchPetStatus();
+    });
   }
 
   @override
@@ -278,16 +281,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  String _getMood() {
-    if (_bondingLevel > 80) return 'excited';
-    if (_bondingLevel > 40) return 'happy';
-    if (_bondingLevel < 10) return 'sleepy';
+  String _getMood(int bondingLevel) {
+    if (bondingLevel > 80) return 'excited';
+    if (bondingLevel > 40) return 'happy';
+    if (bondingLevel < 10) return 'sleepy';
     return 'neutral';
   }
 
-  void _handlePetTap() {
+  void _handlePetTap(GameStateProvider gameState) async {
+    final success = await gameState.tapSpirit();
+
+    if (!success) {
+      // Handle error if needed
+      return;
+    }
+
     setState(() {
-      _bondingLevel = (_bondingLevel + 2).clamp(0, 100);
       _feedAnim = true;
       final id = DateTime.now().millisecondsSinceEpoch;
       _floatingNums.add(
@@ -311,17 +320,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  void _handleDewdropTap() {
-    setState(() {
-      _energyLevel = (_energyLevel + 1).clamp(0, 100);
-    });
+  void _handleDewdropTap(GameStateProvider gameState) async {
+    await gameState.feedSpirit();
   }
 
-  void _collectBubble(int id) {
+  void _collectBubble(int id, GameStateProvider gameState) {
     setState(() {
       _bubbles.removeWhere((b) => b.id == id);
     });
-    _handleDewdropTap();
+    _handleDewdropTap(gameState);
   }
 
   @override
@@ -347,6 +354,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final energyColor = isDark ? AppColors.darkDew : AppColors.lightDew;
     final lifeColor = isDark ? AppColors.darkLife : AppColors.lightLife;
     final bondColor = isDark ? AppColors.darkBond : AppColors.lightBond;
+    final int bondingLevel = gameState.bondingLevel;
+    final int spiritLevel = gameState.spiritLevel;
+    final int spiritExp = gameState.spiritExp;
+    final int spiritEnergy = gameState.spiritEnergy;
+    final int spiritHealth = gameState.spiritHealth;
+    final String spiritName = gameState.spiritName;
+    final String spiritInfo = gameState.spiritInfo;
+    final bool isLoggedIn = gameState.isAuthenticated;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -687,7 +702,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Lv. ${user?.level ?? 1}',
+                                        isLoggedIn ? 'Lv. ${user?.level ?? 1}' : 'Lv. 1',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
@@ -769,13 +784,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           key: ValueKey(bubble.id),
                           bubble: bubble,
                           dewColor: dewColor,
-                          onCollect: () => _collectBubble(bubble.id),
+                          onCollect: () => _collectBubble(bubble.id, gameState),
                         ),
                       ),
 
                       // Pet sprite placeholder
                       GestureDetector(
-                        onTap: _handlePetTap,
+                        onTap: () => _handlePetTap(gameState),
                         child: SizedBox(
                           width: 200,
                           height: 200,
@@ -785,7 +800,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             children: [
                               // Pet visual
                               _LuminaSprite(
-                                mood: _getMood(),
+                                mood: _getMood(bondingLevel),
                                 primary: primary,
                                 luminaGlow: luminaGlow,
                               ),
@@ -871,64 +886,106 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   // Header
                                   Row(
                                     children: [
-                                      GestureDetector(
-                                        onTap: () => Navigator.pushNamed(
-                                          context,
-                                          '/spirit/detail',
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'TRẠNG THÁI LUMINA',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w900,
-                                                color: mutedFg,
-                                                letterSpacing: 1.5,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              width: 20,
-                                              height: 20,
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? AppColors.darkMuted
-                                                    : AppColors.lightMuted,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  'i',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: mutedFg,
-                                                  ),
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => Navigator.pushNamed(
+                                            context,
+                                            '/spirit/detail',
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                'TRẠNG THÁI LUMINA',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: mutedFg,
+                                                  letterSpacing: 1.5,
                                                 ),
                                               ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                spiritName,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: theme.colorScheme.onSurface,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? AppColors.darkMuted
+                                              : AppColors.lightMuted,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            'i',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: mutedFg,
                                             ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Lv. $spiritLevel',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      Text(
+                                        'EXP $spiritExp/100',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: mutedFg,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    spiritInfo,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: mutedFg,
+                                      height: 1.3,
+                                    ),
+                                  ),
                                   const SizedBox(height: 16),
                                   _StatBar(
                                     label: 'Năng Lượng',
-                                    value: _energyLevel,
+                                    value: spiritEnergy,
                                     barColor: energyColor,
                                   ),
                                   const SizedBox(height: 12),
                                   _StatBar(
                                     label: 'Sinh Mệnh Lực',
-                                    value: _healthLevel,
+                                    value: spiritHealth,
                                     barColor: Colors.orange,
                                   ),
                                   const SizedBox(height: 12),
                                   _StatBar(
                                     label: 'Độ Gắn Kết',
-                                    value: _bondingLevel,
+                                    value: bondingLevel,
                                     barColor: Colors.green,
                                   ),
                                 ],
@@ -941,7 +998,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         top: 0,
                         right: 0,
                         child: GestureDetector(
-                          onTap: _handleDewdropTap,
+                          onTap: () => _handleDewdropTap(gameState),
                           child: Container(
                             width: 56,
                             height: 56,
