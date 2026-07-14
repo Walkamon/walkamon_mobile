@@ -1,0 +1,16 @@
+{
+  "id": "019f46fe-648e-7921-a684-3f2ae3055ae1",
+  "type": "image-to-image",
+  "ai_model": "gpt-image-2",
+  "prompt": "Create one complete Walkamon Action/Button icon spritesheet.\nUse the reference images as style reference only: cozy fantasy pet-game UI, soft chibi, warm friendly hand-painted item icons. Do not copy pet shapes into every icon.\n\nOutput exactly one transparent PNG spritesheet. Layout: 6 columns x 4 rows, 24 equal cells. Each icon centered with consistent padding. Real alpha transparency. No checkerboard, no labels, no captions, no row titles, no UI frame around cells, no background decorations, no overlap, no cropped icons.\n\nStrict no-text rule: do not draw any text, letters, numbers, UI words, labels, captions, signatures, or symbols that look like writing. Use pictorial symbols only. For info, use a small scroll or speech bubble with leaf/sparkle pictograms, no letter i.\n\nStyle: cozy mobile game UI icon style, cute fantasy pet game feeling, rounded shapes, soft highlights, gentle shadows, consistent line weight, readable at 32px/64px/128px. Warm cream, soft green, peach, gold, gentle brown, sky blue, moon blue, lavender, terracotta accents. No harsh neon, no corporate flat style, no realism, no heavy black outlines, no pixel art.\n\nGrid order, left to right, top to bottom:\nRow 1 Basic actions: add rounded plus button; delete soft minus or eraser; confirm soft checkmark badge; cancel soft cross badge; back rounded left arrow; close small rounded X.\nRow 2 Utility actions: refresh circular arrow with leaf; search magnifying glass with wooden or leaf handle; filter funnel with leaf; sort stacked arrows or sorted layers no text; edit wooden pencil with leaf; trash cute rounded trash bin.\nRow 3 Item/reward actions: save bookmark or charm no text; claim reward open gift with glow; use hand tapping or holding small item; equip charm badge or necklace; unequip charm removed with soft arrow; buy shop basket with coin.\nRow 4 Progress/sharing actions: sell coin and item exchange; upgrade upward arrow with sparkle; level up rising star or growth arrow; info scroll or bubble with pictorial leaf/sparkle marks only no letters; share three connected rounded dots; send paper plane or leaf message.\n\nMake all 24 icons visually distinct and cohesive as one Walkamon cozy game UI set.",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "created_at": 1783602510560,
+  "started_at": 1783602510566,
+  "finished_at": 1783602568251,
+  "expires_at": 1783861768251,
+  "image_urls": [
+    "https://assets.meshy.ai/303e5fe9-95b7-48fa-a8bd-ed3d162b3b50/uploads/image_019f46fe-648e-7921-a684-3f2ae3055ae1_0.png?Expires=1783861768&Signature=cvZkosOdrOBFAbdCUSwlYAQEWuvADEJg-FdheREcmJXhhIwSvE9mOtEsOvQdCLV7vqvmczEJkrt8oknfggDtku74DvQzDGCjTwJoie-yX827PlrOG4B33-WbH-Np7iV978KBXodsD0~-NnwS8AYMuM2L~PhA-eHjYIt-FpWgb0uNCWx2r0sP0q-VpGdvO4U2M4z5JlIF0SbdJudkcmk0xGlcD9KRiHIRuwvpPhRyeuIXlxzVTDM56-QzO0f0Gl0thu9TdcfC-kf0DdOEhrxGsMFB6D71soFSJ7WXB~00wisYnphq657aviWsdL8UhMdBGzj1uCkFY2gZjhny0Ar9CQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+  ],
+  "consumed_credits": 12
+}

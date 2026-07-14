@@ -1,0 +1,8 @@
+{
+  "ai_model": "nano-banana-pro",
+  "prompt": "Create ONE finished game background PNG for Walkamon.\nUse the provided Lumina reference for cozy fantasy style only. Do not place the referenced character as a large subject in the scene.\n\nScene:\nHome background for warm sunlight forest Lumina: cozy golden-green forest clearing, leaf canopy, warm sunbeams, soft moss, rounded leafy shapes, gentle terracotta and cream accents, friendly mobile pet game atmosphere.\n\nRequirements:\n- One single static background image, not a spritesheet.\n- Cozy mobile game style matching Walkamon icons and Lumina pets: soft chibi fantasy, warm friendly hand-painted shapes, gentle highlights, gentle shadows, polished game-ready look.\n- No text, letters, numbers, captions, UI, logos, watermarks, title signs, or labels.\n- No characters as the main subject; background/environment only.\n- Clean readable composition for game use, with enough open center foreground space for UI and pet placement.\n- No checkerboard, no contact sheet, no frame grid.\n- Avoid harsh neon, realism, scary mood, clutter, and muddy colors.\n",
+  "reference_image_urls": [
+    "C:\\Users\\tvhun\\Downloads\\Lumina\\Lumina\\Tinh Linh Nắng Ấm\\stage1.png"
+  ],
+  "aspect_ratio": "4:3"
+}

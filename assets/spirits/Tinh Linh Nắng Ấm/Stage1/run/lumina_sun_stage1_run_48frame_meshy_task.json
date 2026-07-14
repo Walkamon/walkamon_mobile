@@ -1,0 +1,16 @@
+{
+  "id": "019f4783-5300-71d6-86bc-ff9b57fb33a8",
+  "type": "image-to-image",
+  "ai_model": "nano-banana-pro",
+  "prompt": "Create ONE clean transparent PNG horizontal action animation spritesheet for Tinh Linh Nang Am Stage 1.\nUse the attached MASTER render as the strict identity source.\n\nCharacter identity to preserve exactly:\ncute chibi warm forest sunlight deer spirit pet, cream and soft green fluffy body, large warm amber eyes, tiny orange nose, peach blush cheeks, small leaf-antler sprouts, big friendly ears, leafy side tufts, small paws, glowing heart chest gem. Preserve deer-spirit identity and leaf antlers.\n\nACTION GOAL:\nA cute horizontal run animation to the right. The forest sunlight deer spirit trots with small paws, leaf antlers and leafy tufts bounce gently, body has a soft cozy run cycle. Playful battle movement, not aggressive.\n\nCRITICAL OUTPUT FORMAT:\n- One single transparent PNG spritesheet.\n- Layout exactly 8 columns x 6 rows, total exactly 48 sequential animation frames.\n- The animation order is left to right, top to bottom, like a long game battle movement/action cycle.\n- Every cell is the same size and contains exactly one full character pose.\n- Character should face and move toward the right side of the screen.\n- Keep the character fully inside every cell with safe padding.\n- Keep scale, ground/air registration, and silhouette consistent.\n- No background, no checkerboard baked in, real alpha transparency only.\n- No text, labels, frame numbers, UI, props, extra characters, weapons, particles, or effects.\n- Do not crop head, ears, wings, leaves, antlers, tail, feet, or body.\n\nMOTION PLAN:\nFrames 01-08: start moving horizontally to the right, gentle anticipation and first steps/flaps.\nFrames 09-16: speed builds, readable side-facing movement, body bob/flap rhythm.\nFrames 17-24: full smooth movement cycle, lively but cute.\nFrames 25-32: continued movement, small variation in pose and expression.\nFrames 33-40: second movement cycle, consistent identity and scale.\nFrames 41-48: loop-compatible finish that can connect back to frame 01.\n\nStyle: cozy Walkamon mobile game battle asset, cute chibi fantasy, soft hand-painted look, warm friendly expression, readable at 128px, no realism, no horror, no harsh neon, no heavy black outlines.",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "created_at": 1783611217361,
+  "started_at": 1783611217650,
+  "finished_at": 1783611251716,
+  "expires_at": 1783870451716,
+  "image_urls": [
+    "https://assets.meshy.ai/303e5fe9-95b7-48fa-a8bd-ed3d162b3b50/uploads/image_019f4783-5300-71d6-86bc-ff9b57fb33a8_0.png?Expires=1783870451&Signature=ejnuD-xvvJcEeF0HkbxUUsz-J8SBdk0VqBN~PjiHhiS10F7nNh~vyOnaxyNspPm4B1dGJf63Jp2U-xEu7C1vii1kK70pm-vt~JpUteYRoDNeskjthVdvzUHtfrDew9PDEchIq5Q6N5ES03YyJ6LIFuTSQJX~5uN1ToIjsHTUQEQfX82pHJbQkGnKYjcn6wjL-l4EMrLNZM-Sf3Q8VhU5fe-kU-a-RnZ~LXcT0Ix5hq5tjjkRcdc9FyBN9zpVe56bymJBy2sH9gYfebUPV8Ir9WAhcrY7Njv9khB~mrAaRfilzlncTYH-Va5LjRwvfbHrhDHlcT3hxNbeI0rnBgOHSw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+  ],
+  "consumed_credits": 9
+}

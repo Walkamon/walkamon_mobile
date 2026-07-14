@@ -1,0 +1,1196 @@
+{
+  "source_raw": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\Lumina_sun_Stage1_54frame_raw.png",
+  "spritesheet": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\Lumina_sun_Stage1_54frame_spritesheet.png",
+  "layout": {
+    "rows": 6,
+    "columns": 9,
+    "cell_size": 1024,
+    "total_frames": 54
+  },
+  "states": [
+    {
+      "folder": "idle",
+      "row": 1,
+      "frames": 9
+    },
+    {
+      "folder": "happy",
+      "row": 2,
+      "frames": 9
+    },
+    {
+      "folder": "sad",
+      "row": 3,
+      "frames": 9
+    },
+    {
+      "folder": "sleep",
+      "row": 4,
+      "frames": 9
+    },
+    {
+      "folder": "excited",
+      "row": 5,
+      "frames": 9
+    },
+    {
+      "folder": "hunggry",
+      "row": 6,
+      "frames": 9
+    }
+  ],
+  "cut_method": "edge-flood foreground mask + connected component assignment, rebuilt alpha frames",
+  "detected_components_kept": 40,
+  "empty_cells_after_assignment": [
+    5,
+    14,
+    23,
+    25,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    35,
+    41,
+    49
+  ],
+  "frames": [
+    {
+      "state": "idle",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F01.png",
+      "component_count": 1,
+      "bbox": [
+        23,
+        34,
+        183,
+        212
+      ],
+      "size": [
+        845,
+        940
+      ],
+      "placed": [
+        159,
+        64
+      ],
+      "fit": 0.8801498127340824
+    },
+    {
+      "state": "idle",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F02.png",
+      "component_count": 1,
+      "bbox": [
+        208,
+        34,
+        367,
+        211
+      ],
+      "size": [
+        844,
+        940
+      ],
+      "placed": [
+        160,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "idle",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F03.png",
+      "component_count": 1,
+      "bbox": [
+        397,
+        33,
+        555,
+        212
+      ],
+      "size": [
+        830,
+        940
+      ],
+      "placed": [
+        174,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "idle",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F04.png",
+      "component_count": 1,
+      "bbox": [
+        581,
+        32,
+        743,
+        211
+      ],
+      "size": [
+        851,
+        940
+      ],
+      "placed": [
+        153,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "idle",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F05.png",
+      "component_count": 1,
+      "bbox": [
+        770,
+        33,
+        931,
+        212
+      ],
+      "size": [
+        845,
+        940
+      ],
+      "placed": [
+        159,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "idle",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        32,
+        1057,
+        204
+      ],
+      "size": [
+        940,
+        679
+      ],
+      "placed": [
+        39,
+        302
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "idle",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F07.png",
+      "component_count": 1,
+      "bbox": [
+        955,
+        32,
+        1118,
+        212
+      ],
+      "size": [
+        851,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8703703703703703
+    },
+    {
+      "state": "idle",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1144,
+        33,
+        1306,
+        212
+      ],
+      "size": [
+        851,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "idle",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\idle\\idle_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1333,
+        33,
+        1488,
+        212
+      ],
+      "size": [
+        814,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "happy",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F01.png",
+      "component_count": 1,
+      "bbox": [
+        26,
+        223,
+        187,
+        401
+      ],
+      "size": [
+        850,
+        940
+      ],
+      "placed": [
+        154,
+        64
+      ],
+      "fit": 0.8801498127340824
+    },
+    {
+      "state": "happy",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F02.png",
+      "component_count": 1,
+      "bbox": [
+        218,
+        223,
+        381,
+        400
+      ],
+      "size": [
+        866,
+        940
+      ],
+      "placed": [
+        138,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "happy",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F03.png",
+      "component_count": 1,
+      "bbox": [
+        396,
+        224,
+        557,
+        401
+      ],
+      "size": [
+        855,
+        940
+      ],
+      "placed": [
+        149,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "happy",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F04.png",
+      "component_count": 1,
+      "bbox": [
+        578,
+        220,
+        744,
+        401
+      ],
+      "size": [
+        862,
+        940
+      ],
+      "placed": [
+        142,
+        64
+      ],
+      "fit": 0.8655616942909761
+    },
+    {
+      "state": "happy",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F05.png",
+      "component_count": 1,
+      "bbox": [
+        762,
+        223,
+        925,
+        401
+      ],
+      "size": [
+        861,
+        940
+      ],
+      "placed": [
+        143,
+        64
+      ],
+      "fit": 0.8801498127340824
+    },
+    {
+      "state": "happy",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        136,
+        1057,
+        375
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        41,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "happy",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F07.png",
+      "component_count": 1,
+      "bbox": [
+        953,
+        224,
+        1116,
+        401
+      ],
+      "size": [
+        866,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "happy",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1142,
+        227,
+        1304,
+        402
+      ],
+      "size": [
+        870,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8952380952380953
+    },
+    {
+      "state": "happy",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\happy\\happy_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1335,
+        227,
+        1499,
+        402
+      ],
+      "size": [
+        881,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8952380952380953
+    },
+    {
+      "state": "sad",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F01.png",
+      "component_count": 1,
+      "bbox": [
+        19,
+        414,
+        188,
+        591
+      ],
+      "size": [
+        898,
+        940
+      ],
+      "placed": [
+        106,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "sad",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F02.png",
+      "component_count": 1,
+      "bbox": [
+        212,
+        417,
+        379,
+        592
+      ],
+      "size": [
+        897,
+        940
+      ],
+      "placed": [
+        107,
+        64
+      ],
+      "fit": 0.8952380952380953
+    },
+    {
+      "state": "sad",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F03.png",
+      "component_count": 1,
+      "bbox": [
+        395,
+        418,
+        562,
+        593
+      ],
+      "size": [
+        897,
+        940
+      ],
+      "placed": [
+        107,
+        64
+      ],
+      "fit": 0.8952380952380953
+    },
+    {
+      "state": "sad",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F04.png",
+      "component_count": 1,
+      "bbox": [
+        580,
+        418,
+        747,
+        592
+      ],
+      "size": [
+        902,
+        940
+      ],
+      "placed": [
+        102,
+        64
+      ],
+      "fit": 0.9003831417624522
+    },
+    {
+      "state": "sad",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F05.png",
+      "component_count": 1,
+      "bbox": [
+        766,
+        422,
+        934,
+        594
+      ],
+      "size": [
+        918,
+        940
+      ],
+      "placed": [
+        86,
+        64
+      ],
+      "fit": 0.9108527131782945
+    },
+    {
+      "state": "sad",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        307,
+        1057,
+        545
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        39,
+        39
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sad",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F07.png",
+      "component_count": 1,
+      "bbox": [
+        955,
+        422,
+        1123,
+        595
+      ],
+      "size": [
+        913,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.905587668593449
+    },
+    {
+      "state": "sad",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F08.png",
+      "component_count": 0,
+      "bbox": [
+        1160,
+        307,
+        1399,
+        545
+      ],
+      "size": [
+        940,
+        936
+      ],
+      "placed": [
+        40,
+        41
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "sad",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sad\\sad_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1326,
+        421,
+        1492,
+        595
+      ],
+      "size": [
+        897,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.9003831417624522
+    },
+    {
+      "state": "sleep",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F01.png",
+      "component_count": 0,
+      "bbox": [
+        19,
+        478,
+        185,
+        716
+      ],
+      "size": [
+        656,
+        940
+      ],
+      "placed": [
+        250,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F02.png",
+      "component_count": 0,
+      "bbox": [
+        136,
+        478,
+        375,
+        716
+      ],
+      "size": [
+        940,
+        936
+      ],
+      "placed": [
+        40,
+        43
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "sleep",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F03.png",
+      "component_count": 0,
+      "bbox": [
+        307,
+        478,
+        545,
+        716
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        39,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F04.png",
+      "component_count": 0,
+      "bbox": [
+        478,
+        478,
+        716,
+        716
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        41,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F05.png",
+      "component_count": 0,
+      "bbox": [
+        648,
+        478,
+        887,
+        716
+      ],
+      "size": [
+        940,
+        936
+      ],
+      "placed": [
+        40,
+        43
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "sleep",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        478,
+        1057,
+        716
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        39,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        478,
+        1228,
+        716
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        41,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1141,
+        424,
+        1307,
+        595
+      ],
+      "size": [
+        913,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.9161793372319688
+    },
+    {
+      "state": "sleep",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\sleep\\sleep_F09.png",
+      "component_count": 0,
+      "bbox": [
+        1331,
+        478,
+        1492,
+        716
+      ],
+      "size": [
+        636,
+        940
+      ],
+      "placed": [
+        39,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "excited",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F01.png",
+      "component_count": 1,
+      "bbox": [
+        21,
+        602,
+        179,
+        778
+      ],
+      "size": [
+        844,
+        940
+      ],
+      "placed": [
+        160,
+        20
+      ],
+      "fit": 0.8901515151515151
+    },
+    {
+      "state": "excited",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F02.png",
+      "component_count": 1,
+      "bbox": [
+        212,
+        604,
+        370,
+        777
+      ],
+      "size": [
+        858,
+        940
+      ],
+      "placed": [
+        146,
+        20
+      ],
+      "fit": 0.905587668593449
+    },
+    {
+      "state": "excited",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F03.png",
+      "component_count": 1,
+      "bbox": [
+        395,
+        611,
+        553,
+        778
+      ],
+      "size": [
+        889,
+        940
+      ],
+      "placed": [
+        115,
+        20
+      ],
+      "fit": 0.93812375249501
+    },
+    {
+      "state": "excited",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F04.png",
+      "component_count": 1,
+      "bbox": [
+        583,
+        603,
+        743,
+        785
+      ],
+      "size": [
+        826,
+        940
+      ],
+      "placed": [
+        178,
+        20
+      ],
+      "fit": 0.8608058608058609
+    },
+    {
+      "state": "excited",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F05.png",
+      "component_count": 1,
+      "bbox": [
+        768,
+        603,
+        928,
+        786
+      ],
+      "size": [
+        822,
+        940
+      ],
+      "placed": [
+        182,
+        20
+      ],
+      "fit": 0.8561020036429873
+    },
+    {
+      "state": "excited",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        648,
+        1057,
+        887
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        41,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F07.png",
+      "component_count": 1,
+      "bbox": [
+        957,
+        603,
+        1117,
+        785
+      ],
+      "size": [
+        826,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8608058608058609
+    },
+    {
+      "state": "excited",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1146,
+        607,
+        1306,
+        778
+      ],
+      "size": [
+        880,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.9161793372319688
+    },
+    {
+      "state": "excited",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\excited\\excited_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1332,
+        605,
+        1491,
+        778
+      ],
+      "size": [
+        864,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.905587668593449
+    },
+    {
+      "state": "hunggry",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F01.png",
+      "component_count": 1,
+      "bbox": [
+        21,
+        792,
+        183,
+        976
+      ],
+      "size": [
+        828,
+        940
+      ],
+      "placed": [
+        176,
+        20
+      ],
+      "fit": 0.8514492753623188
+    },
+    {
+      "state": "hunggry",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F02.png",
+      "component_count": 1,
+      "bbox": [
+        214,
+        791,
+        374,
+        975
+      ],
+      "size": [
+        817,
+        940
+      ],
+      "placed": [
+        187,
+        20
+      ],
+      "fit": 0.8514492753623188
+    },
+    {
+      "state": "hunggry",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F03.png",
+      "component_count": 1,
+      "bbox": [
+        402,
+        792,
+        564,
+        976
+      ],
+      "size": [
+        828,
+        940
+      ],
+      "placed": [
+        176,
+        20
+      ],
+      "fit": 0.8514492753623188
+    },
+    {
+      "state": "hunggry",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F04.png",
+      "component_count": 1,
+      "bbox": [
+        582,
+        790,
+        738,
+        985
+      ],
+      "size": [
+        752,
+        940
+      ],
+      "placed": [
+        252,
+        20
+      ],
+      "fit": 0.8034188034188035
+    },
+    {
+      "state": "hunggry",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F05.png",
+      "component_count": 0,
+      "bbox": [
+        648,
+        819,
+        887,
+        985
+      ],
+      "size": [
+        940,
+        653
+      ],
+      "placed": [
+        40,
+        41
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "hunggry",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F06.png",
+      "component_count": 1,
+      "bbox": [
+        775,
+        793,
+        936,
+        974
+      ],
+      "size": [
+        836,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8655616942909761
+    },
+    {
+      "state": "hunggry",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F07.png",
+      "component_count": 1,
+      "bbox": [
+        958,
+        791,
+        1117,
+        974
+      ],
+      "size": [
+        817,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8561020036429873
+    },
+    {
+      "state": "hunggry",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1146,
+        793,
+        1305,
+        975
+      ],
+      "size": [
+        821,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8608058608058609
+    },
+    {
+      "state": "hunggry",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\hunggry\\hunggry_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1332,
+        794,
+        1494,
+        974
+      ],
+      "size": [
+        846,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8703703703703703
+    }
+  ]
+}

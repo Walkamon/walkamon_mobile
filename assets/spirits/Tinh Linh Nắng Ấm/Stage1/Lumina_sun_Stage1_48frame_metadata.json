@@ -1,0 +1,43 @@
+{
+  "source_raw": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\Lumina_sun_Stage1_48frame_raw.png",
+  "spritesheet": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\TinhLinhNangAm\\stage1\\Lumina_sun_Stage1_48frame_spritesheet.png",
+  "layout": {
+    "rows": 6,
+    "columns": 8,
+    "cell_size": 1024,
+    "total_frames": 48
+  },
+  "states": [
+    {
+      "folder": "idle",
+      "row": 1,
+      "frames": 8
+    },
+    {
+      "folder": "happy",
+      "row": 2,
+      "frames": 8
+    },
+    {
+      "folder": "sad",
+      "row": 3,
+      "frames": 8
+    },
+    {
+      "folder": "sleep",
+      "row": 4,
+      "frames": 8
+    },
+    {
+      "folder": "excited",
+      "row": 5,
+      "frames": 8
+    },
+    {
+      "folder": "hunggry",
+      "row": 6,
+      "frames": 8
+    }
+  ],
+  "cut_method": "strict 8x6 grid crop, edge-color checker flood alpha cleanup, strict tiny detached artifact filtering, full-cell resize for stable registration"
+}

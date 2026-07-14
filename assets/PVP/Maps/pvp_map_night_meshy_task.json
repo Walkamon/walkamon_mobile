@@ -1,0 +1,16 @@
+{
+  "id": "019f4784-98b3-79ad-8596-b3d2a6bef8a6",
+  "type": "image-to-image",
+  "ai_model": "nano-banana-pro",
+  "prompt": "Create ONE finished game background PNG for Walkamon.\nUse the provided Lumina/pet references for cozy fantasy style only. Do not place the referenced character as a large subject in the scene.\n\nScene:\nA cozy side-scrolling PVP race/battle lane at night, moonlit and dreamy, suitable for friendly pet training. Soft blue-purple moonlight, gentle stars, rounded dirt/stone lane, glowing plants, calm fantasy arena feeling, not dark or scary.\n\nRequirements:\n- One single static background image, not a spritesheet.\n- Cozy mobile game style matching Walkamon icons and Lumina pets: soft chibi fantasy, warm friendly hand-painted shapes, gentle highlights, gentle shadows, polished game-ready look.\n- No text, letters, numbers, captions, UI, logos, watermarks, title signs, or labels.\n- No characters as the main subject; background/environment only.\n- Clean readable composition for game use, with enough open space for UI and pets.\n- No checkerboard, no contact sheet, no frame grid.\n- Avoid harsh neon, realism, scary mood, war imagery, clutter, and muddy colors.\n\nComposition notes:\nWide readable horizontal play space, clear ground lane across the lower-middle area, moonlit decorations around it, no UI and no pets.\n",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "created_at": 1783611301038,
+  "started_at": 1783611301081,
+  "finished_at": 1783611351079,
+  "expires_at": 1783870551079,
+  "image_urls": [
+    "https://assets.meshy.ai/303e5fe9-95b7-48fa-a8bd-ed3d162b3b50/uploads/image_019f4784-98b3-79ad-8596-b3d2a6bef8a6_0.png?Expires=1783870551&Signature=Fq3teado-0lBX3FnyYHv2lbxAfoegkP4WAsA1CUqlXv9TGM-fNXCnEtNeA021z0URHzbziUWgzkgDboIJQMfRxX~ohyQ1tXIVHpi7joRI0lVDRr~ehNWbeGCLFNlDBwvYrvuXubn7BtelfG2C0~Oa5gmSm-cMTIXBx3a-gH6CjargfRMiuanP-xTzAs5UGYLhzOzDPl-bG1Gr6OxVh9okl0auWEcFxzAItsjYsltE3XU~Nm2vY9tMTv0JwJpxv3SBPacMvLkrrgM8j~7Bg~UGOS5lju08UMHKh4rsh3u5uGq9WlKOE36tVkTrl-BPKNg7UyRS7fcJChgsx9qjyX1HA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+  ],
+  "consumed_credits": 9
+}
