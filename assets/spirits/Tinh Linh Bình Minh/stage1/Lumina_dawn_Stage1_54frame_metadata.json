@@ -1,0 +1,1205 @@
+{
+  "source_raw": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\Lumina_dawn_Stage1_54frame_raw.png",
+  "spritesheet": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\Lumina_dawn_Stage1_54frame_spritesheet.png",
+  "layout": {
+    "rows": 6,
+    "columns": 9,
+    "cell_size": 1024,
+    "total_frames": 54
+  },
+  "states": [
+    {
+      "folder": "idle",
+      "row": 1,
+      "frames": 9
+    },
+    {
+      "folder": "happy",
+      "row": 2,
+      "frames": 9
+    },
+    {
+      "folder": "sad",
+      "row": 3,
+      "frames": 9
+    },
+    {
+      "folder": "sleep",
+      "row": 4,
+      "frames": 9
+    },
+    {
+      "folder": "excited",
+      "row": 5,
+      "frames": 9
+    },
+    {
+      "folder": "hunggry",
+      "row": 6,
+      "frames": 9
+    }
+  ],
+  "cut_method": "edge-flood foreground mask + connected component assignment, rebuilt alpha frames",
+  "detected_components_kept": 31,
+  "empty_cells_after_assignment": [
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    15,
+    18,
+    24,
+    33,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    51
+  ],
+  "frames": [
+    {
+      "state": "idle",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F01.png",
+      "component_count": 0,
+      "bbox": [
+        61,
+        23,
+        200,
+        204
+      ],
+      "size": [
+        722,
+        940
+      ],
+      "placed": [
+        282,
+        64
+      ],
+      "fit": 0.8655616942909761
+    },
+    {
+      "state": "idle",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F02.png",
+      "component_count": 0,
+      "bbox": [
+        136,
+        23,
+        375,
+        204
+      ],
+      "size": [
+        940,
+        712
+      ],
+      "placed": [
+        40,
+        267
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "idle",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F03.png",
+      "component_count": 1,
+      "bbox": [
+        415,
+        24,
+        561,
+        209
+      ],
+      "size": [
+        742,
+        940
+      ],
+      "placed": [
+        262,
+        64
+      ],
+      "fit": 0.8468468468468469
+    },
+    {
+      "state": "idle",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F04.png",
+      "component_count": 0,
+      "bbox": [
+        478,
+        23,
+        716,
+        204
+      ],
+      "size": [
+        940,
+        715
+      ],
+      "placed": [
+        41,
+        266
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "idle",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F05.png",
+      "component_count": 0,
+      "bbox": [
+        648,
+        20,
+        887,
+        204
+      ],
+      "size": [
+        940,
+        724
+      ],
+      "placed": [
+        40,
+        255
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "idle",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        20,
+        1057,
+        204
+      ],
+      "size": [
+        940,
+        727
+      ],
+      "placed": [
+        39,
+        254
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "idle",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        20,
+        1228,
+        204
+      ],
+      "size": [
+        940,
+        727
+      ],
+      "placed": [
+        41,
+        254
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "idle",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F08.png",
+      "component_count": 0,
+      "bbox": [
+        1160,
+        22,
+        1399,
+        204
+      ],
+      "size": [
+        940,
+        716
+      ],
+      "placed": [
+        40,
+        263
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "idle",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\idle\\idle_F09.png",
+      "component_count": 0,
+      "bbox": [
+        1331,
+        23,
+        1473,
+        204
+      ],
+      "size": [
+        737,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8655616942909761
+    },
+    {
+      "state": "happy",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F01.png",
+      "component_count": 0,
+      "bbox": [
+        61,
+        136,
+        200,
+        375
+      ],
+      "size": [
+        547,
+        940
+      ],
+      "placed": [
+        416,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "happy",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F02.png",
+      "component_count": 1,
+      "bbox": [
+        232,
+        23,
+        375,
+        388
+      ],
+      "size": [
+        368,
+        940
+      ],
+      "placed": [
+        450,
+        20
+      ],
+      "fit": 0.4292237442922374
+    },
+    {
+      "state": "happy",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F03.png",
+      "component_count": 1,
+      "bbox": [
+        410,
+        212,
+        560,
+        389
+      ],
+      "size": [
+        797,
+        940
+      ],
+      "placed": [
+        207,
+        64
+      ],
+      "fit": 0.8851224105461394
+    },
+    {
+      "state": "happy",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F04.png",
+      "component_count": 1,
+      "bbox": [
+        597,
+        23,
+        740,
+        389
+      ],
+      "size": [
+        367,
+        940
+      ],
+      "placed": [
+        511,
+        20
+      ],
+      "fit": 0.42805100182149364
+    },
+    {
+      "state": "happy",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F05.png",
+      "component_count": 1,
+      "bbox": [
+        765,
+        20,
+        915,
+        390
+      ],
+      "size": [
+        381,
+        940
+      ],
+      "placed": [
+        504,
+        20
+      ],
+      "fit": 0.42342342342342343
+    },
+    {
+      "state": "happy",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F06.png",
+      "component_count": 1,
+      "bbox": [
+        949,
+        20,
+        1094,
+        389
+      ],
+      "size": [
+        369,
+        940
+      ],
+      "placed": [
+        539,
+        20
+      ],
+      "fit": 0.4245709123757904
+    },
+    {
+      "state": "happy",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        136,
+        1228,
+        375
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        43,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "happy",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1141,
+        22,
+        1280,
+        389
+      ],
+      "size": [
+        356,
+        940
+      ],
+      "placed": [
+        156,
+        20
+      ],
+      "fit": 0.4268846503178928
+    },
+    {
+      "state": "happy",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\happy\\happy_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1329,
+        23,
+        1473,
+        389
+      ],
+      "size": [
+        370,
+        940
+      ],
+      "placed": [
+        199,
+        20
+      ],
+      "fit": 0.42805100182149364
+    },
+    {
+      "state": "sad",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F01.png",
+      "component_count": 0,
+      "bbox": [
+        65,
+        307,
+        191,
+        545
+      ],
+      "size": [
+        498,
+        940
+      ],
+      "placed": [
+        432,
+        39
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sad",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F02.png",
+      "component_count": 1,
+      "bbox": [
+        246,
+        392,
+        364,
+        563
+      ],
+      "size": [
+        649,
+        940
+      ],
+      "placed": [
+        355,
+        64
+      ],
+      "fit": 0.9161793372319688
+    },
+    {
+      "state": "sad",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F03.png",
+      "component_count": 1,
+      "bbox": [
+        428,
+        394,
+        544,
+        563
+      ],
+      "size": [
+        645,
+        940
+      ],
+      "placed": [
+        359,
+        64
+      ],
+      "fit": 0.9270216962524654
+    },
+    {
+      "state": "sad",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F04.png",
+      "component_count": 1,
+      "bbox": [
+        613,
+        395,
+        728,
+        562
+      ],
+      "size": [
+        647,
+        940
+      ],
+      "placed": [
+        357,
+        64
+      ],
+      "fit": 0.93812375249501
+    },
+    {
+      "state": "sad",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F05.png",
+      "component_count": 1,
+      "bbox": [
+        783,
+        396,
+        897,
+        562
+      ],
+      "size": [
+        646,
+        940
+      ],
+      "placed": [
+        358,
+        64
+      ],
+      "fit": 0.9437751004016064
+    },
+    {
+      "state": "sad",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F06.png",
+      "component_count": 1,
+      "bbox": [
+        963,
+        395,
+        1078,
+        563
+      ],
+      "size": [
+        643,
+        940
+      ],
+      "placed": [
+        361,
+        64
+      ],
+      "fit": 0.9325396825396826
+    },
+    {
+      "state": "sad",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        307,
+        1228,
+        545
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        41,
+        39
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sad",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1153,
+        397,
+        1268,
+        563
+      ],
+      "size": [
+        651,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.9437751004016064
+    },
+    {
+      "state": "sad",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sad\\sad_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1342,
+        396,
+        1459,
+        563
+      ],
+      "size": [
+        659,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.93812375249501
+    },
+    {
+      "state": "sleep",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F01.png",
+      "component_count": 1,
+      "bbox": [
+        63,
+        567,
+        194,
+        746
+      ],
+      "size": [
+        688,
+        940
+      ],
+      "placed": [
+        316,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "sleep",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F02.png",
+      "component_count": 1,
+      "bbox": [
+        239,
+        566,
+        371,
+        746
+      ],
+      "size": [
+        689,
+        940
+      ],
+      "placed": [
+        315,
+        64
+      ],
+      "fit": 0.8703703703703703
+    },
+    {
+      "state": "sleep",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F03.png",
+      "component_count": 1,
+      "bbox": [
+        421,
+        567,
+        554,
+        762
+      ],
+      "size": [
+        641,
+        940
+      ],
+      "placed": [
+        363,
+        64
+      ],
+      "fit": 0.8034188034188035
+    },
+    {
+      "state": "sleep",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F04.png",
+      "component_count": 1,
+      "bbox": [
+        596,
+        567,
+        742,
+        763
+      ],
+      "size": [
+        700,
+        940
+      ],
+      "placed": [
+        304,
+        64
+      ],
+      "fit": 0.7993197278911565
+    },
+    {
+      "state": "sleep",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F05.png",
+      "component_count": 1,
+      "bbox": [
+        767,
+        570,
+        910,
+        763
+      ],
+      "size": [
+        696,
+        940
+      ],
+      "placed": [
+        308,
+        64
+      ],
+      "fit": 0.8117443868739206
+    },
+    {
+      "state": "sleep",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F06.png",
+      "component_count": 1,
+      "bbox": [
+        952,
+        575,
+        1091,
+        746
+      ],
+      "size": [
+        764,
+        940
+      ],
+      "placed": [
+        240,
+        64
+      ],
+      "fit": 0.9161793372319688
+    },
+    {
+      "state": "sleep",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        478,
+        1228,
+        716
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        41,
+        41
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "sleep",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1141,
+        569,
+        1272,
+        748
+      ],
+      "size": [
+        688,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "sleep",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\sleep\\sleep_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1336,
+        568,
+        1465,
+        747
+      ],
+      "size": [
+        677,
+        940
+      ],
+      "placed": [
+        20,
+        64
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "excited",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F01.png",
+      "component_count": 0,
+      "bbox": [
+        63,
+        648,
+        194,
+        887
+      ],
+      "size": [
+        515,
+        940
+      ],
+      "placed": [
+        424,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F02.png",
+      "component_count": 0,
+      "bbox": [
+        136,
+        648,
+        371,
+        887
+      ],
+      "size": [
+        924,
+        940
+      ],
+      "placed": [
+        40,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F03.png",
+      "component_count": 0,
+      "bbox": [
+        307,
+        648,
+        545,
+        887
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        41,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F04.png",
+      "component_count": 0,
+      "bbox": [
+        478,
+        648,
+        716,
+        887
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        43,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F05.png",
+      "component_count": 0,
+      "bbox": [
+        648,
+        648,
+        887,
+        887
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        40,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F06.png",
+      "component_count": 0,
+      "bbox": [
+        819,
+        648,
+        1057,
+        887
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        41,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        648,
+        1228,
+        887
+      ],
+      "size": [
+        936,
+        940
+      ],
+      "placed": [
+        43,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F08.png",
+      "component_count": 0,
+      "bbox": [
+        1160,
+        648,
+        1399,
+        887
+      ],
+      "size": [
+        940,
+        940
+      ],
+      "placed": [
+        40,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "excited",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\excited\\excited_F09.png",
+      "component_count": 0,
+      "bbox": [
+        1336,
+        648,
+        1465,
+        887
+      ],
+      "size": [
+        507,
+        940
+      ],
+      "placed": [
+        61,
+        40
+      ],
+      "fit": 0.6555090655509066
+    },
+    {
+      "state": "hunggry",
+      "frame": 1,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F01.png",
+      "component_count": 1,
+      "bbox": [
+        68,
+        772,
+        189,
+        959
+      ],
+      "size": [
+        608,
+        940
+      ],
+      "placed": [
+        396,
+        20
+      ],
+      "fit": 0.8377896613190731
+    },
+    {
+      "state": "hunggry",
+      "frame": 2,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F02.png",
+      "component_count": 1,
+      "bbox": [
+        247,
+        778,
+        363,
+        958
+      ],
+      "size": [
+        606,
+        940
+      ],
+      "placed": [
+        398,
+        20
+      ],
+      "fit": 0.8703703703703703
+    },
+    {
+      "state": "hunggry",
+      "frame": 3,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F03.png",
+      "component_count": 1,
+      "bbox": [
+        422,
+        779,
+        537,
+        959
+      ],
+      "size": [
+        601,
+        940
+      ],
+      "placed": [
+        403,
+        20
+      ],
+      "fit": 0.8703703703703703
+    },
+    {
+      "state": "hunggry",
+      "frame": 4,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F04.png",
+      "component_count": 1,
+      "bbox": [
+        605,
+        779,
+        720,
+        959
+      ],
+      "size": [
+        601,
+        940
+      ],
+      "placed": [
+        403,
+        20
+      ],
+      "fit": 0.8703703703703703
+    },
+    {
+      "state": "hunggry",
+      "frame": 5,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F05.png",
+      "component_count": 1,
+      "bbox": [
+        778,
+        780,
+        894,
+        959
+      ],
+      "size": [
+        609,
+        940
+      ],
+      "placed": [
+        395,
+        20
+      ],
+      "fit": 0.8752327746741154
+    },
+    {
+      "state": "hunggry",
+      "frame": 6,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F06.png",
+      "component_count": 1,
+      "bbox": [
+        960,
+        776,
+        1076,
+        959
+      ],
+      "size": [
+        596,
+        940
+      ],
+      "placed": [
+        408,
+        20
+      ],
+      "fit": 0.8561020036429873
+    },
+    {
+      "state": "hunggry",
+      "frame": 7,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F07.png",
+      "component_count": 0,
+      "bbox": [
+        990,
+        819,
+        1228,
+        959
+      ],
+      "size": [
+        940,
+        553
+      ],
+      "placed": [
+        41,
+        39
+      ],
+      "fit": 0.6582633053221288
+    },
+    {
+      "state": "hunggry",
+      "frame": 8,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F08.png",
+      "component_count": 1,
+      "bbox": [
+        1152,
+        777,
+        1263,
+        958
+      ],
+      "size": [
+        576,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8655616942909761
+    },
+    {
+      "state": "hunggry",
+      "frame": 9,
+      "file": "C:\\Users\\tvhun\\Downloads\\Lumina\\Assets\\Tinh Linh Bình Minh\\stage1\\hunggry\\hunggry_F09.png",
+      "component_count": 1,
+      "bbox": [
+        1334,
+        779,
+        1471,
+        959
+      ],
+      "size": [
+        715,
+        940
+      ],
+      "placed": [
+        20,
+        20
+      ],
+      "fit": 0.8703703703703703
+    }
+  ]
+}

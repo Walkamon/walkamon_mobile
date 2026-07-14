@@ -1,0 +1,16 @@
+{
+  "id": "019f4786-00af-796e-a90e-76810d70db02",
+  "type": "image-to-image",
+  "ai_model": "nano-banana-pro",
+  "prompt": "Create ONE finished game background PNG for Walkamon.\nUse the provided Lumina/pet references for cozy fantasy style only. Do not place the referenced character as a large subject in the scene.\n\nScene:\nHome background for dawn bird Lumina: warm sunrise sky, peach-gold clouds, soft feather motifs, airy nest-like cozy platform, gentle morning light, cheerful and calm.\n\nRequirements:\n- One single static background image, not a spritesheet.\n- Cozy mobile game style matching Walkamon icons and Lumina pets: soft chibi fantasy, warm friendly hand-painted shapes, gentle highlights, gentle shadows, polished game-ready look.\n- No text, letters, numbers, captions, UI, logos, watermarks, title signs, or labels.\n- No characters as the main subject; background/environment only.\n- Clean readable composition for game use, with enough open space for UI and pets.\n- No checkerboard, no contact sheet, no frame grid.\n- Avoid harsh neon, realism, scary mood, war imagery, clutter, and muddy colors.\n\nComposition notes:\nOpen center foreground, cozy dawn atmosphere, environment only, no big character.\n",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "created_at": 1783611392541,
+  "started_at": 1783611392949,
+  "finished_at": 1783611414991,
+  "expires_at": 1783870614991,
+  "image_urls": [
+    "https://assets.meshy.ai/303e5fe9-95b7-48fa-a8bd-ed3d162b3b50/uploads/image_019f4786-00af-796e-a90e-76810d70db02_0.png?Expires=1783870614&Signature=BFKyUfitSghohAD0zpjvkxMeJUQI88U5xvUN5rWUvrcGQ4YTHBYKPENDY6pcq62zU9Roc0rWqMXj1~mPVOyeq9vovfZi4uWRELhcdwx6xTyHMg6Wv0ZBcoFzolKKM7qHTtCImRvJ5NoC~3lDutAhdOJchFRvw7rVIWA2aNHyBQiWB1xsnpOleQxd1z~-2MlMrS7FeBHa6UB~tEvAT~08Ko3g0s0n1uaFBp7H7LGSswf6CNK9fzIbafZkYzwLdNvvLrRtvj7ps8HXLTQnjaQse4GxXKvIcVWVF6xKmHnQJxuZ2b9d7BiHCx-rMqCBOOfbAruOq-Rdbw0jGL4KatR0HA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+  ],
+  "consumed_credits": 9
+}

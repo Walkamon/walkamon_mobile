@@ -1,0 +1,16 @@
+{
+  "id": "019f4782-5176-788e-9feb-07e24fc18a2f",
+  "type": "image-to-image",
+  "ai_model": "nano-banana-pro",
+  "prompt": "Create ONE clean transparent PNG horizontal action animation spritesheet for Tinh Linh Anh Trang Stage 1.\nUse the attached MASTER render as the strict identity source.\n\nCharacter identity to preserve exactly:\ncute chibi moon spirit pet, soft blue-purple fur, pale moon-white face and chest, large cyan-blue eyes, big fox/cat-like ears with pink inner ears, crescent moon crest, moonlit side feather accents, blue chest gem, fluffy blue-purple tail. Preserve moon identity.\n\nACTION GOAL:\nA cute horizontal run animation to the right. The moon spirit trots with soft paw steps, fluffy tail follows with smooth moonlit motion, ears bounce gently. Playful battle movement, not aggressive.\n\nCRITICAL OUTPUT FORMAT:\n- One single transparent PNG spritesheet.\n- Layout exactly 8 columns x 6 rows, total exactly 48 sequential animation frames.\n- The animation order is left to right, top to bottom, like a long game battle movement/action cycle.\n- Every cell is the same size and contains exactly one full character pose.\n- Character should face and move toward the right side of the screen.\n- Keep the character fully inside every cell with safe padding.\n- Keep scale, ground/air registration, and silhouette consistent.\n- No background, no checkerboard baked in, real alpha transparency only.\n- No text, labels, frame numbers, UI, props, extra characters, weapons, particles, or effects.\n- Do not crop head, ears, wings, leaves, antlers, tail, feet, or body.\n\nMOTION PLAN:\nFrames 01-08: start moving horizontally to the right, gentle anticipation and first steps/flaps.\nFrames 09-16: speed builds, readable side-facing movement, body bob/flap rhythm.\nFrames 17-24: full smooth movement cycle, lively but cute.\nFrames 25-32: continued movement, small variation in pose and expression.\nFrames 33-40: second movement cycle, consistent identity and scale.\nFrames 41-48: loop-compatible finish that can connect back to frame 01.\n\nStyle: cozy Walkamon mobile game battle asset, cute chibi fantasy, soft hand-painted look, warm friendly expression, readable at 128px, no realism, no horror, no harsh neon, no heavy black outlines.",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "created_at": 1783611151490,
+  "started_at": 1783611151595,
+  "finished_at": 1783611198581,
+  "expires_at": 1783870398581,
+  "image_urls": [
+    "https://assets.meshy.ai/303e5fe9-95b7-48fa-a8bd-ed3d162b3b50/uploads/image_019f4782-5176-788e-9feb-07e24fc18a2f_0.png?Expires=1783870398&Signature=TzaOlf22AfduwWW4RITm1T7Bvjhcgs0afnROFQABKCWeUJBuIw~jJ7pUZ31ANeTwjljjkBjTlBQp6KWYsfIbzTmvUnu6aQ5zFbXPQknIzZog8lbbwQ8p-f-JkfjrTc9QuKydtwaBs1rdlE6v2LEqa~rRijT0kigXxXbCFd1QPaY8flqLT2ySicDbtUH2mfwWNoUVIYmY~VfNLaH~2CbFGekBgKiSUpKFxanYejgcue9akZTWTa4e-L6AV6a6aYrqVGlN3SOSvYTwG5IUC43hv6RW35B0dqy76KyhtkuqgsAqhMb9ysAHUE8wHty5KBMvrbUiJFQK2pzUlHial8jCkA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+  ],
+  "consumed_credits": 9
+}
