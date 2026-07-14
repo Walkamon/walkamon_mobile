@@ -6,7 +6,7 @@ import '../core/utils/login_screen_error_translator.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
-
+import '../data/repositories/pet_screen_repository.dart';
 import '../data/repositories/notification_repository.dart';
 import '../data/services/fcm_service.dart';
 
@@ -94,6 +94,7 @@ class GameStateProvider extends ChangeNotifier {
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
   final ProfileViewScreenRepository _profileRepository;
+  final PetScreenRepository _petRepository;
 
   final FCMService _fcmService;
 
@@ -105,11 +106,18 @@ class GameStateProvider extends ChangeNotifier {
     this._profileRepository,
     this._notificationRepository,
     this._fcmService,
+    this._petRepository,
   );
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
-  int _bondingLevel = 0;
+  int _bondingLevel = 50;
+  int _spiritLevel = 1;
+  int _spiritExp = 25;
+  int _spiritEnergy = 62;
+  int _spiritHealth = 70;
+  String _spiritName = 'Lumina';
+  String _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
   bool _hasSeenStory = false;
 
   bool _isLoading = false;
@@ -122,6 +130,12 @@ class GameStateProvider extends ChangeNotifier {
   GameSettings get settings => _settings;
   bool get isAuthenticated => _user != null;
   int get bondingLevel => _bondingLevel;
+  int get spiritLevel => _spiritLevel;
+  int get spiritExp => _spiritExp;
+  int get spiritEnergy => _spiritEnergy;
+  int get spiritHealth => _spiritHealth;
+  String get spiritName => _spiritName;
+  String get spiritInfo => _spiritInfo;
   bool get hasSeenStory => _hasSeenStory;
 
   bool get isLoading => _isLoading;
@@ -455,6 +469,71 @@ class GameStateProvider extends ChangeNotifier {
     if (_bondingLevel < 100) {
       _bondingLevel++;
       notifyListeners();
+    }
+  }
+
+  // ── Fetch Pet Status from API ──
+  Future<bool> fetchPetStatus() async {
+    try {
+      final petStatus = await _petRepository.getPetStatus();
+      
+      // Map API response to local state
+      _spiritEnergy = petStatus.currentEnergy;
+      _spiritHealth = petStatus.currentLifeForce;
+      _bondingLevel = petStatus.currentBond;
+      
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Lỗi khi tải trạng thái thú cưng: $e');
+      return false;
+    }
+  }
+
+  // ── Feed Spirit with API call ──
+  Future<bool> feedSpirit() async {
+    try {
+      final result = await _petRepository.feedSpirit();
+      
+      // Update local state from API response
+      _spiritEnergy = result.currentEnergy;
+      _spiritHealth = result.currentLifeForce;
+      _bondingLevel = result.currentBond;
+      _spiritExp = (_spiritExp + 10).clamp(0, 100);
+      _adjustSpiritLevel();
+      
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Lỗi khi cho thú cưng ăn: $e');
+      return false;
+    }
+  }
+
+  // ── Tap Spirit with API call ──
+  Future<bool> tapSpirit() async {
+    try {
+      final result = await _petRepository.tapSpirit();
+      
+      // Update local state from API response
+      _spiritEnergy = result.currentEnergy;
+      _spiritHealth = result.currentLifeForce;
+      _bondingLevel = result.currentBond;
+      _spiritExp = (_spiritExp + 3).clamp(0, 100);
+      _adjustSpiritLevel();
+      
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Lỗi khi nhấp vào thú cưng: $e');
+      return false;
+    }
+  }
+
+  void _adjustSpiritLevel() {
+    if (_spiritExp >= 100) {
+      _spiritExp -= 100;
+      _spiritLevel++;
     }
   }
 

@@ -8,6 +8,8 @@ import 'data/datasources/remote/profile_view_screen_datasource.dart';
 import 'data/repositories/profile_view_screen_repository.dart';
 import 'data/datasources/remote/friends_datasource.dart';
 import 'data/repositories/friends_repository.dart';
+import 'data/datasources/remote/pet_screen_datasource.dart';
+import 'data/repositories/pet_screen_repository.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
@@ -45,6 +47,7 @@ import 'screen/profile/activity_stats_screen.dart';
 import 'screen/profile/profile_view_screen.dart';
 import 'screen/profile/edit_profile_screen.dart';
 import 'screen/profile/step_goal_screen.dart';
+import 'screen/profile/streak_screen.dart';
 import 'screen/achievements/View_achievement_list_screen.dart';
 
 import 'data/datasources/remote/notification_datasource.dart';
@@ -86,6 +89,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
       ProfileViewScreenDatasource(apiClient),
     );
     final friendsRepository = FriendsRepository(FriendsDatasource(apiClient));
+   final petRepository = PetScreenRepository(
+  datasource: PetScreenDatasource(apiClient),
+);
 
     final notificationDatasource = NotificationDatasourceImpl(apiClient);
     final notificationRepository = NotificationRepositoryImpl(
@@ -99,6 +105,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
             profileRepository,
             notificationRepository,
             FCMService(notificationRepository),
+            petRepository,
           ),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
@@ -141,6 +148,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/profile/edit',
                 '/profile/achievements',
                 '/step-goal',
+                '/streak',
                 '/auth/change-password',
                 '/friends',
                 '/social',
@@ -239,6 +247,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/step-goal':
                   builder = (_) => const StepGoalScreen();
+                  break;
+
+                case '/streak':
+                  builder = (_) => const StreakScreen();
                   break;
 
                 case '/profile/edit':
