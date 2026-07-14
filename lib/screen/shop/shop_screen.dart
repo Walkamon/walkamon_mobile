@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/shop_screen_repository.dart';
+import '../../data/repositories/wallet_repository.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/error_message_widget.dart';
 
@@ -35,17 +36,37 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   final ShopScreenRepository _repository = ShopScreenRepository();
+  final WalletRepository _walletRepository = WalletRepository();
 
   bool _isLoading = true;
   String? _errorMessage;
   List<_ShopDisplayItem> _items = [];
   _ShopDisplayItem? _selectedItem;
   String? _buyingItemId;
+  int _walletBalance = 0;
+  bool _isWalletLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadShopItems();
+    _loadWalletBalance();
+  }
+
+  Future<void> _loadWalletBalance() async {
+    try {
+      final wallet = await _walletRepository.getBalance();
+      if (!mounted) return;
+      setState(() {
+        _walletBalance = wallet.balance;
+        _isWalletLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isWalletLoading = false;
+      });
+    }
   }
 
   Future<void> _loadShopItems() async {
@@ -186,6 +207,63 @@ class _ShopScreenState extends State<ShopScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 20),
+                  // Wallet Balance Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Giọt Sương',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: foreground,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(99),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              _DewdropIcon(
+                                size: 16,
+                                color: isDark
+                                    ? AppColors.darkDew
+                                    : AppColors.lightDew,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _isWalletLoading
+                                    ? '...'
+                                    : _formatMoney(_walletBalance),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? AppColors.darkDew
+                                      : AppColors.lightDew,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Expanded(
                     child: _isLoading
@@ -514,6 +592,58 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
     );
   }
+}
+
+// ── Dewdrop Icon (SVG → CustomPaint) ────────────────────────────────────
+class _DewdropIcon extends StatelessWidget {
+  const _DewdropIcon({this.size = 16, this.color});
+
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _DewdropPainter(color: color ?? Colors.blue),
+    );
+  }
+}
+
+class _DewdropPainter extends CustomPainter {
+  const _DewdropPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final sx = size.width / 24;
+    final sy = size.height / 24;
+
+    final path = Path()
+      ..moveTo(12 * sx, 2.5 * sy)
+      ..cubicTo(12 * sx, 2.5 * sy, 4.5 * sx, 9.5 * sy, 4.5 * sx, 14 * sy)
+      ..cubicTo(4.5 * sx, 18.14 * sy, 7.86 * sx, 21.5 * sy, 12 * sx, 21.5 * sy)
+      ..cubicTo(
+        16.14 * sx,
+        21.5 * sy,
+        19.5 * sx,
+        18.14 * sy,
+        19.5 * sx,
+        14 * sy,
+      )
+      ..cubicTo(19.5 * sx, 9.5 * sy, 12 * sx, 2.5 * sy, 12 * sx, 2.5 * sy)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_DewdropPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _SwordsIcon extends StatelessWidget {
