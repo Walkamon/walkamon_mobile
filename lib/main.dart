@@ -14,6 +14,8 @@ import 'data/repositories/pet_screen_repository.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
 import 'providers/step_tracking_provider.dart';
+import 'providers/daily_login_provider.dart';
+import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
 import 'widgets/layouts/main_layout.dart'; // <-- ĐÃ THÊM IMPORT NÀY
@@ -35,6 +37,7 @@ import 'screen/welcome/story_screen.dart';
 import 'screen/welcome/name_pet_screen.dart';
 import 'screen/welcome/seed_screen.dart';
 import 'screen/notifications/notifications_screen.dart';
+import 'screen/daily_login/daily_login_screen.dart';
 
 import 'screen/inventory/inventory_screen.dart';
 import 'screen/missions/missions_screen.dart';
@@ -109,6 +112,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
           ),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
+        ChangeNotifierProvider(create: (_) => DailyLoginProvider(DailyLoginRepository())),
         Provider<FriendsRepository>(create: (_) => friendsRepository),
       ],
       child: Consumer<GameStateProvider>(
@@ -154,6 +158,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/social',
                 '/pvp',
                 '/daily-reward',
+                '/daily-login-calendar',
                 '/notifications',
                 '/spirit/detail',
 
@@ -270,6 +275,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/daily-reward':
                   builder = (_) => const DailyRewardScreen();
+                  break;
+                case '/daily-login-calendar':
+                  builder = (_) => const DailyLoginScreen();
                   break;
                 case '/notifications':
                   builder = (_) => const NotificationsScreen();

@@ -702,7 +702,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        isLoggedIn ? 'Lv. ${user?.level ?? 1}' : 'Lv. 1',
+                                        isLoggedIn
+                                            ? 'Lv. ${user?.level ?? 1}'
+                                            : 'Lv. 1',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
@@ -909,7 +911,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w700,
-                                                  color: theme.colorScheme.onSurface,
+                                                  color: theme
+                                                      .colorScheme
+                                                      .onSurface,
                                                 ),
                                               ),
                                             ],
@@ -1043,7 +1047,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     context: context,
                     icon: Icons.calendar_today_outlined,
                     hasBadge: true,
-                    onTap: () => Navigator.pushNamed(context, '/daily-reward'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/daily-login-calendar'),
                   ),
                   const SizedBox(height: 16),
                   // Missions / Quests

@@ -55,7 +55,7 @@ class FCMService {
           print("Quyền thông báo chưa được cấp, bỏ qua hủy FCM Token.");
           return;
         }
-      }
+      } 
 
       // Thêm vapidKey vào đây để Web lấy Token cũ đi hủy không bị lỗi
       String? fcmToken = await FirebaseMessaging.instance.getToken(
