@@ -24,7 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _fetchNotifications() async {
     try {
-      final data = await _datasource.getNotifications(1, 20); //[cite: 2]
+      final data = await _datasource.getNotifications(1, 20);
       setState(() {
         _notifications = data;
         _isLoading = false;
@@ -34,15 +34,70 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _showGameToast(String message, {bool isError = false}) {
+    final theme = Theme.of(context);
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating, // Cho phép nổi lơ lửng
+        elevation: 8,
+        backgroundColor: theme.cardColor, // Đồng bộ màu nền card của app
+        margin: const EdgeInsets.only(bottom: 40, left: 24, right: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30), // Bo tròn thành viên nang
+          side: BorderSide(
+            color: isError
+                ? Colors.redAccent
+                : theme.colorScheme.primary.withOpacity(0.5), // Viền sáng màu
+            width: 1.5,
+          ),
+        ),
+        duration: const Duration(seconds: 2),
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: isError ? Colors.redAccent : theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteNotification(String id, int index) async {
+    try {
+      await _datasource.deleteNotification(id);
+      if (mounted) {
+        _showGameToast('Đã xóa thông báo');
+      }
+    } catch (e) {
+      _fetchNotifications();
+      if (mounted) {
+        _showGameToast('Xóa thất bại: $e', isError: true);
+      }
+    }
+  }
+
   Future<void> _showNotificationDetail(NotificationItem item) async {
-    // 1. Cập nhật giao diện mờ đi (đã đọc) ngay lập tức
     if (!item.isRead) {
       setState(() {
         item.isRead = true;
       });
     }
 
-    // 2. Hiển thị Popup
     showDialog(
       context: context,
       barrierColor: Colors.black45,
@@ -65,7 +120,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Tiêu đề
                         Text(
                           item.title,
                           style: const TextStyle(
@@ -75,7 +129,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 4),
-                        // Thời gian tạo
                         Text(
                           _formatTimeAgo(item.createdAt),
                           style: TextStyle(
@@ -88,7 +141,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Xử lý trạng thái tải API chi tiết
                         if (snapshot.connectionState == ConnectionState.waiting)
                           const Padding(
                             padding: EdgeInsets.all(24.0),
@@ -105,7 +157,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // 1. Hiển thị Ảnh bo góc (imageUrl)
                                   if (snapshot.data!.imageUrl != null &&
                                       snapshot.data!.imageUrl!.isNotEmpty)
                                     Padding(
@@ -125,7 +176,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                     ),
 
-                                  // Row chứa Icon và Nhãn (typeCode)
                                   if ((snapshot.data!.icon != null &&
                                           snapshot.data!.icon!.isNotEmpty) ||
                                       (snapshot.data!.typeCode != null &&
@@ -136,7 +186,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                       child: Row(
                                         children: [
-                                          // 2. Hiển thị Icon (Ảnh nhỏ)
                                           if (snapshot.data!.icon != null &&
                                               snapshot.data!.icon!.isNotEmpty)
                                             Padding(
@@ -166,7 +215,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                               ),
                                             ),
 
-                                          // 3. Hiển thị Nhãn (typeCode)
                                           if (snapshot.data!.typeCode != null &&
                                               snapshot
                                                   .data!
@@ -182,9 +230,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .primary
-                                                    .withOpacity(
-                                                      0.1,
-                                                    ), // Nền màu xanh nhạt
+                                                    .withOpacity(0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(16),
                                               ),
@@ -195,9 +241,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary, // Màu chữ xanh
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                                 ),
                                               ),
                                             ),
@@ -205,7 +251,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                     ),
 
-                                  // 4. Hiển thị Nội dung (Body)
                                   Text(
                                     snapshot.data!.body,
                                     style: TextStyle(
@@ -224,7 +269,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ),
 
-                  // Nút Tắt (X) góc trên bên phải
                   Positioned(
                     top: 12,
                     right: 12,
@@ -260,19 +304,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     switch (iconName.toLowerCase()) {
       case 'megaphone':
-        return Icons.campaign; // Icon cái loa
+        return Icons.campaign;
       case 'gift':
-        return Icons.card_giftcard; // Icon hộp quà
+        return Icons.card_giftcard;
       case 'sword':
       case 'swords':
-        return Icons.sports_martial_arts; // Icon đánh nhau/PVP
+        return Icons.sports_martial_arts;
       case 'warning':
-        return Icons.warning_amber_rounded; // Icon cảnh báo
+        return Icons.warning_amber_rounded;
       case 'info':
-        return Icons.info_outline; // Icon thông tin
-      // Thêm các trường hợp khác tùy theo backend trả về nhé
+        return Icons.info_outline;
       default:
-        return Icons.notifications; // Mặc định vẫn là cái chuông
+        return Icons.notifications;
     }
   }
 
@@ -352,7 +395,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         title: const Text(
-          'Thông Báo', //[cite: 1]
+          'Thông Báo',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -362,7 +405,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           : _notifications.isEmpty
           ? const Center(
               child: Text(
-                'Không có thông báo nào.', //[cite: 1]
+                'Không có thông báo nào.',
                 style: TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.w500,
@@ -374,19 +417,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               itemCount: _notifications.length,
               itemBuilder: (context, index) {
                 final item = _notifications[index];
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: item.isRead
                         ? theme.cardColor.withOpacity(0.5)
-                        : theme.cardColor, //
+                        : theme.cardColor,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: item.isRead
                           ? theme.dividerColor
-                          : theme.colorScheme.primary.withOpacity(
-                              0.3,
-                            ), //[cite: 11]
+                          : theme.colorScheme.primary.withOpacity(0.3),
                     ),
                   ),
                   child: InkWell(
@@ -401,7 +443,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (!item.isRead) ...[
-                                // Chấm cam biểu thị chưa đọc
                                 Container(
                                   width: 10,
                                   height: 10,
@@ -410,7 +451,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     right: 8,
                                   ),
                                   decoration: const BoxDecoration(
-                                    color: Colors.orange, //[cite: 11]
+                                    color: Colors.orange,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -423,10 +464,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     color: item.isRead
                                         ? theme.textTheme.bodyMedium?.color
                                               ?.withOpacity(0.6)
-                                        : theme
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color, //[cite: 11]
+                                        : theme.textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                              ),
+
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(20),
+                                  onTap: () {
+                                    final deletedId = item.notificationId;
+                                    setState(() {
+                                      _notifications.removeAt(index);
+                                    });
+                                    _deleteNotification(deletedId, index);
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      size: 20,
+                                      color: theme.colorScheme.onSurface
+                                          .withOpacity(0.4),
+                                    ),
                                   ),
                                 ),
                               ),

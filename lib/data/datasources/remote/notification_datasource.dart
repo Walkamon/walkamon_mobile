@@ -8,6 +8,7 @@ abstract class NotificationDatasource {
   Future<NotificationDetail> getNotificationDetail(String id);
   Future<void> registerDeviceToken(String fcmToken);
   Future<void> deactivateDeviceToken(String fcmToken);
+  Future<void> deleteNotification(String id);
 }
 
 class NotificationDatasourceImpl implements NotificationDatasource {
@@ -31,6 +32,21 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       data: {'fcmToken': fcmToken}, //
     );
     if (!response.success) throw Exception(response.message);
+  }
+
+  @override
+  Future<void> deleteNotification(String id) async {
+    try {
+      final response = await apiClient.delete(
+        ApiConstants.deleteNotification(id),
+      );
+      if (!response.success) {
+        throw Exception(response.message ?? "Lỗi xóa thông báo");
+      }
+    } catch (e) {
+      print("Lỗi deleteNotification: $e");
+      rethrow;
+    }
   }
 
   Future<NotificationResponse> updateNotification(bool enabled) async {

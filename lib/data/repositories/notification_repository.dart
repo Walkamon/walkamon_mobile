@@ -6,6 +6,7 @@ abstract class NotificationRepository {
   Future<void> registerDeviceToken(String fcmToken);
   Future<void> deactivateDeviceToken(String fcmToken);
   Future<NotificationDetail> getNotificationDetail(String id);
+  Future<void> deleteNotification(String id);
 }
 
 class NotificationRepositoryImpl implements NotificationRepository {
@@ -21,6 +22,11 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<NotificationDetail> getNotificationDetail(String id) {
     return datasource.getNotificationDetail(id);
+  }
+
+  @override
+  Future<void> deleteNotification(String id) {
+    return datasource.deleteNotification(id);
   }
 
   @override
