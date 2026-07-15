@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import '../repositories/notification_repository.dart';
 
 class FCMService {
@@ -44,6 +45,18 @@ class FCMService {
   /// Gọi hàm này TRƯỚC KHI thực hiện xóa dữ liệu local để đăng xuất
   Future<void> deactivateToken() async {
     try {
+      // Kiểm tra quyền trên Web, nếu chưa cấp quyền thì không gọi getToken
+      // để tránh việc trình duyệt hiện popup bắt người dùng cho phép thông báo
+      if (kIsWeb) {
+        NotificationSettings settings =
+            await FirebaseMessaging.instance.getNotificationSettings();
+        if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+            settings.authorizationStatus != AuthorizationStatus.provisional) {
+          print("Quyền thông báo chưa được cấp, bỏ qua hủy FCM Token.");
+          return;
+        }
+      }
+
       // Thêm vapidKey vào đây để Web lấy Token cũ đi hủy không bị lỗi
       String? fcmToken = await FirebaseMessaging.instance.getToken(
         vapidKey: _vapidKey,
