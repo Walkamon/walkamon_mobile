@@ -17,6 +17,10 @@ class ApiConstants {
   // Daily Step Endpoints
   static const String dailySteps = '/api/daily-steps';
 
+  // Daily Login Reward Endpoints
+  static const String dailyLoginCalendar = '/api/daily-login-rewards/calendar';
+  static const String claimDailyReward = '/api/daily-login-rewards/claim';
+
   // Step Goal Endpoints
   static const String stepGoal = '/api/Step-Goal';
   static const String stepGoalProgress = '/api/Step-Goal/progress';

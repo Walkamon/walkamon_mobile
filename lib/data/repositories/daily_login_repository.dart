@@ -6,7 +6,7 @@ class DailyLoginRepository {
   final DailyLoginDatasource _datasource;
 
   DailyLoginRepository({DailyLoginDatasource? datasource})
-      : _datasource = datasource ?? DailyLoginDatasourceImpl(ApiClient());
+    : _datasource = datasource ?? DailyLoginDatasourceImpl(ApiClient());
 
   Future<DailyLoginCalendarData> getDailyLoginStatus() async {
     try {
@@ -17,10 +17,10 @@ class DailyLoginRepository {
     }
   }
 
-  Future<bool> claimDailyReward() async {
+  Future<ClaimDailyRewardData> claimDailyReward() async {
     try {
-      final _ = await _datasource.claimDailyReward();
-      return true;
+      final data = await _datasource.claimDailyReward();
+      return ClaimDailyRewardData.fromJson(data);
     } catch (e) {
       throw Exception('Lỗi khi nhận thưởng điểm danh: $e');
     }
