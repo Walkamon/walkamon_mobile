@@ -19,7 +19,8 @@ class DailyLoginCalendarData {
       canClaimToday: json['canClaimToday'] ?? false,
       lastClaimDate: json['lastClaimDate'],
       currentDay: json['currentDay'] ?? 1,
-      rewards: (json['rewards'] as List?)
+      rewards:
+          (json['rewards'] as List?)
               ?.map((e) => DailyLoginRewardModel.fromJson(e))
               .toList() ??
           [],
@@ -43,6 +44,32 @@ class DailyLoginRewardModel {
       day: json['day'] ?? 0,
       reward: json['reward'] ?? 0,
       status: json['status'] ?? 'locked',
+    );
+  }
+}
+
+class ClaimDailyRewardData {
+  final String claimDate;
+  final int claimedDay;
+  final int reward;
+  final int balance;
+  final int nextDay;
+
+  ClaimDailyRewardData({
+    required this.claimDate,
+    required this.claimedDay,
+    required this.reward,
+    required this.balance,
+    required this.nextDay,
+  });
+
+  factory ClaimDailyRewardData.fromJson(Map<String, dynamic> json) {
+    return ClaimDailyRewardData(
+      claimDate: json['claimDate'] ?? '',
+      claimedDay: json['claimedDay'] ?? 0,
+      reward: json['reward'] ?? 0,
+      balance: json['balance'] ?? 0,
+      nextDay: json['nextDay'] ?? 0,
     );
   }
 }

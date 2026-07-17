@@ -31,27 +31,23 @@ class DailyLoginProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> claimReward() async {
+  Future<ClaimDailyRewardData?> claimReward() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final success = await _repository.claimDailyReward();
-      if (success) {
-        // Tải lại list sau khi claim thành công
-        await loadDailyLoginStatus();
-        
-        // Bạn có thể cân nhắc cập nhật lại số coin trong GameStateProvider tại đây
-        // _gameStateProvider.fetchProfileDetail(); // ví dụ
-        return true;
-      }
-      return false;
-    } catch (e) {
+      final data = await _repository.claimDailyReward();
+
+      await loadDailyLoginStatus();
+
+      return data; // Trả về object dữ liệu thành công
+    } catch (e, stackTrace) {
+      // print('Vị trí lỗi (Stack Trace):\n$stackTrace');
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
-      return false;
+      return null; // Trả về null nếu xảy ra lỗi
     }
   }
 }

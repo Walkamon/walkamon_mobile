@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/daily_login_provider.dart';
 import 'widgets/daily_login_calendar_widget.dart';
+import 'package:walkamon_mobile/data/models/daily_login_model.dart';
 
 class DailyLoginScreen extends StatefulWidget {
   const DailyLoginScreen({super.key});
@@ -156,16 +157,85 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                       width: double.infinity,
                       height: 64,
                       child: ElevatedButton(
-                        onPressed: (!data.canClaimToday || provider.isLoading)
+                        onPressed: provider.isLoading
                             ? null
                             : () async {
-                                final success = await provider.claimReward();
-                                if (success && mounted) {
+                                if (!data.canClaimToday) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Nhận thưởng thành công!'),
+                                      content: Text(
+                                        'Hôm nay bạn đã nhận quà rồi!',
+                                      ),
+                                      backgroundColor: Colors.orange,
                                     ),
                                   );
+                                  return;
+                                }
+
+                                // Xác định rõ kiểu dữ liệu trả về để compiler không nhận nhầm thành bool
+                                final ClaimDailyRewardData? result =
+                                    await provider.claimReward();
+
+                                if (result != null && mounted) {
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        title: const Row(
+                                          children: [
+                                          
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Thành Công!',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        content: Text(
+                                          'Chúc mừng bạn đã nhận quà thành công ngày ${result.claimedDay}!\n\n'
+                                          'Phần thưởng: +${result.reward} Giọt nước\n'
+                                          'Số dư hiện tại: ${result.balance} Giọt nước',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                            child: const Text(
+                                              'Tuyệt vời',
+                                              style: TextStyle(
+                                                color: Color(0xFF7A9D84),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  if (mounted &&
+                                      provider.errorMessage != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Lỗi: ${provider.errorMessage}',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                         style: ElevatedButton.styleFrom(
