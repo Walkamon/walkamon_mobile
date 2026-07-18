@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "status": "complete",
+  "sheets": {
+    "moon_excited": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\moon_excited_raw.png",
+      "outputs": [
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F01.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F02.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F03.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F04.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F05.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F06.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F07.png",
+        "TInh Linh Ánh Trăng\\stage1\\excited\\excited_F08.png"
+      ]
+    },
+    "navigation": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\navigation_raw.png",
+      "outputs": [
+        "icon\\navigation\\01_home.png",
+        "icon\\navigation\\06_shop.png",
+        "icon\\navigation\\05_inventory.png",
+        "icon\\navigation\\04_mission.png",
+        "icon\\navigation\\09_profile.png",
+        "icon\\navigation\\02_spirit.png",
+        "icon\\navigation\\03_steps.png",
+        "icon\\navigation\\07_leaderboard.png",
+        "icon\\navigation\\10_settings.png",
+        "icon\\system\\notification_bell.png",
+        "icon\\system\\theme_toggle_light.png",
+        "icon\\system\\theme_toggle_dark.png"
+      ]
+    },
+    "basic_actions": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\basic_actions_raw.png",
+      "outputs": [
+        "icon\\actions\\36_back.png",
+        "icon\\actions\\37_close.png",
+        "icon\\actions\\34_confirm.png",
+        "icon\\actions\\35_cancel.png",
+        "icon\\actions\\32_add.png",
+        "icon\\actions\\33_remove.png",
+        "icon\\actions\\42_edit.png",
+        "icon\\actions\\43_trash_delete.png",
+        "icon\\actions\\38_refresh.png",
+        "icon\\actions\\40_filter.png",
+        "icon\\actions\\41_sort.png",
+        "icon\\actions\\39_search.png"
+      ]
+    },
+    "auth": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\auth_raw.png",
+      "outputs": [
+        "icon\\auth\\login_steps.png",
+        "icon\\auth\\register_seed.png",
+        "icon\\auth\\key.png",
+        "icon\\auth\\lock.png",
+        "icon\\auth\\visibility.png",
+        "icon\\auth\\visibility_off.png",
+        "icon\\auth\\reset_password.png",
+        "icon\\auth\\verified.png",
+        "icon\\auth\\mail.png",
+        "icon\\auth\\send.png",
+        "icon\\auth\\language.png",
+        "icon\\auth\\privacy.png"
+      ]
+    },
+    "onboarding": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\onboarding_raw.png",
+      "outputs": [
+        "icon\\system\\explore.png",
+        "icon\\system\\music.png",
+        "icon\\system\\volume.png",
+        "icon\\system\\performance.png",
+        "icon\\system\\camera.png",
+        "icon\\system\\image_placeholder.png",
+        "icon\\system\\info.png",
+        "icon\\system\\warning.png",
+        "icon\\system\\error.png",
+        "icon\\system\\daily_reward.png",
+        "icon\\system\\chevron_right.png",
+        "icon\\system\\dropdown.png"
+      ]
+    },
+    "profile": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\profile_raw.png",
+      "outputs": [
+        "icon\\profile\\avatar.png",
+        "icon\\profile\\edit_profile.png",
+        "icon\\profile\\statistics.png",
+        "icon\\profile\\schedule.png",
+        "icon\\profile\\steps.png",
+        "icon\\profile\\trend.png",
+        "icon\\profile\\streak.png",
+        "icon\\profile\\achievement.png",
+        "icon\\profile\\membership.png",
+        "icon\\profile\\calendar.png",
+        "icon\\profile\\wifi_off.png",
+        "icon\\profile\\chevron_right.png"
+      ]
+    },
+    "inventory": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\inventory_raw.png",
+      "outputs": [
+        "icon\\resources\\12_life_force.png",
+        "icon\\resources\\13_energy.png",
+        "icon\\resources\\15_dew_drop.png",
+        "icon\\resources\\16_coin.png",
+        "icon\\resources\\17_gem.png",
+        "icon\\inventory\\food.png",
+        "icon\\inventory\\magic_orb.png",
+        "icon\\inventory\\shopping_bag.png",
+        "icon\\inventory\\storefront.png",
+        "icon\\inventory\\buy_basket.png",
+        "icon\\inventory\\reward_chest.png",
+        "icon\\inventory\\use_charm.png"
+      ]
+    },
+    "pet_states": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\pet_states_raw.png",
+      "outputs": [
+        "icon\\pet_states\\21_normal.png",
+        "icon\\pet_states\\22_happy.png",
+        "icon\\pet_states\\23_hungry.png",
+        "icon\\pet_states\\24_sad.png",
+        "icon\\pet_states\\25_sleep.png",
+        "icon\\pet_states\\26_excited.png",
+        "icon\\pet_states\\31_ready_to_evolve.png",
+        "icon\\resources\\daily_goal.png",
+        "icon\\resources\\18_streak.png",
+        "icon\\resources\\14_bond.png",
+        "icon\\friends\\56_friend.png",
+        "icon\\friends\\friend_profile.png"
+      ]
+    },
+    "item_actions": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\item_actions_raw.png",
+      "outputs": [
+        "icon\\actions\\44_save.png",
+        "icon\\actions\\45_claim_reward.png",
+        "icon\\actions\\46_use.png",
+        "icon\\actions\\47_equip.png",
+        "icon\\actions\\48_unequip.png",
+        "icon\\actions\\49_buy.png",
+        "icon\\actions\\50_sell.png",
+        "icon\\actions\\51_upgrade.png",
+        "icon\\actions\\52_level_up.png",
+        "icon\\actions\\53_info.png",
+        "icon\\actions\\54_share.png",
+        "icon\\actions\\55_send.png"
+      ]
+    },
+    "friends": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\friends_raw.png",
+      "outputs": [
+        "icon\\friends\\56_friend.png",
+        "icon\\friends\\57_add_friend.png",
+        "icon\\friends\\58_remove_friend.png",
+        "icon\\friends\\59_friend_request.png",
+        "icon\\friends\\60_accept_friend.png",
+        "icon\\friends\\61_decline_friend.png",
+        "icon\\friends\\62_online.png",
+        "icon\\friends\\63_offline.png",
+        "icon\\friends\\64_invite_friend.png",
+        "icon\\friends\\65_block.png",
+        "icon\\friends\\66_report.png",
+        "icon\\friends\\67_gift_friend.png"
+      ]
+    },
+    "pvp": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\pvp_raw.png",
+      "outputs": [
+        "icon\\friends\\68_visit_friend_pet.png",
+        "icon\\friends\\69_battle.png",
+        "icon\\friends\\70_challenge.png",
+        "icon\\battle\\71_attack.png",
+        "icon\\battle\\72_defense.png",
+        "icon\\battle\\73_win.png",
+        "icon\\battle\\74_lose.png",
+        "icon\\battle\\75_draw.png",
+        "icon\\battle\\76_battle_history.png",
+        "icon\\battle\\77_opponent.png",
+        "icon\\battle\\78_power.png",
+        "icon\\battle\\79_auto_battle.png"
+      ]
+    },
+    "system_utilities": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\system_utilities_raw.png",
+      "outputs": [
+        "icon\\system\\calendar.png",
+        "icon\\system\\settings.png",
+        "icon\\system\\notification_bell.png",
+        "icon\\system\\language.png",
+        "icon\\system\\music.png",
+        "icon\\system\\volume.png",
+        "icon\\system\\performance.png",
+        "icon\\system\\sun.png",
+        "icon\\system\\moon.png",
+        "icon\\system\\info.png",
+        "icon\\system\\warning.png",
+        "icon\\system\\error.png"
+      ]
+    }
+  },
+  "nineSliceFrames": {
+    "quest_scroll_9slice": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\quest_scroll_9slice_raw.png",
+      "output": "ui_frames\\quest_scroll_9slice.png",
+      "size": "768x768",
+      "centerSlice": "Rect.fromLTWH(192, 192, 384, 384)"
+    },
+    "notification_list_9slice": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\notification_list_9slice_raw.png",
+      "output": "ui_frames\\notification_list_9slice.png",
+      "size": "768x512",
+      "centerSlice": "Rect.fromLTWH(144, 112, 480, 288)"
+    },
+    "notification_modal_9slice": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\notification_modal_9slice_raw.png",
+      "output": "ui_frames\\notification_modal_9slice.png",
+      "size": "768x576",
+      "centerSlice": "Rect.fromLTWH(144, 112, 480, 352)"
+    }
+  },
+  "sproutFrameRepairs": {
+    "excited_e1_f03": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\sprout_excited_e1_f03_raw.png",
+      "master": "Assets\\Mầm Non\\excited\\Meshy_AI_Sprout_Excited_E1_F03_tiny_jump_peak.png",
+      "mobile": "Mầm Non\\excited\\Meshy_AI_Sprout_Excited_E1_F03_tiny_jump_peak.png"
+    },
+    "happy_h1_f03": {
+      "status": "published",
+      "raw": "Assets\\Source\\meshysheets\\sprout_happy_h1_f03_raw.png",
+      "master": "Assets\\Mầm Non\\happy\\Meshy_AI_Sprout_Happy_H1_F03_arms_lift.png",
+      "mobile": "Mầm Non\\happy\\Meshy_AI_Sprout_Happy_H1_F03_arms_lift.png"
+    }
+  }
+}

@@ -1,16 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/utils/login_screen_error_translator.dart';
-import '../../providers/game_state_provider.dart';
-import '../../providers/step_tracking_provider.dart';
-
+import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
+import '../../core/utils/login_screen_error_translator.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../data/services/fcm_service.dart';
+import '../../providers/game_state_provider.dart';
+import '../../providers/step_tracking_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,49 +21,55 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
+  static const _forest = Color(0xFF395C3B);
+  static const _forestDark = Color(0xFF213E2B);
+  static const _cream = Color(0xFFFFFBF1);
+  static const _gold = Color(0xFFE9B86A);
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  late final AnimationController _animController;
+  late final AnimationController _animationController;
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
 
-  // Biến trạng thái ẩn/hiện mật khẩu (Con mắt)
   bool _obscurePassword = true;
-
-  // Biến lưu trữ thông báo lỗi để hiển thị trực tiếp trên giao diện dạng dọc
   String? _inlineErrorMessage;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 500),
     );
-    _opacity = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-    _slide = Tween<Offset>(
-      begin: const Offset(0.25, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
-    _animController.forward();
+    _opacity = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+    _slide = Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _animController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  // ── Validation ────────────────────────────────────────────────────────────
-
   String? _validateEmail(String? value) {
-    final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Email không được để trống.';
-    if (!RegExp(r'^[\w.+\-]+@[\w\-]+\.[\w\-.]+$').hasMatch(v)) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return 'Email không được để trống.';
+    if (!RegExp(r'^[\w.+\-]+@[\w\-]+\.[\w\-.]+$').hasMatch(email)) {
       return 'Email không đúng định dạng.';
     }
     return null;
@@ -74,322 +80,323 @@ class _LoginScreenState extends State<LoginScreen>
     return null;
   }
 
-  // ── Business logic ────────────────────────────────────────────────────────
-
   Future<void> _handleLogin() async {
-    setState(() {
-      _inlineErrorMessage = null; // Reset xóa thông báo lỗi cũ
-    });
-
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
     final provider = context.read<GameStateProvider>();
+    if (provider.isLoading) return;
+
+    setState(() => _inlineErrorMessage = null);
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final success = await provider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
-
     if (!mounted) return;
 
-    if (success) {
-      try {
-        // Khởi tạo các class cần thiết (Nếu dự án dùng GetIt/Provider thì có thể lấy ra trực tiếp)
-        final notificationRepo = NotificationRepositoryImpl(
-          datasource: NotificationDatasourceImpl(ApiClient()),
-        );
-        final fcmService = FCMService(notificationRepo);
-
-        // Gọi hàm setup Token (Không cần await để app không bị khựng lại chờ Firebase)
-        fcmService.setupToken();
-      } catch (e) {
-        debugPrint("Lỗi khởi tạo thông báo: $e");
-      }
-
-      final userId = provider.user?.id ?? '';
-      if (userId.isNotEmpty && mounted) {
-        await context.read<StepTrackingProvider>().startForUser(userId);
-      }
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // Đọc chuỗi lỗi từ Provider ném lên
+    if (!success) {
       final rawError = provider.errorMessage ?? 'Đăng nhập thất bại.';
       final cleanError = rawError.replaceAll('Exception: ', '').trim();
-
-      setState(() {
-        _inlineErrorMessage = translateLoginError(cleanError);
-      });
+      setState(() => _inlineErrorMessage = translateLoginError(cleanError));
+      return;
     }
-  }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+    try {
+      final notificationRepository = NotificationRepositoryImpl(
+        datasource: NotificationDatasourceImpl(ApiClient()),
+      );
+      unawaited(FCMService(notificationRepository).setupToken());
+    } catch (error) {
+      debugPrint('Không thể khởi tạo thông báo: $error');
+    }
+
+    final userId = provider.user?.id ?? '';
+    if (userId.isNotEmpty && mounted) {
+      await context.read<StepTrackingProvider>().startForUser(userId);
+    }
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/home');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final cardColor = theme.colorScheme.surface;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final isLoading = context.select<GameStateProvider, bool>(
+      (provider) => provider.isLoading,
+    );
 
-    return FadeTransition(
-      opacity: _opacity,
-      child: SlideTransition(
-        position: _slide,
-        child: Stack(
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 80,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          AppAssets.authGarden,
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x120F2819), Color(0x00FFF7E3), Color(0x38365525)],
+              stops: [0, 0.55, 1],
+            ),
+          ),
+        ),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32,
                 ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 384),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Chào mừng trở lại!',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: primary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Mở cuốn nhật ký của bạn và tiếp tục cuộc hành trình cùng Lumina',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: mutedForeground,
-                            fontWeight: FontWeight.w500,
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // ── STYLE BANNER LỖI CAO CẤP MƯỢT MÀ GIỮ NGUYÊN ──
-                        if (_inlineErrorMessage != null) ...[
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.error.withValues(
-                                alpha: 0.06,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: theme.colorScheme.error.withValues(
-                                  alpha: 0.18,
-                                ),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.colorScheme.error.withValues(
-                                    alpha: 0.03,
-                                  ),
-                                  offset: const Offset(0, 4),
-                                  blurRadius: 12,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.error.withValues(
-                                      alpha: 0.12,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.report_problem_rounded,
-                                    color: theme.colorScheme.error,
-                                    size: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Gặp sự cố lữ hành',
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme.colorScheme.error
-                                                  .withValues(alpha: 0.7),
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.3,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        _inlineErrorMessage!,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color: theme.colorScheme.error,
-                                              fontWeight: FontWeight.w600,
-                                              height: 1.3,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-
-                        // ── Email field ──────────────────────────────
-                        _PillField(
-                          controller: _emailController,
-                          hint: 'Email',
-                          icon: Icons.directions_walk,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: _validateEmail,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Password field (ĐÃ FIX: Đưa lại suffixWidget vào đúng chỗ) ──
-                        _PillField(
-                          controller: _passwordController,
-                          hint: 'Mật khẩu',
-                          icon: Icons.key_rounded,
-                          obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.done,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: _validatePassword,
-                          onFieldSubmitted: (_) => _handleLogin(),
-                          suffixWidget: IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_rounded
-                                  : Icons.visibility_rounded,
-                              size: 20,
-                              color: primary.withValues(alpha: 0.6),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/auth/forgot'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: mutedForeground,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                            ),
-                            child: const Text(
-                              'Quên mật mã bí mật?',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        _TapScaleButton(
-                          onPressed: _handleLogin,
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                          label: 'Bắt Đầu Hành Trình',
-                        ),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: FadeTransition(
+                      opacity: _opacity,
+                      child: SlideTransition(
+                        position: _slide,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Chưa phải là lữ hành giả?',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: mutedForeground,
-                                fontWeight: FontWeight.w500,
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: _RoundIconButton(
+                                icon: Icons.arrow_back_rounded,
+                                semanticLabel: 'Quay lại',
+                                onPressed: () =>
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      '/',
+                                      (route) => false,
+                                    ),
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                '/auth/register',
-                              ),
-                              child: Text(
-                                'Đăng ký tại đây',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: accent,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
+                            const SizedBox(height: 14),
+                            _buildBrand(context),
+                            const SizedBox(height: 22),
+                            _buildLoginCard(context, isLoading),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
 
-            Positioned(
-              top: 16,
-              left: 16,
-              child: SafeArea(
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/',
-                      (route) => false,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: primary.withValues(alpha: 0.9),
-                      size: 24,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          offset: const Offset(0, 2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                  ),
+  Widget _buildBrand(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      children: [
+        Container(
+          width: 84,
+          height: 84,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: _cream.withValues(alpha: 0.91),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x334A3213),
+                blurRadius: 22,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Image.asset(AppAssets.authLoginSteps),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'WALKAMON',
+          style: textTheme.titleLarge?.copyWith(
+            color: _forestDark,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3.2,
+            shadows: const [Shadow(color: Colors.white70, blurRadius: 10)],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Mỗi bước chân, một phép màu',
+          style: textTheme.bodyMedium?.copyWith(
+            color: _forest,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginCard(BuildContext context, bool isLoading) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+      decoration: BoxDecoration(
+        color: _cream.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x3D2B472E),
+            blurRadius: 32,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Chào mừng trở lại!',
+              textAlign: TextAlign.center,
+              style: textTheme.headlineSmall?.copyWith(
+                color: _forestDark,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tiếp tục hành trình cùng tinh linh Lumina của bạn.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: _forest.withValues(alpha: 0.82),
+                fontWeight: FontWeight.w600,
+                height: 1.35,
+              ),
+            ),
+            if (_inlineErrorMessage != null) ...[
+              const SizedBox(height: 16),
+              _ErrorBanner(message: _inlineErrorMessage!),
+            ],
+            const SizedBox(height: 20),
+            _ForestTextField(
+              controller: _emailController,
+              label: 'Email',
+              assetIcon: AppAssets.authMail,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              validator: _validateEmail,
+            ),
+            const SizedBox(height: 14),
+            _ForestTextField(
+              controller: _passwordController,
+              label: 'Mật khẩu',
+              assetIcon: AppAssets.authLock,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              validator: _validatePassword,
+              onFieldSubmitted: (_) => _handleLogin(),
+              suffix: IconButton(
+                tooltip: _obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                icon: Image.asset(
+                  _obscurePassword
+                      ? AppAssets.authVisibilityOff
+                      : AppAssets.authVisibility,
+                  width: 25,
+                  height: 25,
                 ),
               ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => Navigator.pushNamed(context, '/auth/forgot'),
+                style: TextButton.styleFrom(foregroundColor: _forest),
+                child: const Text(
+                  'Quên mật khẩu?',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            FilledButton(
+              onPressed: isLoading ? null : _handleLogin,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(56),
+                backgroundColor: _forest,
+                foregroundColor: _cream,
+                disabledBackgroundColor: _forest.withValues(alpha: 0.55),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                elevation: 2,
+                shadowColor: _forest.withValues(alpha: 0.35),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: isLoading
+                    ? const SizedBox(
+                        key: ValueKey('loading'),
+                        width: 23,
+                        height: 23,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: _cream,
+                        ),
+                      )
+                    : Row(
+                        key: const ValueKey('ready'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            AppAssets.authLoginSteps,
+                            width: 30,
+                            height: 30,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Đăng nhập',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              children: [
+                Text(
+                  'Chưa có tài khoản?',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: _forest.withValues(alpha: 0.78),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () => Navigator.pushNamed(context, '/auth/register'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFA96536),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                  ),
+                  child: const Text(
+                    'Đăng ký ngay',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -398,168 +405,145 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ── Pill-shaped input field (ĐÃ FIX: Đưa suffixWidget vào Constructor để nhận dữ liệu) ──
-class _PillField extends StatelessWidget {
-  const _PillField({
+class _ForestTextField extends StatelessWidget {
+  const _ForestTextField({
     required this.controller,
-    required this.hint,
-    required this.icon,
-    required this.cardColor,
-    required this.primary,
+    required this.label,
+    required this.assetIcon,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
     this.validator,
     this.onFieldSubmitted,
-    this.suffixWidget, // Thêm dòng khai báo này vào đây để tránh lỗi
+    this.suffix,
   });
 
   final TextEditingController controller;
-  final String hint;
-  final IconData icon;
-  final Color cardColor;
-  final Color primary;
+  final String label;
+  final String assetIcon;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onFieldSubmitted;
-  final Widget? suffixWidget; // Thêm biến lưu trữ Widget con mắt ẩn/hiện
+  final Widget? suffix;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      decoration: BoxDecoration(
-        color: cardColor.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 4),
-            blurRadius: 16,
+    const forest = Color(0xFF395C3B);
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      validator: validator,
+      onFieldSubmitted: onFieldSubmitted,
+      style: const TextStyle(
+        color: Color(0xFF213E2B),
+        fontWeight: FontWeight.w700,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: forest.withValues(alpha: 0.72),
+          fontWeight: FontWeight.w700,
+        ),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Image.asset(assetIcon, width: 28, height: 28),
+        ),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.78),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
+            color: _LoginScreenState._gold,
+            width: 2,
           ),
-        ],
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFFB74A3A)),
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE8DE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE4A18D)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: primary.withValues(alpha: 0.85)),
-          const SizedBox(width: 14),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Color(0xFF9B3F32),
+            size: 20,
+          ),
+          const SizedBox(width: 9),
           Expanded(
-            child: TextFormField(
-              controller: controller,
-              obscureText: obscureText,
-              keyboardType: keyboardType,
-              textInputAction: textInputAction,
-              style: theme.textTheme.titleMedium?.copyWith(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF7A342A),
                 fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurface,
               ),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  fontWeight: FontWeight.w600,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              validator: validator,
-              onFieldSubmitted: onFieldSubmitted,
             ),
           ),
-          if (suffixWidget != null) ...[
-            const SizedBox(width: 10),
-            suffixWidget!,
-          ],
         ],
       ),
     );
   }
 }
 
-// ── Tap-scale submit button ───────────────────────────
-class _TapScaleButton extends StatefulWidget {
-  const _TapScaleButton({
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.icon,
+    required this.semanticLabel,
     required this.onPressed,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.label,
   });
 
+  final IconData icon;
+  final String semanticLabel;
   final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final String label;
-
-  @override
-  State<_TapScaleButton> createState() => _TapScaleButtonState();
-}
-
-class _TapScaleButtonState extends State<_TapScaleButton> {
-  double _scale = 1.0;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _scale = 0.95),
-      onTapUp: (_) => setState(() => _scale = 1.0),
-      onTapCancel: () => setState(() => _scale = 1.0),
-      child: AnimatedScale(
-        scale: _scale,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: widget.backgroundColor.withValues(alpha: 0.15),
-                offset: const Offset(0, 8),
-                blurRadius: 20,
-              ),
-              BoxShadow(
-                color: widget.backgroundColor.withValues(alpha: 0.1),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: Material(
-            color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(32),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(32),
-              onTap: widget.onPressed,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        widget.label,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: widget.foregroundColor,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+    return Material(
+      color: _LoginScreenState._cream.withValues(alpha: 0.86),
+      shape: const CircleBorder(),
+      elevation: 3,
+      shadowColor: Colors.black26,
+      child: IconButton(
+        tooltip: semanticLabel,
+        onPressed: onPressed,
+        color: _LoginScreenState._forestDark,
+        icon: Icon(icon),
       ),
     );
   }

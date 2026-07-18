@@ -1,5 +1,8 @@
 class ApiConstants {
-  static const String baseUrl = 'https://walkamon.azurewebsites.net';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://walkamon.azurewebsites.net',
+  );
   // Auth Endpoints
   static const String register = '/api/auth/register';
   static const String verifyOtp = '/api/auth/register/verify';
@@ -15,7 +18,9 @@ class ApiConstants {
   static const String userFeedback = '/api/user-feedback';
 
   // Daily Step Endpoints
-  static const String dailySteps = '/api/daily-steps';
+  static const String stepSensorSession = '/api/step-sensor/session';
+  static String stepSensorBatches(String sessionId) =>
+      '/api/step-sensor/sessions/$sessionId/batches';
 
   // Daily Login Reward Endpoints
   static const String dailyLoginCalendar = '/api/daily-login-rewards/calendar';

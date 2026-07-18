@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "status": "complete",
+  "source": "Assets/Source",
+  "iconCanvas": "128x128 RGBA",
+  "frameCanvas": "512x512 RGBA",
+  "qualityGates": {
+    "iconAlphaMargin": 12,
+    "frameAlphaMargin": 24
+  },
+  "forms": {
+    "TinhLinhNangAm/stage2": {
+      "excited": 5,
+      "feed_eat": 5,
+      "happy": 5,
+      "hunggry": 5,
+      "idle": 5,
+      "sad": 5,
+      "sleep": 5,
+      "tap_hello": 5,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "TinhLinhNangAm/Stage1": {
+      "excited": 8,
+      "feed_eat": 8,
+      "happy": 8,
+      "hunggry": 8,
+      "idle": 8,
+      "run": 48,
+      "sad": 8,
+      "sleep": 8,
+      "tap_hello": 8,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "TInh Linh Ánh Trăng/stage2": {
+      "excited": 5,
+      "feed_eat": 2,
+      "happy": 5,
+      "hunggry": 2,
+      "idle": 5,
+      "sad": 3,
+      "sleep": 5,
+      "tap_hello": 5,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "TInh Linh Ánh Trăng/stage1": {
+      "excited": 8,
+      "feed_eat": 8,
+      "happy": 8,
+      "hunggry": 8,
+      "idle": 8,
+      "run": 48,
+      "sad": 8,
+      "sleep": 8,
+      "tap_hello": 8,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "Tinh Linh Bình Minh/stage2": {
+      "excited": 5,
+      "feed_eat": 5,
+      "happy": 5,
+      "hunggry": 5,
+      "idle": 5,
+      "sad": 5,
+      "sleep": 5,
+      "tap_hello": 5,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "Tinh Linh Bình Minh/stage1": {
+      "excited": 8,
+      "feed_eat": 8,
+      "fly": 48,
+      "happy": 8,
+      "hunggry": 8,
+      "idle": 8,
+      "sad": 8,
+      "sleep": 8,
+      "tap_hello": 8,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    },
+    "Mầm Non": {
+      "excited": 5,
+      "feed_eat": 5,
+      "happy": 5,
+      "hunggry": 5,
+      "idle": 5,
+      "run": 48,
+      "sad": 5,
+      "sleep": 5,
+      "tap_hello": 5,
+      "lose": 8,
+      "race": 12,
+      "win": 8
+    }
+  },
+  "qaReport": "Assets/Source/qa_previews/mobile-final-audit/final_mobile_audit.json",
+  "quarantineRoot": "Assets/Source/backup/mobile-final-audit",
+  "issueCount": 0,
+  "backupCount": 11
+}

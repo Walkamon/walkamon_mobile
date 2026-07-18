@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -207,6 +209,13 @@ class GameStateProvider extends ChangeNotifier {
       );
       TokenStorage.setToken(token);
 
+      final restoredUserId =
+          prefs.getString('user_id') ?? _userIdFromJwt(token);
+      if (restoredUserId != null && restoredUserId.isNotEmpty) {
+        await prefs.setString('user_id', restoredUserId);
+        _user = GameUser(id: restoredUserId, name: '', level: 1, coins: 0);
+      }
+
       print("[AutoLogin] Đang gọi fetchProfileDetail()...");
       final successFetch = await fetchProfileDetail();
 
@@ -278,6 +287,7 @@ class GameStateProvider extends ChangeNotifier {
     // 2. Xóa token dưới thiết bị
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
+    await prefs.remove('user_id');
 
     // 3. Xóa token trên RAM và reset trạng thái app
     TokenStorage.clear();
@@ -476,12 +486,12 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> fetchPetStatus() async {
     try {
       final petStatus = await _petRepository.getPetStatus();
-      
+
       // Map API response to local state
       _spiritEnergy = petStatus.currentEnergy;
       _spiritHealth = petStatus.currentLifeForce;
       _bondingLevel = petStatus.currentBond;
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -494,14 +504,14 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> feedSpirit() async {
     try {
       final result = await _petRepository.feedSpirit();
-      
+
       // Update local state from API response
       _spiritEnergy = result.currentEnergy;
       _spiritHealth = result.currentLifeForce;
       _bondingLevel = result.currentBond;
       _spiritExp = (_spiritExp + 10).clamp(0, 100);
       _adjustSpiritLevel();
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -514,14 +524,14 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> tapSpirit() async {
     try {
       final result = await _petRepository.tapSpirit();
-      
+
       // Update local state from API response
       _spiritEnergy = result.currentEnergy;
       _spiritHealth = result.currentLifeForce;
       _bondingLevel = result.currentBond;
       _spiritExp = (_spiritExp + 3).clamp(0, 100);
       _adjustSpiritLevel();
-      
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -552,6 +562,30 @@ class GameStateProvider extends ChangeNotifier {
     _user = _user!.copyWith(coins: _user!.coins - price);
     notifyListeners();
     return true;
+  }
+
+  String? _userIdFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+      if (payload is! Map) return null;
+      const claimNames = [
+        'sub',
+        'nameid',
+        'userId',
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+      ];
+      for (final claim in claimNames) {
+        final value = payload[claim]?.toString();
+        if (value != null && value.isNotEmpty) return value;
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
   }
 }
 
