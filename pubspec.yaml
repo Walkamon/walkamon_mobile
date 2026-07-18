@@ -36,9 +36,9 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.17
   dio: ^5.4.3
+  crypto: ^3.0.7
   shared_preferences: ^2.5.5
   image_picker: ^1.2.2
-  pedometer: ^4.2.0
   permission_handler: ^12.0.3
   google_sign_in: ^7.2.0
   firebase_core: ^4.11.0
@@ -67,10 +67,127 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # Runtime-only Lumina asset pack. Flutter does not include nested folders
+  # recursively, so every directory containing files is listed explicitly.
+  assets:
+    - assets/Mobile/
+    - assets/Mobile/Auth/
+    - assets/Mobile/HomeBackgrounds/
+    - assets/Mobile/icon/action_button/basic_actions/
+    - assets/Mobile/icon/action_button/item_reward_actions/
+    - assets/Mobile/icon/action_button/progress_sharing_actions/
+    - assets/Mobile/icon/action_button/utility_actions/
+    - assets/Mobile/icon/actions/
+    - assets/Mobile/icon/auth/
+    - assets/Mobile/icon/battle/
+    - assets/Mobile/icon/friend_battle_pvp/battle_pvp/
+    - assets/Mobile/icon/friend_battle_pvp/friend_battle_start/
+    - assets/Mobile/icon/friend_battle_pvp/friend_social/
+    - assets/Mobile/icon/friend_battle_pvp/friend_social_continued/
+    - assets/Mobile/icon/friends/
+    - assets/Mobile/icon/inventory/
+    - assets/Mobile/icon/navigation/
+    - assets/Mobile/icon/pet_states/
+    - assets/Mobile/icon/profile/
+    - assets/Mobile/icon/resources/
+    - assets/Mobile/icon/system/
+    - assets/Mobile/Mầm Non/excited/
+    - assets/Mobile/Mầm Non/feed_eat/
+    - assets/Mobile/Mầm Non/happy/
+    - assets/Mobile/Mầm Non/hunggry/
+    - assets/Mobile/Mầm Non/idle/
+    - assets/Mobile/Mầm Non/pvp/lose/
+    - assets/Mobile/Mầm Non/pvp/race/
+    - assets/Mobile/Mầm Non/pvp/win/
+    - assets/Mobile/Mầm Non/run/
+    - assets/Mobile/Mầm Non/sad/
+    - assets/Mobile/Mầm Non/sleep/
+    - assets/Mobile/Mầm Non/tap_hello/
+    - assets/Mobile/Menu/
+    - assets/Mobile/Notifications/
+    - assets/Mobile/Onboarding/
+    - assets/Mobile/PVP/
+    - assets/Mobile/PVP/items/
+    - assets/Mobile/PVP/Maps/
+    - assets/Mobile/PVP/passives/
+    - assets/Mobile/PVP/ranks/
+    - assets/Mobile/PVP/status/
+    - assets/Mobile/PVP/ui/
+    - assets/Mobile/PVP/vfx/cleanse_burst/
+    - assets/Mobile/PVP/vfx/rank_up/
+    - assets/Mobile/PVP/vfx/shield_bubble/
+    - assets/Mobile/PVP/vfx/slow_mist/
+    - assets/Mobile/PVP/vfx/speed_trail/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/excited/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/feed_eat/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/happy/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/hunggry/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/idle/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/lose/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/race/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/win/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/run/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/sad/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/sleep/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/tap_hello/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/excited/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/feed_eat/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/happy/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/hunggry/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/idle/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/lose/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/race/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/win/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/sad/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/sleep/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage2/tap_hello/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/excited/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/feed_eat/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/fly/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/happy/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/hunggry/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/idle/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/lose/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/race/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/win/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/sad/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/sleep/
+    - assets/Mobile/Tinh Linh Bình Minh/stage1/tap_hello/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/excited/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/feed_eat/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/happy/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/hunggry/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/idle/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/lose/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/race/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/win/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/sad/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/sleep/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/tap_hello/
+    - assets/Mobile/TinhLinhNangAm/Stage1/excited/
+    - assets/Mobile/TinhLinhNangAm/Stage1/feed_eat/
+    - assets/Mobile/TinhLinhNangAm/Stage1/happy/
+    - assets/Mobile/TinhLinhNangAm/Stage1/hunggry/
+    - assets/Mobile/TinhLinhNangAm/Stage1/idle/
+    - assets/Mobile/TinhLinhNangAm/Stage1/pvp/lose/
+    - assets/Mobile/TinhLinhNangAm/Stage1/pvp/race/
+    - assets/Mobile/TinhLinhNangAm/Stage1/pvp/win/
+    - assets/Mobile/TinhLinhNangAm/Stage1/run/
+    - assets/Mobile/TinhLinhNangAm/Stage1/sad/
+    - assets/Mobile/TinhLinhNangAm/Stage1/sleep/
+    - assets/Mobile/TinhLinhNangAm/Stage1/tap_hello/
+    - assets/Mobile/TinhLinhNangAm/stage2/excited/
+    - assets/Mobile/TinhLinhNangAm/stage2/feed_eat/
+    - assets/Mobile/TinhLinhNangAm/stage2/happy/
+    - assets/Mobile/TinhLinhNangAm/stage2/hunggry/
+    - assets/Mobile/TinhLinhNangAm/stage2/idle/
+    - assets/Mobile/TinhLinhNangAm/stage2/pvp/lose/
+    - assets/Mobile/TinhLinhNangAm/stage2/pvp/race/
+    - assets/Mobile/TinhLinhNangAm/stage2/pvp/win/
+    - assets/Mobile/TinhLinhNangAm/stage2/sad/
+    - assets/Mobile/TinhLinhNangAm/stage2/sleep/
+    - assets/Mobile/TinhLinhNangAm/stage2/tap_hello/
+    - assets/Mobile/ui_frames/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

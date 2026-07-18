@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "style": "Walkamon cozy mobile PvP",
+  "items": {
+    "haste": {
+      "path": "items/01_haste_nectar.png",
+      "status": "haste"
+    },
+    "slow": {
+      "path": "items/02_slow_mist_vial.png",
+      "status": "slow"
+    },
+    "cleanse": {
+      "path": "items/03_cleanse_dew.png",
+      "status": "cleanse"
+    },
+    "shield": {
+      "path": "items/04_shield_acorn.png",
+      "status": "shield"
+    }
+  },
+  "statusIcons": {
+    "haste": "status/haste.png",
+    "slow": "status/slow.png",
+    "cleanse": "status/cleanse.png",
+    "shield": "status/shield.png"
+  },
+  "passives": {
+    "binh_minh_stage1": "passives/passive_binh_minh_stage1.png",
+    "nang_am_stage1": "passives/passive_nang_am_stage1.png",
+    "anh_trang_stage1": "passives/passive_anh_trang_stage1.png"
+  },
+  "ranks": [
+    {
+      "key": "mam_dong",
+      "name": "Mầm Đồng",
+      "path": "ranks/rank_01_mam_dong.png"
+    },
+    {
+      "key": "la_bac",
+      "name": "Lá Bạc",
+      "path": "ranks/rank_02_la_bac.png"
+    },
+    {
+      "key": "nu_vang",
+      "name": "Nụ Vàng",
+      "path": "ranks/rank_03_nu_vang.png"
+    },
+    {
+      "key": "hoa_lam",
+      "name": "Hoa Lam",
+      "path": "ranks/rank_04_hoa_lam.png"
+    },
+    {
+      "key": "trang_tim",
+      "name": "Trăng Tím",
+      "path": "ranks/rank_05_trang_tim.png"
+    },
+    {
+      "key": "tinh_linh_cau_vong",
+      "name": "Tinh Linh Cầu Vồng",
+      "path": "ranks/rank_06_tinh_linh_cau_vong.png"
+    }
+  ],
+  "hud": {
+    "path": "ui/pvp_two_slot_hud_9slice.png",
+    "size": [
+      768,
+      384
+    ],
+    "centerSlice": {
+      "left": 352,
+      "top": 128,
+      "width": 64,
+      "height": 128
+    },
+    "stretchAxis": "horizontal",
+    "fixedSourceHeight": 384,
+    "note": "Scale the complete asset for device density, then use centerSlice only to extend width."
+  },
+  "vfx": {
+    "speed_trail": {
+      "folder": "vfx/speed_trail",
+      "pattern": "speed_trail_F%02d.png",
+      "frameCount": 8,
+      "fps": 12,
+      "loop": true,
+      "anchor": [
+        0.62,
+        0.55
+      ]
+    },
+    "slow_mist": {
+      "folder": "vfx/slow_mist",
+      "pattern": "slow_mist_F%02d.png",
+      "frameCount": 8,
+      "fps": 8,
+      "loop": true,
+      "anchor": [
+        0.5,
+        0.68
+      ]
+    },
+    "cleanse_burst": {
+      "folder": "vfx/cleanse_burst",
+      "pattern": "cleanse_burst_F%02d.png",
+      "frameCount": 8,
+      "fps": 12,
+      "loop": false,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "shield_bubble": {
+      "folder": "vfx/shield_bubble",
+      "pattern": "shield_bubble_F%02d.png",
+      "frameCount": 8,
+      "fps": 10,
+      "loop": true,
+      "anchor": [
+        0.5,
+        0.55
+      ]
+    },
+    "rank_up": {
+      "folder": "vfx/rank_up",
+      "pattern": "rank_up_F%02d.png",
+      "frameCount": 8,
+      "fps": 10,
+      "loop": false,
+      "anchor": [
+        0.5,
+        0.62
+      ]
+    }
+  },
+  "runtimeNotes": {
+    "cooldownRadialMask": "Draw in Flutter/Flame",
+    "timerText": "Draw in Flutter/Flame",
+    "disabledTint": "Draw in Flutter/Flame"
+  }
+}

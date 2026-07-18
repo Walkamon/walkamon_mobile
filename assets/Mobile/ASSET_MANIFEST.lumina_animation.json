@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "forms": {
+    "sprout": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "dawn_stage1": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "dawn_stage2": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "moon_stage1": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "moon_stage2": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "sun_stage1": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    },
+    "sun_stage2": {
+      "states": 48,
+      "tap_hello": 8,
+      "feed_eat": 8,
+      "race": 12,
+      "win": 8,
+      "lose": 8
+    }
+  },
+  "backgrounds": [
+    "Auth/auth_garden_portrait.png",
+    "Onboarding/welcome_portrait.png",
+    "Onboarding/onboarding_seed_portrait.png",
+    "Onboarding/onboarding_name_pet_portrait.png",
+    "Onboarding/daily_reward_portrait.png",
+    "Menu/menu_backdrop_portrait.png",
+    "HomeBackgrounds/home_mam_non_portrait.png",
+    "HomeBackgrounds/home_binh_minh_portrait.png",
+    "HomeBackgrounds/home_anh_trang_portrait.png",
+    "HomeBackgrounds/home_nang_am_portrait.png",
+    "PVP/Maps/pvp_map_morning_portrait.png",
+    "PVP/Maps/pvp_map_night_portrait.png"
+  ],
+  "frameSize": "512x512",
+  "backgroundSize": "1440x2560"
+}

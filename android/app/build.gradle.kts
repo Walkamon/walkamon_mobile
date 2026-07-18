@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // Thay thế dòng cũ bằng dòng dưới đây:
@@ -6,6 +8,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val playIntegrityCloudProjectNumber =
+    (System.getenv("PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER")
+        ?: localProperties.getProperty("play.integrity.cloudProjectNumber")
+        ?: "0").toLongOrNull() ?: 0L
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("key.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val hasReleaseSigning = keystoreProperties.isNotEmpty()
 
 android {
     namespace = "com.example.walkamon_mobile"
@@ -31,19 +47,55 @@ android {
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        buildConfigField(
+            "long",
+            "PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER",
+            "${playIntegrityCloudProjectNumber}L",
+        )
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val releaseRequested = allTasks.any {
+        it.name.contains("Release", ignoreCase = true)
+    }
+    if (releaseRequested && !hasReleaseSigning) {
+        throw GradleException(
+            "Release signing is not configured. Create android/key.properties before building a production APK.",
+        )
     }
 }
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("com.google.android.play:integrity:1.6.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    testImplementation("junit:junit:4.13.2")
 }
 
 flutter {

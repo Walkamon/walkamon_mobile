@@ -1,33 +1,35 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/widgets.dart';
-import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/constants/api_constants.dart';
+import '../models/step_sensor_models.dart';
 import '../repositories/daily_step_repository.dart';
+import 'android_step_bridge.dart';
 import 'step_tracking_store.dart';
 
-typedef StepCountStreamFactory = Stream<int> Function();
-typedef ActivityPermissionChecker = Future<bool> Function();
 typedef CurrentTimeProvider = DateTime Function();
-typedef StepDeltaSyncer = Future<bool> Function(int stepCount);
+typedef NativeMotionStreamFactory = Stream<NativeMotionEvent> Function();
+typedef ActivityPermissionChecker = Future<bool> Function();
 
 class StepTrackingService extends WidgetsBindingObserver {
   StepTrackingService({
     StepTrackingStore? store,
-    StepDeltaSyncer? stepDeltaSyncer,
-    StepCountStreamFactory? stepCountStreamFactory,
+    DailyStepRepository? repository,
+    AndroidStepBridge? androidBridge,
+    NativeMotionStreamFactory? motionStreamFactory,
     ActivityPermissionChecker? activityPermissionChecker,
     CurrentTimeProvider? currentTimeProvider,
-    this.syncInterval = const Duration(minutes: 1),
+    this.syncInterval = const Duration(seconds: 5),
   }) : _store = store ?? StepTrackingStore(),
-       _stepDeltaSyncer =
-           stepDeltaSyncer ?? DailyStepRepository().syncStepDelta,
-       _stepCountStreamFactory =
-           stepCountStreamFactory ??
-           (() => Pedometer.stepCountStream.map((event) => event.steps)),
+       _repository = repository ?? DailyStepRepository(),
+       _androidBridge = androidBridge ?? AndroidStepBridge(),
+       _motionStreamFactory =
+           motionStreamFactory ?? AndroidStepBridge.motionEvents,
        _activityPermissionChecker =
            activityPermissionChecker ??
            (() => Permission.activityRecognition.isGranted),
@@ -38,190 +40,169 @@ class StepTrackingService extends WidgetsBindingObserver {
   static const _vietnamUtcOffset = Duration(hours: 7);
 
   final StepTrackingStore _store;
-  final StepDeltaSyncer _stepDeltaSyncer;
-  final StepCountStreamFactory _stepCountStreamFactory;
+  final DailyStepRepository _repository;
+  final AndroidStepBridge _androidBridge;
+  final NativeMotionStreamFactory _motionStreamFactory;
   final ActivityPermissionChecker _activityPermissionChecker;
   final CurrentTimeProvider _currentTimeProvider;
   final Duration syncInterval;
 
-  StreamSubscription<int>? _stepSubscription;
-  Timer? _syncTimer;
+  StreamSubscription<NativeMotionEvent>? _motionSubscription;
   Future<void> _operationQueue = Future<void>.value();
 
   String? _activeUserId;
   String? _stepDate;
   int _dailyTotalSteps = 0;
-  int _pendingDeltaSteps = 0;
-  int? _lastSensorCount;
-  bool _isForeground = true;
+  StepSensorSession? _session;
+  bool _backgroundRunning = false;
   bool _disposed = false;
 
   ValueChanged<int>? onStepsChanged;
 
   int get currentStepCount => _dailyTotalSteps;
-  int get pendingDeltaSteps => _pendingDeltaSteps;
   String? get activeUserId => _activeUserId;
-  bool get isTracking => _stepSubscription != null;
+  bool get isTracking => _backgroundRunning;
 
   Future<void> startForUser(String userId) async {
-    if (kIsWeb) {
-      // debugPrint("======> Chạy trên Web: Bỏ qua toàn bộ logic đếm bước chân.");
-      return;
-    }
-
-    if (_disposed || userId.isEmpty) return;
+    if (kIsWeb || _disposed || userId.isEmpty) return;
     if (_activeUserId == userId) {
       await resumeTracking();
       return;
     }
 
     try {
-      await stopForUser();
+      if (_activeUserId != null) {
+        await stopForUser();
+      }
       _activeUserId = userId;
-
       final today = _formatVietnamDate(_currentTimeProvider());
       final storedState = await _store.loadState(userId);
       if (storedState != null && storedState.stepDate == today) {
         _stepDate = storedState.stepDate;
         _dailyTotalSteps = storedState.dailyTotalSteps;
-        _pendingDeltaSteps = storedState.pendingDeltaSteps;
-        _lastSensorCount = storedState.lastSensorCount;
+        _session = storedState.session?.isExpired == false
+            ? storedState.session
+            : null;
       } else {
         await _resetForDate(today);
       }
 
       onStepsChanged?.call(_dailyTotalSteps);
-      if (_isForeground) await resumeTracking();
-    } catch (e) {}
+      await resumeTracking();
+    } catch (error) {
+      debugPrint('Step tracking start failed: $error');
+    }
   }
 
   Future<void> resumeTracking() async {
     if (kIsWeb) return;
-
-    _isForeground = true;
     if (_disposed || _activeUserId == null) return;
+    if (!await _activityPermissionChecker()) return;
 
-    await flushPendingDelta();
-    if (_stepSubscription != null) return;
-
-    final permissionGranted = await _activityPermissionChecker();
-    if (!permissionGranted || _disposed || !_isForeground) return;
-
-    _stepSubscription = _stepCountStreamFactory().listen(
-      _enqueueSensorCount,
-      onError: (_) {
-        unawaited(pauseTracking());
+    await _operationQueue;
+    _motionSubscription ??= _motionStreamFactory().listen(
+      (event) => _enqueue(() => _handleNativeEvent(event)),
+      onError: (Object error) {
+        debugPrint('Background step status stream failed: $error');
       },
     );
-    _syncTimer = Timer.periodic(syncInterval, (_) {
-      unawaited(flushPendingDelta());
-    });
+
+    final nativeStatus = await _androidBridge.getTrackingStatus();
+    if (nativeStatus.running && nativeStatus.userId == _activeUserId) {
+      _backgroundRunning = true;
+      _dailyTotalSteps = nativeStatus.acceptedTotal;
+      onStepsChanged?.call(_dailyTotalSteps);
+      return;
+    }
+
+    await _ensureSession();
+    final session = _session;
+    if (session == null) return;
+    final preferences = await SharedPreferences.getInstance();
+    final accessToken = preferences.getString('access_token');
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    await _androidBridge.startCollector(
+      userId: _activeUserId!,
+      stepDate: _stepDate!,
+      apiBaseUrl: ApiConstants.baseUrl,
+      accessToken: accessToken,
+      mode: session.mode,
+      policy: session.motionPolicy,
+      session: session,
+      acceptedTotal: _dailyTotalSteps,
+    );
+    _backgroundRunning = true;
   }
 
   Future<void> pauseTracking() async {
     if (kIsWeb) return;
-
-    _isForeground = false;
-    _syncTimer?.cancel();
-    _syncTimer = null;
-    await _stepSubscription?.cancel();
-    _stepSubscription = null;
-    await _operationQueue;
-    await flushPendingDelta();
+    // The Android health foreground service intentionally keeps running.
   }
 
   Future<void> stopForUser() async {
     if (kIsWeb) return;
-
-    _syncTimer?.cancel();
-    _syncTimer = null;
-    await _stepSubscription?.cancel();
-    _stepSubscription = null;
+    await _androidBridge.stopCollector();
+    await _cancelSensorSubscription();
     await _operationQueue;
-    await flushPendingDelta();
 
+    _backgroundRunning = false;
     _activeUserId = null;
     _stepDate = null;
     _dailyTotalSteps = 0;
-    _pendingDeltaSteps = 0;
-    _lastSensorCount = null;
+    _session = null;
   }
 
-  Future<void> flushPendingDelta() {
-    final completer = Completer<void>();
-    _operationQueue = _operationQueue
-        .then((_) => _syncPendingDeltaInternal())
-        .then(completer.complete)
-        .catchError(completer.completeError);
-    return completer.future;
+  void _enqueue(Future<void> Function() operation) {
+    _operationQueue = _operationQueue.then((_) => operation()).catchError((
+      Object error,
+    ) {
+      debugPrint('Step sensor event failed: $error');
+    });
   }
 
-  void _enqueueSensorCount(int sensorCount) {
-    _operationQueue = _operationQueue
-        .then((_) => _handleSensorCount(sensorCount))
-        .catchError((_) {
-          // Keep the stream processing queue alive after a storage failure.
-        });
-  }
-
-  Future<void> _handleSensorCount(int sensorCount) async {
-    final userId = _activeUserId;
-    if (userId == null || sensorCount < 0) return;
-
-    final today = _formatVietnamDate(_currentTimeProvider());
-    if (_stepDate != today) {
-      await _resetForDate(today, lastSensorCount: sensorCount);
-      onStepsChanged?.call(_dailyTotalSteps);
-      return;
+  Future<void> _handleNativeEvent(NativeMotionEvent nativeEvent) async {
+    switch (nativeEvent) {
+      case NativeTrackingStatusEvent():
+        _backgroundRunning = nativeEvent.running;
+        if (nativeEvent.userId == null || nativeEvent.userId == _activeUserId) {
+          _dailyTotalSteps = nativeEvent.acceptedTotal;
+          _session = _session?.copyWith(
+            nextSequence: nativeEvent.nextSequence,
+            attested: nativeEvent.attested,
+          );
+          onStepsChanged?.call(_dailyTotalSteps);
+          await _saveCurrentState();
+        }
+      case NativeStepEvent():
+      case NativeMotionWindowEvent():
+      // Raw native events are owned and persisted by BackgroundStepService.
     }
+  }
 
-    final previousSensorCount = _lastSensorCount;
-    _lastSensorCount = sensorCount;
-    if (previousSensorCount == null) {
+  Future<void> _ensureSession() async {
+    if (_activeUserId == null || _session?.isExpired == false) return;
+    try {
+      final capabilities = await _androidBridge.getCapabilities();
+      if (!capabilities.accelerometerAvailable ||
+          (!capabilities.stepDetectorAvailable &&
+              !capabilities.stepCounterAvailable)) {
+        throw StateError('Required Android motion sensors are unavailable.');
+      }
+      _session = await _repository.createSession(capabilities.preferredMode);
       await _saveCurrentState();
-      return;
+    } on DioException catch (error) {
+      debugPrint(
+        'Step session request failed with HTTP ${error.response?.statusCode}.',
+      );
+    } catch (error) {
+      debugPrint('Step session request failed: $error');
     }
-
-    final delta = sensorCount >= previousSensorCount
-        ? sensorCount - previousSensorCount
-        : sensorCount;
-    if (delta <= 0) {
-      await _saveCurrentState();
-      return;
-    }
-
-    _dailyTotalSteps += delta;
-    _pendingDeltaSteps += delta;
-    await _saveCurrentState();
-    onStepsChanged?.call(_dailyTotalSteps);
   }
 
-  Future<void> _syncPendingDeltaInternal() async {
-    final today = _formatVietnamDate(_currentTimeProvider());
-    if (_stepDate != null && _stepDate != today) {
-      await _resetForDate(today);
-      onStepsChanged?.call(_dailyTotalSteps);
-      return;
-    }
-
-    final userId = _activeUserId;
-    if (userId == null || _pendingDeltaSteps <= 0) return;
-
-    final deltaToSync = _pendingDeltaSteps;
-    final synced = await _stepDeltaSyncer(deltaToSync);
-    if (!synced) return;
-
-    _pendingDeltaSteps = _pendingDeltaSteps > deltaToSync
-        ? _pendingDeltaSteps - deltaToSync
-        : 0;
-    await _saveCurrentState();
-  }
-
-  Future<void> _resetForDate(String stepDate, {int? lastSensorCount}) async {
+  Future<void> _resetForDate(String stepDate) async {
     _stepDate = stepDate;
     _dailyTotalSteps = 0;
-    _pendingDeltaSteps = 0;
-    _lastSensorCount = lastSensorCount;
     await _saveCurrentState();
   }
 
@@ -229,14 +210,14 @@ class StepTrackingService extends WidgetsBindingObserver {
     final userId = _activeUserId;
     final stepDate = _stepDate;
     if (userId == null || stepDate == null) return;
-
     await _store.saveState(
       userId,
       StoredDailyStepState(
         stepDate: stepDate,
         dailyTotalSteps: _dailyTotalSteps,
-        pendingDeltaSteps: _pendingDeltaSteps,
-        lastSensorCount: _lastSensorCount,
+        session: _session,
+        pendingEvents: const [],
+        pendingWindows: const [],
       ),
     );
   }
@@ -249,13 +230,16 @@ class StepTrackingService extends WidgetsBindingObserver {
     return '$year-$month-$day';
   }
 
+  Future<void> _cancelSensorSubscription() async {
+    await _motionSubscription?.cancel();
+    _motionSubscription = null;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (kIsWeb) return;
     if (state == AppLifecycleState.resumed) {
       unawaited(resumeTracking());
-    } else {
-      unawaited(pauseTracking());
     }
   }
 
@@ -263,8 +247,6 @@ class StepTrackingService extends WidgetsBindingObserver {
     if (_disposed) return;
     _disposed = true;
     WidgetsBinding.instance.removeObserver(this);
-    _syncTimer?.cancel();
-    unawaited(_stepSubscription?.cancel());
-    _stepSubscription = null;
+    unawaited(_cancelSensorSubscription());
   }
 }

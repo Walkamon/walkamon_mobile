@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "style": "Walkamon cozy notification feedback",
+  "meshy": {
+    "model": "nano-banana-pro",
+    "taskId": "019f6f40-03fe-7316-aecf-c65eed65fe09",
+    "creditsConsumed": 9
+  },
+  "feedback": {
+    "toast": {
+      "path": "../ui_frames/toast_feedback_9slice.png",
+      "size": [
+        768,
+        256
+      ],
+      "centerSlice": {
+        "left": 256,
+        "top": 96,
+        "width": 256,
+        "height": 64
+      },
+      "usage": [
+        "success",
+        "reward",
+        "warning",
+        "info",
+        "error"
+      ]
+    },
+    "rewardResult": {
+      "path": "../ui_frames/reward_result_9slice.png",
+      "size": [
+        768,
+        768
+      ],
+      "centerSlice": {
+        "left": 256,
+        "top": 320,
+        "width": 256,
+        "height": 256
+      }
+    },
+    "eventFallback": {
+      "path": "event_fallback_banner.png",
+      "size": [
+        1200,
+        675
+      ],
+      "aspectRatio": "16:9",
+      "useWhen": "Notification imageUrl is empty or fails to load"
+    }
+  },
+  "systemIcons": {
+    "success": "../icon/actions/34_confirm.png",
+    "error": "../icon/system/error.png",
+    "warning": "../icon/system/warning.png",
+    "info": "../icon/system/info.png",
+    "event": "../icon/system/calendar.png",
+    "maintenance": "../icon/system/maintenance.png",
+    "patchNotes": "../icon/system/patch_notes.png",
+    "news": "../icon/system/news.png",
+    "announcement": "../icon/system/announcement.png"
+  },
+  "qa": {
+    "status": "pass",
+    "files": [
+      {
+        "path": "icon/system/maintenance.png",
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "icon/system/patch_notes.png",
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "icon/system/news.png",
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "icon/system/announcement.png",
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "ui_frames/toast_feedback_9slice.png",
+        "size": [
+          768,
+          256
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "ui_frames/reward_result_9slice.png",
+        "size": [
+          768,
+          768
+        ],
+        "mode": "RGBA",
+        "alphaMargin": 12
+      },
+      {
+        "path": "Notifications/event_fallback_banner.png",
+        "size": [
+          1200,
+          675
+        ],
+        "mode": "RGBA",
+        "alphaMargin": null
+      }
+    ]
+  }
+}

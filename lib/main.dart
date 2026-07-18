@@ -29,7 +29,6 @@ import 'screen/auth/reset_password_screen.dart';
 import 'screen/auth/change_password_screen.dart';
 import 'screen/auth/privacy_policy_screen.dart';
 import 'screen/spirit/spirit_detail_screen.dart';
-import 'screen/friends/friends_screen.dart';
 import 'screen/social/social_screen.dart';
 import 'screen/gameplay/pvp_screen.dart';
 import 'screen/welcome/daily_reward_screen.dart';
@@ -92,9 +91,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
       ProfileViewScreenDatasource(apiClient),
     );
     final friendsRepository = FriendsRepository(FriendsDatasource(apiClient));
-   final petRepository = PetScreenRepository(
-  datasource: PetScreenDatasource(apiClient),
-);
+    final petRepository = PetScreenRepository(
+      datasource: PetScreenDatasource(apiClient),
+    );
 
     final notificationDatasource = NotificationDatasourceImpl(apiClient);
     final notificationRepository = NotificationRepositoryImpl(
@@ -112,7 +111,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
           ),
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
-        ChangeNotifierProvider(create: (_) => DailyLoginProvider(DailyLoginRepository())),
+        ChangeNotifierProvider(
+          create: (_) => DailyLoginProvider(DailyLoginRepository()),
+        ),
         Provider<FriendsRepository>(create: (_) => friendsRepository),
       ],
       child: Consumer<GameStateProvider>(
@@ -169,7 +170,8 @@ class _WalkamonAppState extends State<WalkamonApp> {
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
               if (!isLogged && privateRoutes.contains(routeName)) {
                 return MaterialPageRoute(
-                  builder: (_) => const AuthLayout(child: LoginScreen()),
+                  builder: (_) =>
+                      const AuthLayout(fullBleed: true, child: LoginScreen()),
                   settings: const RouteSettings(
                     name: '/auth/login',
                   ), // Giữ đúng lịch sử định tuyến
@@ -196,7 +198,8 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const WelcomeScreen();
                   break;
                 case '/auth/login':
-                  builder = (_) => const AuthLayout(child: LoginScreen());
+                  builder = (_) =>
+                      const AuthLayout(fullBleed: true, child: LoginScreen());
                   break;
                 case '/auth/register':
                   builder = (_) => const AuthLayout(child: RegisterScreen());

@@ -33,6 +33,10 @@ class LoginScreenRepository {
       if (token.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', token);
+        final userId = response.data!.userId;
+        if (userId != null && userId.isNotEmpty) {
+          await prefs.setString('user_id', userId);
+        }
       }
     }
   }
