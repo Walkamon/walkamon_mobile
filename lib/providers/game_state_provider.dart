@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/auth/token_storage.dart';
+import '../core/l10n/locale_helper.dart';
 import '../core/utils/login_screen_error_translator.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
@@ -93,6 +95,8 @@ class GameSettings {
 }
 
 class GameStateProvider extends ChangeNotifier {
+  static const _languageCodeKey = 'language_code';
+
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
   final ProfileViewScreenRepository _profileRepository;
@@ -109,7 +113,9 @@ class GameStateProvider extends ChangeNotifier {
     this._notificationRepository,
     this._fcmService,
     this._petRepository,
-  );
+  ) {
+    _loadSavedLanguage();
+  }
 
   GameUser? _user;
   GameSettings _settings = const GameSettings();
@@ -130,6 +136,7 @@ class GameStateProvider extends ChangeNotifier {
 
   GameUser? get user => _user;
   GameSettings get settings => _settings;
+  Locale get locale => LocaleHelper.localeFromCode(_settings.languageCode);
   bool get isAuthenticated => _user != null;
   int get bondingLevel => _bondingLevel;
   int get spiritLevel => _spiritLevel;
@@ -338,9 +345,30 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  void setLanguageCode(String languageCode) {
+  Future<void> _loadSavedLanguage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString(_languageCodeKey);
+      if (savedLanguage == null || savedLanguage.isEmpty) return;
+      if (savedLanguage == _settings.languageCode) return;
+
+      _settings = _settings.copyWith(languageCode: savedLanguage);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Không thể tải ngôn ngữ đã lưu: $e');
+    }
+  }
+
+  Future<void> setLanguageCode(String languageCode) async {
     _settings = _settings.copyWith(languageCode: languageCode);
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_languageCodeKey, languageCode);
+    } catch (e) {
+      debugPrint('Không thể lưu ngôn ngữ: $e');
+    }
   }
 
   // ── THÊM MỚI: Hàm xử lý Bật/Tắt Notification gọi xuống Backend ──

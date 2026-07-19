@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/auth/google_sign_in_auth.dart';
+import '../../core/l10n/locale_helper.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
@@ -18,7 +20,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _showSettings = false;
-  String _language = 'vi';
   bool _bgmEnabled = true;
   bool _sfxEnabled = true;
   bool _fps60 = false;
@@ -91,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         content: Text(
           message?.trim().isNotEmpty == true
               ? message!.trim()
-              : 'Dang nhap Google that bai.',
+              : AppLocalizations.of(context).googleLoginFailed,
         ),
       ),
     );
@@ -99,6 +100,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
     final onPrimary = Theme.of(context).colorScheme.onPrimary;
@@ -144,7 +146,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               const _HeroLogo(size: 144),
                               const SizedBox(height: 24),
                               Text(
-                                'Walkamon',
+                                l10n.appTitle,
                                 style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.w800,
@@ -154,7 +156,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Walk & Grow Together',
+                                l10n.welcomeTagline,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -173,7 +175,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             child: Column(
                               children: [
                                 _PrimaryButton(
-                                  label: 'Khám Phá Ngay',
+                                  label: l10n.welcomeExplore,
                                   backgroundColor: primary,
                                   foregroundColor: onPrimary,
                                   onPressed: () =>
@@ -184,7 +186,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   children: [
                                     Expanded(
                                       child: _OutlineButton(
-                                        label: 'Đăng Nhập',
+                                        label: l10n.welcomeLogin,
                                         color: primary,
                                         onPressed: () => Navigator.pushNamed(
                                           context,
@@ -195,7 +197,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: _OutlineButton(
-                                        label: 'Đăng Ký',
+                                        label: l10n.welcomeRegister,
                                         color: primary,
                                         onPressed: () => Navigator.pushNamed(
                                           context,
@@ -216,7 +218,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                         horizontal: 16,
                                       ),
                                       child: Text(
-                                        'HOẶC',
+                                        l10n.welcomeOr,
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
@@ -257,11 +259,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               borderColor: borderColor,
               foregroundColor: foreground,
               mutedForeground: mutedForeground,
-              language: _language,
               bgmEnabled: _bgmEnabled,
               sfxEnabled: _sfxEnabled,
               fps60: _fps60,
-              onLanguageChanged: (value) => setState(() => _language = value),
               onBgmChanged: (value) => setState(() => _bgmEnabled = value),
               onSfxChanged: (value) {
                 setState(() => _sfxEnabled = value);
@@ -479,7 +479,7 @@ class _GoogleButton extends StatelessWidget {
                 const GoogleIcon(),
                 const SizedBox(width: 12),
                 Text(
-                  'Đăng nhập bằng Google',
+                  AppLocalizations.of(context).welcomeGoogleLogin,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -502,11 +502,9 @@ class _SettingsOverlay extends StatelessWidget {
     required this.borderColor,
     required this.foregroundColor,
     required this.mutedForeground,
-    required this.language,
     required this.bgmEnabled,
     required this.sfxEnabled,
     required this.fps60,
-    required this.onLanguageChanged,
     required this.onBgmChanged,
     required this.onSfxChanged,
     required this.onFps60Changed,
@@ -518,11 +516,9 @@ class _SettingsOverlay extends StatelessWidget {
   final Color borderColor;
   final Color foregroundColor;
   final Color mutedForeground;
-  final String language;
   final bool bgmEnabled;
   final bool sfxEnabled;
   final bool fps60;
-  final ValueChanged<String> onLanguageChanged;
   final ValueChanged<bool> onBgmChanged;
   final ValueChanged<bool> onSfxChanged;
   final ValueChanged<bool> onFps60Changed;
@@ -530,6 +526,8 @@ class _SettingsOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return GestureDetector(
       onTap: onClose,
       child: Container(
@@ -563,6 +561,8 @@ class _SettingsOverlay extends StatelessWidget {
                 child: Consumer<GameStateProvider>(
                   builder: (context, gameState, _) {
                     final settings = gameState.settings;
+                    final isVi = LocaleHelper.isVietnamese(settings.languageCode);
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -570,7 +570,7 @@ class _SettingsOverlay extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Thiết Lập Game',
+                              l10n.gameSettings,
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
@@ -587,15 +587,18 @@ class _SettingsOverlay extends StatelessWidget {
                         _SettingsLanguageRow(
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
-                          selectedLanguage: language,
-                          onChanged: onLanguageChanged,
+                          isVi: isVi,
+                          onChanged: (value) {
+                            final code = value == 'vi' ? 'vi-VN' : 'en-US';
+                            context.read<GameStateProvider>().setLanguageCode(code);
+                          },
                         ),
                         const SizedBox(height: 20),
                         const Divider(height: 1),
                         const SizedBox(height: 20),
                         _SettingsRow(
                           icon: Icons.music_note,
-                          label: 'Nhạc nền (BGM)',
+                          label: l10n.bgm,
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
                           toggle: _Toggle(
@@ -606,7 +609,7 @@ class _SettingsOverlay extends StatelessWidget {
                         const SizedBox(height: 20),
                         _SettingsRow(
                           icon: Icons.volume_up_outlined,
-                          label: 'Hiệu ứng (SFX)',
+                          label: l10n.sfx,
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
                           toggle: _Toggle(
@@ -619,19 +622,19 @@ class _SettingsOverlay extends StatelessWidget {
                         const SizedBox(height: 20),
                         _SettingsRow(
                           icon: Icons.bolt,
-                          label: 'Chế độ 60 FPS',
+                          label: l10n.fps60,
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
                           toggle: _LabeledToggle(
                             active: fps60,
                             onTap: () => onFps60Changed(!fps60),
-                            label: 'Mượt mà hơn, tốn pin hơn',
+                            label: l10n.fps60Hint,
                           ),
                         ),
                         const SizedBox(height: 20),
                         _SettingsRow(
                           icon: Icons.dark_mode_outlined,
-                          label: 'Chế độ tối',
+                          label: l10n.darkMode,
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
                           toggle: _Toggle(
@@ -656,18 +659,19 @@ class _SettingsLanguageRow extends StatelessWidget {
   const _SettingsLanguageRow({
     required this.foregroundColor,
     required this.mutedForeground,
-    required this.selectedLanguage,
+    required this.isVi,
     required this.onChanged,
   });
 
   final Color foregroundColor;
   final Color mutedForeground;
-  final String selectedLanguage;
+  final bool isVi;
   final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final isVi = selectedLanguage == 'vi';
+    final l10n = AppLocalizations.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -676,7 +680,7 @@ class _SettingsLanguageRow extends StatelessWidget {
             Icon(Icons.language, size: 20, color: mutedForeground),
             const SizedBox(width: 12),
             Text(
-              'Ngôn ngữ',
+              l10n.language,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,

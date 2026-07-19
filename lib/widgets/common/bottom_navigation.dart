@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 class BottomNavigation extends StatelessWidget {
   const BottomNavigation({super.key});
@@ -32,13 +33,14 @@ class BottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentRoute = ModalRoute.of(context)?.settings.name;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     final navItems = [
-      {'to': '/home', 'icon': Icons.home_rounded, 'label': 'Home'},
-      {'to': '/shop', 'icon': Icons.storefront_rounded, 'label': 'Shop'},
-      {'to': '/inventory', 'icon': Icons.backpack_rounded, 'label': 'Bag'},
-      {'to': '/social', 'icon': Icons.track_changes_rounded, 'label': 'Quest'},
-      {'to': '/profile', 'icon': Icons.person_rounded, 'label': 'Profile'},
+      {'to': '/home', 'icon': Icons.home_rounded, 'label': l10n.navHome},
+      {'to': '/shop', 'icon': Icons.storefront_rounded, 'label': l10n.navShop},
+      {'to': '/inventory', 'icon': Icons.backpack_rounded, 'label': l10n.navBag},
+      {'to': '/social', 'icon': Icons.track_changes_rounded, 'label': l10n.navQuest},
+      {'to': '/profile', 'icon': Icons.person_rounded, 'label': l10n.navProfile},
     ];
 
     return SafeArea(

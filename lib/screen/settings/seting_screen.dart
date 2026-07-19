@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
+
+import '../../core/l10n/locale_helper.dart';
 
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
@@ -54,9 +57,9 @@ class _SettingScreenState extends State<SettingScreen> {
     if (_isSendingFeedback) return;
 
     if (!_isFeedbackValid) {
+      final l10n = AppLocalizations.of(context);
       setState(() {
-        _feedbackMessage =
-            'Mô tả phải có ít nhất 20 kí tự. (${_feedbackText.trim().length}/20)';
+        _feedbackMessage = l10n.feedbackMinLength(_feedbackText.trim().length);
       });
       return;
     }
@@ -115,17 +118,18 @@ class _SettingScreenState extends State<SettingScreen> {
 
   void _toggleLanguage() {
     final settings = context.read<GameStateProvider>().settings;
-    final currentLanguage = settings.languageCode.toLowerCase();
-    final nextLanguage = currentLanguage.startsWith('vi') ? 'en-US' : 'vi-VN';
+    final nextLanguage = LocaleHelper.isVietnamese(settings.languageCode)
+        ? 'en-US'
+        : 'vi-VN';
     context.read<GameStateProvider>().setLanguageCode(nextLanguage);
   }
 
   @override
   Widget build(BuildContext context) {
     final gameState = context.watch<GameStateProvider>();
-    final currentLanguage = gameState.settings.languageCode.toLowerCase();
-    final isVi = currentLanguage.startsWith('vi');
-    final languageLabel = isVi ? 'Tiếng Việt' : 'English';
+    final l10n = AppLocalizations.of(context);
+    final isVi = LocaleHelper.isVietnamese(gameState.settings.languageCode);
+    final languageLabel = isVi ? l10n.languageVi : l10n.languageEn;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -140,7 +144,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   children: [
                     // ================= KHỐI 1: THÊM MỚI HỆ THỐNG =================
                     Text(
-                      'Hệ thống',
+                      l10n.system,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.2,
@@ -159,8 +163,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                       ),
                       child: _SettingsSwitch(
-                        label: 'Thông báo nhắc nhở',
-                        subtitle: 'Nhận lịch nhắc cho thú cưng ăn, đi bộ',
+                        label: l10n.notificationsRemind,
+                        subtitle: l10n.notificationsSubtitle,
                         icon: Icons.notifications_none_rounded,
                         value: gameState.settings.notifications,
                         onChanged: (newValue) {
@@ -174,7 +178,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Tính năng & Hỗ trợ',
+                      l10n.featuresSupport,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.2,
@@ -195,7 +199,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       child: Column(
                         children: [
                           _SettingsButton(
-                            label: 'Ngôn ngữ (Language)',
+                            label: l10n.language,
                             icon: Icons.language,
                             onPressed: _toggleLanguage,
                             trailing: Text(
@@ -211,7 +215,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           ),
                           const Divider(height: 1),
                           _SettingsButton(
-                            label: 'Gửi góp ý & Báo lỗi cho Dev',
+                            label: l10n.sendFeedback,
                             icon: Icons.message_outlined,
                             onPressed: () => setState(() {
                               _feedbackMessage = null;
@@ -225,7 +229,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Tài khoản & Bảo mật',
+                      l10n.accountSecurity,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -243,7 +247,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                       ),
                       child: _SettingsButton(
-                        label: 'Đổi mật khẩu tài khoản',
+                        label: l10n.changePassword,
                         icon: Icons.key_rounded,
                         onPressed: () => Navigator.pushNamed(
                           context,
@@ -265,7 +269,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                       ),
                       child: _SettingsButton(
-                        label: 'Đăng xuất tài khoản',
+                        label: l10n.logout,
                         icon: Icons.logout_rounded,
                         onPressed: _handleLogout,
                         isWarning: true,
@@ -286,6 +290,8 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Widget _buildFeedbackPopup(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Positioned.fill(
       child: GestureDetector(
         onTap: () => setState(() => _showFeedbackPopup = false),
@@ -322,7 +328,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Bạn đã đánh giá thành công',
+                            l10n.feedbackSuccess,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
@@ -345,7 +351,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Gửi phản hồi',
+                                    l10n.feedbackTitle,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -369,7 +375,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 children: [
                                   Expanded(
                                     child: _FeedbackTypeButton(
-                                      label: 'Góp ý',
+                                      label: l10n.feedbackSuggestion,
                                       icon: Icons.lightbulb_outline,
                                       selected: _feedbackType == 'suggestion',
                                       onTap: () => setState(
@@ -380,7 +386,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: _FeedbackTypeButton(
-                                      label: 'Báo lỗi',
+                                      label: l10n.feedbackBug,
                                       icon: Icons.bug_report_outlined,
                                       selected: _feedbackType == 'bug',
                                       onTap: () =>
@@ -391,7 +397,7 @@ class _SettingScreenState extends State<SettingScreen> {
                               ),
                               const SizedBox(height: 18),
                               Text(
-                                'Mô tả chi tiết',
+                                l10n.feedbackDetail,
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
@@ -408,8 +414,8 @@ class _SettingScreenState extends State<SettingScreen> {
                                 }),
                                 decoration: InputDecoration(
                                   hintText: _feedbackType == 'suggestion'
-                                      ? 'Bạn có ý tưởng gì mới cho game không?'
-                                      : 'Bạn đã gặp vấn đề gì trong lúc chơi?',
+                                      ? l10n.feedbackHintSuggestion
+                                      : l10n.feedbackHintBug,
                                   hintStyle: Theme.of(context)
                                       .textTheme
                                       .bodyMedium
@@ -461,8 +467,8 @@ class _SettingScreenState extends State<SettingScreen> {
                                 icon: const Icon(Icons.send_rounded),
                                 label: Text(
                                   _isSendingFeedback
-                                      ? 'Đang gửi...'
-                                      : 'Gửi ngay',
+                                      ? l10n.feedbackSending
+                                      : l10n.feedbackSubmit,
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
