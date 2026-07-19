@@ -1,0 +1,247 @@
+{
+  "@@locale": "en",
+  "appTitle": "Walkamon",
+  "system": "System",
+  "notificationsRemind": "Reminder notifications",
+  "notificationsSubtitle": "Get reminders for feeding and walking your pet",
+  "featuresSupport": "Features & Support",
+  "language": "Language",
+  "languageVi": "Vietnamese",
+  "languageEn": "English",
+  "sendFeedback": "Send feedback & report bugs",
+  "accountSecurity": "Account & Security",
+  "changePassword": "Change password",
+  "logout": "Log out",
+  "feedbackTitle": "Send feedback",
+  "feedbackSuggestion": "Suggestion",
+  "feedbackBug": "Bug report",
+  "feedbackDetail": "Details",
+  "feedbackHintSuggestion": "Do you have any new ideas for the game?",
+  "feedbackHintBug": "What issue did you encounter while playing?",
+  "feedbackSending": "Sending...",
+  "feedbackSubmit": "Submit",
+  "feedbackSuccess": "Feedback sent successfully",
+  "feedbackMinLength": "Description must be at least 20 characters. ({count}/20)",
+  "@feedbackMinLength": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gameSettings": "Game Settings",
+  "bgm": "Background music (BGM)",
+  "sfx": "Sound effects (SFX)",
+  "fps60": "60 FPS mode",
+  "fps60Hint": "Smoother, uses more battery",
+  "darkMode": "Dark mode",
+  "navHome": "Home",
+  "navShop": "Shop",
+  "navBag": "Bag",
+  "navQuest": "Quest",
+  "navProfile": "Profile",
+  "welcomeTagline": "Walk & Grow Together",
+  "welcomeExplore": "Explore Now",
+  "welcomeLogin": "Login",
+  "welcomeRegister": "Register",
+  "welcomeOr": "OR",
+  "welcomeGoogleLogin": "Continue with Google",
+  "googleLoginFailed": "Google sign in failed",
+  "healthWarning": "Playing for more than 180 minutes a day may harm your health",
+  "today": "Today",
+  "todayStepsDesc": "Steps you've walked today",
+  "step": "Steps",
+  "luminaStatus": "LUMINA STATUS",
+  "energy": "Energy",
+  "lifeForce": "Life Force",
+  "bonding": "Bonding",
+  "levelShort": "Lv. {level}",
+  "@levelShort": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "expProgress": "EXP {current}/{max}",
+  "@expProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNavCommunity": "Community",
+  "homeNavPvp": "PvP",
+  "homeNavInventory": "Inventory",
+  "homeNavStore": "Shop",
+  "loginBack": "Go back",
+  "loginTagline": "Every step, a little magic",
+  "loginWelcomeBack": "Welcome back!",
+  "loginSubtitle": "Continue your journey with your Lumina spirit.",
+  "loginEmailRequired": "Email is required.",
+  "loginEmailInvalid": "Invalid email format.",
+  "loginPasswordRequired": "Password is required.",
+  "loginFailed": "Login failed.",
+  "loginEmail": "Email",
+  "loginPassword": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "forgotPassword": "Forgot password?",
+  "forgotPasswordTitle": "Lost password?",
+  "forgotPasswordSubtitle": "Enter your registered email and we will send an OTP to reset your password.",
+  "forgotPasswordResetSent": "If the email exists, a password reset OTP has been sent.",
+  "forgotPasswordRequestFailed": "Unable to send password reset request.",
+  "forgotPasswordSendSignal": "Send signal",
+  "loginButton": "Log in",
+  "noAccount": "Don't have an account?",
+  "registerNow": "Sign up now",
+  "registerTitle": "Plant your first seed",
+  "registerSubtitle": "Sign the pact and begin your own magical journey",
+  "registerNameHint": "Your name",
+  "registerPasswordMinLength": "Password must contain at least 6 characters.",
+  "registerConfirmPassword": "Confirm password",
+  "registerNameRequired": "Name is required.",
+  "registerNameMinLength": "Name must contain at least 2 characters.",
+  "registerConfirmPasswordRequired": "Please confirm your password.",
+  "registerPasswordMismatch": "Password confirmation does not match.",
+  "registerFailed": "Registration failed. Please try again.",
+  "registerAgreeTerms": "I have read and agree to ",
+  "privacyPolicy": "Privacy policy and terms of use",
+  "registerButton": "Start the pact",
+  "registerAlreadyAccount": "Already signed the pact?",
+  "registerLoginHere": "Log in here",
+  "changePasswordTitle": "Change Password",
+"changePasswordSubtitle": "Update your password to keep your account secure.",
+
+"changePasswordCurrentPassword": "Current Password",
+"changePasswordCurrentPasswordHint": "Enter your current password",
+"changePasswordCurrentPasswordRequired": "Current password is required.",
+
+"changePasswordNewPassword": "New Password",
+"changePasswordNewPasswordHint": "Enter your new password",
+"changePasswordNewPasswordRequired": "New password is required.",
+"changePasswordNewPasswordMinLength": "New password must be at least 6 characters.",
+
+"changePasswordConfirmPassword": "Confirm New Password",
+"changePasswordConfirmPasswordHint": "Confirm your new password",
+"changePasswordConfirmPasswordRequired": "Please confirm your new password.",
+"changePasswordConfirmPasswordMismatch": "Passwords do not match.",
+
+"changePasswordSave": "Save Changes",
+
+"changePasswordSuccessTitle": "Password Changed Successfully!",
+"changePasswordSuccessSubtitle": "Your password has been updated securely. Please use your new password the next time you sign in.",
+"changePasswordBackToSettings": "Back to Settings",
+
+"changePasswordFailed": "Failed to change password. Please try again.",
+"otpTitle": "OTP",
+"otpSubtitle": "Enter the 6-digit OTP sent to your email",
+"otpVerifyButton": "Verify OTP",
+"otpResendButton": "Resend OTP",
+
+"otpIncomplete": "Please enter all 6 OTP digits.",
+"otpDigitsOnly": "OTP must contain digits only.",
+
+"otpRequestCodeNotFound": "OTP request code not found.",
+"otpEmailNotFound": "Email not found for resending OTP.",
+
+"otpInvalid": "Invalid OTP code.",
+"otpVerifySuccess": "OTP verified successfully!",
+
+"otpResendSuccess": "OTP has been resent successfully!",
+"otpResendFailed": "Failed to resend OTP.",
+"seedContinue": "Continue",
+
+"seedTitle": "Seed of Light",
+"seedDescription": "This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.",
+
+"seedEvolutionTitle": "Evolution",
+"seedEvolutionDescription": "The Seed will evolve into different Lumina forms based on your walking habits.",
+
+"seedPath1Name": "Dawn Spirit",
+"seedPath1Description": "Flying Type • Morning Walks",
+
+"seedPath2Name": "Moonlight Spirit",
+"seedPath2Description": "Night Type • Evening Walks",
+
+"seedPath3Name": "Sunlight Spirit",
+"seedPath3Description": "Nature Type • Balanced Walking",
+"privacyTitle": "Terms of Service",
+  "privacySubtitle": "Agreement with Walkamon",
+
+  "privacyIntroTitle": "INTRODUCTION",
+  "privacyIntroContent": "...",
+
+  "privacyPart1": "PART 1",
+
+  "privacySection1Title": "1. Registration",
+  "privacySection1Content": "...",
+
+  "privacySection2Title": "2. Naming",
+  "privacySection2Content": "...",
+
+  "privacySection3Title": "3. Data Storage",
+  "privacySection3Content": "...",
+
+  "privacySection4Title": "4. Prohibited Conduct",
+  "privacySection4Content": "...",
+
+  "privacySection5Title": "5. Account Termination",
+  "privacySection5Content": "...",
+
+  "privacyPart2": "PART 2",
+
+  "privacySection6Title": "1. Content",
+  "privacySection6Content": "...",
+
+  "privacySection7Title": "2. Age Rating",
+  "privacySection7Content": "...",
+
+  "privacySection8Title": "3. Virtual Items",
+  "privacySection8Content": "...",
+
+  "privacySection9Title": "4. Copyright",
+  "privacySection9Content": "...",
+
+  "privacySection10Title": "5. Third-party Websites",
+  "privacySection10Content": "...",
+
+  "privacyContactTitle": "CONTACT",
+  "privacyContactContent": "...",
+
+  "privacyLastUpdated": "Last updated: June 25, 2026",
+
+  "privacyAgreeButton": "I Understand & Agree",
+  "profileTitle": "Profile",
+  "loading": "Loading...",
+  "traveler": "Traveler",
+  "managementStats": "Management & Stats",
+  "accountInfo": "Account information",
+  "setStepGoal": "Set step goal",
+  "streak": "Daily streak",
+  "activityStats": "Activity stats",
+  "achievements": "Achievements",
+  "achievementVault": "Achievement Vault",
+  "achievementsLoadFailed": "Failed to load achievements",
+  "achievementsCollected": "Collected {count} badges",
+  "@achievementsCollected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Retry",
+  "characterNotFound": "Character information not found.",
+  "notUpdated": "Not updated",
+  "dateOfBirth": "Date of birth",
+  "gender": "Gender",
+  "joinDate": "Join date",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "genderOther": "Other"
+}

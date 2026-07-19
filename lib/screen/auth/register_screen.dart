@@ -3,7 +3,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/register_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
-
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -57,34 +57,38 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   // ── Validation ────────────────────────────────────────────────────────────
 
-  String? _validateName(String? value) {
+  String? _validateName(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Tên không được để trống.';
-    if (v.length < 2) return 'Tên phải chứa ít nhất 2 ký tự.';
+    if (v.isEmpty) return l10n.registerNameRequired;
+    if (v.length < 2) return l10n.registerNameMinLength;
     return null;
   }
 
-  String? _validateEmail(String? value) {
+  String? _validateEmail(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Email không được để trống.';
+    if (v.isEmpty) return l10n.loginEmailRequired;
     if (!RegExp(r'^[\w.+\-]+@[\w\-]+\.[\w\-.]+$').hasMatch(v)) {
-      return 'Email không đúng định dạng.';
+      return l10n.loginEmailInvalid;
     }
     return null;
   }
 
-  String? _validatePassword(String? value) {
+  String? _validatePassword(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final v = value ?? '';
-    if (v.isEmpty) return 'Mật khẩu không được để trống.';
-    if (v.length < 6) return 'Mật khẩu phải chứa ít nhất 6 ký tự.';
+    if (v.isEmpty) return l10n.loginPasswordRequired;
+    if (v.length < 6) return l10n.registerPasswordMinLength;
     return null;
   }
 
-  String? _validateConfirmPassword(String? value) {
+  String? _validateConfirmPassword(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final v = value ?? '';
-    if (v.isEmpty) return 'Vui lòng xác nhận mật khẩu.';
+    if (v.isEmpty) return l10n.registerConfirmPasswordRequired;
     if (v != _passwordController.text) {
-      return 'Mật khẩu xác nhận không trùng khớp.';
+      return l10n.registerPasswordMismatch;
     }
     return null;
   }
@@ -92,6 +96,8 @@ class _RegisterScreenState extends State<RegisterScreen>
   // ── Business Logic ────────────────────────────────────────────────────────
 
   void _handleRegister() async {
+    final l10n = AppLocalizations.of(context);
+
     setState(() {
       _errorMessage = null;
     });
@@ -100,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
-        _errorMessage = 'Mật khẩu xác nhận không trùng khớp!';
+        _errorMessage = l10n.registerPasswordMismatch;
       });
       return;
     }
@@ -137,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         _errorMessage = translateError(
           response.message.isNotEmpty
               ? response.message
-              : 'Đăng ký thất bại. Vui lòng thử lại.',
+              : l10n.registerFailed,
         );
       });
     }
@@ -149,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
     final cardColor = theme.colorScheme.surface;
@@ -179,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       children: [
                         // H1 - Title
                         Text(
-                          'Gieo Hạt Mầm Đầu Tiên',
+                          l10n.registerTitle,
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: primary,
@@ -188,7 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                         const SizedBox(height: 12),
                         // Subtitle
                         Text(
-                          'Ký kết khế ước và bắt đầu hành trình ma thuật của riêng bạn',
+                          l10n.registerSubtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: mutedForeground,
                             fontWeight: FontWeight.w500,
@@ -206,12 +213,12 @@ class _RegisterScreenState extends State<RegisterScreen>
                         // ── Name field ──────────────────────────────
                         _PillField(
                           controller: _nameController,
-                          hint: 'Tên của bạn',
+                          hint: l10n.registerNameHint,
                           icon: Icons.spa_outlined, // Thay Sprout
                           textInputAction: TextInputAction.next,
                           cardColor: cardColor,
                           primary: primary,
-                          validator: _validateName,
+                          validator: (value) => _validateName(context, value),
                           enabled: !_isLoading,
                         ),
                         const SizedBox(height: 16),
@@ -219,13 +226,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                         // ── Email field ──────────────────────────────
                         _PillField(
                           controller: _emailController,
-                          hint: 'Email',
+                          hint: l10n.loginEmail,
                           icon: Icons.directions_walk, // Thay Footprints
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           cardColor: cardColor,
                           primary: primary,
-                          validator: _validateEmail,
+                          validator: (value) => _validateEmail(context, value),
                           enabled: !_isLoading,
                         ),
                         const SizedBox(height: 16),
@@ -233,13 +240,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                         // ── Password field ───────────────────────────
                         _PillField(
                           controller: _passwordController,
-                          hint: 'Mật khẩu',
+                          hint: l10n.loginPassword,
                           icon: Icons.key_rounded, // Thay KeyRound
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.next,
                           cardColor: cardColor,
                           primary: primary,
-                          validator: _validatePassword,
+                          validator: (value) => _validatePassword(context, value),
                           enabled: !_isLoading,
                         ),
                         const SizedBox(height: 16),
@@ -247,13 +254,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                         // ── Confirm Password field ───────────────────
                         _PillField(
                           controller: _confirmPasswordController,
-                          hint: 'Xác nhận mật khẩu',
+                          hint: l10n.registerConfirmPassword,
                           icon: Icons.key_rounded,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           cardColor: cardColor,
                           primary: primary,
-                          validator: _validateConfirmPassword,
+                          validator: (value) => _validateConfirmPassword(context, value),
                           enabled: !_isLoading,
                           onFieldSubmitted: (_) => _handleRegister(),
                         ),
@@ -292,7 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                         });
                                       },
                                 child: Text(
-                                  'Hiển thị mật khẩu',
+                                  l10n.showPassword,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: mutedForeground,
                                     fontWeight: FontWeight.w600,
@@ -346,11 +353,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                                         height: 1.3,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'Tôi đã đọc và đồng ý với '),
+                                        TextSpan(text: l10n.registerAgreeTerms),
                                         WidgetSpan(
                                           alignment: PlaceholderAlignment.middle,
                                           child: _HoverLinkText(
-                                            text: 'Chính sách và quy định sử dụng',
+                                            text: l10n.privacyPolicy,
                                             onTap: () {
                                               Navigator.pushNamed(context, '/auth/privacy');
                                             },
@@ -375,7 +382,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 onPressed: _handleRegister,
                                 backgroundColor: primary,
                                 foregroundColor: onPrimary,
-                                label: 'Bắt Đầu Khế Ước',
+                                label: l10n.registerButton,
                                 enabled: _acceptTerms,
                               ),
                         const SizedBox(height: 30),
@@ -385,7 +392,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Đã ký kết khế ước?',
+                              l10n.registerAlreadyAccount,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: mutedForeground,
                                 fontWeight: FontWeight.w500,
@@ -400,7 +407,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       '/auth/login',
                                     ),
                               child: Text(
-                                'Đăng nhập tại đây',
+                                l10n.registerLoginHere,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: accent,
                                   fontWeight: FontWeight.w700,

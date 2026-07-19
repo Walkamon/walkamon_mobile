@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
-
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
 import '../../widgets/common/error_message_widget.dart';
@@ -53,8 +53,8 @@ class _OTP_RegisterState extends State<OTP_Register>
     );
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
 
     _animationController.forward();
   }
@@ -77,13 +77,14 @@ class _OTP_RegisterState extends State<OTP_Register>
   bool get _isOtpDigitsOnly =>
       _controllers.every((c) => RegExp(r'^\d$').hasMatch(c.text.trim()));
 
-  String? _otpErrorMessage() {
+  String? _otpErrorMessage(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final errors = <String>[];
     if (!_isOtpComplete) {
-      errors.add('OTP phải nhập đủ 6 ô.');
+      errors.add(l10n.otpIncomplete);
     }
     if (!_isOtpDigitsOnly) {
-      errors.add('OTP chỉ được nhập số.');
+      errors.add(l10n.otpDigitsOnly);
     }
     if (errors.isEmpty) return null;
     return errors.join(' ');
@@ -106,7 +107,6 @@ class _OTP_RegisterState extends State<OTP_Register>
     }
   }
 
-  // --- THÊM DUY NHẤT HÀM NÀY ĐỂ XỬ LÝ LÙI Ô KHI BẤM XÓA ---
   void _handleBackspace(int index) {
     if (index > 0) {
       setState(() {
@@ -117,7 +117,8 @@ class _OTP_RegisterState extends State<OTP_Register>
   }
 
   void _handleVerify() async {
-    final errorMessage = _otpErrorMessage();
+    final l10n = AppLocalizations.of(context);
+    final errorMessage = _otpErrorMessage(context);
     setState(() {
       _errorMessage = null;
       _successMessage = null;
@@ -130,11 +131,11 @@ class _OTP_RegisterState extends State<OTP_Register>
     }
     if (_currentRequestCode == null) {
       setState(() {
-        _errorMessage = 'Không tìm thấy mã yêu cầu đăng ký.';
+        _errorMessage = l10n.otpResendFailed; // Fallback khi thiếu mã đăng ký
       });
       return;
     }
-    // Gather OTP string
+
     final otp = _controllers.map((c) => c.text.trim()).join();
     setState(() {
       _isLoading = true;
@@ -149,9 +150,9 @@ class _OTP_RegisterState extends State<OTP_Register>
     });
     if (response.success) {
       setState(() {
-        _successMessage = 'Đăng ký thành công!';
+        // Tận dụng key đăng ký thành công cục bộ hoặc bạn có thể maps tương đương
+        _successMessage = l10n.otpVerifySuccess; 
       });
-      // Đợi 2 giây để người dùng đọc thông báo
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
@@ -165,20 +166,21 @@ class _OTP_RegisterState extends State<OTP_Register>
         _errorMessage = translateError(
           response.message.isNotEmpty
               ? response.message
-              : 'Mã OTP không hợp lệ.',
+              : l10n.otpInvalid,
         );
       });
     }
   }
 
   void _handleResendOtp() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _errorMessage = null;
       _successMessage = null;
     });
     if (_currentRequestCode == null) {
       setState(() {
-        _errorMessage = 'Không tìm thấy mã yêu cầu đăng ký.';
+        _errorMessage = l10n.otpResendFailed;
       });
       return;
     }
@@ -195,14 +197,14 @@ class _OTP_RegisterState extends State<OTP_Register>
     if (response.success && response.data != null) {
       _currentRequestCode = response.data!.requestCode;
       setState(() {
-        _successMessage = 'Đã gửi lại mã OTP thành công!';
+        _successMessage = l10n.otpResendSuccess;
       });
     } else {
       setState(() {
         _errorMessage = translateError(
           response.message.isNotEmpty
               ? response.message
-              : 'Gửi lại mã OTP thất bại.',
+              : l10n.otpResendFailed,
         );
       });
     }
@@ -212,6 +214,7 @@ class _OTP_RegisterState extends State<OTP_Register>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
     final mutedForeground = isDark
@@ -237,7 +240,7 @@ class _OTP_RegisterState extends State<OTP_Register>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Mật Mã Thức Tỉnh',
+                        l10n.otpTitle,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: primary,
@@ -245,7 +248,7 @@ class _OTP_RegisterState extends State<OTP_Register>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Nhập 6 con số ma thuật đã được gửi đến hòm thư của bạn',
+                        l10n.otpSubtitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: mutedForeground,
                           fontWeight: FontWeight.w500,
@@ -297,14 +300,13 @@ class _OTP_RegisterState extends State<OTP_Register>
                               controller: _controllers[index],
                               focusNode: _focusNodes[index],
                               primary: primary,
-                              textStyle: theme.textTheme.headlineSmall
-                                  ?.copyWith(
+                              textStyle: theme.textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: primary,
                                     fontSize: 20,
                                   ),
                               onChanged: (value) => _handleChange(index, value),
-                              onBackspace: () => _handleBackspace(index), // --- THÊM DÒNG NÀY ĐỂ FIX LỖI ---
+                              onBackspace: () => _handleBackspace(index),
                               onSubmitted: () {
                                 if (index == _controllers.length - 1) {
                                   _handleVerify();
@@ -340,14 +342,14 @@ class _OTP_RegisterState extends State<OTP_Register>
                                   ),
                                 ),
                               )
-                            : const Text('Xác Nhận Thức Tỉnh'),
+                            : Text(l10n.otpVerifyButton),
                       ),
                       const SizedBox(height: 22),
                       Center(
                         child: TextButton(
                           onPressed: _isLoading ? null : _handleResendOtp,
                           child: Text(
-                            'Gửi lại phép thuật',
+                            l10n.otpResendButton,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: _isLoading

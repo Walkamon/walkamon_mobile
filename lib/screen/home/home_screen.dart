@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -217,6 +218,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _feedAnim = false;
   bool _stepExpanded = false;
+  Timer? _refreshTimer;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
     _FloatingBubble(id: 1, top: 0.20, left: 0.12, size: 30),
@@ -269,12 +271,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Fetch pet status from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final gameState = context.read<GameStateProvider>();
-      gameState.fetchPetStatus();
+      if (gameState.isAuthenticated) {
+        unawaited(gameState.fetchPetStatus());
+      }
+    });
+
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+
+      final gameState = context.read<GameStateProvider>();
+      if (gameState.isAuthenticated) {
+        unawaited(gameState.fetchPetStatus());
+      }
     });
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _glowCtrl.dispose();
     _rippleCtrl.dispose();
     _hintCtrl.dispose();
@@ -920,22 +934,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
-                                      Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? AppColors.darkMuted
-                                              : AppColors.lightMuted,
-                                          shape: BoxShape.circle,
+                                      GestureDetector(
+                                        onTap: () => Navigator.pushNamed(
+                                          context,
+                                          '/spirit/detail',
                                         ),
-                                        child: Center(
-                                          child: Text(
-                                            'i',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: mutedFg,
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppColors.darkMuted
+                                                : AppColors.lightMuted,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              'i',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: mutedFg,
+                                              ),
                                             ),
                                           ),
                                         ),

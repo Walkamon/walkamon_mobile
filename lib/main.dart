@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/screen/home/home_screen.dart';
+
+import 'core/l10n/locale_helper.dart';
 
 import 'core/network/api_client.dart';
 import 'core/permissions/startup_permission_service.dart';
@@ -121,6 +125,14 @@ class _WalkamonAppState extends State<WalkamonApp> {
           return MaterialApp(
             title: 'Walkamon',
             debugShowCheckedModeBanner: false,
+            locale: gameState.locale,
+            supportedLocales: LocaleHelper.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
 
             // ── Theme ──────────────────────────────────────────────────
             theme: AppTheme.light(),

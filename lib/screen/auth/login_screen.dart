@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
+
 import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
 import '../../core/utils/login_screen_error_translator.dart';
@@ -66,17 +68,19 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
+  String? _validateEmail(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final email = value?.trim() ?? '';
-    if (email.isEmpty) return 'Email không được để trống.';
+    if (email.isEmpty) return l10n.loginEmailRequired;
     if (!RegExp(r'^[\w.+\-]+@[\w\-]+\.[\w\-.]+$').hasMatch(email)) {
-      return 'Email không đúng định dạng.';
+      return l10n.loginEmailInvalid;
     }
     return null;
   }
 
-  String? _validatePassword(String? value) {
-    if ((value ?? '').isEmpty) return 'Mật khẩu không được để trống.';
+  String? _validatePassword(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
+    if ((value ?? '').isEmpty) return l10n.loginPasswordRequired;
     return null;
   }
 
@@ -87,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _inlineErrorMessage = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    final l10n = AppLocalizations.of(context);
     final success = await provider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -94,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (!success) {
-      final rawError = provider.errorMessage ?? 'Đăng nhập thất bại.';
+      final rawError = provider.errorMessage ?? l10n.loginFailed;
       final cleanError = rawError.replaceAll('Exception: ', '').trim();
       setState(() => _inlineErrorMessage = translateLoginError(cleanError));
       return;
@@ -119,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isLoading = context.select<GameStateProvider, bool>(
       (provider) => provider.isLoading,
     );
@@ -164,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen>
                               alignment: Alignment.centerLeft,
                               child: _RoundIconButton(
                                 icon: Icons.arrow_back_rounded,
-                                semanticLabel: 'Quay lại',
+                                semanticLabel: l10n.loginBack,
                                 onPressed: () =>
                                     Navigator.pushNamedAndRemoveUntil(
                                       context,
@@ -193,6 +199,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildBrand(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Container(
@@ -225,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'Mỗi bước chân, một phép màu',
+          l10n.loginTagline,
           style: textTheme.bodyMedium?.copyWith(
             color: _forest,
             fontWeight: FontWeight.w700,
@@ -237,6 +244,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildLoginCard(BuildContext context, bool isLoading) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
       decoration: BoxDecoration(
@@ -257,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Chào mừng trở lại!',
+              l10n.loginWelcomeBack,
               textAlign: TextAlign.center,
               style: textTheme.headlineSmall?.copyWith(
                 color: _forestDark,
@@ -266,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              'Tiếp tục hành trình cùng tinh linh Lumina của bạn.',
+              l10n.loginSubtitle,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: _forest.withValues(alpha: 0.82),
@@ -281,23 +289,25 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: 20),
             _ForestTextField(
               controller: _emailController,
-              label: 'Email',
+              label: l10n.loginEmail,
               assetIcon: AppAssets.authMail,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
-              validator: _validateEmail,
+              validator: (value) => _validateEmail(context, value),
             ),
             const SizedBox(height: 14),
             _ForestTextField(
               controller: _passwordController,
-              label: 'Mật khẩu',
+              label: l10n.loginPassword,
               assetIcon: AppAssets.authLock,
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
-              validator: _validatePassword,
+              validator: (value) => _validatePassword(context, value),
               onFieldSubmitted: (_) => _handleLogin(),
               suffix: IconButton(
-                tooltip: _obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+                tooltip: _obscurePassword
+                    ? l10n.showPassword
+                    : l10n.hidePassword,
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
                 icon: Image.asset(
@@ -316,9 +326,9 @@ class _LoginScreenState extends State<LoginScreen>
                     ? null
                     : () => Navigator.pushNamed(context, '/auth/forgot'),
                 style: TextButton.styleFrom(foregroundColor: _forest),
-                child: const Text(
-                  'Quên mật khẩu?',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                child: Text(
+                  l10n.forgotPassword,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -358,9 +368,9 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 30,
                           ),
                           const SizedBox(width: 10),
-                          const Text(
-                            'Đăng nhập',
-                            style: TextStyle(
+                          Text(
+                            l10n.loginButton,
+                            style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.2,
@@ -377,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen>
               spacing: 4,
               children: [
                 Text(
-                  'Chưa có tài khoản?',
+                  l10n.noAccount,
                   style: textTheme.bodyMedium?.copyWith(
                     color: _forest.withValues(alpha: 0.78),
                     fontWeight: FontWeight.w600,
@@ -391,9 +401,9 @@ class _LoginScreenState extends State<LoginScreen>
                     foregroundColor: const Color(0xFFA96536),
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                   ),
-                  child: const Text(
-                    'Đăng ký ngay',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                  child: Text(
+                    l10n.registerNow,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
               ],

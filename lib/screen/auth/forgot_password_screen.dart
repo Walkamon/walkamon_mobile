@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
@@ -51,18 +53,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
+  String? _validateEmail(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context);
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return 'Email không được để trống.';
+      return l10n.loginEmailRequired;
     }
     if (!RegExp(r"^[\w.+\-]+@[\w\-]+\.[\w\-.]+$").hasMatch(trimmed)) {
-      return 'Email không đúng định dạng.';
+      return l10n.loginEmailInvalid;
     }
     return null;
   }
 
   Future<void> _handleReset() async {
+    final l10n = AppLocalizations.of(context);
+
     setState(() {
       _errorMessage = null;
       _successMessage = null;
@@ -101,8 +106,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
     if (response.success) {
       setState(() {
-        _successMessage =
-            'Nếu email tồn tại, một mã OTP đặt lại mật khẩu đã được gửi.';
+        _successMessage = l10n.forgotPasswordResetSent;
       });
       return;
     }
@@ -111,7 +115,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       _errorMessage = translateError(
         response.message.isNotEmpty
             ? response.message
-            : 'Không thể gửi yêu cầu đặt lại mật khẩu.',
+            : l10n.forgotPasswordRequestFailed,
       );
     });
   }
@@ -120,6 +124,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
@@ -149,7 +154,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Lạc Mất Mật Mã?',
+                          l10n.forgotPasswordTitle,
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: primary,
@@ -157,7 +162,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Nhập email đã đăng ký, chúng tôi sẽ gửi mã OTP để bạn đặt lại mật khẩu.',
+                          l10n.forgotPasswordSubtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: mutedForeground,
                             fontWeight: FontWeight.w500,
@@ -213,13 +218,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.send,
-                                  validator: _validateEmail,
+                                  validator: (value) => _validateEmail(context, value),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: theme.colorScheme.onSurface,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: 'Email',
+                                    hintText: l10n.loginEmail,
                                     hintStyle: theme.textTheme.titleMedium
                                         ?.copyWith(
                                           color: theme.colorScheme.onSurface
@@ -260,7 +265,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     ),
                                   ),
                                 )
-                              : const Text('Gửi Tín Hiệu'),
+                              : Text(l10n.forgotPasswordSendSignal),
                         ),
                       ],
                     ),
