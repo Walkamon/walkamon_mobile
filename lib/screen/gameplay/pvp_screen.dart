@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+import '../../providers/pvp_provider.dart';
 import 'pvp/pvp_sprint_screen.dart';
 
 class PvPScreen extends StatelessWidget {
@@ -7,6 +9,9 @@ class PvPScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: SafeArea(child: PvPSprintScreen()));
+    return ChangeNotifierProvider(
+      create: (_) => PvpProvider()..fetchWaitingRoomData(),
+      child: const Scaffold(body: SafeArea(child: PvPSprintScreen())),
+    );
   }
 }

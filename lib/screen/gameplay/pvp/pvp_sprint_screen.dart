@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
-import 'models.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/pvp_provider.dart';
 import 'widgets/pvp_modals.dart';
 import 'widgets/pvp_racing_environment.dart';
 import 'widgets/pvp_overlays.dart';
@@ -20,8 +21,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   double _myProgress = 0;
   double _opponentProgress = 0;
   String _opponentName = '';
-
-  List<IncomingChallengeMock> _incomingList = List.from(mockIncomingChallenges);
 
   Timer? _stateTimer;
   Timer? _raceTimer;
@@ -59,19 +58,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     });
   }
 
-  void _acceptChallenge(int id, String name) {
+  void _acceptChallenge(String id, String name) {
     setState(() {
-      _incomingList.removeWhere((c) => c.id == id);
       _opponentName = name;
       _gameState = 'room-countdown';
     });
     _startRoomCountdown();
   }
 
-  void _rejectChallenge(int id) {
-    setState(() {
-      _incomingList.removeWhere((c) => c.id == id);
-    });
+  void _rejectChallenge(String id) {
+    // API handled by provider
   }
 
   void _cancelInvite() {
@@ -195,6 +191,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
   Widget _buildWaitingRoom() {
     final theme = Theme.of(context);
+    final pvpProvider = context.watch<PvpProvider>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -206,23 +203,23 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   IconButton.filledTonal(
-                    onPressed: () => showIncomingChallengesModal(context, _incomingList, _acceptChallenge, _rejectChallenge),
+                    onPressed: () => showIncomingChallengesModal(context, pvpProvider.incomingInvites, _acceptChallenge, _rejectChallenge),
                     icon: const Icon(Icons.mail),
                   ),
-                  if (_incomingList.isNotEmpty)
+                  if (pvpProvider.incomingInvites.isNotEmpty)
                     Positioned(
                       top: 0,
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: Text('${_incomingList.length}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        child: Text('${pvpProvider.incomingInvites.length}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],
               ),
               IconButton.filledTonal(
-                onPressed: () => showMatchHistoryModal(context, mockMatchHistory),
+                onPressed: () => showMatchHistoryModal(context, pvpProvider.matchHistory, 'currentUserId'),
                 icon: const Icon(Icons.history),
               ),
             ],
@@ -263,15 +260,15 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text('Mochi (Cấp 15)', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                          Text('${pvpProvider.petName}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                           const Divider(height: 24),
-                          _buildStatRow('Bước đi hôm nay:', '4,500', theme),
+                          _buildStatRow('Bước đi hôm nay:', '${pvpProvider.todaySteps}', theme),
                           const SizedBox(height: 8),
-                          _buildStatRow('Hệ tinh linh:', 'Thực Vật', theme),
+                          _buildStatRow('Hệ tinh linh:', pvpProvider.spiritAffinity, theme),
                           const SizedBox(height: 8),
-                          _buildStatRow('Năng lượng:', '100/100', theme),
+                          _buildStatRow('Năng lượng:', '${pvpProvider.currentEnergy}/${pvpProvider.maxEnergy}', theme),
                           const SizedBox(height: 8),
-                          _buildStatRow('Độ gắn kết:', '850', theme),
+                          _buildStatRow('Độ gắn kết:', '${pvpProvider.currentBond}', theme),
                         ],
                       ),
                     ),
@@ -295,7 +292,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             width: double.infinity,
             height: 56,
             child: OutlinedButton.icon(
-              onPressed: _gameState == 'waiting' ? () => showFriendsModal(context, mockOnlineFriends, mockOfflineFriends, _inviteFriend) : null,
+              onPressed: _gameState == 'waiting' ? () => showFriendsModal(context, pvpProvider.friendsList, [], _inviteFriend) : null,
               icon: const Icon(Icons.people),
               label: const Text('Thách đấu với bạn bè', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
