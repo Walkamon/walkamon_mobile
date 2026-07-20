@@ -5,11 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/auth/google_sign_in_auth.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/l10n/locale_helper.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 import '../../widgets/common/google_icon.dart';
+import '../auth/widgets/auth_style.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -102,8 +104,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = Theme.of(context).colorScheme.primary;
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final primary = AuthStyle.forest;
+    final onPrimary = AuthStyle.cream;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final mutedForeground = isDark
@@ -118,7 +120,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
+        fit: StackFit.expand,
         children: [
+          Image.asset(
+            AppAssets.authGarden,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x120F2819),
+                  Color(0x00FFF7E3),
+                  Color(0x38365525),
+                ],
+                stops: [0, 0.55, 1],
+              ),
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -149,9 +171,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 l10n.appTitle,
                                 style: TextStyle(
                                   fontSize: 36,
-                                  fontWeight: FontWeight.w800,
-                                  color: primary,
-                                  letterSpacing: -0.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: AuthStyle.forestDark,
+                                  letterSpacing: 3.2,
+                                  shadows: const [
+                                    Shadow(
+                                      color: Colors.white70,
+                                      blurRadius: 10,
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -171,76 +199,86 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         _AnimatedFadeSlide(
                           delay: const Duration(milliseconds: 200),
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 320),
-                            child: Column(
-                              children: [
-                                _PrimaryButton(
-                                  label: l10n.welcomeExplore,
-                                  backgroundColor: primary,
-                                  foregroundColor: onPrimary,
-                                  onPressed: () =>
-                                      Navigator.pushNamed(context, '/story'),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _OutlineButton(
-                                        label: l10n.welcomeLogin,
-                                        color: primary,
-                                        onPressed: () => Navigator.pushNamed(
-                                          context,
-                                          '/auth/login',
+                            constraints: const BoxConstraints(maxWidth: 420),
+                            child: AuthCard(
+                              child: Column(
+                                children: [
+                                  _PrimaryButton(
+                                    label: l10n.welcomeExplore,
+                                    backgroundColor: primary,
+                                    foregroundColor: onPrimary,
+                                    onPressed: () =>
+                                        Navigator.pushNamed(context, '/story'),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _OutlineButton(
+                                          label: l10n.welcomeLogin,
+                                          color: primary,
+                                          onPressed: () => Navigator.pushNamed(
+                                            context,
+                                            '/auth/login',
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _OutlineButton(
-                                        label: l10n.welcomeRegister,
-                                        color: primary,
-                                        onPressed: () => Navigator.pushNamed(
-                                          context,
-                                          '/auth/register',
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _OutlineButton(
+                                          label: l10n.welcomeRegister,
+                                          color: primary,
+                                          onPressed: () => Navigator.pushNamed(
+                                            context,
+                                            '/auth/register',
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Container(height: 2, color: muted),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      child: Text(
-                                        l10n.welcomeOr,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: mutedForeground,
-                                          letterSpacing: 1.2,
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          height: 2,
+                                          color: muted,
                                         ),
                                       ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Text(
+                                          l10n.welcomeOr,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: mutedForeground,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 2,
+                                          color: muted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _GoogleButton(
+                                    cardColor: Colors.white.withValues(
+                                      alpha: 0.78,
                                     ),
-                                    Expanded(
-                                      child: Container(height: 2, color: muted),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _GoogleButton(
-                                  cardColor: cardColor,
-                                  borderColor: borderColor,
-                                  foregroundColor: foreground,
-                                  mutedColor: muted,
-                                  onPressed: _handleGoogleLogin,
-                                ),
-                              ],
+                                    borderColor: const Color(0xFFD8CDAE),
+                                    foregroundColor: AuthStyle.forestDark,
+                                    mutedColor: muted,
+                                    onPressed: _handleGoogleLogin,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

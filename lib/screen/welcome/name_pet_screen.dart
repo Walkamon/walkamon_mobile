@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/constants/app_assets.dart';
 import '../../providers/game_state_provider.dart';
+import '../auth/widgets/auth_style.dart';
 
 class NamePetScreen extends StatefulWidget {
   const NamePetScreen({super.key});
@@ -96,21 +97,20 @@ class _NamePetScreenState extends State<NamePetScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final cardColor = theme.colorScheme.surface;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    const primary = AuthStyle.forest;
+    const onPrimary = AuthStyle.cream;
+    final cardColor = AuthStyle.cream.withValues(alpha: 0.92);
+    final mutedForeground = AuthStyle.forest.withValues(alpha: 0.78);
+    const accent = AuthStyle.rust;
 
     if (_isCheckingPet) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: AuthGardenScaffold(
+        child: SafeArea(
         child: FadeTransition(
           opacity: _opacity,
           child: SlideTransition(
@@ -134,9 +134,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                             color: cardColor,
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: theme.colorScheme.outline.withValues(
-                                alpha: 0.18,
-                              ),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                           child: Column(
@@ -146,9 +144,9 @@ class _NamePetScreenState extends State<NamePetScreen>
                                 height: 88,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: primary.withValues(alpha: 0.12),
+                                  color: Colors.white.withValues(alpha: 0.72),
                                   border: Border.all(
-                                    color: primary.withValues(alpha: 0.22),
+                                    color: AuthStyle.gold.withValues(alpha: 0.42),
                                     width: 1.5,
                                   ),
                                 ),
@@ -163,7 +161,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                                 l10n.namePetTitle,
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.w800,
-                                  color: primary,
+                                  color: AuthStyle.forestDark,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -186,8 +184,34 @@ class _NamePetScreenState extends State<NamePetScreen>
                                 validator: _validateName,
                                 decoration: InputDecoration(
                                   hintText: l10n.namePetHint,
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Image.asset(
+                                      AppAssets.authRegisterSeed,
+                                      width: 28,
+                                      height: 28,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(alpha: 0.78),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(18),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFD8CDAE),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFD8CDAE),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                    borderSide: const BorderSide(
+                                      color: AuthStyle.gold,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 style: theme.textTheme.titleMedium?.copyWith(
@@ -241,6 +265,7 @@ class _NamePetScreenState extends State<NamePetScreen>
             ),
           ),
         ),
+      ),
       ),
     );
   }

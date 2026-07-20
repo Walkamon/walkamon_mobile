@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../providers/game_state_provider.dart';
+import '../auth/widgets/auth_style.dart';
 
 class StorySlide {
   const StorySlide({required this.image, required this.text});
@@ -56,14 +58,12 @@ class _StoryScreenState extends State<StoryScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final storySlides = _storySlides(l10n);
-    final isDark = theme.brightness == Brightness.dark;
-    final overlayColor = isDark ? Colors.black87 : Colors.black54;
-    final textColor = Colors.white;
     final currentSlide = storySlides[_currentPage];
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       body: Stack(
+        fit: StackFit.expand,
         children: [
           PageView.builder(
             controller: _pageController,
@@ -74,27 +74,11 @@ class _StoryScreenState extends State<StoryScreen> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
+                  const ColoredBox(color: AuthStyle.cream),
+                  Image.asset(
                     slide.image,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      }
-                      return const ColoredBox(color: Colors.black);
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const ColoredBox(
-                        color: Colors.black,
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: Colors.white54,
-                            size: 56,
-                          ),
-                        ),
-                      );
-                    },
+                    alignment: Alignment.center,
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -102,8 +86,9 @@ class _StoryScreenState extends State<StoryScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.24),
-                          Colors.black.withOpacity(0.72),
+                          const Color(0x120F2819),
+                          const Color(0x00FFF7E3),
+                          const Color(0x66365525),
                         ],
                       ),
                     ),
@@ -121,8 +106,11 @@ class _StoryScreenState extends State<StoryScreen> {
                   Text(
                     '${_currentPage + 1}/${storySlides.length}',
                     style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
+                      color: AuthStyle.forestDark,
+                      fontWeight: FontWeight.w900,
+                      shadows: const [
+                        Shadow(color: Colors.white70, blurRadius: 10),
+                      ],
                     ),
                   ),
                   TextButton(
@@ -132,7 +120,7 @@ class _StoryScreenState extends State<StoryScreen> {
                         horizontal: 16,
                         vertical: 10,
                       ),
-                      backgroundColor: Colors.white24,
+                      backgroundColor: AuthStyle.cream.withValues(alpha: 0.86),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -140,8 +128,8 @@ class _StoryScreenState extends State<StoryScreen> {
                     child: Text(
                       l10n.storySkip,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                        color: AuthStyle.forestDark,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -154,91 +142,90 @@ class _StoryScreenState extends State<StoryScreen> {
             right: 0,
             bottom: 0,
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [overlayColor.withOpacity(0.0), overlayColor],
-                ),
-              ),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    child: Text(
-                      currentSlide.text,
-                      key: ValueKey<int>(_currentPage),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        height: 1.5,
+              child: AuthCard(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      child: Text(
+                        currentSlide.text,
+                        key: ValueKey<int>(_currentPage),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AuthStyle.forestDark,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          height: 1.45,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(storySlides.length, (index) {
-                      final isActive = index == _currentPage;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isActive ? 22 : 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: isActive ? Colors.white : Colors.white38,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _skipStory,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white38),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(storySlides.length, (index) {
+                        final isActive = index == _currentPage;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: isActive ? 22 : 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AuthStyle.forest
+                                : AuthStyle.forest.withValues(alpha: 0.24),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(l10n.storyBack),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _goNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _skipStory,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AuthStyle.forest,
+                              side: const BorderSide(
+                                color: Color(0xFFD8CDAE),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: Text(
-                            _currentPage < storySlides.length - 1
-                                ? l10n.storyContinue
-                                : l10n.storyExplore,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
+                            child: Text(l10n.storyBack),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _goNext,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AuthStyle.forest,
+                              foregroundColor: AuthStyle.cream,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text(
+                              _currentPage < storySlides.length - 1
+                                  ? l10n.storyContinue
+                                  : l10n.storyExplore,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -251,23 +238,19 @@ class _StoryScreenState extends State<StoryScreen> {
 List<StorySlide> _storySlides(AppLocalizations l10n) {
   return [
     StorySlide(
-      image:
-          'https://images.unsplash.com/photo-1518002171953-a080ee817e1f?auto=format&fit=crop&q=80&w=800',
+      image: AppAssets.welcome,
       text: l10n.storySlide1,
     ),
     StorySlide(
-      image:
-          'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=800',
+      image: AppAssets.onboardingSeed,
       text: l10n.storySlide2,
     ),
     StorySlide(
-      image:
-          'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&q=80&w=800',
+      image: AppAssets.onboardingNamePet,
       text: l10n.storySlide3,
     ),
     StorySlide(
-      image:
-          'https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&q=80&w=800',
+      image: AppAssets.dailyReward,
       text: l10n.storySlide4,
     ),
   ];

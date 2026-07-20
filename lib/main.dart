@@ -221,7 +221,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/auth/forgot':
                   builder = (_) =>
-                      const AuthLayout(child: ForgotPasswordScreen());
+                      const AuthLayout(fullBleed: true, child: ForgotPasswordScreen());
                   break;
                 case '/auth/reset-password':
                   builder = (_) =>
@@ -231,11 +231,13 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const ChangePasswordScreen();
                   break;
                 case '/auth/otp_verification':
-                  builder = (_) => const AuthLayout(child: OTP_Verification());
+                  builder = (_) =>
+                      const AuthLayout(fullBleed: true, child: OTP_Verification());
                   break;
 
                 case '/auth/otp_register':
-                  builder = (_) => const AuthLayout(child: OTP_Register());
+                  builder = (_) =>
+                      const AuthLayout(fullBleed: true, child: OTP_Register());
                   break;
                 case '/auth/privacy':
                   builder = (_) =>

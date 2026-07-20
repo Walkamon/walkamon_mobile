@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
-import '../../widgets/common/error_message_widget.dart';
+import 'widgets/auth_style.dart';
 
 class OTP_Register extends StatefulWidget {
   const OTP_Register({super.key});
@@ -22,9 +22,11 @@ class _OTP_RegisterState extends State<OTP_Register>
   );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   final OtpScreenRepository _authRepository = OtpScreenRepository();
+
   late final AnimationController _animationController;
   late final Animation<double> _opacityAnimation;
   late final Animation<Offset> _slideAnimation;
+
   bool _isLoading = false;
   String? _currentRequestCode;
   String? _errorMessage;
@@ -45,17 +47,21 @@ class _OTP_RegisterState extends State<OTP_Register>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 500),
     );
     _opacityAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
     );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.04),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
     );
-
     _animationController.forward();
   }
 
@@ -80,12 +86,8 @@ class _OTP_RegisterState extends State<OTP_Register>
   String? _otpErrorMessage(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final errors = <String>[];
-    if (!_isOtpComplete) {
-      errors.add(l10n.otpIncomplete);
-    }
-    if (!_isOtpDigitsOnly) {
-      errors.add(l10n.otpDigitsOnly);
-    }
+    if (!_isOtpComplete) errors.add(l10n.otpIncomplete);
+    if (!_isOtpDigitsOnly) errors.add(l10n.otpDigitsOnly);
     if (errors.isEmpty) return null;
     return errors.join(' ');
   }
@@ -109,50 +111,41 @@ class _OTP_RegisterState extends State<OTP_Register>
 
   void _handleBackspace(int index) {
     if (index > 0) {
-      setState(() {
-        _controllers[index - 1].text = '';
-      });
+      setState(() => _controllers[index - 1].text = '');
       _focusNodes[index - 1].requestFocus();
     }
   }
 
-  void _handleVerify() async {
+  Future<void> _handleVerify() async {
     final l10n = AppLocalizations.of(context);
     final errorMessage = _otpErrorMessage(context);
+
     setState(() {
       _errorMessage = null;
       _successMessage = null;
     });
+
     if (errorMessage != null) {
-      setState(() {
-        _errorMessage = errorMessage;
-      });
+      setState(() => _errorMessage = errorMessage);
       return;
     }
+
     if (_currentRequestCode == null) {
-      setState(() {
-        _errorMessage = l10n.otpResendFailed; // Fallback khi thiếu mã đăng ký
-      });
+      setState(() => _errorMessage = l10n.otpResendFailed);
       return;
     }
 
     final otp = _controllers.map((c) => c.text.trim()).join();
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     final response = await _authRepository.verifyOtp(
       requestCode: _currentRequestCode!,
       otp: otp,
     );
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
+
     if (response.success) {
-      setState(() {
-        // Tận dụng key đăng ký thành công cục bộ hoặc bạn có thể maps tương đương
-        _successMessage = l10n.otpVerifySuccess; 
-      });
+      setState(() => _successMessage = l10n.otpVerifySuccess);
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
@@ -164,47 +157,38 @@ class _OTP_RegisterState extends State<OTP_Register>
     } else {
       setState(() {
         _errorMessage = translateError(
-          response.message.isNotEmpty
-              ? response.message
-              : l10n.otpInvalid,
+          response.message.isNotEmpty ? response.message : l10n.otpInvalid,
         );
       });
     }
   }
 
-  void _handleResendOtp() async {
+  Future<void> _handleResendOtp() async {
     final l10n = AppLocalizations.of(context);
     setState(() {
       _errorMessage = null;
       _successMessage = null;
     });
+
     if (_currentRequestCode == null) {
-      setState(() {
-        _errorMessage = l10n.otpResendFailed;
-      });
+      setState(() => _errorMessage = l10n.otpResendFailed);
       return;
     }
-    setState(() {
-      _isLoading = true;
-    });
+
+    setState(() => _isLoading = true);
     final response = await _authRepository.resendOtp(
       requestCode: _currentRequestCode!,
     );
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
+
     if (response.success && response.data != null) {
       _currentRequestCode = response.data!.requestCode;
-      setState(() {
-        _successMessage = l10n.otpResendSuccess;
-      });
+      setState(() => _successMessage = l10n.otpResendSuccess);
     } else {
       setState(() {
         _errorMessage = translateError(
-          response.message.isNotEmpty
-              ? response.message
-              : l10n.otpResendFailed,
+          response.message.isNotEmpty ? response.message : l10n.otpResendFailed,
         );
       });
     }
@@ -212,174 +196,146 @@ class _OTP_RegisterState extends State<OTP_Register>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
+    final textTheme = Theme.of(context).textTheme;
 
-    return FadeTransition(
-      opacity: _opacityAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Stack(
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 80,
-                ),
+    return AuthGardenScaffold(
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+              child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        l10n.otpTitle,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: primary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.otpSubtitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: mutedForeground,
-                          fontWeight: FontWeight.w500,
-                          height: 1.6,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Error Banner
-                      if (_errorMessage != null) ...[
-                        ErrorMessageWidget(message: _errorMessage!),
-                        const SizedBox(height: 20),
-                      ],
-
-                      // Success Banner
-                      if (_successMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.green.shade200),
-                          ),
-                          child: Text(
-                            _successMessage!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.green.shade800,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: FadeTransition(
+                    opacity: _opacityAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AuthRoundIconButton(
+                              icon: Icons.arrow_back_rounded,
+                              semanticLabel: l10n.loginBack,
+                              onPressed: () => Navigator.pop(context),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_controllers.length, (index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: EggOtpField(
-                              width: 44,
-                              height: 65,
-                              controller: _controllers[index],
-                              focusNode: _focusNodes[index],
-                              primary: primary,
-                              textStyle: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: primary,
-                                    fontSize: 20,
-                                  ),
-                              onChanged: (value) => _handleChange(index, value),
-                              onBackspace: () => _handleBackspace(index),
-                              onSubmitted: () {
-                                if (index == _controllers.length - 1) {
-                                  _handleVerify();
-                                }
-                              },
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _handleVerify,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
+                          const SizedBox(height: 14),
+                          AuthBrand(
+                            tagline: l10n.loginTagline,
+                            icon: AppAssets.authVerified,
                           ),
-                          textStyle: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                          const SizedBox(height: 22),
+                          AuthCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  l10n.otpTitle,
+                                  textAlign: TextAlign.center,
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    color: AuthStyle.forestDark,
+                                    fontWeight: FontWeight.w900,
                                   ),
                                 ),
-                              )
-                            : Text(l10n.otpVerifyButton),
-                      ),
-                      const SizedBox(height: 22),
-                      Center(
-                        child: TextButton(
-                          onPressed: _isLoading ? null : _handleResendOtp,
-                          child: Text(
-                            l10n.otpResendButton,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: _isLoading
-                                  ? mutedForeground
-                                  : theme.colorScheme.secondary,
+                                const SizedBox(height: 6),
+                                Text(
+                                  l10n.otpSubtitle,
+                                  textAlign: TextAlign.center,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: AuthStyle.forest.withValues(
+                                      alpha: 0.82,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.35,
+                                  ),
+                                ),
+                                if (_errorMessage != null) ...[
+                                  const SizedBox(height: 16),
+                                  AuthMessageBanner(
+                                    message: _errorMessage!,
+                                    isError: true,
+                                  ),
+                                ],
+                                if (_successMessage != null) ...[
+                                  const SizedBox(height: 16),
+                                  AuthMessageBanner(
+                                    message: _successMessage!,
+                                    isError: false,
+                                  ),
+                                ],
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children:
+                                      List.generate(_controllers.length, (index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: EggOtpField(
+                                        width: 44,
+                                        height: 65,
+                                        controller: _controllers[index],
+                                        focusNode: _focusNodes[index],
+                                        primary: AuthStyle.forest,
+                                        textStyle:
+                                            textTheme.headlineSmall?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: AuthStyle.forestDark,
+                                          fontSize: 20,
+                                        ),
+                                        onChanged: (value) =>
+                                            _handleChange(index, value),
+                                        onBackspace: () =>
+                                            _handleBackspace(index),
+                                        onSubmitted: () {
+                                          if (index ==
+                                              _controllers.length - 1) {
+                                            _handleVerify();
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                const SizedBox(height: 24),
+                                AuthPrimaryButton(
+                                  label: l10n.otpVerifyButton,
+                                  iconAsset: AppAssets.authVerified,
+                                  isLoading: _isLoading,
+                                  onPressed: _handleVerify,
+                                ),
+                                const SizedBox(height: 12),
+                                TextButton(
+                                  onPressed:
+                                      _isLoading ? null : _handleResendOtp,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AuthStyle.rust,
+                                  ),
+                                  child: Text(
+                                    l10n.otpResendButton,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              top: 16,
-              left: 24,
-              child: SafeArea(
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
