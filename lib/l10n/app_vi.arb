@@ -148,6 +148,47 @@
   "achievementVault": "Kho Thành Tựu",
   "achievementsLoadFailed": "Không tải được thành tựu",
   "achievementsCollected": "Đã thu thập {count} danh hiệu",
+  "achievementsUnlockedTab": "Đã Nhận",
+  "achievementsLockedTab": "Chưa Nhận",
+  "achievementsCurrentProgress": "Tiến độ hiện tại",
+  "achievementsLockedDetail": "{description}.\nPhần thưởng: {reward} Giọt Sương",
+  "@achievementsLockedDetail": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsUnlockedAt": "Đạt được vào: {date}",
+  "@achievementsUnlockedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsUnlockedDetail": "{description}. Tiếp tục duy trì phong độ này để mở khóa thêm nhiều thành tựu mới nhé!",
+  "@achievementsUnlockedDetail": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsKeepTrying": "Tiếp tục cố gắng",
+  "achievementsCollection": "Bộ Sưu Tập",
+  "achievementsGoals": "Mục Tiêu",
+  "achievementsLockedCount": "Còn {count} danh hiệu đang chờ bạn khám phá",
+  "@achievementsLockedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retry": "Thử lại",
   "characterNotFound": "Không tìm thấy thông tin nhân vật.",
   "notUpdated": "Chưa cập nhật",
@@ -157,6 +198,511 @@
   "genderMale": "Nam",
   "genderFemale": "Nữ",
   "genderOther": "Khác",
+  "dailyLoginNoData": "Không có dữ liệu điểm danh.",
+  "dailyLoginTitle": "Điểm Danh",
+  "dailyLoginRewardTitle": "Quà Hàng Ngày",
+  "dailyLoginRewardSubtitle": "Đăng nhập mỗi ngày để nhận quà hấp dẫn.\nĐừng bỏ lỡ ngày thứ 7 nhé!",
+  "dailyLoginAlreadyClaimed": "Hôm nay bạn đã nhận quà rồi!",
+  "dailyLoginSuccessTitle": "Thành Công!",
+  "dailyLoginSuccessMessage": "Chúc mừng bạn đã nhận quà thành công ngày {day}!",
+  "@dailyLoginSuccessMessage": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessReward": "Phần thưởng: +{amount} Giọt nước",
+  "@dailyLoginSuccessReward": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessBalance": "Số dư hiện tại: {balance} Giọt nước",
+  "@dailyLoginSuccessBalance": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessAction": "Tuyệt vời",
+  "dailyLoginClaimedToday": "Đã Nhận Hôm Nay",
+  "dailyLoginClaimNow": "Nhận Quà Ngay",
+  "dailyLoginNoRewardData": "Chưa có dữ liệu phần thưởng",
+  "dayLabel": "NGÀY {day}",
+  "@dayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "rewardCount": "x{count}",
+  "@rewardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorPrefix": "Lỗi",
+  "friendsLoadError": "Lỗi tải danh sách bạn bè",
+  "friendsRemoveTitle": "Xóa bạn bè",
+  "friendsRemoveConfirm": "Bạn có chắc chắn muốn xóa {name} khỏi danh sách bạn bè?",
+  "@friendsRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsCancel": "Hủy",
+  "friendsRemove": "Xóa",
+  "friendsRequest": "Yêu cầu",
+  "friendsAdd": "Thêm Bạn",
+  "friendsSearchHint": "Tìm kiếm bạn bè...",
+  "friendsEmptyTitle": "Chưa có đồng đội nào!",
+  "friendsEmptySubtitle": "Bấm 'Thêm Bạn' để bắt đầu hành trình nhé.",
+  "friendsNoResult": "Không tìm thấy người bạn này.",
+  "friendsRemoveSuccess": "Đã hủy kết bạn với {name}!",
+  "@friendsRemoveSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRemoveFailure": "Lỗi xóa bạn bè, vui lòng thử lại!",
+  "pvpTitle": "Đấu trường PvP",
+  "pvpComingSoonTitle": "Chế độ thi đấu PvP đang được phát triển!",
+  "pvpComingSoonDescription": "So tài sức mạnh Lumina cùng các đối thủ tầm cỡ.",
+  "inventoryLoadError": "Không tải được túi đồ.",
+  "inventoryNoItems": "Không có vật phẩm nào.",
+  "inventoryNoEffect": "Không có hiệu ứng",
+  "inventoryUsed": "Đã sử dụng: {name}",
+  "@inventoryUsed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryUseFailed": "Sử dụng thất bại: {message}",
+  "@inventoryUseFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryUseError": "Lỗi khi sử dụng: {message}",
+  "@inventoryUseError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryCommunity": "Cộng Đồng",
+  "inventoryPvp": "PvP",
+  "inventoryBag": "Túi Đồ",
+  "inventoryStore": "Cửa Hàng",
+  "inventoryHome": "Trang Chủ",
+  "leaderboardTitle": "Bảng xếp hạng",
+  "leaderboardYourRank": "Hạng của bạn: #{rank}",
+  "@leaderboardYourRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardToday": "Hôm nay",
+  "leaderboardThisWeek": "Tuần này",
+  "leaderboardThisMonth": "Tháng này",
+  "leaderboardSteps": "Bước chân",
+  "leaderboardLevel": "Cấp độ",
+  "leaderboardYou": "Bạn",
+  "leaderboardUserDefault": "Người dùng",
+  "leaderboardCouldNotLoad": "Không tải được bảng xếp hạng",
+  "leaderboardCouldNotConnect": "Không thể kết nối tới máy chủ",
+  "missionsDefaultDescription": "Hoàn thành nhiệm vụ để nhận thưởng.",
+  "missionsChallengeDescription": "Hoàn thành thử thách để nhận thưởng.",
+  "missionsLoadError": "Không tải được nhiệm vụ.",
+  "missionsClaimSuccess": "Nhận thưởng thành công: +{amount}",
+  "@missionsClaimSuccess": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "missionsClaimFailed": "Không thể nhận thưởng: {message}",
+  "@missionsClaimFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "missionsChallengeExists": "Bạn đang có một thử thách. Hãy hoàn thành hoặc hủy nó trước!",
+  "missionsChallengeCanceled": "Đã hủy thử thách.",
+  "missionsChallengeCreated": "Đã nhận thử thách mới!",
+  "missionsCancelFailed": "Không thể hủy thử thách: {message}",
+  "@missionsCancelFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "missionsDailyTitle": "Nhiệm vụ ngày",
+  "missionsOverallTitle": "Nhiệm vụ tổng",
+  "missionsDailyEmpty": "Không có nhiệm vụ ngày.",
+  "missionsOverallEmpty": "Không có nhiệm vụ tổng.",
+  "missionsRandomChallenge": "Thử thách ngẫu nhiên",
+  "missionsCancelRemaining": "Lượt hủy: {remaining}/{limit}",
+  "@missionsCancelRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "missionsNoActiveChallenge": "Hiện tại không có thử thách nào đang thực hiện.",
+  "missionsNewChallenge": "Nhận Thử Thách Mới",
+  "missionsTitle": "Nhiệm Vụ",
+  "missionsTabMission": "Nhiệm vụ",
+  "missionsTabChallenge": "Thử thách",
+  "notificationsTitle": "Thông Báo",
+  "notificationsEmpty": "Không có thông báo nào.",
+  "notificationsDeleted": "Đã xóa thông báo",
+  "notificationsDeleteFailed": "Xóa thất bại: {message}",
+  "@notificationsDeleteFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsDetailError": "Đã có lỗi xảy ra khi tải nội dung.",
+  "notificationsTimeAgoDays": "{count} ngày trước",
+  "@notificationsTimeAgoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoHours": "{count} giờ trước",
+  "@notificationsTimeAgoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoMinutes": "{count} phút trước",
+  "@notificationsTimeAgoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoJustNow": "Vừa xong",
+  "notificationsTypeDailyReward": "Quà đăng nhập hàng ngày",
+  "notificationsTypeStreakReward": "Quà chuỗi điểm danh",
+  "notificationsTypeMissionComplete": "Hoàn thành nhiệm vụ",
+  "notificationsTypeAchievementComplete": "Hoàn thành thành tựu",
+  "notificationsTypeChallengeInvite": "Lời mời thử thách",
+  "notificationsTypePvpInvite": "Lời mời đấu PvP",
+  "notificationsTypeFriendRequest": "Yêu cầu kết bạn",
+  "notificationsTypeFriendAccepted": "Chấp nhận kết bạn",
+  "notificationsTypeFriendRemoved": "Hủy kết bạn",
+  "notificationsTypeSpiritHungry": "Lumina đang đói",
+  "notificationsTypeSpiritReadyEvolution": "Đủ điều kiện tiến hóa",
+  "notificationsTypeSpiritEnergyFull": "Năng lượng đã đầy",
+  "notificationsTypeSpiritBondLow": "Sinh mệnh thấp",
+  "notificationsTypeSpiritLevelUp": "Lên cấp",
+  "notificationsTypeItemPurchased": "Mua vật phẩm thành công",
+  "notificationsTypePvpResult": "Kết quả đấu PvP",
+  "notificationsTypeMaintenance": "Thông báo bảo trì",
+  "notificationsTypePatchNotes": "Ghi chú cập nhật",
+  "notificationsTypeNews": "Tin tức mới",
+  "notificationsTypeEvent": "Sự kiện",
+  "notificationsTypeCompensation": "Quà đền bù",
+  "notificationsTypeServerAnnouncement": "Thông báo từ máy chủ",
+  "profileEditTitle": "Chỉnh Sửa Hồ Sơ",
+  "profileEditDisplayName": "Tên hiển thị",
+  "profileEditDisplayNameHint": "Nhập tên của bạn",
+  "profileEditEmailLabel": "Email (Không thể thay đổi)",
+  "profileEditEmailHint": "Nhập email",
+  "profileEditGenderLabel": "Giới tính",
+  "profileEditBirthLabel": "Ngày sinh",
+  "profileEditBioLabel": "Tiểu sử",
+  "profileEditBioHint": "Vài nét về bạn...",
+  "profileEditSaveLoading": "Đang Lưu...",
+  "profileEditSave": "Lưu Thay Đổi",
+  "profileEditSuccessMessage": "Thông tin hồ sơ của bạn đã được cập nhật thành công!",
+  "profileEditFailureMessage": "Cập nhật thất bại. Vui lòng kiểm tra lại.",
+  "profileEditRequiredName": "Không được bỏ trống",
+  "profileEditConfirm": "Xác Nhận",
+  "profileEditDefaultName": "Lữ Hành Giả",
+  "profileEditDefaultBio": "Đang tận hưởng hành trình Walkamon!",
+  "activityStatsTitle": "Hoạt Động",
+  "activityStatsStats": "Thống Kê",
+  "activityStatsHistory": "Lịch Sử",
+  "activityStatsDaily": "Ngày",
+  "activityStatsWeekly": "Tuần",
+  "activityStatsMonthly": "Tháng",
+  "activityStatsTotalSteps": "Tổng bước",
+  "activityStatsDistance": "Khoảng cách",
+  "activityStatsNoChartData": "Chưa có dữ liệu biểu đồ",
+  "activityStatsNoHistory": "Chưa có lịch sử hoạt động",
+  "activityStatsGoalReached": "ĐẠT MỤC TIÊU",
+  "activityStatsStepsUnit": "bước",
+  "activityStatsStepsPerDay": "bước/ngày",
+  "activityStatsSuffixKm": "km",
+  "activityStatsTodayTitle": "Hoạt động hôm nay",
+  "activityStatsWeekTitle": "Hoạt động tuần này",
+  "activityStatsMonthTitle": "Hoạt động tháng này",
+  "activityStatsTotal": "Tổng",
+  "activityStatsAverage": "Trung bình",
+  "activityStatsWeekBucket": "Tuần {week}",
+  "@activityStatsWeekBucket": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "streakTitle": "Chuỗi Đăng Nhập",
+  "streakDays": "ngày",
+  "streakEncouragement": "Bạn đang làm rất tốt! Hãy tiếp tục duy trì để nhận phần thưởng hấp dẫn.",
+  "streakThirtyDays": "Chuỗi 30 Ngày",
+  "streakRecord": "Kỷ lục chuỗi",
+  "streakCurrent": "Chuỗi hiện tại",
+  "shopTitle": "Cửa Hàng",
+  "shopCurrency": "Giọt Sương",
+  "shopNoItems": "Không có shop item nào.",
+  "shopBuy": "Mua",
+  "shopBuySuccess": "Mua thành công: {name}",
+  "@shopBuySuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopBuyFailed": "Mua thất bại: {message}",
+  "@shopBuyFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "shopBuyError": "Lỗi khi mua: {message}",
+  "@shopBuyError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "shopType": "Loại",
+  "shopPrice": "Giá bán",
+  "shopDescription": "Mô tả",
+  "socialTitle": "Cộng Đồng",
+  "socialFriends": "Bạn Bè",
+  "socialLeaderboard": "Xếp Hạng",
+  "dailyRewardTitle": "Điểm Danh Hàng Ngày",
+  "dailyRewardSubtitle": "Tính năng Điểm Danh đang được phát triển!",
+  "dailyRewardDescription": "Đăng nhập mỗi ngày để nhận những giọt sương ma thuật.",
+  "namePetTitle": "Đặt tên cho Lumina",
+  "namePetDescription": "Hãy chọn một cái tên thật ý nghĩa cho người bạn đồng hành của mình.",
+  "namePetHint": "Nhập tên tinh linh...",
+  "namePetComplete": "Hoàn tất",
+  "namePetCreateFailed": "Không thể tạo thú cưng khởi đầu. Vui lòng thử lại.",
+  "seedTitleScreen": "Mầm Ánh Sáng",
+  "seedDescriptionScreen": "Đây là khởi đầu của hành trình. Mầm Ánh Sáng sẽ hấp thụ Sinh Mệnh Lực từ những bước chân của bạn để phát triển.",
+  "seedEvolutionTitle": "Tiến Hoá",
+  "seedEvolutionDescription": "Mầm sẽ tiến hóa thành các dạng Tinh Linh khác nhau dựa trên thói quen vận động của bạn.",
+  "storySkip": "Bỏ qua",
+  "storyBack": "Quay lại",
+  "storyContinue": "Tiếp tục",
+  "storyExplore": "Khám phá",
+  "close": "Đóng",
+  "processing": "Đang xử lý...",
+  "profileEditFailureTitle": "Thất Bại",
+  "missionsClaim": "NHẬN",
+  "missionsClaimed": "ĐÃ NHẬN",
+  "inventoryNoDescription": "Chưa có mô tả.",
+  "inventoryUse": "Sử Dụng",
+  "friendsListCount": "DANH SÁCH ({count})",
+  "@friendsListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsSearchError": "Lỗi tìm kiếm",
+  "friendsAddNew": "Thêm Bạn Mới",
+  "friendsPlayerNameHint": "Nhập tên người chơi...",
+  "friendsSuggestionsCount": "GỢI Ý KẾT BẠN ({count})",
+  "@friendsSuggestionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsSearchResultsCount": "KẾT QUẢ TÌM KIẾM ({count})",
+  "@friendsSearchResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsNoAvailablePlayers": "Không có người chơi nào khả dụng",
+  "friendsAddShort": "Thêm",
+  "friendsInbox": "Hộp Thư Kết Bạn",
+  "friendsReceivedInvites": "Lời mời đã nhận",
+  "friendsSentInvites": "Đã gửi đi",
+  "friendsNoSentInvites": "Bạn chưa gửi lời mời nào gần đây.",
+  "friendsNoReceivedInvites": "Không có lời mời kết bạn nào.",
+  "stepGoalTitle": "Mục tiêu bước chân",
+  "stepGoalCustomTitle": "Mục tiêu tự chọn",
+  "stepGoalInputHint": "Nhập số bước...",
+  "stepGoalSuggestions": "GỢI Ý MỤC TIÊU",
+  "stepGoalTodayProgress": "TIẾN ĐỘ HÔM NAY",
+  "stepGoalMinError": "Mục tiêu phải lớn hơn 500 bước.",
+  "stepGoalMaxError": "Mục tiêu không được vượt quá 100.000 bước.",
+  "stepGoalGreaterThanCurrent": "Mục tiêu mới phải lớn hơn mục tiêu hiện tại.",
+  "stepGoalInvalidNumber": "Nhập số bước hợp lệ.",
+  "stepGoalSaved": "Đã lưu mục tiêu {steps} bước.",
+  "@stepGoalSaved": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalClaimSuccess": "Nhận thưởng thành công: +{amount} Giọt Sương.",
+  "@stepGoalClaimSuccess": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalOutOfSteps": " / {steps} bước",
+  "@stepGoalOutOfSteps": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalRemaining": "Còn {steps} bước",
+  "@stepGoalRemaining": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalNotSet": "Chưa đặt mục tiêu",
+  "stepGoalChoosePrompt": "Chọn một mục tiêu bên dưới để bắt đầu theo dõi tiến độ hôm nay.",
+  "stepGoalCompletedMessage": "Tuyệt vời! Bạn đã hoàn thành mục tiêu ngày hôm nay.",
+  "stepGoalActiveMessage": "Hãy đặt mục tiêu vừa sức và tăng dần để giữ chuỗi ngày năng động.",
+  "stepGoalStreakTitle": "Chuỗi mục tiêu",
+  "stepGoalStreakSubtitle": "Hoàn thành mục tiêu để tăng thưởng ví.",
+  "stepGoalLongest": "Dài nhất",
+  "stepGoalClaiming": "Đang nhận",
+  "stepGoalCustomShort": "Tùy chỉnh",
+  "spiritDetailTitle": "Chi Tiết {name}",
+  "@spiritDetailTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spiritLevel": "Cấp {level}",
+  "@spiritLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritRecoveryPotion": "Bình Hồi Phục",
+  "spiritBondBonus": "+{amount} Độ gắn kết",
+  "@spiritBondBonus": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritEnergyBonus": "+{amount} Năng lượng",
+  "@spiritEnergyBonus": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritPlantType": "Hệ Thực Vật",
+  "spiritStatsTab": "Chỉ Số",
+  "spiritEvolutionTab": "Tiến Hóa",
+  "spiritLifeForceExp": "Sinh Mệnh Lực (EXP)",
+  "spiritSupportItems": "Vật Phẩm Hỗ Trợ",
+  "spiritTapLumina": "Chạm Lumina",
+  "spiritTapSuccess": "Đã chạm Lumina thành công",
+  "spiritFeed": "Cho ăn",
+  "spiritFeedSuccess": "Đã cho Lumina ăn thành công",
+  "spiritEvolutionStages": "Giai Đoạn Tiến Hóa",
+  "spiritStageSeed": "Mầm",
+  "spiritStageSprout": "Chồi",
+  "spiritStageLeaf": "Lá",
+  "spiritCurrentRequirement": "Điều kiện hiện tại: Lv {level} - Bond {bonding}",
+  "@spiritCurrentRequirement": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "bonding": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritReady": "Sẵn sàng",
+  "spiritEvolutionHistory": "Lịch Sử Tiến Hóa",
+  "spiritHistoryHatched": "Ấp nở thành công",
+  "spiritHistorySprout": "Tiến hóa thành Dạng Chồi",
+  "spiritHistoryLeaf": "Tiến hóa thành Dạng Lá",
+  "spiritEvolutionConditions": "Điều Kiện Tiến Hóa",
+  "spiritReachLevel15": "Đạt Cấp 15",
+  "spiritBondRequirement": "Độ Gắn Kết Đạt Yêu Cầu",
+  "spiritMet": "Đạt",
+  "spiritEvolveNow": "Tiến Hóa Ngay",
+  "spiritMaxEvolution": "Lumina đã đạt dạng tiến hóa tối đa hiện tại!",
+  "spiritEvolving": "Đang Tiến Hóa...",
+  "storySlide1": "Bạn nhặt được một chiếc máy thám hiểm không gian cũ. Bên trong là một 'Mầm Ánh Sáng'...",
+  "storySlide2": "...đó là một sinh vật Lumina đến từ một hành tinh đã mất đi trọng lực.",
+  "storySlide3": "Để sinh tồn và lớn lên, Lumina cần hấp thụ Sinh Mệnh Lực từ những bước đi của con người.",
+  "storySlide4": "Lumina không cần bạn chiến đấu, nó chỉ muốn đồng hành cùng bạn trong những chuyến đi dạo đời thực để ngắm nhìn thế giới này.",
   "changePasswordTitle": "Đổi mật khẩu",
 "changePasswordSubtitle": "Cập nhật mật khẩu để bảo vệ tài khoản của bạn",
 
@@ -212,5 +758,70 @@
 "seedPath2Description": "Hệ Dạ Quang • Đi bộ buổi tối",
 
 "seedPath3Name": "Tinh Linh Nắng Ấm",
-"seedPath3Description": "Hệ Thực Vật • Đi bộ dàn trải"
+"seedPath3Description": "Hệ Thực Vật • Đi bộ dàn trải",
+  "profileEditGenderMale": "Nam",
+  "profileEditGenderFemale": "Nữ",
+  "profileEditGenderOther": "Khác",
+  "friendsRequestSentTo": "Đã gửi lời mời tới {name}!",
+  "@friendsRequestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRequestSendFailed": "Không thể gửi lời mời. Vui lòng thử lại sau.",
+  "friendsRequestAlreadySent": "Bạn đã gửi lời mời cho người này rồi!",
+  "friendsAlreadyFriend": "Hai bạn đã là bạn bè rồi!",
+  "friendsPlayerNotFound": "Không tìm thấy người chơi này.",
+  "friendProfileTitle": "Hồ sơ Lữ hành giả",
+  "friendProfileTraveler": "Lữ hành giả",
+  "friendProfileUnknownPlayer": "Người chơi ẩn danh",
+  "friendProfileCompanion": "Linh hồn đồng hành",
+  "friendProfileStats": "Thống kê",
+  "friendProfileAchievements": "Thành tựu nổi bật",
+  "friendProfileSpiritName": "Spirit: {name}",
+  "@friendProfileSpiritName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileViewStats": "Xem thống kê",
+  "friendProfileSpiritMeta": "{type} - Cấp {level}",
+  "@friendProfileSpiritMeta": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendProfileNoSpirit": "Chưa có tinh linh",
+  "friendProfileSpiritTypeUnknown": "Chưa rõ hệ",
+  "friendProfileTotalSteps": "Tổng bước đi",
+  "friendProfileStreak": "Chuỗi ngày",
+  "friendProfileEnergy": "Năng lượng",
+  "friendProfileBond": "Gắn kết",
+  "friendProfileLifeForce": "Sinh mệnh lực",
+  "friendProfileExp": "EXP",
+  "friendProfileUnavailable": "--",
+  "friendProfileAchievementsUnavailable": "Dữ liệu thành tựu chưa sẵn sàng.",
+  "friendProfileLoadFailed": "Không thể tải hồ sơ người chơi này.",
+  "friendProfileRequestSentTitle": "Đã gửi lời mời!",
+  "friendProfileRequestSentMessage": "Lời mời kết bạn đã được gửi đến {name}. Cùng nhau tích bước nhé!",
+  "@friendProfileRequestSentMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileGreat": "Tuyệt vời",
+  "friendSpiritTitle": "Thống kê tinh linh",
+  "feedbackWaitBeforeRetry": "Vui lòng đợi trước khi gửi lại.",
+  "feedbackSendFailed": "Gửi phản hồi thất bại. Vui lòng thử lại sau."
 }

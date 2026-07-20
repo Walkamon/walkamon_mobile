@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/network/api_client.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
+import '../../l10n/app_localizations.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -81,12 +82,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       await _datasource.deleteNotification(id);
       if (mounted) {
-        _showGameToast('Đã xóa thông báo');
+        _showGameToast(AppLocalizations.of(context).notificationsDeleted);
       }
     } catch (e) {
       _fetchNotifications();
       if (mounted) {
-        _showGameToast('Xóa thất bại: $e', isError: true);
+        _showGameToast(
+          AppLocalizations.of(context).notificationsDeleteFailed('$e'),
+          isError: true,
+        );
       }
     }
   }
@@ -147,9 +151,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             child: CircularProgressIndicator(),
                           )
                         else if (snapshot.hasError)
-                          const Padding(
-                            padding: EdgeInsets.all(24.0),
-                            child: Text("Đã có lỗi xảy ra khi tải nội dung."),
+                          Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).notificationsDetailError,
+                            ),
                           )
                         else if (snapshot.hasData)
                           Flexible(
@@ -292,11 +300,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   String _formatTimeAgo(DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) return "${diff.inDays} ngày trước";
-    if (diff.inHours > 0) return "${diff.inHours} giờ trước";
-    if (diff.inMinutes > 0) return "${diff.inMinutes} phút trước";
-    return "Vừa xong";
+    if (diff.inDays > 0) return l10n.notificationsTimeAgoDays(diff.inDays);
+    if (diff.inHours > 0) return l10n.notificationsTimeAgoHours(diff.inHours);
+    if (diff.inMinutes > 0) {
+      return l10n.notificationsTimeAgoMinutes(diff.inMinutes);
+    }
+    return l10n.notificationsTimeAgoJustNow;
   }
 
   IconData _getNotificationIcon(String? iconName) {
@@ -323,49 +334,53 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (typeCode == null || typeCode.isEmpty) return '';
     switch (typeCode) {
       case 'daily_reward':
-        return 'Quà đăng nhập hàng ngày';
+        return AppLocalizations.of(context).notificationsTypeDailyReward;
       case 'streak_reward':
-        return 'Quà chuỗi điểm danh';
+        return AppLocalizations.of(context).notificationsTypeStreakReward;
       case 'mission_complete':
-        return 'Hoàn thành nhiệm vụ';
+        return AppLocalizations.of(context).notificationsTypeMissionComplete;
       case 'achievement_complete':
-        return 'Hoàn thành thành tựu';
+        return AppLocalizations.of(
+          context,
+        ).notificationsTypeAchievementComplete;
       case 'challenge_invite':
-        return 'Lời mời thử thách';
+        return AppLocalizations.of(context).notificationsTypeChallengeInvite;
       case 'pvp_invite':
-        return 'Lời mời đấu PvP';
+        return AppLocalizations.of(context).notificationsTypePvpInvite;
       case 'friend_request':
-        return 'Yêu cầu kết bạn';
+        return AppLocalizations.of(context).notificationsTypeFriendRequest;
       case 'friend_accepted':
-        return 'Chấp nhận kết bạn';
+        return AppLocalizations.of(context).notificationsTypeFriendAccepted;
       case 'friend_removed':
-        return 'Hủy kết bạn';
+        return AppLocalizations.of(context).notificationsTypeFriendRemoved;
       case 'spirit_hungry':
-        return 'Lumina đang đói';
+        return AppLocalizations.of(context).notificationsTypeSpiritHungry;
       case 'spirit_ready_evolution':
-        return 'Đủ điều kiện tiến hóa';
+        return AppLocalizations.of(
+          context,
+        ).notificationsTypeSpiritReadyEvolution;
       case 'spirit_energy_full':
-        return 'Năng lượng đã đầy';
+        return AppLocalizations.of(context).notificationsTypeSpiritEnergyFull;
       case 'spirit_bond_low':
-        return 'Sinh mệnh thấp';
+        return AppLocalizations.of(context).notificationsTypeSpiritBondLow;
       case 'spirit_level_up':
-        return 'Lên cấp';
+        return AppLocalizations.of(context).notificationsTypeSpiritLevelUp;
       case 'item_purchased':
-        return 'Mua vật phẩm thành công';
+        return AppLocalizations.of(context).notificationsTypeItemPurchased;
       case 'pvp_result':
-        return 'Kết quả đấu PvP';
+        return AppLocalizations.of(context).notificationsTypePvpResult;
       case 'maintenance':
-        return 'Thông báo bảo trì';
+        return AppLocalizations.of(context).notificationsTypeMaintenance;
       case 'patch_notes':
-        return 'Ghi chú cập nhật';
+        return AppLocalizations.of(context).notificationsTypePatchNotes;
       case 'news':
-        return 'Tin tức mới';
+        return AppLocalizations.of(context).notificationsTypeNews;
       case 'event':
-        return 'Sự kiện';
+        return AppLocalizations.of(context).notificationsTypeEvent;
       case 'compensation':
-        return 'Quà đền bù';
+        return AppLocalizations.of(context).notificationsTypeCompensation;
       case 'server_announcement':
-        return 'Thông báo từ máy chủ';
+        return AppLocalizations.of(context).notificationsTypeServerAnnouncement;
       default:
         return typeCode;
     }
@@ -374,6 +389,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -394,19 +410,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        title: const Text(
-          'Thông Báo',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.notificationsTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
-                'Không có thông báo nào.',
-                style: TextStyle(
+                l10n.notificationsEmpty,
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.w500,
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../../data/models/daily_login_model.dart';
 
 class DailyLoginCalendarWidget extends StatelessWidget {
@@ -13,8 +14,10 @@ class DailyLoginCalendarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     if (rewards.isEmpty) {
-      return const Center(child: Text('Chưa có dữ liệu phần thưởng'));
+      return Center(child: Text(l10n.dailyLoginNoRewardData));
     }
 
     // Chia danh sách làm 2 dòng giống TSX (4 ngày đầu, 3 ngày sau)
@@ -61,6 +64,7 @@ class _RewardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isClaimed = rewardInfo.status == 'claimed';
     final isCurrent = rewardInfo.status == 'claimable';
     final isSpecial = rewardInfo.day == 7;
@@ -153,7 +157,7 @@ class _RewardCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'NGÀY ${rewardInfo.day}',
+                l10n.dayLabel(rewardInfo.day),
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
@@ -164,7 +168,9 @@ class _RewardCard extends StatelessWidget {
               iconWidget,
               const Spacer(),
               Text(
-                (isSpecial && !isClaimed) ? 'x1' : 'x${rewardInfo.reward}',
+                l10n.rewardCount(
+                  isSpecial && !isClaimed ? 1 : rewardInfo.reward,
+                ),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,

@@ -1136,6 +1136,66 @@ abstract class AppLocalizations {
   /// **'Collected {count} badges'**
   String achievementsCollected(int count);
 
+  /// No description provided for @achievementsUnlockedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed'**
+  String get achievementsUnlockedTab;
+
+  /// No description provided for @achievementsLockedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclaimed'**
+  String get achievementsLockedTab;
+
+  /// No description provided for @achievementsCurrentProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Current progress'**
+  String get achievementsCurrentProgress;
+
+  /// No description provided for @achievementsLockedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{description}.\nReward: {reward} Dewdrops'**
+  String achievementsLockedDetail(String description, int reward);
+
+  /// No description provided for @achievementsUnlockedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked at: {date}'**
+  String achievementsUnlockedAt(String date);
+
+  /// No description provided for @achievementsUnlockedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{description}. Keep the momentum going to unlock more achievements!'**
+  String achievementsUnlockedDetail(String description);
+
+  /// No description provided for @achievementsKeepTrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep trying'**
+  String get achievementsKeepTrying;
+
+  /// No description provided for @achievementsCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection'**
+  String get achievementsCollection;
+
+  /// No description provided for @achievementsGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get achievementsGoals;
+
+  /// No description provided for @achievementsLockedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} badges are waiting to be discovered'**
+  String achievementsLockedCount(int count);
+
   /// No description provided for @retry.
   ///
   /// In en, this message translates to:
@@ -1189,6 +1249,1722 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get genderOther;
+
+  /// No description provided for @dailyLoginNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No daily login data available.'**
+  String get dailyLoginNoData;
+
+  /// No description provided for @dailyLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Check-in'**
+  String get dailyLoginTitle;
+
+  /// No description provided for @dailyLoginRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Gift'**
+  String get dailyLoginRewardTitle;
+
+  /// No description provided for @dailyLoginRewardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in every day to receive amazing rewards.\nDon’t miss day 7!'**
+  String get dailyLoginRewardSubtitle;
+
+  /// No description provided for @dailyLoginAlreadyClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'You already claimed your gift today!'**
+  String get dailyLoginAlreadyClaimed;
+
+  /// No description provided for @dailyLoginSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Success!'**
+  String get dailyLoginSuccessTitle;
+
+  /// No description provided for @dailyLoginSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! You have successfully claimed your reward for day {day}!'**
+  String dailyLoginSuccessMessage(int day);
+
+  /// No description provided for @dailyLoginSuccessReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward: +{amount} Dewdrops'**
+  String dailyLoginSuccessReward(int amount);
+
+  /// No description provided for @dailyLoginSuccessBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance: {balance} Dewdrops'**
+  String dailyLoginSuccessBalance(int balance);
+
+  /// No description provided for @dailyLoginSuccessAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Awesome'**
+  String get dailyLoginSuccessAction;
+
+  /// No description provided for @dailyLoginClaimedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed Today'**
+  String get dailyLoginClaimedToday;
+
+  /// No description provided for @dailyLoginClaimNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim Reward Now'**
+  String get dailyLoginClaimNow;
+
+  /// No description provided for @dailyLoginNoRewardData.
+  ///
+  /// In en, this message translates to:
+  /// **'No reward data yet'**
+  String get dailyLoginNoRewardData;
+
+  /// No description provided for @dayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'DAY {day}'**
+  String dayLabel(int day);
+
+  /// No description provided for @rewardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'x{count}'**
+  String rewardCount(int count);
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get errorPrefix;
+
+  /// No description provided for @friendsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load friends list'**
+  String get friendsLoadError;
+
+  /// No description provided for @friendsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove friend'**
+  String get friendsRemoveTitle;
+
+  /// No description provided for @friendsRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove {name} from your friends list?'**
+  String friendsRemoveConfirm(String name);
+
+  /// No description provided for @friendsCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get friendsCancel;
+
+  /// No description provided for @friendsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get friendsRemove;
+
+  /// No description provided for @friendsRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get friendsRequest;
+
+  /// No description provided for @friendsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Friend'**
+  String get friendsAdd;
+
+  /// No description provided for @friendsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search friends...'**
+  String get friendsSearchHint;
+
+  /// No description provided for @friendsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No teammates yet!'**
+  String get friendsEmptyTitle;
+
+  /// No description provided for @friendsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \'Add Friend\' to start your journey.'**
+  String get friendsEmptySubtitle;
+
+  /// No description provided for @friendsNoResult.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching friend found.'**
+  String get friendsNoResult;
+
+  /// No description provided for @friendsRemoveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'You unfriended {name}!'**
+  String friendsRemoveSuccess(String name);
+
+  /// No description provided for @friendsRemoveFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove friend. Please try again!'**
+  String get friendsRemoveFailure;
+
+  /// No description provided for @pvpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP Arena'**
+  String get pvpTitle;
+
+  /// No description provided for @pvpComingSoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP mode is under development!'**
+  String get pvpComingSoonTitle;
+
+  /// No description provided for @pvpComingSoonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge the strength of Lumina against rivals.'**
+  String get pvpComingSoonDescription;
+
+  /// No description provided for @inventoryLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load inventory.'**
+  String get inventoryLoadError;
+
+  /// No description provided for @inventoryNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items available.'**
+  String get inventoryNoItems;
+
+  /// No description provided for @inventoryNoEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'No effect'**
+  String get inventoryNoEffect;
+
+  /// No description provided for @inventoryUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used: {name}'**
+  String inventoryUsed(String name);
+
+  /// No description provided for @inventoryUseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Use failed: {message}'**
+  String inventoryUseFailed(String message);
+
+  /// No description provided for @inventoryUseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while using item: {message}'**
+  String inventoryUseError(String message);
+
+  /// No description provided for @inventoryCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get inventoryCommunity;
+
+  /// No description provided for @inventoryPvp.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP'**
+  String get inventoryPvp;
+
+  /// No description provided for @inventoryBag.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get inventoryBag;
+
+  /// No description provided for @inventoryStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get inventoryStore;
+
+  /// No description provided for @inventoryHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get inventoryHome;
+
+  /// No description provided for @leaderboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get leaderboardTitle;
+
+  /// No description provided for @leaderboardYourRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rank: #{rank}'**
+  String leaderboardYourRank(int rank);
+
+  /// No description provided for @leaderboardToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get leaderboardToday;
+
+  /// No description provided for @leaderboardThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get leaderboardThisWeek;
+
+  /// No description provided for @leaderboardThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get leaderboardThisMonth;
+
+  /// No description provided for @leaderboardSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get leaderboardSteps;
+
+  /// No description provided for @leaderboardLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get leaderboardLevel;
+
+  /// No description provided for @leaderboardYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get leaderboardYou;
+
+  /// No description provided for @leaderboardUserDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get leaderboardUserDefault;
+
+  /// No description provided for @leaderboardCouldNotLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load leaderboard'**
+  String get leaderboardCouldNotLoad;
+
+  /// No description provided for @leaderboardCouldNotConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the server'**
+  String get leaderboardCouldNotConnect;
+
+  /// No description provided for @missionsDefaultDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the mission to receive a reward.'**
+  String get missionsDefaultDescription;
+
+  /// No description provided for @missionsChallengeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the challenge to receive a reward.'**
+  String get missionsChallengeDescription;
+
+  /// No description provided for @missionsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load missions.'**
+  String get missionsLoadError;
+
+  /// No description provided for @missionsClaimSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed successfully: +{amount}'**
+  String missionsClaimSuccess(int amount);
+
+  /// No description provided for @missionsClaimFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not claim reward: {message}'**
+  String missionsClaimFailed(String message);
+
+  /// No description provided for @missionsChallengeExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a challenge. Please finish or cancel it first!'**
+  String get missionsChallengeExists;
+
+  /// No description provided for @missionsChallengeCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge canceled.'**
+  String get missionsChallengeCanceled;
+
+  /// No description provided for @missionsChallengeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'New challenge received!'**
+  String get missionsChallengeCreated;
+
+  /// No description provided for @missionsCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel challenge: {message}'**
+  String missionsCancelFailed(String message);
+
+  /// No description provided for @missionsDailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily missions'**
+  String get missionsDailyTitle;
+
+  /// No description provided for @missionsOverallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall missions'**
+  String get missionsOverallTitle;
+
+  /// No description provided for @missionsDailyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No daily missions.'**
+  String get missionsDailyEmpty;
+
+  /// No description provided for @missionsOverallEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No overall missions.'**
+  String get missionsOverallEmpty;
+
+  /// No description provided for @missionsRandomChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Random Challenge'**
+  String get missionsRandomChallenge;
+
+  /// No description provided for @missionsCancelRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancels left: {remaining}/{limit}'**
+  String missionsCancelRemaining(int remaining, int limit);
+
+  /// No description provided for @missionsNoActiveChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'There are currently no active challenges.'**
+  String get missionsNoActiveChallenge;
+
+  /// No description provided for @missionsNewChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a new challenge'**
+  String get missionsNewChallenge;
+
+  /// No description provided for @missionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions'**
+  String get missionsTitle;
+
+  /// No description provided for @missionsTabMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission'**
+  String get missionsTabMission;
+
+  /// No description provided for @missionsTabChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge'**
+  String get missionsTabChallenge;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet.'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification deleted'**
+  String get notificationsDeleted;
+
+  /// No description provided for @notificationsDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed: {message}'**
+  String notificationsDeleteFailed(String message);
+
+  /// No description provided for @notificationsDetailError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while loading the content.'**
+  String get notificationsDetailError;
+
+  /// No description provided for @notificationsTimeAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String notificationsTimeAgoDays(int count);
+
+  /// No description provided for @notificationsTimeAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hours ago'**
+  String notificationsTimeAgoHours(int count);
+
+  /// No description provided for @notificationsTimeAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} minutes ago'**
+  String notificationsTimeAgoMinutes(int count);
+
+  /// No description provided for @notificationsTimeAgoJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get notificationsTimeAgoJustNow;
+
+  /// No description provided for @notificationsTypeDailyReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily login reward'**
+  String get notificationsTypeDailyReward;
+
+  /// No description provided for @notificationsTypeStreakReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak reward'**
+  String get notificationsTypeStreakReward;
+
+  /// No description provided for @notificationsTypeMissionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission complete'**
+  String get notificationsTypeMissionComplete;
+
+  /// No description provided for @notificationsTypeAchievementComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement complete'**
+  String get notificationsTypeAchievementComplete;
+
+  /// No description provided for @notificationsTypeChallengeInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge invitation'**
+  String get notificationsTypeChallengeInvite;
+
+  /// No description provided for @notificationsTypePvpInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP invitation'**
+  String get notificationsTypePvpInvite;
+
+  /// No description provided for @notificationsTypeFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request'**
+  String get notificationsTypeFriendRequest;
+
+  /// No description provided for @notificationsTypeFriendAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request accepted'**
+  String get notificationsTypeFriendAccepted;
+
+  /// No description provided for @notificationsTypeFriendRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend removed'**
+  String get notificationsTypeFriendRemoved;
+
+  /// No description provided for @notificationsTypeSpiritHungry.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumina is hungry'**
+  String get notificationsTypeSpiritHungry;
+
+  /// No description provided for @notificationsTypeSpiritReadyEvolution.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to evolve'**
+  String get notificationsTypeSpiritReadyEvolution;
+
+  /// No description provided for @notificationsTypeSpiritEnergyFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy full'**
+  String get notificationsTypeSpiritEnergyFull;
+
+  /// No description provided for @notificationsTypeSpiritBondLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Life force low'**
+  String get notificationsTypeSpiritBondLow;
+
+  /// No description provided for @notificationsTypeSpiritLevelUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Level up'**
+  String get notificationsTypeSpiritLevelUp;
+
+  /// No description provided for @notificationsTypeItemPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Item purchased successfully'**
+  String get notificationsTypeItemPurchased;
+
+  /// No description provided for @notificationsTypePvpResult.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP result'**
+  String get notificationsTypePvpResult;
+
+  /// No description provided for @notificationsTypeMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance notice'**
+  String get notificationsTypeMaintenance;
+
+  /// No description provided for @notificationsTypePatchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Patch notes'**
+  String get notificationsTypePatchNotes;
+
+  /// No description provided for @notificationsTypeNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get notificationsTypeNews;
+
+  /// No description provided for @notificationsTypeEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get notificationsTypeEvent;
+
+  /// No description provided for @notificationsTypeCompensation.
+  ///
+  /// In en, this message translates to:
+  /// **'Compensation reward'**
+  String get notificationsTypeCompensation;
+
+  /// No description provided for @notificationsTypeServerAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Server announcement'**
+  String get notificationsTypeServerAnnouncement;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileEditDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get profileEditDisplayName;
+
+  /// No description provided for @profileEditDisplayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get profileEditDisplayNameHint;
+
+  /// No description provided for @profileEditEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (Cannot be changed)'**
+  String get profileEditEmailLabel;
+
+  /// No description provided for @profileEditEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email'**
+  String get profileEditEmailHint;
+
+  /// No description provided for @profileEditGenderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get profileEditGenderLabel;
+
+  /// No description provided for @profileEditBirthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get profileEditBirthLabel;
+
+  /// No description provided for @profileEditBioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get profileEditBioLabel;
+
+  /// No description provided for @profileEditBioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A little about you...'**
+  String get profileEditBioHint;
+
+  /// No description provided for @profileEditSaveLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get profileEditSaveLoading;
+
+  /// No description provided for @profileEditSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get profileEditSave;
+
+  /// No description provided for @profileEditSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile information has been updated successfully!'**
+  String get profileEditSuccessMessage;
+
+  /// No description provided for @profileEditFailureMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Please check again.'**
+  String get profileEditFailureMessage;
+
+  /// No description provided for @profileEditRequiredName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be empty'**
+  String get profileEditRequiredName;
+
+  /// No description provided for @profileEditConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get profileEditConfirm;
+
+  /// No description provided for @profileEditDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveler'**
+  String get profileEditDefaultName;
+
+  /// No description provided for @profileEditDefaultBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoying the Walkamon journey!'**
+  String get profileEditDefaultBio;
+
+  /// No description provided for @activityStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activityStatsTitle;
+
+  /// No description provided for @activityStatsStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get activityStatsStats;
+
+  /// No description provided for @activityStatsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get activityStatsHistory;
+
+  /// No description provided for @activityStatsDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get activityStatsDaily;
+
+  /// No description provided for @activityStatsWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get activityStatsWeekly;
+
+  /// No description provided for @activityStatsMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get activityStatsMonthly;
+
+  /// No description provided for @activityStatsTotalSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Total steps'**
+  String get activityStatsTotalSteps;
+
+  /// No description provided for @activityStatsDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get activityStatsDistance;
+
+  /// No description provided for @activityStatsNoChartData.
+  ///
+  /// In en, this message translates to:
+  /// **'No chart data yet'**
+  String get activityStatsNoChartData;
+
+  /// No description provided for @activityStatsNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity history yet'**
+  String get activityStatsNoHistory;
+
+  /// No description provided for @activityStatsGoalReached.
+  ///
+  /// In en, this message translates to:
+  /// **'GOAL REACHED'**
+  String get activityStatsGoalReached;
+
+  /// No description provided for @activityStatsStepsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'steps'**
+  String get activityStatsStepsUnit;
+
+  /// No description provided for @activityStatsStepsPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'steps/day'**
+  String get activityStatsStepsPerDay;
+
+  /// No description provided for @activityStatsSuffixKm.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get activityStatsSuffixKm;
+
+  /// No description provided for @activityStatsTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s activity'**
+  String get activityStatsTodayTitle;
+
+  /// No description provided for @activityStatsWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s activity'**
+  String get activityStatsWeekTitle;
+
+  /// No description provided for @activityStatsMonthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s activity'**
+  String get activityStatsMonthTitle;
+
+  /// No description provided for @activityStatsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get activityStatsTotal;
+
+  /// No description provided for @activityStatsAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get activityStatsAverage;
+
+  /// No description provided for @activityStatsWeekBucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {week}'**
+  String activityStatsWeekBucket(int week);
+
+  /// No description provided for @streakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Login Streak'**
+  String get streakTitle;
+
+  /// No description provided for @streakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get streakDays;
+
+  /// No description provided for @streakEncouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'You’re doing great! Keep it up to receive exciting rewards.'**
+  String get streakEncouragement;
+
+  /// No description provided for @streakThirtyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30-day streak'**
+  String get streakThirtyDays;
+
+  /// No description provided for @streakRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak record'**
+  String get streakRecord;
+
+  /// No description provided for @streakCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current streak'**
+  String get streakCurrent;
+
+  /// No description provided for @shopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get shopTitle;
+
+  /// No description provided for @shopCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Dewdrops'**
+  String get shopCurrency;
+
+  /// No description provided for @shopNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No shop items available.'**
+  String get shopNoItems;
+
+  /// No description provided for @shopBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy'**
+  String get shopBuy;
+
+  /// No description provided for @shopBuySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchased successfully: {name}'**
+  String shopBuySuccess(String name);
+
+  /// No description provided for @shopBuyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed: {message}'**
+  String shopBuyFailed(String message);
+
+  /// No description provided for @shopBuyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error while buying: {message}'**
+  String shopBuyError(String message);
+
+  /// No description provided for @shopType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get shopType;
+
+  /// No description provided for @shopPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get shopPrice;
+
+  /// No description provided for @shopDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get shopDescription;
+
+  /// No description provided for @socialTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get socialTitle;
+
+  /// No description provided for @socialFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get socialFriends;
+
+  /// No description provided for @socialLeaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get socialLeaderboard;
+
+  /// No description provided for @dailyRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Check-in'**
+  String get dailyRewardTitle;
+
+  /// No description provided for @dailyRewardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily check-in is being developed!'**
+  String get dailyRewardSubtitle;
+
+  /// No description provided for @dailyRewardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in every day to receive magical dew drops.'**
+  String get dailyRewardDescription;
+
+  /// No description provided for @namePetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Name your Lumina'**
+  String get namePetTitle;
+
+  /// No description provided for @namePetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a meaningful name for your companion.'**
+  String get namePetDescription;
+
+  /// No description provided for @namePetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a Lumina name...'**
+  String get namePetHint;
+
+  /// No description provided for @namePetComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get namePetComplete;
+
+  /// No description provided for @namePetCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create your starter pet. Please try again.'**
+  String get namePetCreateFailed;
+
+  /// No description provided for @seedTitleScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed of Light'**
+  String get seedTitleScreen;
+
+  /// No description provided for @seedDescriptionScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.'**
+  String get seedDescriptionScreen;
+
+  /// No description provided for @storySkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get storySkip;
+
+  /// No description provided for @storyBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get storyBack;
+
+  /// No description provided for @storyContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get storyContinue;
+
+  /// No description provided for @storyExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get storyExplore;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get processing;
+
+  /// No description provided for @profileEditFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get profileEditFailureTitle;
+
+  /// No description provided for @missionsClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIM'**
+  String get missionsClaim;
+
+  /// No description provided for @missionsClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'CLAIMED'**
+  String get missionsClaimed;
+
+  /// No description provided for @inventoryNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description yet.'**
+  String get inventoryNoDescription;
+
+  /// No description provided for @inventoryUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get inventoryUse;
+
+  /// No description provided for @friendsListCount.
+  ///
+  /// In en, this message translates to:
+  /// **'LIST ({count})'**
+  String friendsListCount(int count);
+
+  /// No description provided for @friendsSearchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed'**
+  String get friendsSearchError;
+
+  /// No description provided for @friendsAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Friend'**
+  String get friendsAddNew;
+
+  /// No description provided for @friendsPlayerNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter player name...'**
+  String get friendsPlayerNameHint;
+
+  /// No description provided for @friendsSuggestionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'FRIEND SUGGESTIONS ({count})'**
+  String friendsSuggestionsCount(int count);
+
+  /// No description provided for @friendsSearchResultsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'SEARCH RESULTS ({count})'**
+  String friendsSearchResultsCount(int count);
+
+  /// No description provided for @friendsNoAvailablePlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'No available players'**
+  String get friendsNoAvailablePlayers;
+
+  /// No description provided for @friendsAddShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get friendsAddShort;
+
+  /// No description provided for @friendsInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Mailbox'**
+  String get friendsInbox;
+
+  /// No description provided for @friendsReceivedInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Received invites'**
+  String get friendsReceivedInvites;
+
+  /// No description provided for @friendsSentInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get friendsSentInvites;
+
+  /// No description provided for @friendsNoSentInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not sent any invites recently.'**
+  String get friendsNoSentInvites;
+
+  /// No description provided for @friendsNoReceivedInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'No friend invites.'**
+  String get friendsNoReceivedInvites;
+
+  /// No description provided for @stepGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step goal'**
+  String get stepGoalTitle;
+
+  /// No description provided for @stepGoalCustomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom goal'**
+  String get stepGoalCustomTitle;
+
+  /// No description provided for @stepGoalInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter steps...'**
+  String get stepGoalInputHint;
+
+  /// No description provided for @stepGoalSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'GOAL SUGGESTIONS'**
+  String get stepGoalSuggestions;
+
+  /// No description provided for @stepGoalTodayProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY\'S PROGRESS'**
+  String get stepGoalTodayProgress;
+
+  /// No description provided for @stepGoalMinError.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal must be greater than 500 steps.'**
+  String get stepGoalMinError;
+
+  /// No description provided for @stepGoalMaxError.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal cannot exceed 100,000 steps.'**
+  String get stepGoalMaxError;
+
+  /// No description provided for @stepGoalGreaterThanCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal must be greater than the current goal.'**
+  String get stepGoalGreaterThanCurrent;
+
+  /// No description provided for @stepGoalInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid step count.'**
+  String get stepGoalInvalidNumber;
+
+  /// No description provided for @stepGoalSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved goal of {steps} steps.'**
+  String stepGoalSaved(String steps);
+
+  /// No description provided for @stepGoalClaimSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed successfully: +{amount} Dewdrops.'**
+  String stepGoalClaimSuccess(String amount);
+
+  /// No description provided for @stepGoalOutOfSteps.
+  ///
+  /// In en, this message translates to:
+  /// **' / {steps} steps'**
+  String stepGoalOutOfSteps(String steps);
+
+  /// No description provided for @stepGoalRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{steps} steps left'**
+  String stepGoalRemaining(String steps);
+
+  /// No description provided for @stepGoalNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal set'**
+  String get stepGoalNotSet;
+
+  /// No description provided for @stepGoalChoosePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a goal below to start tracking today\'s progress.'**
+  String get stepGoalChoosePrompt;
+
+  /// No description provided for @stepGoalCompletedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Great job! You completed today\'s goal.'**
+  String get stepGoalCompletedMessage;
+
+  /// No description provided for @stepGoalActiveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a realistic goal and gradually increase it to keep your active streak going.'**
+  String get stepGoalActiveMessage;
+
+  /// No description provided for @stepGoalStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal streak'**
+  String get stepGoalStreakTitle;
+
+  /// No description provided for @stepGoalStreakSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete goals to grow your wallet reward.'**
+  String get stepGoalStreakSubtitle;
+
+  /// No description provided for @stepGoalLongest.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest'**
+  String get stepGoalLongest;
+
+  /// No description provided for @stepGoalClaiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Claiming'**
+  String get stepGoalClaiming;
+
+  /// No description provided for @stepGoalCustomShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get stepGoalCustomShort;
+
+  /// No description provided for @spiritDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} Details'**
+  String spiritDetailTitle(String name);
+
+  /// No description provided for @spiritLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String spiritLevel(int level);
+
+  /// No description provided for @spiritRecoveryPotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Potion'**
+  String get spiritRecoveryPotion;
+
+  /// No description provided for @spiritBondBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount} Bonding'**
+  String spiritBondBonus(int amount);
+
+  /// No description provided for @spiritEnergyBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount} Energy'**
+  String spiritEnergyBonus(int amount);
+
+  /// No description provided for @spiritPlantType.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant Type'**
+  String get spiritPlantType;
+
+  /// No description provided for @spiritStatsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get spiritStatsTab;
+
+  /// No description provided for @spiritEvolutionTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution'**
+  String get spiritEvolutionTab;
+
+  /// No description provided for @spiritLifeForceExp.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Force (EXP)'**
+  String get spiritLifeForceExp;
+
+  /// No description provided for @spiritSupportItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Items'**
+  String get spiritSupportItems;
+
+  /// No description provided for @spiritTapLumina.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Lumina'**
+  String get spiritTapLumina;
+
+  /// No description provided for @spiritTapSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Tapped Lumina successfully'**
+  String get spiritTapSuccess;
+
+  /// No description provided for @spiritFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get spiritFeed;
+
+  /// No description provided for @spiritFeedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Fed Lumina successfully'**
+  String get spiritFeedSuccess;
+
+  /// No description provided for @spiritEvolutionStages.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution Stages'**
+  String get spiritEvolutionStages;
+
+  /// No description provided for @spiritStageSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed'**
+  String get spiritStageSeed;
+
+  /// No description provided for @spiritStageSprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get spiritStageSprout;
+
+  /// No description provided for @spiritStageLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaf'**
+  String get spiritStageLeaf;
+
+  /// No description provided for @spiritCurrentRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Current requirements: Lv {level} - Bond {bonding}'**
+  String spiritCurrentRequirement(int level, int bonding);
+
+  /// No description provided for @spiritReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get spiritReady;
+
+  /// No description provided for @spiritEvolutionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution History'**
+  String get spiritEvolutionHistory;
+
+  /// No description provided for @spiritHistoryHatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Hatched successfully'**
+  String get spiritHistoryHatched;
+
+  /// No description provided for @spiritHistorySprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolved into Sprout Form'**
+  String get spiritHistorySprout;
+
+  /// No description provided for @spiritHistoryLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolved into Leaf Form'**
+  String get spiritHistoryLeaf;
+
+  /// No description provided for @spiritEvolutionConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution Conditions'**
+  String get spiritEvolutionConditions;
+
+  /// No description provided for @spiritReachLevel15.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Level 15'**
+  String get spiritReachLevel15;
+
+  /// No description provided for @spiritBondRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonding requirement met'**
+  String get spiritBondRequirement;
+
+  /// No description provided for @spiritMet.
+  ///
+  /// In en, this message translates to:
+  /// **'Met'**
+  String get spiritMet;
+
+  /// No description provided for @spiritEvolveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolve Now'**
+  String get spiritEvolveNow;
+
+  /// No description provided for @spiritMaxEvolution.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumina has reached the current maximum evolution form!'**
+  String get spiritMaxEvolution;
+
+  /// No description provided for @spiritEvolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolving...'**
+  String get spiritEvolving;
+
+  /// No description provided for @storySlide1.
+  ///
+  /// In en, this message translates to:
+  /// **'You discover an old space exploration device. Inside is a Seed of Light...'**
+  String get storySlide1;
+
+  /// No description provided for @storySlide2.
+  ///
+  /// In en, this message translates to:
+  /// **'...a small Lumina from a planet that lost its gravity.'**
+  String get storySlide2;
+
+  /// No description provided for @storySlide3.
+  ///
+  /// In en, this message translates to:
+  /// **'To survive and grow, Lumina absorbs Life Force from human footsteps.'**
+  String get storySlide3;
+
+  /// No description provided for @storySlide4.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumina does not need you to fight. It only wants to walk beside you and see the real world.'**
+  String get storySlide4;
+
+  /// No description provided for @profileEditGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get profileEditGenderMale;
+
+  /// No description provided for @profileEditGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get profileEditGenderFemale;
+
+  /// No description provided for @profileEditGenderOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get profileEditGenderOther;
+
+  /// No description provided for @friendsRequestSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent an invite to {name}!'**
+  String friendsRequestSentTo(String name);
+
+  /// No description provided for @friendsRequestSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send the invite. Please try again later.'**
+  String get friendsRequestSendFailed;
+
+  /// No description provided for @friendsRequestAlreadySent.
+  ///
+  /// In en, this message translates to:
+  /// **'You already sent this player an invite!'**
+  String get friendsRequestAlreadySent;
+
+  /// No description provided for @friendsAlreadyFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'You are already friends!'**
+  String get friendsAlreadyFriend;
+
+  /// No description provided for @friendsPlayerNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find this player.'**
+  String get friendsPlayerNotFound;
+
+  /// No description provided for @friendProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveler Profile'**
+  String get friendProfileTitle;
+
+  /// No description provided for @friendProfileTraveler.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveler'**
+  String get friendProfileTraveler;
+
+  /// No description provided for @friendProfileUnknownPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown player'**
+  String get friendProfileUnknownPlayer;
+
+  /// No description provided for @friendProfileCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'Companion Spirit'**
+  String get friendProfileCompanion;
+
+  /// No description provided for @friendProfileStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get friendProfileStats;
+
+  /// No description provided for @friendProfileAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured Achievements'**
+  String get friendProfileAchievements;
+
+  /// No description provided for @friendProfileSpiritName.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirit: {name}'**
+  String friendProfileSpiritName(String name);
+
+  /// No description provided for @friendProfileViewStats.
+  ///
+  /// In en, this message translates to:
+  /// **'View Stats'**
+  String get friendProfileViewStats;
+
+  /// No description provided for @friendProfileSpiritMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} - Level {level}'**
+  String friendProfileSpiritMeta(String type, int level);
+
+  /// No description provided for @friendProfileNoSpirit.
+  ///
+  /// In en, this message translates to:
+  /// **'No spirit yet'**
+  String get friendProfileNoSpirit;
+
+  /// No description provided for @friendProfileSpiritTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Type'**
+  String get friendProfileSpiritTypeUnknown;
+
+  /// No description provided for @friendProfileTotalSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Total steps'**
+  String get friendProfileTotalSteps;
+
+  /// No description provided for @friendProfileStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get friendProfileStreak;
+
+  /// No description provided for @friendProfileEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get friendProfileEnergy;
+
+  /// No description provided for @friendProfileBond.
+  ///
+  /// In en, this message translates to:
+  /// **'Bond'**
+  String get friendProfileBond;
+
+  /// No description provided for @friendProfileLifeForce.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Force'**
+  String get friendProfileLifeForce;
+
+  /// No description provided for @friendProfileExp.
+  ///
+  /// In en, this message translates to:
+  /// **'EXP'**
+  String get friendProfileExp;
+
+  /// No description provided for @friendProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'--'**
+  String get friendProfileUnavailable;
+
+  /// No description provided for @friendProfileAchievementsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements data is not available yet.'**
+  String get friendProfileAchievementsUnavailable;
+
+  /// No description provided for @friendProfileLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this player profile.'**
+  String get friendProfileLoadFailed;
+
+  /// No description provided for @friendProfileRequestSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite sent!'**
+  String get friendProfileRequestSentTitle;
+
+  /// No description provided for @friendProfileRequestSentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend invite has been sent to {name}. Keep walking together!'**
+  String friendProfileRequestSentMessage(String name);
+
+  /// No description provided for @friendProfileGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get friendProfileGreat;
+
+  /// No description provided for @friendSpiritTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirit Stats'**
+  String get friendSpiritTitle;
+
+  /// No description provided for @feedbackWaitBeforeRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait before sending again.'**
+  String get feedbackWaitBeforeRetry;
+
+  /// No description provided for @feedbackSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send feedback. Please try again later.'**
+  String get feedbackSendFailed;
 }
 
 class _AppLocalizationsDelegate

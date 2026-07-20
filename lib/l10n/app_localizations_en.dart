@@ -554,6 +554,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get achievementsUnlockedTab => 'Claimed';
+
+  @override
+  String get achievementsLockedTab => 'Unclaimed';
+
+  @override
+  String get achievementsCurrentProgress => 'Current progress';
+
+  @override
+  String achievementsLockedDetail(String description, int reward) {
+    return '$description.\nReward: $reward Dewdrops';
+  }
+
+  @override
+  String achievementsUnlockedAt(String date) {
+    return 'Unlocked at: $date';
+  }
+
+  @override
+  String achievementsUnlockedDetail(String description) {
+    return '$description. Keep the momentum going to unlock more achievements!';
+  }
+
+  @override
+  String get achievementsKeepTrying => 'Keep trying';
+
+  @override
+  String get achievementsCollection => 'Collection';
+
+  @override
+  String get achievementsGoals => 'Goals';
+
+  @override
+  String achievementsLockedCount(int count) {
+    return '$count badges are waiting to be discovered';
+  }
+
+  @override
   String get retry => 'Retry';
 
   @override
@@ -579,4 +617,969 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get genderOther => 'Other';
+
+  @override
+  String get dailyLoginNoData => 'No daily login data available.';
+
+  @override
+  String get dailyLoginTitle => 'Daily Check-in';
+
+  @override
+  String get dailyLoginRewardTitle => 'Daily Gift';
+
+  @override
+  String get dailyLoginRewardSubtitle =>
+      'Log in every day to receive amazing rewards.\nDon’t miss day 7!';
+
+  @override
+  String get dailyLoginAlreadyClaimed => 'You already claimed your gift today!';
+
+  @override
+  String get dailyLoginSuccessTitle => 'Success!';
+
+  @override
+  String dailyLoginSuccessMessage(int day) {
+    return 'Congratulations! You have successfully claimed your reward for day $day!';
+  }
+
+  @override
+  String dailyLoginSuccessReward(int amount) {
+    return 'Reward: +$amount Dewdrops';
+  }
+
+  @override
+  String dailyLoginSuccessBalance(int balance) {
+    return 'Current balance: $balance Dewdrops';
+  }
+
+  @override
+  String get dailyLoginSuccessAction => 'Awesome';
+
+  @override
+  String get dailyLoginClaimedToday => 'Claimed Today';
+
+  @override
+  String get dailyLoginClaimNow => 'Claim Reward Now';
+
+  @override
+  String get dailyLoginNoRewardData => 'No reward data yet';
+
+  @override
+  String dayLabel(int day) {
+    return 'DAY $day';
+  }
+
+  @override
+  String rewardCount(int count) {
+    return 'x$count';
+  }
+
+  @override
+  String get errorPrefix => 'Error';
+
+  @override
+  String get friendsLoadError => 'Failed to load friends list';
+
+  @override
+  String get friendsRemoveTitle => 'Remove friend';
+
+  @override
+  String friendsRemoveConfirm(String name) {
+    return 'Are you sure you want to remove $name from your friends list?';
+  }
+
+  @override
+  String get friendsCancel => 'Cancel';
+
+  @override
+  String get friendsRemove => 'Remove';
+
+  @override
+  String get friendsRequest => 'Requests';
+
+  @override
+  String get friendsAdd => 'Add Friend';
+
+  @override
+  String get friendsSearchHint => 'Search friends...';
+
+  @override
+  String get friendsEmptyTitle => 'No teammates yet!';
+
+  @override
+  String get friendsEmptySubtitle =>
+      'Tap \'Add Friend\' to start your journey.';
+
+  @override
+  String get friendsNoResult => 'No matching friend found.';
+
+  @override
+  String friendsRemoveSuccess(String name) {
+    return 'You unfriended $name!';
+  }
+
+  @override
+  String get friendsRemoveFailure =>
+      'Failed to remove friend. Please try again!';
+
+  @override
+  String get pvpTitle => 'PvP Arena';
+
+  @override
+  String get pvpComingSoonTitle => 'PvP mode is under development!';
+
+  @override
+  String get pvpComingSoonDescription =>
+      'Challenge the strength of Lumina against rivals.';
+
+  @override
+  String get inventoryLoadError => 'Could not load inventory.';
+
+  @override
+  String get inventoryNoItems => 'No items available.';
+
+  @override
+  String get inventoryNoEffect => 'No effect';
+
+  @override
+  String inventoryUsed(String name) {
+    return 'Used: $name';
+  }
+
+  @override
+  String inventoryUseFailed(String message) {
+    return 'Use failed: $message';
+  }
+
+  @override
+  String inventoryUseError(String message) {
+    return 'Error while using item: $message';
+  }
+
+  @override
+  String get inventoryCommunity => 'Community';
+
+  @override
+  String get inventoryPvp => 'PvP';
+
+  @override
+  String get inventoryBag => 'Inventory';
+
+  @override
+  String get inventoryStore => 'Shop';
+
+  @override
+  String get inventoryHome => 'Home';
+
+  @override
+  String get leaderboardTitle => 'Leaderboard';
+
+  @override
+  String leaderboardYourRank(int rank) {
+    return 'Your rank: #$rank';
+  }
+
+  @override
+  String get leaderboardToday => 'Today';
+
+  @override
+  String get leaderboardThisWeek => 'This week';
+
+  @override
+  String get leaderboardThisMonth => 'This month';
+
+  @override
+  String get leaderboardSteps => 'Steps';
+
+  @override
+  String get leaderboardLevel => 'Level';
+
+  @override
+  String get leaderboardYou => 'You';
+
+  @override
+  String get leaderboardUserDefault => 'User';
+
+  @override
+  String get leaderboardCouldNotLoad => 'Could not load leaderboard';
+
+  @override
+  String get leaderboardCouldNotConnect => 'Could not connect to the server';
+
+  @override
+  String get missionsDefaultDescription =>
+      'Complete the mission to receive a reward.';
+
+  @override
+  String get missionsChallengeDescription =>
+      'Complete the challenge to receive a reward.';
+
+  @override
+  String get missionsLoadError => 'Could not load missions.';
+
+  @override
+  String missionsClaimSuccess(int amount) {
+    return 'Reward claimed successfully: +$amount';
+  }
+
+  @override
+  String missionsClaimFailed(String message) {
+    return 'Could not claim reward: $message';
+  }
+
+  @override
+  String get missionsChallengeExists =>
+      'You already have a challenge. Please finish or cancel it first!';
+
+  @override
+  String get missionsChallengeCanceled => 'Challenge canceled.';
+
+  @override
+  String get missionsChallengeCreated => 'New challenge received!';
+
+  @override
+  String missionsCancelFailed(String message) {
+    return 'Could not cancel challenge: $message';
+  }
+
+  @override
+  String get missionsDailyTitle => 'Daily missions';
+
+  @override
+  String get missionsOverallTitle => 'Overall missions';
+
+  @override
+  String get missionsDailyEmpty => 'No daily missions.';
+
+  @override
+  String get missionsOverallEmpty => 'No overall missions.';
+
+  @override
+  String get missionsRandomChallenge => 'Random Challenge';
+
+  @override
+  String missionsCancelRemaining(int remaining, int limit) {
+    return 'Cancels left: $remaining/$limit';
+  }
+
+  @override
+  String get missionsNoActiveChallenge =>
+      'There are currently no active challenges.';
+
+  @override
+  String get missionsNewChallenge => 'Take a new challenge';
+
+  @override
+  String get missionsTitle => 'Missions';
+
+  @override
+  String get missionsTabMission => 'Mission';
+
+  @override
+  String get missionsTabChallenge => 'Challenge';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet.';
+
+  @override
+  String get notificationsDeleted => 'Notification deleted';
+
+  @override
+  String notificationsDeleteFailed(String message) {
+    return 'Delete failed: $message';
+  }
+
+  @override
+  String get notificationsDetailError =>
+      'An error occurred while loading the content.';
+
+  @override
+  String notificationsTimeAgoDays(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String notificationsTimeAgoHours(int count) {
+    return '$count hours ago';
+  }
+
+  @override
+  String notificationsTimeAgoMinutes(int count) {
+    return '$count minutes ago';
+  }
+
+  @override
+  String get notificationsTimeAgoJustNow => 'Just now';
+
+  @override
+  String get notificationsTypeDailyReward => 'Daily login reward';
+
+  @override
+  String get notificationsTypeStreakReward => 'Streak reward';
+
+  @override
+  String get notificationsTypeMissionComplete => 'Mission complete';
+
+  @override
+  String get notificationsTypeAchievementComplete => 'Achievement complete';
+
+  @override
+  String get notificationsTypeChallengeInvite => 'Challenge invitation';
+
+  @override
+  String get notificationsTypePvpInvite => 'PvP invitation';
+
+  @override
+  String get notificationsTypeFriendRequest => 'Friend request';
+
+  @override
+  String get notificationsTypeFriendAccepted => 'Friend request accepted';
+
+  @override
+  String get notificationsTypeFriendRemoved => 'Friend removed';
+
+  @override
+  String get notificationsTypeSpiritHungry => 'Lumina is hungry';
+
+  @override
+  String get notificationsTypeSpiritReadyEvolution => 'Ready to evolve';
+
+  @override
+  String get notificationsTypeSpiritEnergyFull => 'Energy full';
+
+  @override
+  String get notificationsTypeSpiritBondLow => 'Life force low';
+
+  @override
+  String get notificationsTypeSpiritLevelUp => 'Level up';
+
+  @override
+  String get notificationsTypeItemPurchased => 'Item purchased successfully';
+
+  @override
+  String get notificationsTypePvpResult => 'PvP result';
+
+  @override
+  String get notificationsTypeMaintenance => 'Maintenance notice';
+
+  @override
+  String get notificationsTypePatchNotes => 'Patch notes';
+
+  @override
+  String get notificationsTypeNews => 'News';
+
+  @override
+  String get notificationsTypeEvent => 'Event';
+
+  @override
+  String get notificationsTypeCompensation => 'Compensation reward';
+
+  @override
+  String get notificationsTypeServerAnnouncement => 'Server announcement';
+
+  @override
+  String get profileEditTitle => 'Edit Profile';
+
+  @override
+  String get profileEditDisplayName => 'Display name';
+
+  @override
+  String get profileEditDisplayNameHint => 'Enter your name';
+
+  @override
+  String get profileEditEmailLabel => 'Email (Cannot be changed)';
+
+  @override
+  String get profileEditEmailHint => 'Enter email';
+
+  @override
+  String get profileEditGenderLabel => 'Gender';
+
+  @override
+  String get profileEditBirthLabel => 'Date of birth';
+
+  @override
+  String get profileEditBioLabel => 'Bio';
+
+  @override
+  String get profileEditBioHint => 'A little about you...';
+
+  @override
+  String get profileEditSaveLoading => 'Saving...';
+
+  @override
+  String get profileEditSave => 'Save Changes';
+
+  @override
+  String get profileEditSuccessMessage =>
+      'Your profile information has been updated successfully!';
+
+  @override
+  String get profileEditFailureMessage => 'Update failed. Please check again.';
+
+  @override
+  String get profileEditRequiredName => 'Cannot be empty';
+
+  @override
+  String get profileEditConfirm => 'Confirm';
+
+  @override
+  String get profileEditDefaultName => 'Traveler';
+
+  @override
+  String get profileEditDefaultBio => 'Enjoying the Walkamon journey!';
+
+  @override
+  String get activityStatsTitle => 'Activity';
+
+  @override
+  String get activityStatsStats => 'Statistics';
+
+  @override
+  String get activityStatsHistory => 'History';
+
+  @override
+  String get activityStatsDaily => 'Day';
+
+  @override
+  String get activityStatsWeekly => 'Week';
+
+  @override
+  String get activityStatsMonthly => 'Month';
+
+  @override
+  String get activityStatsTotalSteps => 'Total steps';
+
+  @override
+  String get activityStatsDistance => 'Distance';
+
+  @override
+  String get activityStatsNoChartData => 'No chart data yet';
+
+  @override
+  String get activityStatsNoHistory => 'No activity history yet';
+
+  @override
+  String get activityStatsGoalReached => 'GOAL REACHED';
+
+  @override
+  String get activityStatsStepsUnit => 'steps';
+
+  @override
+  String get activityStatsStepsPerDay => 'steps/day';
+
+  @override
+  String get activityStatsSuffixKm => 'km';
+
+  @override
+  String get activityStatsTodayTitle => 'Today\'s activity';
+
+  @override
+  String get activityStatsWeekTitle => 'This week\'s activity';
+
+  @override
+  String get activityStatsMonthTitle => 'This month\'s activity';
+
+  @override
+  String get activityStatsTotal => 'Total';
+
+  @override
+  String get activityStatsAverage => 'Average';
+
+  @override
+  String activityStatsWeekBucket(int week) {
+    return 'Week $week';
+  }
+
+  @override
+  String get streakTitle => 'Daily Login Streak';
+
+  @override
+  String get streakDays => 'days';
+
+  @override
+  String get streakEncouragement =>
+      'You’re doing great! Keep it up to receive exciting rewards.';
+
+  @override
+  String get streakThirtyDays => '30-day streak';
+
+  @override
+  String get streakRecord => 'Streak record';
+
+  @override
+  String get streakCurrent => 'Current streak';
+
+  @override
+  String get shopTitle => 'Shop';
+
+  @override
+  String get shopCurrency => 'Dewdrops';
+
+  @override
+  String get shopNoItems => 'No shop items available.';
+
+  @override
+  String get shopBuy => 'Buy';
+
+  @override
+  String shopBuySuccess(String name) {
+    return 'Purchased successfully: $name';
+  }
+
+  @override
+  String shopBuyFailed(String message) {
+    return 'Purchase failed: $message';
+  }
+
+  @override
+  String shopBuyError(String message) {
+    return 'Error while buying: $message';
+  }
+
+  @override
+  String get shopType => 'Type';
+
+  @override
+  String get shopPrice => 'Price';
+
+  @override
+  String get shopDescription => 'Description';
+
+  @override
+  String get socialTitle => 'Community';
+
+  @override
+  String get socialFriends => 'Friends';
+
+  @override
+  String get socialLeaderboard => 'Leaderboard';
+
+  @override
+  String get dailyRewardTitle => 'Daily Check-in';
+
+  @override
+  String get dailyRewardSubtitle => 'Daily check-in is being developed!';
+
+  @override
+  String get dailyRewardDescription =>
+      'Log in every day to receive magical dew drops.';
+
+  @override
+  String get namePetTitle => 'Name your Lumina';
+
+  @override
+  String get namePetDescription =>
+      'Choose a meaningful name for your companion.';
+
+  @override
+  String get namePetHint => 'Enter a Lumina name...';
+
+  @override
+  String get namePetComplete => 'Complete';
+
+  @override
+  String get namePetCreateFailed =>
+      'Could not create your starter pet. Please try again.';
+
+  @override
+  String get seedTitleScreen => 'Seed of Light';
+
+  @override
+  String get seedDescriptionScreen =>
+      'This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.';
+
+  @override
+  String get storySkip => 'Skip';
+
+  @override
+  String get storyBack => 'Back';
+
+  @override
+  String get storyContinue => 'Continue';
+
+  @override
+  String get storyExplore => 'Explore';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get processing => 'Processing...';
+
+  @override
+  String get profileEditFailureTitle => 'Failed';
+
+  @override
+  String get missionsClaim => 'CLAIM';
+
+  @override
+  String get missionsClaimed => 'CLAIMED';
+
+  @override
+  String get inventoryNoDescription => 'No description yet.';
+
+  @override
+  String get inventoryUse => 'Use';
+
+  @override
+  String friendsListCount(int count) {
+    return 'LIST ($count)';
+  }
+
+  @override
+  String get friendsSearchError => 'Search failed';
+
+  @override
+  String get friendsAddNew => 'Add New Friend';
+
+  @override
+  String get friendsPlayerNameHint => 'Enter player name...';
+
+  @override
+  String friendsSuggestionsCount(int count) {
+    return 'FRIEND SUGGESTIONS ($count)';
+  }
+
+  @override
+  String friendsSearchResultsCount(int count) {
+    return 'SEARCH RESULTS ($count)';
+  }
+
+  @override
+  String get friendsNoAvailablePlayers => 'No available players';
+
+  @override
+  String get friendsAddShort => 'Add';
+
+  @override
+  String get friendsInbox => 'Friend Mailbox';
+
+  @override
+  String get friendsReceivedInvites => 'Received invites';
+
+  @override
+  String get friendsSentInvites => 'Sent';
+
+  @override
+  String get friendsNoSentInvites => 'You have not sent any invites recently.';
+
+  @override
+  String get friendsNoReceivedInvites => 'No friend invites.';
+
+  @override
+  String get stepGoalTitle => 'Step goal';
+
+  @override
+  String get stepGoalCustomTitle => 'Custom goal';
+
+  @override
+  String get stepGoalInputHint => 'Enter steps...';
+
+  @override
+  String get stepGoalSuggestions => 'GOAL SUGGESTIONS';
+
+  @override
+  String get stepGoalTodayProgress => 'TODAY\'S PROGRESS';
+
+  @override
+  String get stepGoalMinError => 'Goal must be greater than 500 steps.';
+
+  @override
+  String get stepGoalMaxError => 'Goal cannot exceed 100,000 steps.';
+
+  @override
+  String get stepGoalGreaterThanCurrent =>
+      'New goal must be greater than the current goal.';
+
+  @override
+  String get stepGoalInvalidNumber => 'Enter a valid step count.';
+
+  @override
+  String stepGoalSaved(String steps) {
+    return 'Saved goal of $steps steps.';
+  }
+
+  @override
+  String stepGoalClaimSuccess(String amount) {
+    return 'Reward claimed successfully: +$amount Dewdrops.';
+  }
+
+  @override
+  String stepGoalOutOfSteps(String steps) {
+    return ' / $steps steps';
+  }
+
+  @override
+  String stepGoalRemaining(String steps) {
+    return '$steps steps left';
+  }
+
+  @override
+  String get stepGoalNotSet => 'No goal set';
+
+  @override
+  String get stepGoalChoosePrompt =>
+      'Choose a goal below to start tracking today\'s progress.';
+
+  @override
+  String get stepGoalCompletedMessage =>
+      'Great job! You completed today\'s goal.';
+
+  @override
+  String get stepGoalActiveMessage =>
+      'Set a realistic goal and gradually increase it to keep your active streak going.';
+
+  @override
+  String get stepGoalStreakTitle => 'Goal streak';
+
+  @override
+  String get stepGoalStreakSubtitle =>
+      'Complete goals to grow your wallet reward.';
+
+  @override
+  String get stepGoalLongest => 'Longest';
+
+  @override
+  String get stepGoalClaiming => 'Claiming';
+
+  @override
+  String get stepGoalCustomShort => 'Custom';
+
+  @override
+  String spiritDetailTitle(String name) {
+    return '$name Details';
+  }
+
+  @override
+  String spiritLevel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get spiritRecoveryPotion => 'Recovery Potion';
+
+  @override
+  String spiritBondBonus(int amount) {
+    return '+$amount Bonding';
+  }
+
+  @override
+  String spiritEnergyBonus(int amount) {
+    return '+$amount Energy';
+  }
+
+  @override
+  String get spiritPlantType => 'Plant Type';
+
+  @override
+  String get spiritStatsTab => 'Stats';
+
+  @override
+  String get spiritEvolutionTab => 'Evolution';
+
+  @override
+  String get spiritLifeForceExp => 'Life Force (EXP)';
+
+  @override
+  String get spiritSupportItems => 'Support Items';
+
+  @override
+  String get spiritTapLumina => 'Tap Lumina';
+
+  @override
+  String get spiritTapSuccess => 'Tapped Lumina successfully';
+
+  @override
+  String get spiritFeed => 'Feed';
+
+  @override
+  String get spiritFeedSuccess => 'Fed Lumina successfully';
+
+  @override
+  String get spiritEvolutionStages => 'Evolution Stages';
+
+  @override
+  String get spiritStageSeed => 'Seed';
+
+  @override
+  String get spiritStageSprout => 'Sprout';
+
+  @override
+  String get spiritStageLeaf => 'Leaf';
+
+  @override
+  String spiritCurrentRequirement(int level, int bonding) {
+    return 'Current requirements: Lv $level - Bond $bonding';
+  }
+
+  @override
+  String get spiritReady => 'Ready';
+
+  @override
+  String get spiritEvolutionHistory => 'Evolution History';
+
+  @override
+  String get spiritHistoryHatched => 'Hatched successfully';
+
+  @override
+  String get spiritHistorySprout => 'Evolved into Sprout Form';
+
+  @override
+  String get spiritHistoryLeaf => 'Evolved into Leaf Form';
+
+  @override
+  String get spiritEvolutionConditions => 'Evolution Conditions';
+
+  @override
+  String get spiritReachLevel15 => 'Reach Level 15';
+
+  @override
+  String get spiritBondRequirement => 'Bonding requirement met';
+
+  @override
+  String get spiritMet => 'Met';
+
+  @override
+  String get spiritEvolveNow => 'Evolve Now';
+
+  @override
+  String get spiritMaxEvolution =>
+      'Lumina has reached the current maximum evolution form!';
+
+  @override
+  String get spiritEvolving => 'Evolving...';
+
+  @override
+  String get storySlide1 =>
+      'You discover an old space exploration device. Inside is a Seed of Light...';
+
+  @override
+  String get storySlide2 =>
+      '...a small Lumina from a planet that lost its gravity.';
+
+  @override
+  String get storySlide3 =>
+      'To survive and grow, Lumina absorbs Life Force from human footsteps.';
+
+  @override
+  String get storySlide4 =>
+      'Lumina does not need you to fight. It only wants to walk beside you and see the real world.';
+
+  @override
+  String get profileEditGenderMale => 'Male';
+
+  @override
+  String get profileEditGenderFemale => 'Female';
+
+  @override
+  String get profileEditGenderOther => 'Other';
+
+  @override
+  String friendsRequestSentTo(String name) {
+    return 'Sent an invite to $name!';
+  }
+
+  @override
+  String get friendsRequestSendFailed =>
+      'Could not send the invite. Please try again later.';
+
+  @override
+  String get friendsRequestAlreadySent =>
+      'You already sent this player an invite!';
+
+  @override
+  String get friendsAlreadyFriend => 'You are already friends!';
+
+  @override
+  String get friendsPlayerNotFound => 'Could not find this player.';
+
+  @override
+  String get friendProfileTitle => 'Traveler Profile';
+
+  @override
+  String get friendProfileTraveler => 'Traveler';
+
+  @override
+  String get friendProfileUnknownPlayer => 'Unknown player';
+
+  @override
+  String get friendProfileCompanion => 'Companion Spirit';
+
+  @override
+  String get friendProfileStats => 'Stats';
+
+  @override
+  String get friendProfileAchievements => 'Featured Achievements';
+
+  @override
+  String friendProfileSpiritName(String name) {
+    return 'Spirit: $name';
+  }
+
+  @override
+  String get friendProfileViewStats => 'View Stats';
+
+  @override
+  String friendProfileSpiritMeta(String type, int level) {
+    return '$type - Level $level';
+  }
+
+  @override
+  String get friendProfileNoSpirit => 'No spirit yet';
+
+  @override
+  String get friendProfileSpiritTypeUnknown => 'Unknown Type';
+
+  @override
+  String get friendProfileTotalSteps => 'Total steps';
+
+  @override
+  String get friendProfileStreak => 'Streak';
+
+  @override
+  String get friendProfileEnergy => 'Energy';
+
+  @override
+  String get friendProfileBond => 'Bond';
+
+  @override
+  String get friendProfileLifeForce => 'Life Force';
+
+  @override
+  String get friendProfileExp => 'EXP';
+
+  @override
+  String get friendProfileUnavailable => '--';
+
+  @override
+  String get friendProfileAchievementsUnavailable =>
+      'Achievements data is not available yet.';
+
+  @override
+  String get friendProfileLoadFailed => 'Could not load this player profile.';
+
+  @override
+  String get friendProfileRequestSentTitle => 'Invite sent!';
+
+  @override
+  String friendProfileRequestSentMessage(String name) {
+    return 'Your friend invite has been sent to $name. Keep walking together!';
+  }
+
+  @override
+  String get friendProfileGreat => 'Great';
+
+  @override
+  String get friendSpiritTitle => 'Spirit Stats';
+
+  @override
+  String get feedbackWaitBeforeRetry => 'Please wait before sending again.';
+
+  @override
+  String get feedbackSendFailed =>
+      'Failed to send feedback. Please try again later.';
 }

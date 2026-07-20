@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../providers/daily_login_provider.dart';
 import 'widgets/daily_login_calendar_widget.dart';
 import 'package:walkamon_mobile/data/models/daily_login_model.dart';
@@ -22,6 +23,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -35,7 +38,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                 provider.calendarData == null) {
               return Center(
                 child: Text(
-                  'Lỗi: ${provider.errorMessage}',
+                  '${l10n.errorPrefix}: ${provider.errorMessage}',
                   style: const TextStyle(color: Colors.red),
                 ),
               );
@@ -43,7 +46,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
 
             final data = provider.calendarData;
             if (data == null) {
-              return const Center(child: Text('Không có dữ liệu điểm danh.'));
+              return Center(child: Text(l10n.dailyLoginNoData));
             }
 
             return Padding(
@@ -80,8 +83,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                           ),
                         ),
                       ),
-                      const Text(
-                        'Điểm Danh',
+                      Text(
+                        l10n.dailyLoginTitle,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -117,8 +120,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Quà Hàng Ngày',
+                  Text(
+                    l10n.dailyLoginRewardTitle,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -126,8 +129,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Đăng nhập mỗi ngày để nhận quà hấp dẫn.\nĐừng bỏ lỡ ngày thứ 7 nhé!',
+                  Text(
+                    l10n.dailyLoginRewardSubtitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -162,9 +165,9 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                             : () async {
                                 if (!data.canClaimToday) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
-                                        'Hôm nay bạn đã nhận quà rồi!',
+                                        l10n.dailyLoginAlreadyClaimed,
                                       ),
                                       backgroundColor: Colors.orange,
                                     ),
@@ -187,22 +190,21 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                             20,
                                           ),
                                         ),
-                                        title: const Row(
+                                        title: Row(
                                           children: [
-                                          
-                                            SizedBox(width: 8),
+                                            const SizedBox(width: 8),
                                             Text(
-                                              'Thành Công!',
-                                              style: TextStyle(
+                                              l10n.dailyLoginSuccessTitle,
+                                              style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
                                         content: Text(
-                                          'Chúc mừng bạn đã nhận quà thành công ngày ${result.claimedDay}!\n\n'
-                                          'Phần thưởng: +${result.reward} Giọt nước\n'
-                                          'Số dư hiện tại: ${result.balance} Giọt nước',
+                                          '${l10n.dailyLoginSuccessMessage(result.claimedDay)}\n\n'
+                                          '${l10n.dailyLoginSuccessReward(result.reward)}\n'
+                                          '${l10n.dailyLoginSuccessBalance(result.balance)}',
                                           style: const TextStyle(
                                             fontSize: 15,
                                             height: 1.5,
@@ -212,9 +214,9 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                           TextButton(
                                             onPressed: () =>
                                                 Navigator.of(context).pop(),
-                                            child: const Text(
-                                              'Tuyệt vời',
-                                              style: TextStyle(
+                                            child: Text(
+                                              l10n.dailyLoginSuccessAction,
+                                              style: const TextStyle(
                                                 color: Color(0xFF7A9D84),
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -230,7 +232,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          'Lỗi: ${provider.errorMessage}',
+                                          '${l10n.errorPrefix}: ${provider.errorMessage}',
                                         ),
                                         backgroundColor: Colors.red,
                                       ),
@@ -254,8 +256,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                               )
                             : Text(
                                 !data.canClaimToday
-                                    ? 'Đã Nhận Hôm Nay'
-                                    : 'Nhận Quà Ngay',
+                                    ? l10n.dailyLoginClaimedToday
+                                    : l10n.dailyLoginClaimNow,
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,

@@ -51,6 +51,7 @@ import 'screen/welcome/welcome_screen.dart';
 import 'screen/profile/profile_menu_screen.dart';
 import 'screen/profile/activity_stats_screen.dart';
 import 'screen/profile/profile_view_screen.dart';
+import 'screen/profile/friend_player_profile_screen.dart';
 import 'screen/profile/edit_profile_screen.dart';
 import 'screen/profile/step_goal_screen.dart';
 import 'screen/profile/streak_screen.dart';
@@ -161,6 +162,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/settings',
                 '/profile',
                 '/profile/view',
+                '/profile/friend',
                 '/profile/activity',
                 '/profile/edit',
                 '/profile/achievements',
@@ -174,6 +176,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/daily-login-calendar',
                 '/notifications',
                 '/spirit/detail',
+                '/spirit/friend',
 
                 '/seed',
                 '/name-pet',
@@ -262,6 +265,20 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 case '/profile/view':
                   builder = (_) => const ProfileViewScreen();
                   break;
+                case '/profile/friend':
+                  final args = settings.arguments;
+                  if (args is FriendPlayerProfileArguments) {
+                    builder = (_) => FriendPlayerProfileScreen(
+                      userId: args.userId,
+                      initialName: args.initialName,
+                      initialAvatarUrl: args.initialAvatarUrl,
+                    );
+                  } else {
+                    builder = (_) => FriendPlayerProfileScreen(
+                      userId: args?.toString() ?? '',
+                    );
+                  }
+                  break;
                 case '/profile/activity':
                   builder = (_) => const ActivityStatsScreen();
                   break;
@@ -299,6 +316,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/spirit/detail':
                   builder = (_) => const SpiritDetailScreen();
+                  break;
+                case '/spirit/friend':
+                  builder = (_) =>
+                      FriendSpiritScreen(userId: settings.arguments?.toString() ?? '');
                   break;
                 case '/story':
                   builder = (_) => const StoryScreen();

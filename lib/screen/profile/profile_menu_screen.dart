@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 
 class ProfileMenuScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     final cardColor = theme.colorScheme.surface;
@@ -85,7 +87,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     onTap: () => Navigator.maybePop(context),
                   ),
                   Text(
-                    'Hồ Sơ',
+                    l10n.profileTitle,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -184,7 +186,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                           Text(
                             (user?.name.isNotEmpty ?? false)
                                 ? user!.name
-                                : 'Đang tải...',
+                                : l10n.loading,
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -192,7 +194,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Lữ Hành Giả',
+                            l10n.traveler,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -206,11 +208,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                   const SizedBox(height: 20),
 
                   // Cụm Quản Lý & Thống Kê
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 8),
                     child: Text(
-                      'Quản Lý & Thống Kê',
-                      style: TextStyle(
+                      l10n.managementStats,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -228,27 +230,27 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                         _MenuItemRow(
                           icon: Icons.person_rounded,
                           iconColor: Colors.blue,
-                          title: 'Thông tin tài khoản',
+                          title: l10n.accountInfo,
                           onTap: () =>
                               Navigator.pushNamed(context, '/profile/view'),
                         ),
                         _MenuItemRow(
                           icon: Icons.track_changes_rounded,
                           iconColor: Colors.indigo,
-                          title: 'Đặt mục tiêu bước đi',
+                          title: l10n.setStepGoal,
                           onTap: () =>
                               Navigator.pushNamed(context, '/step-goal'),
                         ),
                         _MenuItemRow(
                           icon: Icons.local_fire_department_rounded,
                           iconColor: Colors.orange,
-                          title: 'Chuỗi ngày (Streak)',
+                          title: l10n.streak,
                           onTap: () => Navigator.pushNamed(context, '/streak'),
                         ),
                         _MenuItemRow(
                           icon: Icons.bar_chart_rounded,
                           iconColor: Colors.teal,
-                          title: 'Thống kê hoạt động',
+                          title: l10n.activityStats,
                           onTap: () =>
                               Navigator.pushNamed(context, '/profile/activity'),
                         ),
@@ -258,11 +260,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                   const SizedBox(height: 20),
 
                   // Cụm Thành Tựu
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 8),
                     child: Text(
-                      'Thành Tựu',
-                      style: TextStyle(
+                      l10n.achievements,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -278,12 +280,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     child: _MenuItemRow(
                       icon: Icons.emoji_events_rounded,
                       iconColor: Colors.amber,
-                      title: 'Kho Thành Tựu',
+                      title: l10n.achievementVault,
                       subtitle: _isAchievementCountLoading
-                          ? 'Đang tải...'
+                          ? l10n.loading
                           : _achievementCountError != null
-                          ? 'Không tải được thành tựu'
-                          : 'Đã thu thập ${_achievementCount ?? 0} danh hiệu',
+                          ? l10n.achievementsLoadFailed
+                          : l10n.achievementsCollected(_achievementCount ?? 0),
                       onTap: () =>
                           Navigator.pushNamed(context, '/profile/achievements'),
                     ),

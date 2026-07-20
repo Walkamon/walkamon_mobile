@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../friends/friends_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 
@@ -15,6 +16,7 @@ class _SocialScreenState extends State<SocialScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
@@ -26,9 +28,9 @@ class _SocialScreenState extends State<SocialScreen> {
             padding: const EdgeInsets.fromLTRB(24, 32, 24, 8),
             child: Column(
               children: [
-                const Text(
-                  'Cộng Đồng',
-                  style: TextStyle(
+                Text(
+                  l10n.socialTitle,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
@@ -80,8 +82,8 @@ class _SocialScreenState extends State<SocialScreen> {
                       // Text của Tab
                       Row(
                         children: [
-                          _buildTabItem(0, 'Bạn Bè'),
-                          _buildTabItem(1, 'Xếp Hạng'),
+                          _buildTabItem(0, l10n.socialFriends),
+                          _buildTabItem(1, l10n.socialLeaderboard),
                         ],
                       ),
                     ],

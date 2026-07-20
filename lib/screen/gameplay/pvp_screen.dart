@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'pvp/pvp_sprint_screen.dart';
 
 class PvPScreen extends StatelessWidget {
@@ -6,10 +7,6 @@ class PvPScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: SafeArea(
-        child: PvPSprintScreen(),
-      ),
-    );
+    return const Scaffold(body: SafeArea(child: PvPSprintScreen()));
   }
 }

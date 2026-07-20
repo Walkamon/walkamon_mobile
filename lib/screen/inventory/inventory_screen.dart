@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/common/error_message_widget.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 enum InventoryCategory { food, materials }
 
@@ -117,7 +119,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       if (!mounted) return;
       setState(() {
         _items = [];
-        _errorMessage = 'Không tải được túi đồ.';
+        _errorMessage = AppLocalizations.of(context).inventoryLoadError;
         _isLoading = false;
       });
     }
@@ -147,14 +149,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: ErrorMessageWidget(message: message),
-      ),
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: false);
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
   String _formatEffect(_InventoryDisplayItem item) {
@@ -165,7 +165,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       return '$prefix$value $code';
     }
     if (code != null && code.isNotEmpty) return code;
-    return 'Không có hiệu ứng';
+    return AppLocalizations.of(context).inventoryNoEffect;
   }
 
   Color _itemColor(_InventoryDisplayItem item, bool isDark) {
@@ -202,18 +202,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
       final resp = await _repository.useItem(item.itemId);
       if (resp.success) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Đã sử dụng: ${item.name}')),
-          );
+          _showSuccess(AppLocalizations.of(context).inventoryUsed(item.name));
         }
         _closeItemPopup();
         await _loadInventory();
       } else if (mounted) {
-        _showError('Sử dụng thất bại: ${resp.message}');
+        _showError(
+          AppLocalizations.of(context).inventoryUseFailed(resp.message),
+        );
       }
     } catch (e) {
       if (mounted) {
-        _showError('Lỗi khi sử dụng: ${e.toString()}');
+        _showError(
+          AppLocalizations.of(context).inventoryUseError(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _usingItemId = null);
@@ -222,13 +224,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = theme.colorScheme.surface;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
-    final mutedForeground =
-        isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final foreground = isDark
+        ? AppColors.darkForeground
+        : AppColors.lightForeground;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final primary = theme.colorScheme.primary;
@@ -258,22 +264,22 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : !hasAnyItem
-                          ? Center(
-                              child: Text(
-                                _errorMessage ?? 'Không có vật phẩm nào.',
-                                style: TextStyle(color: mutedForeground),
-                              ),
-                            )
-                          : _ItemGrid(
-                              slotCount: _gridSlotCount,
-                              items: _currentItems,
-                              selectedItemId: _selectedItemId,
-                              borderColor: borderColor,
-                              isDark: isDark,
-                              itemColor: _itemColor,
-                              itemIcon: _itemIcon,
-                              onSelectItem: _handleSelectItem,
-                            ),
+                      ? Center(
+                          child: Text(
+                            _errorMessage ?? l10n.inventoryNoItems,
+                            style: TextStyle(color: mutedForeground),
+                          ),
+                        )
+                      : _ItemGrid(
+                          slotCount: _gridSlotCount,
+                          items: _currentItems,
+                          selectedItemId: _selectedItemId,
+                          borderColor: borderColor,
+                          isDark: isDark,
+                          itemColor: _itemColor,
+                          itemIcon: _itemIcon,
+                          onSelectItem: _handleSelectItem,
+                        ),
                 ),
               ],
             ),
@@ -304,11 +310,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
 extension on _InventoryScreenState {
   Widget _buildBottomNavigation(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final barBgColor = isDark ? const Color(0xFF25332A) : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-    final activeIconColor = isDark ? const Color(0xFF1E2E24) : const Color(0xFFFFF8F0);
+    final barBgColor = isDark
+        ? const Color(0xFF25332A)
+        : const Color(0xFFE5DCCF);
+    final activeBgColor = isDark
+        ? AppColors.darkPrimary
+        : AppColors.lightPrimary;
+    final activeIconColor = isDark
+        ? const Color(0xFF1E2E24)
+        : const Color(0xFFFFF8F0);
     final inactiveColor = isDark
         ? AppColors.darkMutedForeground.withValues(alpha: 0.66)
         : AppColors.lightMutedForeground.withValues(alpha: 0.66);
@@ -334,8 +347,12 @@ extension on _InventoryScreenState {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(Icons.bolt_rounded, size: 22, color: inactiveColor),
-                label: 'Cộng Đồng',
+                iconWidget: Icon(
+                  Icons.bolt_rounded,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryCommunity,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/friends'),
               ),
@@ -347,14 +364,22 @@ extension on _InventoryScreenState {
               ),
               const SizedBox(width: 64),
               _buildNavItem(
-                iconWidget: Icon(Icons.backpack_outlined, size: 22, color: inactiveColor),
-                label: 'Túi Đồ',
+                iconWidget: Icon(
+                  Icons.backpack_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryBag,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(Icons.storefront_outlined, size: 22, color: inactiveColor),
-                label: 'Cửa Hàng',
+                iconWidget: Icon(
+                  Icons.storefront_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryStore,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/shop'),
               ),
@@ -386,16 +411,22 @@ extension on _InventoryScreenState {
                       ],
                     ),
                     child: Center(
-                      child: Icon(Icons.home_rounded, size: 28, color: activeIconColor),
+                      child: Icon(
+                        Icons.home_rounded,
+                        size: 28,
+                        color: activeIconColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Trang Chủ',
+                    l10n.inventoryHome,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkForeground : AppColors.lightForeground,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -464,14 +495,31 @@ class _SwordsPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     final w = size.width;
     final h = size.height;
-    canvas.drawLine(Offset(w * 0.25, h * 0.75), Offset(w * 0.75, h * 0.25), paint);
-    canvas.drawLine(Offset(w * 0.2, h * 0.55), Offset(w * 0.45, h * 0.8), paint);
-    canvas.drawLine(Offset(w * 0.75, h * 0.75), Offset(w * 0.25, h * 0.25), paint);
-    canvas.drawLine(Offset(w * 0.8, h * 0.55), Offset(w * 0.55, h * 0.8), paint);
+    canvas.drawLine(
+      Offset(w * 0.25, h * 0.75),
+      Offset(w * 0.75, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.2, h * 0.55),
+      Offset(w * 0.45, h * 0.8),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.75, h * 0.75),
+      Offset(w * 0.25, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.8, h * 0.55),
+      Offset(w * 0.55, h * 0.8),
+      paint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _SwordsPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _SwordsPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _InventoryHeader extends StatelessWidget {
@@ -520,7 +568,7 @@ class _InventoryHeader extends StatelessWidget {
           ],
         ),
         Text(
-          'Túi Đồ',
+          AppLocalizations.of(context).inventoryBag,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -662,7 +710,9 @@ class _ItemGrid extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: borderColor.withValues(alpha: 0.4)),
           ),
@@ -709,9 +759,10 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
       duration: const Duration(milliseconds: 300),
     );
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.8, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scale = Tween<double>(
+      begin: 0.8,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     Future<void>.delayed(Duration(milliseconds: widget.index * 30), () {
       if (mounted) _controller.forward();
@@ -746,7 +797,9 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: widget.isSelected
-                      ? (widget.isDark ? AppColors.darkBackground : Colors.white)
+                      ? (widget.isDark
+                            ? AppColors.darkBackground
+                            : Colors.white)
                       : Colors.transparent,
                   width: 3,
                 ),
@@ -762,11 +815,8 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          widget.icon,
-                          size: 36,
-                          color: Colors.white,
-                        ),
+                        errorBuilder: (_, __, ___) =>
+                            Icon(widget.icon, size: 36, color: Colors.white),
                       ),
                     )
                   else
@@ -847,6 +897,7 @@ class _ItemDetailPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasImage = item.image != null && item.image!.isNotEmpty;
 
     return GestureDetector(
@@ -867,10 +918,7 @@ class _ItemDetailPopup extends StatelessWidget {
                   builder: (context, value, child) {
                     return Transform.translate(
                       offset: Offset(0, value * 80),
-                      child: Opacity(
-                        opacity: 1 - (value * 0.3),
-                        child: child,
-                      ),
+                      child: Opacity(opacity: 1 - (value * 0.3), child: child),
                     );
                   },
                   child: Container(
@@ -931,11 +979,7 @@ class _ItemDetailPopup extends StatelessWidget {
                                     color: Colors.white,
                                   ),
                                 )
-                              : Icon(
-                                  itemIcon,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
+                              : Icon(itemIcon, size: 40, color: Colors.white),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -973,7 +1017,7 @@ class _ItemDetailPopup extends StatelessWidget {
                         Text(
                           item.description?.trim().isNotEmpty == true
                               ? item.description!.trim()
-                              : 'Chưa có mô tả.',
+                              : l10n.inventoryNoDescription,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -987,7 +1031,7 @@ class _ItemDetailPopup extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _PopupButton(
-                                label: 'Đóng',
+                                label: l10n.close,
                                 backgroundColor: muted,
                                 foregroundColor: foreground,
                                 onPressed: onClose,
@@ -996,7 +1040,9 @@ class _ItemDetailPopup extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _PopupButton(
-                                label: isUsing ? 'Đang xử lý...' : 'Sử Dụng',
+                                label: isUsing
+                                    ? l10n.processing
+                                    : l10n.inventoryUse,
                                 backgroundColor: accent,
                                 foregroundColor: isDark
                                     ? AppColors.darkPrimaryForeground

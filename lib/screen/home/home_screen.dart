@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 
@@ -218,6 +219,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _feedAnim = false;
   bool _stepExpanded = false;
+  bool _isRefreshingMetrics = false;
   Timer? _refreshTimer;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
@@ -268,22 +270,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
 
-    // Fetch pet status from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final gameState = context.read<GameStateProvider>();
-      if (gameState.isAuthenticated) {
-        unawaited(gameState.fetchPetStatus());
-      }
+      unawaited(_refreshHomeMetrics());
     });
 
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (!mounted) return;
-
-      final gameState = context.read<GameStateProvider>();
-      if (gameState.isAuthenticated) {
-        unawaited(gameState.fetchPetStatus());
-      }
+      unawaited(_refreshHomeMetrics());
     });
+  }
+
+  Future<void> _refreshHomeMetrics() async {
+    if (!mounted || _isRefreshingMetrics) return;
+
+    final gameState = context.read<GameStateProvider>();
+    if (!gameState.isAuthenticated) return;
+
+    _isRefreshingMetrics = true;
+    try {
+      await gameState.fetchPetStatus();
+    } finally {
+      _isRefreshingMetrics = false;
+    }
   }
 
   @override
@@ -348,6 +355,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final gameState = Provider.of<GameStateProvider>(context);
@@ -435,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Chơi game quá 180 phút một ngày sẽ ảnh hưởng xấu đến sức khỏe',
+                                  l10n.healthWarning,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -529,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               ),
                                               const SizedBox(width: 6),
                                               Text(
-                                                'Hôm Nay',
+                                                l10n.today,
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
@@ -582,7 +590,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        'Số bước chân bạn đã đi trong ngày hôm nay',
+                                        l10n.todayStepsDesc,
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: theme.colorScheme.onSurface,
@@ -619,7 +627,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Step',
+                                    l10n.step,
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
@@ -717,8 +725,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       const SizedBox(width: 8),
                                       Text(
                                         isLoggedIn
-                                            ? 'Lv. ${user?.level ?? 1}'
-                                            : 'Lv. 1',
+                                            ? l10n.levelShort(user?.level ?? 1)
+                                            : l10n.levelShort(1),
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
@@ -911,7 +919,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           child: Row(
                                             children: [
                                               Text(
-                                                'TRẠNG THÁI LUMINA',
+                                                l10n.luminaStatus,
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w900,
@@ -968,7 +976,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        'Lv. $spiritLevel',
+                                        l10n.levelShort(spiritLevel),
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
@@ -976,7 +984,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       Text(
-                                        'EXP $spiritExp/100',
+                                        l10n.expProgress(spiritExp, 100),
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
@@ -996,19 +1004,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 16),
                                   _StatBar(
-                                    label: 'Năng Lượng',
+                                    label: l10n.energy,
                                     value: spiritEnergy,
                                     barColor: energyColor,
                                   ),
                                   const SizedBox(height: 12),
                                   _StatBar(
-                                    label: 'Sinh Mệnh Lực',
+                                    label: l10n.lifeForce,
                                     value: spiritHealth,
                                     barColor: Colors.orange,
                                   ),
                                   const SizedBox(height: 12),
                                   _StatBar(
-                                    label: 'Độ Gắn Kết',
+                                    label: l10n.bonding,
                                     value: bondingLevel,
                                     barColor: Colors.green,
                                   ),
@@ -1165,6 +1173,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // ── Helper: Bottom Navigation Bar with floating center item ──
   Widget _buildBottomNavigation(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -1208,13 +1217,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   size: 22,
                   color: inactiveColor,
                 ),
-                label: 'Cộng Đồng',
+                label: l10n.homeNavCommunity,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/friends'),
               ),
               _buildNavItem(
                 iconWidget: _SwordsIcon(size: 22, color: inactiveColor),
-                label: 'PvP',
+                label: l10n.homeNavPvp,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/pvp'),
               ),
@@ -1225,7 +1234,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   size: 22,
                   color: inactiveColor,
                 ),
-                label: 'Túi Đồ',
+                label: l10n.homeNavInventory,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
@@ -1235,7 +1244,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   size: 22,
                   color: inactiveColor,
                 ),
-                label: 'Cửa Hàng',
+                label: l10n.homeNavStore,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/shop'),
               ),
@@ -1276,7 +1285,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Trang Chủ',
+                    l10n.navHome,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

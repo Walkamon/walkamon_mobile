@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/activity_stats_datasource.dart';
 import '../../data/models/daily_step_statistic_response.dart';
 import '../../data/repositories/activity_stats_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 enum _MainTab { stats, history }
 
@@ -11,16 +12,13 @@ enum ActivityTimeRange { daily, weekly, monthly }
 
 String formatStepCount(int steps) {
   return steps.toString().replaceAllMapped(
-        RegExp(r'\B(?=(\d{3})+(?!\d))'),
-        (_) => '.',
-      );
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => '.',
+  );
 }
 
 class StepChartPoint {
-  const StepChartPoint({
-    required this.label,
-    required this.steps,
-  });
+  const StepChartPoint({required this.label, required this.steps});
 
   final String label;
   final int steps;
@@ -66,10 +64,7 @@ List<StepChartPoint> buildChartPointsForRange({
 }) {
   if (range != ActivityTimeRange.monthly) {
     return data.map((item) {
-      return StepChartPoint(
-        label: item.label,
-        steps: item.stepCount,
-      );
+      return StepChartPoint(label: item.label, steps: item.stepCount);
     }).toList();
   }
 
@@ -89,16 +84,13 @@ List<StepChartPoint> buildChartPointsForRange({
       (sum, item) => sum + item.stepCount,
     );
 
-    return StepChartPoint(
-      label: 'Tuần ${index + 1}',
-      steps: totalSteps,
-    );
+    return StepChartPoint(label: 'W${index + 1}', steps: totalSteps);
   });
 }
 
 class ActivityStatsScreenRepository {
   ActivityStatsScreenRepository({ActivityStatsRepository? repository})
-      : _repository = repository ?? ActivityStatsRepository();
+    : _repository = repository ?? ActivityStatsRepository();
 
   final ActivityStatsRepository _repository;
 
@@ -109,12 +101,13 @@ class ActivityStatsScreenRepository {
       data: response.data,
     );
     final totalSteps = chartData.fold(0, (sum, point) => sum + point.steps);
-    final averageSteps =
-        chartData.isEmpty ? 0 : (totalSteps / chartData.length).round();
+    final averageSteps = chartData.isEmpty
+        ? 0
+        : (totalSteps / chartData.length).round();
 
     return StepStatsResponse(
-      title: range.title,
-      averageLabel: range.averageLabel,
+      title: '',
+      averageLabel: '',
       totalSteps: totalSteps,
       averageSteps: averageSteps,
       totalDistanceKm: totalSteps * 0.0007,
@@ -124,8 +117,7 @@ class ActivityStatsScreenRepository {
   }
 
   Future<List<StepHistoryItem>> getHistory() async {
-    final response =
-        await _repository.getStatistic(ActivityStatsRange.weekly);
+    final response = await _repository.getStatistic(ActivityStatsRange.weekly);
 
     return buildChartPointsForRange(
       range: ActivityTimeRange.weekly,
@@ -154,22 +146,6 @@ extension on ActivityTimeRange {
       ActivityTimeRange.daily => 3000,
       ActivityTimeRange.weekly => 10000,
       ActivityTimeRange.monthly => 60000,
-    };
-  }
-
-  String get title {
-    return switch (this) {
-      ActivityTimeRange.daily => 'Hoạt động hôm nay',
-      ActivityTimeRange.weekly => 'Hoạt động tuần này',
-      ActivityTimeRange.monthly => 'Hoạt động tháng này',
-    };
-  }
-
-  String get averageLabel {
-    return switch (this) {
-      ActivityTimeRange.daily => 'Tổng',
-      ActivityTimeRange.weekly => 'Trung bình',
-      ActivityTimeRange.monthly => 'Trung bình',
     };
   }
 }
@@ -279,12 +255,32 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   }
 
   String _averageSuffix() {
-    return _timeRange == ActivityTimeRange.monthly ? 'bước' : 'bước/ngày';
+    final l10n = AppLocalizations.of(context);
+    return _timeRange == ActivityTimeRange.monthly
+        ? l10n.activityStatsStepsUnit
+        : l10n.activityStatsStepsPerDay;
+  }
+
+  String _rangeTitle(ActivityTimeRange range) {
+    final l10n = AppLocalizations.of(context);
+    return switch (range) {
+      ActivityTimeRange.daily => l10n.activityStatsTodayTitle,
+      ActivityTimeRange.weekly => l10n.activityStatsWeekTitle,
+      ActivityTimeRange.monthly => l10n.activityStatsMonthTitle,
+    };
+  }
+
+  String _averageLabel(ActivityTimeRange range) {
+    final l10n = AppLocalizations.of(context);
+    return range == ActivityTimeRange.daily
+        ? l10n.activityStatsTotal
+        : l10n.activityStatsAverage;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = theme.colorScheme.surface;
     final primary = theme.colorScheme.primary;
@@ -294,7 +290,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
+    final foreground = isDark
+        ? AppColors.darkForeground
+        : AppColors.lightForeground;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -346,6 +344,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                           muted: muted,
                           mutedForeground: mutedForeground,
                           foreground: foreground,
+                          l10n: l10n,
                         )
                       : _buildHistoryTab(
                           key: const ValueKey('history'),
@@ -355,6 +354,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                           muted: muted,
                           mutedForeground: mutedForeground,
                           foreground: foreground,
+                          l10n: l10n,
                         ),
                 ),
               ),
@@ -374,9 +374,13 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     required Color muted,
     required Color mutedForeground,
     required Color foreground,
+    required AppLocalizations l10n,
   }) {
     if (_isStatsLoading) {
-      return Center(key: key, child: CircularProgressIndicator(color: primary));
+      return Center(
+        key: key,
+        child: CircularProgressIndicator(color: primary),
+      );
     }
 
     if (_statsError != null) {
@@ -438,8 +442,8 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       _timeRange == ActivityTimeRange.daily
                           ? Icons.schedule_outlined
                           : _timeRange == ActivityTimeRange.monthly
-                              ? Icons.directions_walk_outlined
-                              : Icons.trending_up_outlined,
+                          ? Icons.directions_walk_outlined
+                          : Icons.trending_up_outlined,
                       color: primary,
                       size: 20,
                     ),
@@ -450,7 +454,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          stats.title,
+                          _rangeTitle(_timeRange),
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: foreground,
@@ -463,7 +467,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                               color: mutedForeground,
                             ),
                             children: [
-                              TextSpan(text: '${stats.averageLabel}: '),
+                              TextSpan(text: '${_averageLabel(_timeRange)}: '),
                               TextSpan(
                                 text: formatStepCount(average),
                                 style: TextStyle(color: primary),
@@ -483,7 +487,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 child: stats.chartData.isEmpty
                     ? Center(
                         child: Text(
-                          'Chưa có dữ liệu biểu đồ',
+                          l10n.activityStatsNoChartData,
                           style: TextStyle(
                             color: mutedForeground,
                             fontWeight: FontWeight.w600,
@@ -493,6 +497,8 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                     : _StepsBarChart(
                         data: stats.chartData,
                         goal: goal,
+                        timeRange: _timeRange,
+                        l10n: l10n,
                         primary: primary,
                         muted: muted,
                         mutedForeground: mutedForeground,
@@ -510,7 +516,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
           children: [
             Expanded(
               child: _SummaryCard(
-                label: 'Tổng bước',
+                label: l10n.activityStatsTotalSteps,
                 value: formatStepCount(total),
                 cardColor: cardColor,
                 borderColor: borderColor,
@@ -521,9 +527,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: _SummaryCard(
-                label: 'Khoảng cách',
+                label: l10n.activityStatsDistance,
                 value: distance.toStringAsFixed(1),
-                suffix: 'km',
+                suffix: l10n.activityStatsSuffixKm,
                 cardColor: cardColor,
                 borderColor: borderColor,
                 foreground: foreground,
@@ -545,9 +551,13 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     required Color muted,
     required Color mutedForeground,
     required Color foreground,
+    required AppLocalizations l10n,
   }) {
     if (_isHistoryLoading) {
-      return Center(key: key, child: CircularProgressIndicator(color: primary));
+      return Center(
+        key: key,
+        child: CircularProgressIndicator(color: primary),
+      );
     }
 
     if (_historyError != null) {
@@ -563,11 +573,8 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       return Center(
         key: key,
         child: Text(
-          'Chưa có lịch sử hoạt động',
-          style: TextStyle(
-            color: mutedForeground,
-            fontWeight: FontWeight.w600,
-          ),
+          l10n.activityStatsNoHistory,
+          style: TextStyle(color: mutedForeground, fontWeight: FontWeight.w600),
         ),
       );
     }
@@ -587,6 +594,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
           muted: muted,
           mutedForeground: mutedForeground,
           foreground: foreground,
+          l10n: l10n,
         );
       },
     );
@@ -615,9 +623,7 @@ class _Header extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Material(
             color: cardColor,
-            shape: CircleBorder(
-              side: BorderSide(color: borderColor),
-            ),
+            shape: CircleBorder(side: BorderSide(color: borderColor)),
             elevation: 1,
             shadowColor: Colors.black.withValues(alpha: 0.05),
             child: InkWell(
@@ -636,7 +642,7 @@ class _Header extends StatelessWidget {
           ),
         ),
         Text(
-          'Hoạt Động',
+          AppLocalizations.of(context).activityStatsTitle,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -677,7 +683,7 @@ class _MainTabBar extends StatelessWidget {
       child: Row(
         children: [
           _MainTabButton(
-            label: 'Thống Kê',
+            label: AppLocalizations.of(context).activityStatsStats,
             icon: Icons.bar_chart_rounded,
             isActive: activeTab == _MainTab.stats,
             primary: primary,
@@ -686,7 +692,7 @@ class _MainTabBar extends StatelessWidget {
             onTap: () => onChanged(_MainTab.stats),
           ),
           _MainTabButton(
-            label: 'Lịch Sử',
+            label: AppLocalizations.of(context).activityStatsHistory,
             icon: Icons.calendar_month_outlined,
             isActive: activeTab == _MainTab.history,
             primary: primary,
@@ -796,9 +802,15 @@ class _TimeRangeSelector extends StatelessWidget {
         children: ActivityTimeRange.values.map((range) {
           final isActive = timeRange == range;
           final label = switch (range) {
-            ActivityTimeRange.daily => 'Ngày',
-            ActivityTimeRange.weekly => 'Tuần',
-            ActivityTimeRange.monthly => 'Tháng',
+            ActivityTimeRange.daily => AppLocalizations.of(
+              context,
+            ).activityStatsDaily,
+            ActivityTimeRange.weekly => AppLocalizations.of(
+              context,
+            ).activityStatsWeekly,
+            ActivityTimeRange.monthly => AppLocalizations.of(
+              context,
+            ).activityStatsMonthly,
           };
 
           return Expanded(
@@ -844,6 +856,8 @@ class _StepsBarChart extends StatelessWidget {
   const _StepsBarChart({
     required this.data,
     required this.goal,
+    required this.timeRange,
+    required this.l10n,
     required this.primary,
     required this.muted,
     required this.mutedForeground,
@@ -853,6 +867,8 @@ class _StepsBarChart extends StatelessWidget {
 
   final List<StepChartPoint> data;
   final int goal;
+  final ActivityTimeRange timeRange;
+  final AppLocalizations l10n;
   final Color primary;
   final Color muted;
   final Color mutedForeground;
@@ -919,7 +935,8 @@ class _StepsBarChart extends StatelessWidget {
                               : (point.steps / maxY).clamp(0.0, 1.0);
 
                           return Tooltip(
-                            message: '${formatStepCount(point.steps)} bước',
+                            message:
+                                '${formatStepCount(point.steps)} ${l10n.activityStatsStepsUnit}',
                             child: FractionallySizedBox(
                               heightFactor: heightFactor,
                               alignment: Alignment.bottomCenter,
@@ -949,7 +966,7 @@ class _StepsBarChart extends StatelessWidget {
             children: data.map((point) {
               return Expanded(
                 child: Text(
-                  point.label,
+                  _localizedLabel(point.label),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -972,6 +989,16 @@ class _StepsBarChart extends StatelessWidget {
       return '${(value / 1000).toStringAsFixed(value >= 10000 ? 0 : 1)}k';
     }
     return value.toInt().toString();
+  }
+
+  String _localizedLabel(String label) {
+    if (timeRange != ActivityTimeRange.monthly || !label.startsWith('W')) {
+      return label;
+    }
+
+    final week = int.tryParse(label.substring(1));
+    if (week == null) return label;
+    return l10n.activityStatsWeekBucket(week);
   }
 }
 
@@ -1035,10 +1062,7 @@ class _SummaryCard extends StatelessWidget {
                 if (suffix != null)
                   TextSpan(
                     text: ' $suffix',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
               ],
             ),
@@ -1058,6 +1082,7 @@ class _HistoryCard extends StatelessWidget {
     required this.muted,
     required this.mutedForeground,
     required this.foreground,
+    required this.l10n,
   });
 
   final StepHistoryItem item;
@@ -1067,6 +1092,7 @@ class _HistoryCard extends StatelessWidget {
   final Color muted;
   final Color mutedForeground;
   final Color foreground;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -1108,7 +1134,7 @@ class _HistoryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'ĐẠT MỤC TIÊU',
+                    l10n.activityStatsGoalReached,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -1188,11 +1214,8 @@ class _ErrorState extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             child: Text(
-              'Thử lại',
-              style: TextStyle(
-                color: primary,
-                fontWeight: FontWeight.w700,
-              ),
+              AppLocalizations.of(context).retry,
+              style: TextStyle(color: primary, fontWeight: FontWeight.w700),
             ),
           ),
         ],
