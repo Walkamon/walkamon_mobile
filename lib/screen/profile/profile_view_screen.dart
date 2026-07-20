@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 
@@ -21,8 +22,8 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   }
 
   // Hàm helper dùng để chuyển đổi chuỗi định dạng từ API ISO (yyyy-MM-ddTHH:mm:ss) sang dd/MM/yyyy
-  String _formatJoinDate(String? rawDate) {
-    if (rawDate == null || rawDate.isEmpty) return 'Chưa cập nhật';
+  String _formatJoinDate(String? rawDate, AppLocalizations l10n) {
+    if (rawDate == null || rawDate.isEmpty) return l10n.notUpdated;
     try {
       // Ép kiểu chuỗi của Backend trả về sang đối tượng DateTime
       final parsedDate = DateTime.parse(rawDate);
@@ -40,6 +41,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = theme.colorScheme.surface;
     final backgroundColor = theme.colorScheme.surfaceTint.withValues(
@@ -67,7 +69,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     onTap: () => Navigator.pop(context),
                   ),
                   Text(
-                    'Thông tin tài khoản',
+                    l10n.accountInfo,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -123,7 +125,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             TextButton.icon(
                               onPressed: () => provider.fetchProfileDetail(),
                               icon: const Icon(Icons.refresh_rounded),
-                              label: const Text('Thử lại'),
+                              label: Text(l10n.retry),
                             ),
                           ],
                         ),
@@ -133,14 +135,12 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
 
                   // 3. Nếu dữ liệu trống (Chưa đăng nhập hoặc lỗi logic)
                   if (user == null) {
-                    return const Center(
-                      child: Text('Không tìm thấy thông tin nhân vật.'),
-                    );
+                    return Center(child: Text(l10n.characterNotFound));
                   }
 
                   // Kiểm tra trạng thái trống của bio để hiển thị "Chưa cập nhật" hay chữ thường
                   final bool isBioEmpty =
-                      user.bio.trim().isEmpty || user.bio == 'Chưa cập nhật';
+                      user.bio.trim().isEmpty || user.bio == l10n.notUpdated;
 
                   // 4. HIỂN THỊ DỮ LIỆU TỪ DATABASE THÀNH CÔNG
                   return ListView(
@@ -207,7 +207,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            isBioEmpty ? 'Chưa cập nhật' : user.bio,
+                            isBioEmpty ? l10n.notUpdated : user.bio,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -243,26 +243,29 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.calendar_month_rounded,
-                              label: 'Ngày sinh',
+                              label: l10n.dateOfBirth,
                               value: user.dob,
+                              fallback: l10n.notUpdated,
                             ),
                             Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.person_rounded,
-                              label: 'Giới tính',
+                              label: l10n.gender,
                               value: switch (user.gender.toLowerCase()) {
-                                'male' => 'Nam',
-                                'female' => 'Nữ',
-                                'other' => 'Khác',
+                                'male' => l10n.genderMale,
+                                'female' => l10n.genderFemale,
+                                'other' => l10n.genderOther,
                                 _ => user.gender,
                               },
+                              fallback: l10n.notUpdated,
                             ),
                             Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.card_membership_rounded,
-                              label: 'Ngày tham gia',
+                              label: l10n.joinDate,
                               // ĐÃ ĐỊNH DẠNG LẠI CHUỖI CREATEDAT SANG DD/MM/YYYY TẠI ĐÂY
-                              value: _formatJoinDate(user.joinDate),
+                              value: _formatJoinDate(user.joinDate, l10n),
+                              fallback: l10n.notUpdated,
                             ),
                           ],
                         ),
@@ -272,7 +275,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       // Nút Đăng xuất
                       ElevatedButton(
                         onPressed: () async {
-                          await context.read<StepTrackingProvider>().stopForUser();
+                          await context
+                              .read<StepTrackingProvider>()
+                              .stopForUser();
                           await context.read<GameStateProvider>().logout();
                           if (!context.mounted) return;
                           Navigator.pushNamedAndRemoveUntil(
@@ -290,9 +295,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           ),
                           elevation: 2,
                         ),
-                        child: const Text(
-                          'Đăng xuất tài khoản',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.logout,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
@@ -358,11 +363,13 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String fallback;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
+    this.fallback = '',
   });
 
   @override
@@ -391,7 +398,7 @@ class _DetailRow extends StatelessWidget {
             ],
           ),
           Text(
-            value.isNotEmpty ? value : 'Chưa cập nhật',
+            value.isNotEmpty ? value : fallback,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],

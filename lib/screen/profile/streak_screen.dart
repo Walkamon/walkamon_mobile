@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({super.key});
@@ -53,6 +54,7 @@ class _StreakScreenState extends State<StreakScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     final currentStreak = _currentStreak?.currentStreak ?? 0;
     final longestStreak = _longestStreak?.longestStreak ?? 0;
@@ -60,43 +62,58 @@ class _StreakScreenState extends State<StreakScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Chuỗi Đăng Nhập'),
+        title: Text(l10n.streakTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(_errorMessage!, textAlign: TextAlign.center),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(_errorMessage!, textAlign: TextAlign.center),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadStreakData,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                children: [
+                  _buildCurrentStreakCard(colorScheme, currentStreak, l10n),
+                  const SizedBox(height: 16),
+                  _buildMilestoneCard(colorScheme, currentStreak, l10n),
+                  const SizedBox(height: 16),
+                  _buildStatsGrid(
+                    colorScheme,
+                    currentStreak,
+                    longestStreak,
+                    l10n,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadStreakData,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    children: [
-                      _buildCurrentStreakCard(colorScheme, currentStreak),
-                      const SizedBox(height: 16),
-                      _buildMilestoneCard(colorScheme, currentStreak),
-                      const SizedBox(height: 16),
-                      _buildStatsGrid(colorScheme, currentStreak, longestStreak),
-                    ],
-                  ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 
-  Widget _buildCurrentStreakCard(ColorScheme colorScheme, int currentStreak) {
+  Widget _buildCurrentStreakCard(
+    ColorScheme colorScheme,
+    int currentStreak,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: colorScheme.outlineVariant),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -108,7 +125,11 @@ class _StreakScreenState extends State<StreakScreen> {
               shape: BoxShape.circle,
               border: Border.all(color: colorScheme.primary.withOpacity(0.25)),
             ),
-            child: Icon(Icons.local_fire_department_rounded, size: 42, color: colorScheme.primary),
+            child: Icon(
+              Icons.local_fire_department_rounded,
+              size: 42,
+              color: colorScheme.primary,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -116,21 +137,33 @@ class _StreakScreenState extends State<StreakScreen> {
             style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w800),
           ),
           Text(
-            'Ngày',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant),
+            l10n.streakDays,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Bạn đang làm rất tốt! Hãy tiếp tục duy trì để nhận phần thưởng hấp dẫn.',
+            l10n.streakEncouragement,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              color: colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMilestoneCard(ColorScheme colorScheme, int currentStreak) {
+  Widget _buildMilestoneCard(
+    ColorScheme colorScheme,
+    int currentStreak,
+    AppLocalizations l10n,
+  ) {
     final progress = (currentStreak / 30).clamp(0.0, 1.0);
 
     return Container(
@@ -149,14 +182,20 @@ class _StreakScreenState extends State<StreakScreen> {
               color: colorScheme.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Icons.card_giftcard_rounded, color: colorScheme.primary),
+            child: Icon(
+              Icons.card_giftcard_rounded,
+              color: colorScheme.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Chuỗi 30 Ngày', style: TextStyle(fontWeight: FontWeight.w800)),
+                Text(
+                  l10n.streakThirtyDays,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
@@ -168,7 +207,14 @@ class _StreakScreenState extends State<StreakScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text('$currentStreak/30', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
+                Text(
+                  '$currentStreak/30',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
@@ -177,15 +223,20 @@ class _StreakScreenState extends State<StreakScreen> {
     );
   }
 
-  Widget _buildStatsGrid(ColorScheme colorScheme, int currentStreak, int longestStreak) {
+  Widget _buildStatsGrid(
+    ColorScheme colorScheme,
+    int currentStreak,
+    int longestStreak,
+    AppLocalizations l10n,
+  ) {
     return Row(
       children: [
         Expanded(
           child: _buildStatTile(
             colorScheme,
             icon: Icons.emoji_events_rounded,
-            title: 'Kỷ lục chuỗi',
-            value: '$longestStreak ngày',
+            title: l10n.streakRecord,
+            value: '$longestStreak ${l10n.streakDays}',
             accent: Colors.amber,
           ),
         ),
@@ -194,8 +245,8 @@ class _StreakScreenState extends State<StreakScreen> {
           child: _buildStatTile(
             colorScheme,
             icon: Icons.calendar_today_rounded,
-            title: 'Chuỗi hiện tại',
-            value: '$currentStreak ngày',
+            title: l10n.streakCurrent,
+            value: '$currentStreak ${l10n.streakDays}',
             accent: colorScheme.primary,
           ),
         ),
@@ -203,7 +254,13 @@ class _StreakScreenState extends State<StreakScreen> {
     );
   }
 
-  Widget _buildStatTile(ColorScheme colorScheme, {required IconData icon, required String title, required String value, required Color accent}) {
+  Widget _buildStatTile(
+    ColorScheme colorScheme, {
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color accent,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -217,13 +274,26 @@ class _StreakScreenState extends State<StreakScreen> {
           Container(
             width: 38,
             height: 38,
-            decoration: BoxDecoration(color: accent.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: accent, size: 18),
           ),
           const SizedBox(height: 10),
-          Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: colorScheme.onSurfaceVariant)),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );

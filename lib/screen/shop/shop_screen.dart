@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/shop_screen_repository.dart';
 import '../../data/repositories/wallet_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/error_message_widget.dart';
 
@@ -100,7 +101,7 @@ class _ShopScreenState extends State<ShopScreen> {
       if (!mounted) return;
       setState(() {
         _items = [];
-        _errorMessage = 'Không tải được dữ liệu shop.';
+        _errorMessage = AppLocalizations.of(context).shopNoItems;
         _isLoading = false;
       });
     }
@@ -148,22 +149,28 @@ class _ShopScreenState extends State<ShopScreen> {
           provider.setUser(provider.user!.copyWith(coins: newCoins));
         } else {
           // Fallback: locally deduct price
-          await context.read<GameStateProvider>().buyShopItem(price: item.price);
+          await context.read<GameStateProvider>().buyShopItem(
+            price: item.price,
+          );
         }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Mua thành công: ${item.name}')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).shopBuySuccess(item.name),
+              ),
+            ),
           );
         }
       } else {
         if (mounted) {
-          _showError('Mua thất bại: ${resp.message}');
+          _showError(AppLocalizations.of(context).shopBuyFailed(resp.message));
         }
       }
     } catch (e) {
       if (mounted) {
-        _showError('Lỗi khi mua: ${e.toString()}');
+        _showError(AppLocalizations.of(context).shopBuyError(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _buyingItemId = null);
@@ -172,18 +179,23 @@ class _ShopScreenState extends State<ShopScreen> {
 
   String _formatMoney(int value) {
     return value.toString().replaceAllMapped(
-          RegExp(r'\B(?=(\d{3})+(?!\d))'),
-          (match) => ',',
-        );
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = Theme.of(context).colorScheme.surface;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
-    final mutedForeground = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final foreground = isDark
+        ? AppColors.darkForeground
+        : AppColors.lightForeground;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     return Scaffold(
@@ -199,7 +211,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Cửa Hàng',
+                    l10n.shopTitle,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -220,7 +232,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Giọt Sương',
+                          l10n.shopCurrency,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -269,105 +281,142 @@ class _ShopScreenState extends State<ShopScreen> {
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _items.isEmpty
-                            ? Center(
-                                child: _errorMessage != null
-                                    ? ErrorMessageWidget(
-                                        message: _errorMessage!,
-                                      )
-                                    : Text(
-                                        'Không có shop item nào.',
-                                        style: TextStyle(color: mutedForeground),
-                                      ),
-                              )
-                            : ListView.separated(
-                                itemCount: _items.length,
-                                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final item = _items[index];
-                                  return InkWell(
-                                    onTap: () => _openDetail(item),
+                        ? Center(
+                            child: _errorMessage != null
+                                ? ErrorMessageWidget(message: _errorMessage!)
+                                : Text(
+                                    l10n.shopNoItems,
+                                    style: TextStyle(color: mutedForeground),
+                                  ),
+                          )
+                        : ListView.separated(
+                            itemCount: _items.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = _items[index];
+                              return InkWell(
+                                onTap: () => _openDetail(item),
+                                borderRadius: BorderRadius.circular(18),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: cardColor,
                                     borderRadius: BorderRadius.circular(18),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: cardColor,
-                                        borderRadius: BorderRadius.circular(18),
-                                        border: Border.all(color: borderColor),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 52,
-                                            height: 52,
-                                            decoration: BoxDecoration(
-                                              color: accent.withValues(alpha: 0.08),
-                                              borderRadius: BorderRadius.circular(14),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(14),
-                                              child: item.image != null && item.image!.isNotEmpty
-                                                  ? Image.network(item.image!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, color: accent))
-                                                  : Icon(Icons.shopping_bag_outlined, color: accent),
-                                            ),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          color: accent.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
                                           ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item.name,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: foreground,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                if (item.itemTypeName != null)
-                                                  Text(
-                                                    item.itemTypeName!,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: mutedForeground,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            14,
                                           ),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                _formatMoney(item.price),
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: foreground,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              SizedBox(
-                                                height: 34,
-                                                child: _buyingItemId == item.shopItemId
-                                                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                                                    : ElevatedButton(
-                                                        onPressed: () => _handleBuy(item),
-                                                        style: ElevatedButton.styleFrom(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                        ),
-                                                        child: const Text('Mua'),
+                                          child:
+                                              item.image != null &&
+                                                  item.image!.isNotEmpty
+                                              ? Image.network(
+                                                  item.image!,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Icon(
+                                                        Icons
+                                                            .image_not_supported,
+                                                        color: accent,
                                                       ),
+                                                )
+                                              : Icon(
+                                                  Icons.shopping_bag_outlined,
+                                                  color: accent,
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.name,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                color: foreground,
                                               ),
-                                            ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            if (item.itemTypeName != null)
+                                              Text(
+                                                item.itemTypeName!,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: mutedForeground,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            _formatMoney(item.price),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                              color: foreground,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          SizedBox(
+                                            height: 34,
+                                            child:
+                                                _buyingItemId == item.shopItemId
+                                                ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : ElevatedButton(
+                                                    onPressed: () =>
+                                                        _handleBuy(item),
+                                                    style: ElevatedButton.styleFrom(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 6,
+                                                          ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    child: Text(l10n.shopBuy),
+                                                  ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -408,18 +457,36 @@ class _ShopScreenState extends State<ShopScreen> {
                                 ),
                                 IconButton(
                                   onPressed: _closeDetail,
-                                  icon: Icon(Icons.close, color: mutedForeground),
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: mutedForeground,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
                             if (_selectedItem!.itemTypeName != null)
-                              _buildDetailRow('Loại', _selectedItem!.itemTypeName!, foreground, mutedForeground),
+                              _buildDetailRow(
+                                l10n.shopType,
+                                _selectedItem!.itemTypeName!,
+                                foreground,
+                                mutedForeground,
+                              ),
                             const SizedBox(height: 8),
-                            _buildDetailRow('Giá bán', _formatMoney(_selectedItem!.price), foreground, mutedForeground),
+                            _buildDetailRow(
+                              l10n.shopPrice,
+                              _formatMoney(_selectedItem!.price),
+                              foreground,
+                              mutedForeground,
+                            ),
                             const SizedBox(height: 8),
                             if (_selectedItem!.description != null)
-                              _buildDetailRow('Mô tả', _selectedItem!.description!, foreground, mutedForeground),
+                              _buildDetailRow(
+                                l10n.shopDescription,
+                                _selectedItem!.description!,
+                                foreground,
+                                mutedForeground,
+                              ),
                           ],
                         ),
                       ),
@@ -433,7 +500,12 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, Color foreground, Color mutedForeground) {
+  Widget _buildDetailRow(
+    String label,
+    String value,
+    Color foreground,
+    Color mutedForeground,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -463,11 +535,18 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _buildBottomNavigation(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final barBgColor = isDark ? const Color(0xFF25332A) : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-    final activeIconColor = isDark ? const Color(0xFF1E2E24) : const Color(0xFFFFF8F0);
+    final barBgColor = isDark
+        ? const Color(0xFF25332A)
+        : const Color(0xFFE5DCCF);
+    final activeBgColor = isDark
+        ? AppColors.darkPrimary
+        : AppColors.lightPrimary;
+    final activeIconColor = isDark
+        ? const Color(0xFF1E2E24)
+        : const Color(0xFFFFF8F0);
     final inactiveColor = isDark
         ? AppColors.darkMutedForeground.withValues(alpha: 0.66)
         : AppColors.lightMutedForeground.withValues(alpha: 0.66);
@@ -493,8 +572,12 @@ class _ShopScreenState extends State<ShopScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(Icons.bolt_rounded, size: 22, color: inactiveColor),
-                label: 'Cộng Đồng',
+                iconWidget: Icon(
+                  Icons.bolt_rounded,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryCommunity,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/friends'),
               ),
@@ -506,14 +589,22 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
               const SizedBox(width: 64),
               _buildNavItem(
-                iconWidget: Icon(Icons.backpack_outlined, size: 22, color: inactiveColor),
-                label: 'Túi Đồ',
+                iconWidget: Icon(
+                  Icons.backpack_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryBag,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(Icons.storefront_outlined, size: 22, color: inactiveColor),
-                label: 'Cửa Hàng',
+                iconWidget: Icon(
+                  Icons.storefront_outlined,
+                  size: 22,
+                  color: inactiveColor,
+                ),
+                label: l10n.inventoryStore,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/shop'),
               ),
@@ -545,16 +636,22 @@ class _ShopScreenState extends State<ShopScreen> {
                       ],
                     ),
                     child: Center(
-                      child: Icon(Icons.home_rounded, size: 28, color: activeIconColor),
+                      child: Icon(
+                        Icons.home_rounded,
+                        size: 28,
+                        color: activeIconColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Trang Chủ',
+                    l10n.inventoryHome,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkForeground : AppColors.lightForeground,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -642,8 +739,7 @@ class _DewdropPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DewdropPainter oldDelegate) =>
-      oldDelegate.color != color;
+  bool shouldRepaint(_DewdropPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _SwordsIcon extends StatelessWidget {
@@ -675,12 +771,29 @@ class _SwordsPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     final w = size.width;
     final h = size.height;
-    canvas.drawLine(Offset(w * 0.25, h * 0.75), Offset(w * 0.75, h * 0.25), paint);
-    canvas.drawLine(Offset(w * 0.2, h * 0.55), Offset(w * 0.45, h * 0.8), paint);
-    canvas.drawLine(Offset(w * 0.75, h * 0.75), Offset(w * 0.25, h * 0.25), paint);
-    canvas.drawLine(Offset(w * 0.8, h * 0.55), Offset(w * 0.55, h * 0.8), paint);
+    canvas.drawLine(
+      Offset(w * 0.25, h * 0.75),
+      Offset(w * 0.75, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.2, h * 0.55),
+      Offset(w * 0.45, h * 0.8),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.75, h * 0.75),
+      Offset(w * 0.25, h * 0.25),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.8, h * 0.55),
+      Offset(w * 0.55, h * 0.8),
+      paint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _SwordsPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _SwordsPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

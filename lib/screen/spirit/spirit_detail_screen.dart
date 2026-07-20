@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 
 class SpiritDetailScreen extends StatefulWidget {
@@ -78,6 +79,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final mutedFg = isDark
@@ -92,22 +94,21 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         final level = gameState.spiritLevel;
         final exp = gameState.spiritExp.clamp(0, 100);
         final spiritName = gameState.spiritName;
-        final spiritInfo = gameState.spiritInfo;
         final isEvolved = _isEvolved || level >= 15;
 
         final usableItems = <_SupportItemData>[
           _SupportItemData(
-            name: 'Bình Hồi Phục',
+            name: l10n.spiritRecoveryPotion,
             count: 3,
-            description: '+20 Độ gắn kết',
+            description: l10n.spiritBondBonus(20),
             icon: Icons.auto_awesome,
             iconColor: AppColors.lightBond,
             bgColor: AppColors.lightBond.withOpacity(0.12),
           ),
           _SupportItemData(
-            name: 'Giọt Sương',
+            name: l10n.shopCurrency,
             count: 15,
-            description: '+30 Năng lượng',
+            description: l10n.spiritEnergyBonus(30),
             icon: Icons.flash_on_rounded,
             iconColor: AppColors.lightDew,
             bgColor: AppColors.lightDew.withOpacity(0.12),
@@ -124,10 +125,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        primary.withOpacity(0.10),
-                        Colors.transparent,
-                      ],
+                      colors: [primary.withOpacity(0.10), Colors.transparent],
                     ),
                   ),
                 ),
@@ -162,7 +160,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                               width: 42,
                               height: 42,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surface.withOpacity(0.85),
+                                color: theme.colorScheme.surface.withOpacity(
+                                  0.85,
+                                ),
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: isDark
@@ -177,13 +177,17 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                   ),
                                 ],
                               ),
-                              child: Icon(Icons.arrow_back, size: 20, color: primary),
+                              child: Icon(
+                                Icons.arrow_back,
+                                size: 20,
+                                color: primary,
+                              ),
                             ),
                           ),
                           Expanded(
                             child: Center(
                               child: Text(
-                                'Chi Tiết $spiritName',
+                                l10n.spiritDetailTitle(spiritName),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: primary,
@@ -232,10 +236,14 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                               const SizedBox(height: 8),
                                               Text(
                                                 spiritName,
-                                                style: theme.textTheme.titleMedium?.copyWith(
-                                                  fontWeight: FontWeight.w800,
-                                                  color: primary,
-                                                ),
+                                                style: theme
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: primary,
+                                                    ),
                                               ),
                                             ],
                                           ),
@@ -250,7 +258,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface.withOpacity(0.92),
+                                        color: theme.colorScheme.surface
+                                            .withOpacity(0.92),
                                         borderRadius: BorderRadius.circular(28),
                                         border: Border.all(
                                           color: isDark
@@ -259,7 +268,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.06),
+                                            color: Colors.black.withOpacity(
+                                              0.06,
+                                            ),
                                             blurRadius: 18,
                                             offset: const Offset(0, 8),
                                           ),
@@ -271,34 +282,59 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                             children: [
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Row(
                                                       children: [
                                                         Expanded(
                                                           child: Text(
                                                             spiritName,
-                                                            style: theme.textTheme.titleLarge?.copyWith(
-                                                              fontWeight: FontWeight.w900,
-                                                            ),
-                                                            overflow: TextOverflow.ellipsis,
+                                                            style: theme
+                                                                .textTheme
+                                                                .titleLarge
+                                                                ?.copyWith(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w900,
+                                                                ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                           ),
                                                         ),
                                                         Container(
-                                                          padding: const EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 6,
-                                                          ),
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 10,
+                                                                vertical: 6,
+                                                              ),
                                                           decoration: BoxDecoration(
-                                                            color: primary.withOpacity(0.10),
-                                                            borderRadius: BorderRadius.circular(999),
+                                                            color: primary
+                                                                .withOpacity(
+                                                                  0.10,
+                                                                ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  999,
+                                                                ),
                                                           ),
                                                           child: Text(
-                                                            'Cấp ${isEvolved ? 16 : level}',
-                                                            style: theme.textTheme.labelMedium?.copyWith(
-                                                              fontWeight: FontWeight.w800,
-                                                              color: primary,
+                                                            l10n.spiritLevel(
+                                                              isEvolved
+                                                                  ? 16
+                                                                  : level,
                                                             ),
+                                                            style: theme
+                                                                .textTheme
+                                                                .labelMedium
+                                                                ?.copyWith(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
+                                                                  color:
+                                                                      primary,
+                                                                ),
                                                           ),
                                                         ),
                                                       ],
@@ -308,9 +344,19 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       spacing: 8,
                                                       runSpacing: 8,
                                                       children: [
-                                                        _TagChip(label: 'Tinh Linh Nắng Ấm'),
-                                                        _TagChip(label: 'Hệ Thực Vật'),
-                                                        _TagChip(label: isEvolved ? 'Dạng Lá' : 'Dạng Chồi'),
+                                                        _TagChip(
+                                                          label: l10n
+                                                              .seedPath3Name,
+                                                        ),
+                                                        _TagChip(
+                                                          label: l10n
+                                                              .spiritPlantType,
+                                                        ),
+                                                        _TagChip(
+                                                          label: isEvolved
+                                                              ? l10n.spiritStageLeaf
+                                                              : l10n.spiritStageSprout,
+                                                        ),
                                                       ],
                                                     ),
                                                   ],
@@ -322,23 +368,36 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                           Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
-                                              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                                              borderRadius: BorderRadius.circular(16),
+                                              color: isDark
+                                                  ? AppColors.darkMuted
+                                                  : AppColors.lightMuted,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
                                             child: Row(
                                               children: [
                                                 Expanded(
                                                   child: _TabButton(
-                                                    label: 'Chỉ Số',
-                                                    active: _activeTab == 'stats',
-                                                    onTap: () => setState(() => _activeTab = 'stats'),
+                                                    label: l10n.spiritStatsTab,
+                                                    active:
+                                                        _activeTab == 'stats',
+                                                    onTap: () => setState(
+                                                      () =>
+                                                          _activeTab = 'stats',
+                                                    ),
                                                   ),
                                                 ),
                                                 Expanded(
                                                   child: _TabButton(
-                                                    label: 'Tiến Hóa',
-                                                    active: _activeTab == 'evolution',
-                                                    onTap: () => setState(() => _activeTab = 'evolution'),
+                                                    label:
+                                                        l10n.spiritEvolutionTab,
+                                                    active:
+                                                        _activeTab ==
+                                                        'evolution',
+                                                    onTap: () => setState(
+                                                      () => _activeTab =
+                                                          'evolution',
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -347,7 +406,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                           const SizedBox(height: 12),
                                           Expanded(
                                             child: AnimatedSwitcher(
-                                              duration: const Duration(milliseconds: 220),
+                                              duration: const Duration(
+                                                milliseconds: 220,
+                                              ),
                                               child: _activeTab == 'stats'
                                                   ? _buildStatsContent(
                                                       theme: theme,
@@ -400,27 +461,29 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     required List<_SupportItemData> usableItems,
     required bool isDark,
   }) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       key: const ValueKey('stats'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _StatRow(
-            title: 'Sinh Mệnh Lực (EXP)',
+            title: l10n.spiritLifeForceExp,
             value: '$exp/100',
             progress: exp / 100,
             color: AppColors.lightLife,
           ),
           const SizedBox(height: 10),
           _StatRow(
-            title: 'Độ Gắn Kết',
+            title: l10n.bonding,
             value: '$bonding/100',
             progress: bonding / 100,
             color: AppColors.lightBond,
           ),
           const SizedBox(height: 10),
           _StatRow(
-            title: 'Năng Lượng',
+            title: l10n.energy,
             value: '$energy/100',
             progress: energy / 100,
             color: AppColors.lightDew,
@@ -432,14 +495,18 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vật Phẩm Hỗ Trợ',
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  l10n.spiritSupportItems,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...usableItems.map((item) {
@@ -454,7 +521,11 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                             color: item.bgColor,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(item.icon, color: item.iconColor, size: 20),
+                          child: Icon(
+                            item.icon,
+                            color: item.iconColor,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -463,11 +534,15 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                             children: [
                               Text(
                                 item.name,
-                                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                               Text(
                                 item.description,
-                                style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: mutedFg,
+                                ),
                               ),
                             ],
                           ),
@@ -501,27 +576,27 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
             children: [
               Expanded(
                 child: _ActionButton(
-                  label: 'Chạm Lumina',
+                  label: l10n.spiritTapLumina,
                   icon: Icons.touch_app,
                   onPressed: _isSubmitting
                       ? null
                       : () => _handleAction(
-                            () => context.read<GameStateProvider>().tapSpirit(),
-                            'Đã chạm Lumina thành công',
-                          ),
+                          () => context.read<GameStateProvider>().tapSpirit(),
+                          l10n.spiritTapSuccess,
+                        ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _ActionButton(
-                  label: 'Cho ăn',
+                  label: l10n.spiritFeed,
                   icon: Icons.restaurant,
                   onPressed: _isSubmitting
                       ? null
                       : () => _handleAction(
-                            () => context.read<GameStateProvider>().feedSpirit(),
-                            'Đã cho Lumina ăn thành công',
-                          ),
+                          () => context.read<GameStateProvider>().feedSpirit(),
+                          l10n.spiritFeedSuccess,
+                        ),
                 ),
               ),
             ],
@@ -539,6 +614,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     required int bonding,
     required bool isEvolved,
   }) {
+    final l10n = AppLocalizations.of(context);
     final readyForEvolution = level >= 15 && bonding >= 70;
 
     return SingleChildScrollView(
@@ -547,8 +623,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Giai Đoạn Tiến Hóa',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            l10n.spiritEvolutionStages,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 10),
           Container(
@@ -565,21 +643,21 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                   children: [
                     Expanded(
                       child: _EvolutionStepItem(
-                        title: 'Mầm',
+                        title: l10n.spiritStageSeed,
                         done: true,
                         active: true,
                       ),
                     ),
                     Expanded(
                       child: _EvolutionStepItem(
-                        title: 'Chồi',
+                        title: l10n.spiritStageSprout,
                         done: level >= 10,
                         active: level >= 10,
                       ),
                     ),
                     Expanded(
                       child: _EvolutionStepItem(
-                        title: 'Lá',
+                        title: l10n.spiritStageLeaf,
                         done: isEvolved,
                         active: isEvolved,
                       ),
@@ -591,19 +669,24 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Điều kiện hiện tại: Lv $level • Bond $bonding',
-                        style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
+                        l10n.spiritCurrentRequirement(level, bonding),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: mutedFg,
+                        ),
                       ),
                     ),
                     if (readyForEvolution)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: primary.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          'Sẵn sàng',
+                          l10n.spiritReady,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: primary,
                             fontWeight: FontWeight.w800,
@@ -628,14 +711,28 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Lịch Sử Tiến Hóa',
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  l10n.spiritEvolutionHistory,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                _HistoryRow(icon: Icons.auto_awesome, title: 'Ấp nở thành công', subtitle: '01/05/2026'),
-                _HistoryRow(icon: Icons.shield_outlined, title: 'Tiến hóa thành Dạng Chồi', subtitle: '14/05/2026'),
+                _HistoryRow(
+                  icon: Icons.auto_awesome,
+                  title: l10n.spiritHistoryHatched,
+                  subtitle: '01/05/2026',
+                ),
+                _HistoryRow(
+                  icon: Icons.shield_outlined,
+                  title: l10n.spiritHistorySprout,
+                  subtitle: '14/05/2026',
+                ),
                 if (isEvolved)
-                  _HistoryRow(icon: Icons.stars_rounded, title: 'Tiến hóa thành Dạng Lá', subtitle: 'Vừa xong'),
+                  _HistoryRow(
+                    icon: Icons.stars_rounded,
+                    title: l10n.spiritHistoryLeaf,
+                    subtitle: l10n.notificationsTimeAgoJustNow,
+                  ),
               ],
             ),
           ),
@@ -645,25 +742,40 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Điều Kiện Tiến Hóa',
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  l10n.spiritEvolutionConditions,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                _ConditionCard(text: 'Đạt Cấp 15', value: '15/15', ok: true),
+                _ConditionCard(
+                  text: l10n.spiritReachLevel15,
+                  value: '15/15',
+                  ok: true,
+                ),
                 const SizedBox(height: 8),
-                _ConditionCard(text: 'Độ Gắn Kết Đạt Yêu Cầu', value: 'Đạt', ok: true),
+                _ConditionCard(
+                  text: l10n.spiritBondRequirement,
+                  value: l10n.spiritMet,
+                  ok: true,
+                ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _handleEvolveClick,
                     icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Tiến Hóa Ngay', style: TextStyle(fontWeight: FontWeight.w800)),
+                    label: Text(
+                      l10n.spiritEvolveNow,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary,
                       foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -679,8 +791,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                 border: Border.all(color: primary.withOpacity(0.20)),
               ),
               child: Text(
-                'Lumina đã đạt dạng tiến hóa tối đa hiện tại!',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                l10n.spiritMaxEvolution,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
         ],
@@ -719,7 +833,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Đang Tiến Hóa...',
+                    AppLocalizations.of(context).spiritEvolving,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: primary,
@@ -736,11 +850,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                       color: primary.withOpacity(0.12),
                     ),
                     child: Center(
-                      child: Icon(
-                        Icons.spa_rounded,
-                        size: 88,
-                        color: primary,
-                      ),
+                      child: Icon(Icons.spa_rounded, size: 88, color: primary),
                     ),
                   ),
                 ],
@@ -783,7 +893,9 @@ class _TabButton extends StatelessWidget {
             label,
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w800,
-              color: active ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.65),
+              color: active
+                  ? theme.colorScheme.onSurface
+                  : theme.colorScheme.onSurface.withOpacity(0.65),
             ),
           ),
         ),
@@ -841,12 +953,16 @@ class _StatRow extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             Text(
               value,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
@@ -925,7 +1041,9 @@ class _EvolutionStepItem extends StatelessWidget {
           child: Icon(
             done ? Icons.check : Icons.circle_outlined,
             size: 16,
-            color: done ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface.withOpacity(0.7),
+            color: done
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 6),
@@ -933,7 +1051,9 @@ class _EvolutionStepItem extends StatelessWidget {
           title,
           style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-            color: active ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.7),
+            color: active
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
       ],
@@ -976,11 +1096,17 @@ class _HistoryRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 Text(
                   subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
@@ -1017,13 +1143,17 @@ class _ConditionCard extends StatelessWidget {
         children: [
           Icon(
             ok ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-            color: ok ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.55),
+            color: ok
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface.withOpacity(0.55),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           Text(

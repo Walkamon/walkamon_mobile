@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
+import '../../l10n/app_localizations.dart';
 
 class FriendsScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -35,9 +36,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
     } catch (e) {
       debugPrint("Lỗi tải danh sách bạn bè: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi tải danh sách: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).friendsLoadError}: $e',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -56,18 +61,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            "Xóa bạn bè",
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Text(
+            AppLocalizations.of(ctx).friendsRemoveTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Text(
-            "Bạn có chắc chắn muốn xóa ${friend.username} khỏi danh sách bạn bè?",
+            AppLocalizations.of(ctx).friendsRemoveConfirm(friend.username),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(
-                "Hủy",
+                AppLocalizations.of(ctx).friendsCancel,
                 style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
@@ -77,9 +82,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 backgroundColor: colorScheme.secondary,
                 foregroundColor: colorScheme.onSecondary,
               ),
-              child: const Text(
-                "Xóa",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                AppLocalizations.of(ctx).friendsRemove,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -102,12 +107,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
         });
 
         // Hiện popup thông báo Xóa thành công
-        _showNotification('Đã hủy kết bạn với ${friend.username}!', true);
+        _showNotification(
+          AppLocalizations.of(context).friendsRemoveSuccess(friend.username),
+          true,
+        );
       }
     } catch (e) {
       if (mounted) {
         // Hiện popup thông báo Lỗi
-        _showNotification('Lỗi xóa bạn bè, vui lòng thử lại!', false);
+        _showNotification(
+          AppLocalizations.of(context).friendsRemoveFailure,
+          false,
+        );
       }
     }
   }
@@ -180,6 +191,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     final filteredFriends = friends
         .where(
@@ -201,9 +213,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   OutlinedButton.icon(
                     onPressed: () => _showFriendRequestsPopup(context),
                     icon: const Icon(Icons.notifications_none, size: 18),
-                    label: const Text(
-                      "Yêu cầu",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    label: Text(
+                      l10n.friendsRequest,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colorScheme.onSurface,
@@ -215,9 +227,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _showAddFriendPopup(context),
                     icon: const Icon(Icons.person_add_alt_1, size: 18),
-                    label: const Text(
-                      "Thêm Bạn",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    label: Text(
+                      l10n.friendsAdd,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
@@ -241,17 +253,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
             child: TextField(
               onChanged: (val) => setState(() => searchQuery = val),
-              decoration: const InputDecoration(
-                hintText: 'Tìm kiếm bạn bè...',
-                prefixIcon: Icon(Icons.search, size: 20),
+              decoration: InputDecoration(
+                hintText: l10n.friendsSearchHint,
+                prefixIcon: const Icon(Icons.search, size: 20),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),
 
           Text(
-            "DANH SÁCH (${filteredFriends.length})",
+            l10n.friendsListCount(filteredFriends.length),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -273,7 +285,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "Chưa có đồng đội nào!",
+                          l10n.friendsEmptyTitle,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -282,7 +294,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "Bấm 'Thêm Bạn' để bắt đầu hành trình nhé.",
+                          l10n.friendsEmptySubtitle,
                           style: TextStyle(
                             fontSize: 14,
                             color: colorScheme.onSurfaceVariant,
@@ -294,7 +306,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 : filteredFriends.isEmpty
                 ? Center(
                     child: Text(
-                      "Không tìm thấy người bạn này.",
+                      l10n.friendsNoResult,
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   )
@@ -477,9 +489,13 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
     } catch (e) {
       debugPrint("LỖI GET AVAILABLE USERS: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi tải danh sách: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).friendsLoadError}: $e',
+            ),
+          ),
+        );
       }
       setState(() {
         _searchResults = [];
@@ -511,9 +527,13 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
     } catch (e) {
       debugPrint("LỖI TÌM KIẾM USERS: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi tìm kiếm: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppLocalizations.of(context).friendsSearchError}: $e',
+            ),
+          ),
+        );
       }
       setState(() {
         _searchResults = [];
@@ -625,7 +645,10 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
 
       // Gọi thông báo thành công
       if (mounted) {
-        _showGameNotification('Đã thả lời mời tới ${player.username}!', true);
+        _showGameNotification(
+          AppLocalizations.of(context).friendsRequestSentTo(player.username),
+          true,
+        );
       }
 
       // Ẩn người dùng khỏi danh sách sau khi gửi
@@ -634,16 +657,17 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
       });
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         String rawMessage = e.toString().replaceAll('Exception: ', '');
-        String gameText = "Bồ câu lạc đường! Vui lòng thử lại sau.";
+        String gameText = l10n.friendsRequestSendFailed;
 
         // Xử lý các câu báo lỗi
         if (rawMessage.contains("already sent")) {
-          gameText = "Bạn đã thả lời mời cho người này rồi!";
+          gameText = l10n.friendsRequestAlreadySent;
         } else if (rawMessage.contains("already friend")) {
-          gameText = "Ê, hai bạn đã là hảo hữu rồi nha!";
+          gameText = l10n.friendsAlreadyFriend;
         } else if (rawMessage.contains("not found")) {
-          gameText = "Không tìm thấy tung tích của người này...";
+          gameText = l10n.friendsPlayerNotFound;
         } else {
           final regex = RegExp(r'"message":"(.*?)"');
           final match = regex.firstMatch(rawMessage);
@@ -663,6 +687,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -678,9 +703,12 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Thêm Bạn Mới",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              Text(
+                l10n.friendsAddNew,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -702,7 +730,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                     }
                   },
                   decoration: InputDecoration(
-                    hintText: 'Nhập tên người chơi...',
+                    hintText: l10n.friendsPlayerNameHint,
                     filled: true,
                     fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
                     border: OutlineInputBorder(
@@ -748,8 +776,8 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
 
           Text(
             _searchController.text.trim().isEmpty
-                ? "GỢI Ý KẾT BẠN (${_searchResults.length})"
-                : "KẾT QUẢ TÌM KIẾM (${_searchResults.length})",
+                ? l10n.friendsSuggestionsCount(_searchResults.length)
+                : l10n.friendsSearchResultsCount(_searchResults.length),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -771,12 +799,12 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                     ),
                   )
                 : _searchResults.isEmpty
-                ? const Row(
+                ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Text("Không có người chơi nào khả dụng"),
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text(l10n.friendsNoAvailablePlayers),
                       ),
                     ],
                   )
@@ -890,9 +918,9 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text(
-                                  "Thêm",
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.friendsAddShort,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                   ),
@@ -1100,6 +1128,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
     final colorScheme = Theme.of(context).colorScheme;
 
     final currentList = _isSentTab ? _sentRequests : _receivedRequests;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -1114,9 +1143,12 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Hộp Thư Kết Bạn",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              Text(
+                l10n.friendsInbox,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -1131,10 +1163,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
             children: [
               Expanded(
                 child: ChoiceChip(
-                  label: const Center(
+                  label: Center(
                     child: Text(
-                      "Lời mời đã nhận",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      l10n.friendsReceivedInvites,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   selected: !_isSentTab,
@@ -1160,10 +1192,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
 
               Expanded(
                 child: ChoiceChip(
-                  label: const Center(
+                  label: Center(
                     child: Text(
-                      "Đã gửi đi",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      l10n.friendsSentInvites,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   selected: _isSentTab,
@@ -1209,8 +1241,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                       children: [
                         Text(
                           _isSentTab
-                              ? "Bạn chưa gửi lời mời nào gần đây."
-                              : "Không có lời mời kết bạn nào.",
+                              ? l10n.friendsNoSentInvites
+                              : l10n.friendsNoReceivedInvites,
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -1320,9 +1352,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text(
-                                  "Hủy",
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.friendsCancel,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                   ),

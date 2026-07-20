@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   final _bioController = TextEditingController();
 
   // Biến trạng thái cho Giới tính, Ngày sinh và Ảnh cục bộ vừa chọn
-  String _selectedGender = 'Nam';
+  String _selectedGender = 'male';
   DateTime _selectedDate = DateTime(2000, 1, 1);
   String? _localImagePath; // Lưu đường dẫn ảnh tạm khi chọn từ máy
   Uint8List?
@@ -51,17 +52,19 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
     final user = context.read<GameStateProvider>().user;
 
-    _nameController.text = user?.name ?? 'Lữ Hành Giả';
+    final l10n = AppLocalizations.of(context);
+
+    _nameController.text = user?.name ?? l10n.profileEditDefaultName;
     _emailController.text = user?.email ?? 'user@walkamon.vn';
-    _bioController.text = user?.bio ?? 'Đang tận hưởng hành trình Walkamon!';
+    _bioController.text = user?.bio ?? l10n.profileEditDefaultBio;
 
     final rawGen = user?.gender.toLowerCase().trim() ?? '';
     if (rawGen == 'male' || rawGen == 'nam') {
-      _selectedGender = 'Nam';
+      _selectedGender = 'male';
     } else if (rawGen == 'female' || rawGen == 'nữ' || rawGen == 'nu') {
-      _selectedGender = 'Nữ';
+      _selectedGender = 'female';
     } else {
-      _selectedGender = 'Khác';
+      _selectedGender = 'other';
     }
 
     if (user?.dob != null && user?.dob != 'Chưa cập nhật') {
@@ -151,6 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       pageBuilder: (context, anim1, anim2) => const SizedBox(),
       transitionBuilder: (dialogContext, anim, anim2, child) {
         final theme = Theme.of(dialogContext);
+        final l10n = AppLocalizations.of(dialogContext);
 
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
@@ -184,7 +188,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  isSuccess ? 'Thành Công!' : 'Thất Bại',
+                  isSuccess
+                      ? l10n.dailyLoginSuccessTitle
+                      : l10n.profileEditFailureTitle,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: theme.colorScheme.onSurface,
@@ -229,9 +235,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         }
                       }
                     },
-                    child: const Text(
-                      'Xác Nhận',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.profileEditConfirm,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -256,7 +262,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     // TRUYỀN BIẾN ẢNH cục bộ xuống hàm updateProfile của provider để tải lên API
     final success = await provider.updateProfile(
       name: _nameController.text.trim(),
-      gender: _selectedGender == 'Nam' ? 'male' : 'female',
+      gender: _selectedGender,
       dob: _selectedDate,
       bio: _bioController.text.trim(),
       imageBytes: _webImageBytes,
@@ -272,7 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       _showStatusDialog(
         context: context,
         isSuccess: true,
-        message: 'Thông tin hồ sơ của bạn đã được cập nhật thành công!',
+        message: AppLocalizations.of(context).profileEditSuccessMessage,
       );
     } else {
       _showStatusDialog(
@@ -280,7 +286,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         isSuccess: false,
         message:
             provider.profileErrorMessage ??
-            'Cập nhật thất bại. Vui lòng kiểm tra lại.',
+            AppLocalizations.of(context).profileEditFailureMessage,
       );
     }
   }
@@ -292,6 +298,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final cardColor = theme.cardColor;
     final backgroundColor = theme.scaffoldBackgroundColor;
@@ -328,7 +335,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                           },
                         ),
                         Text(
-                          'Chỉnh Sửa Hồ Sơ',
+                          l10n.profileEditTitle,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: theme.colorScheme.onSurface,
@@ -482,25 +489,25 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                             ),
                             const SizedBox(height: 32),
                             _FieldWrapper(
-                              label: 'Tên hiển thị',
+                              label: l10n.profileEditDisplayName,
                               child: _PillInput(
                                 controller: _nameController,
                                 icon: Icons.person_rounded,
-                                hint: 'Nhập tên của bạn',
+                                hint: l10n.profileEditDisplayNameHint,
                                 enabled: !isProfileLoading,
                                 onChanged: (val) => setState(() {}),
                                 validator: (val) => val!.trim().isEmpty
-                                    ? 'Không được bỏ trống'
+                                    ? l10n.profileEditRequiredName
                                     : null,
                               ),
                             ),
                             const SizedBox(height: 20),
                             _FieldWrapper(
-                              label: 'Email (Không thể thay đổi)',
+                              label: l10n.profileEditEmailLabel,
                               child: _PillInput(
                                 controller: _emailController,
                                 icon: Icons.email_rounded,
-                                hint: 'Nhập email',
+                                hint: l10n.profileEditEmailHint,
                                 enabled: false,
                                 keyboardType: TextInputType.emailAddress,
                               ),
@@ -510,10 +517,23 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               children: [
                                 Expanded(
                                   child: _FieldWrapper(
-                                    label: 'Giới tính',
+                                    label: l10n.profileEditGenderLabel,
                                     child: _PillDropdown(
                                       value: _selectedGender,
-                                      items: const ['Nam', 'Nữ', 'Khác'],
+                                      items: [
+                                        DropdownOption(
+                                          value: 'male',
+                                          label: l10n.profileEditGenderMale,
+                                        ),
+                                        DropdownOption(
+                                          value: 'female',
+                                          label: l10n.profileEditGenderFemale,
+                                        ),
+                                        DropdownOption(
+                                          value: 'other',
+                                          label: l10n.profileEditGenderOther,
+                                        ),
+                                      ],
                                       enabled: !isProfileLoading,
                                       onChanged: (val) => setState(
                                         () => _selectedGender = val!,
@@ -524,7 +544,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: _FieldWrapper(
-                                    label: 'Ngày sinh',
+                                    label: l10n.profileEditBirthLabel,
                                     child: _PillDatePicker(
                                       dateText: _formattedDate,
                                       onTap: () => _selectDate(context),
@@ -535,11 +555,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                             ),
                             const SizedBox(height: 20),
                             _FieldWrapper(
-                              label: 'Tiểu sử',
+                              label: l10n.profileEditBioLabel,
                               child: _PillInput(
                                 controller: _bioController,
                                 icon: Icons.info_outline_rounded,
-                                hint: 'Vài nét về bạn...',
+                                hint: l10n.profileEditBioHint,
                                 enabled: !isProfileLoading,
                                 maxLines: 3,
                                 isTextArea: true,
@@ -553,8 +573,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   : primary,
                               foregroundColor: theme.colorScheme.onPrimary,
                               label: isProfileLoading
-                                  ? 'Đang Lưu...'
-                                  : 'Lưu Thay Đổi',
+                                  ? l10n.profileEditSaveLoading
+                                  : l10n.profileEditSave,
                               isLoading: isProfileLoading,
                             ),
                             const SizedBox(height: 40),
@@ -724,9 +744,16 @@ class _PillInput extends StatelessWidget {
   }
 }
 
+class DropdownOption {
+  const DropdownOption({required this.value, required this.label});
+
+  final String value;
+  final String label;
+}
+
 class _PillDropdown extends StatelessWidget {
   final String value;
-  final List<String> items;
+  final List<DropdownOption> items;
   final bool enabled;
   final Function(String?) onChanged;
 
@@ -769,8 +796,11 @@ class _PillDropdown extends StatelessWidget {
             fontSize: 15,
           ),
           onChanged: enabled ? onChanged : null,
-          items: items.map<DropdownMenuItem<String>>((String val) {
-            return DropdownMenuItem<String>(value: val, child: Text(val));
+          items: items.map<DropdownMenuItem<String>>((option) {
+            return DropdownMenuItem<String>(
+              value: option.value,
+              child: Text(option.label),
+            );
           }).toList(),
         ),
       ),

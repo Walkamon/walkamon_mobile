@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
@@ -50,9 +51,10 @@ class _NamePetScreenState extends State<NamePetScreen>
   }
 
   String? _validateName(String? value) {
+    final l10n = AppLocalizations.of(context);
     final name = value?.trim() ?? '';
-    if (name.isEmpty) return 'Tên không được để trống.';
-    if (name.length < 2) return 'Tên phải có ít nhất 2 ký tự.';
+    if (name.isEmpty) return l10n.registerNameRequired;
+    if (name.length < 2) return l10n.registerNameMinLength;
     return null;
   }
 
@@ -77,6 +79,7 @@ class _NamePetScreenState extends State<NamePetScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
@@ -94,7 +97,10 @@ class _NamePetScreenState extends State<NamePetScreen>
             position: _slide,
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 28,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Form(
@@ -108,7 +114,9 @@ class _NamePetScreenState extends State<NamePetScreen>
                             color: cardColor,
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: theme.colorScheme.outline.withValues(alpha: 0.18),
+                              color: theme.colorScheme.outline.withValues(
+                                alpha: 0.18,
+                              ),
                             ),
                           ),
                           child: Column(
@@ -132,7 +140,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                               ),
                               const SizedBox(height: 18),
                               Text(
-                                'Đặt tên cho Lumina',
+                                l10n.namePetTitle,
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: primary,
@@ -141,7 +149,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Hãy chọn một cái tên thật ý nghĩa cho người bạn đồng hành của mình.',
+                                l10n.namePetDescription,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: mutedForeground,
                                   fontWeight: FontWeight.w500,
@@ -157,7 +165,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                                 onFieldSubmitted: (_) => _complete(),
                                 validator: _validateName,
                                 decoration: InputDecoration(
-                                  hintText: 'Nhập tên tinh linh...',
+                                  hintText: l10n.namePetHint,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(18),
                                   ),
@@ -174,7 +182,9 @@ class _NamePetScreenState extends State<NamePetScreen>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primary,
                                     foregroundColor: onPrimary,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(28),
                                     ),
@@ -185,14 +195,15 @@ class _NamePetScreenState extends State<NamePetScreen>
                                           height: 22,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2.4,
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
                                           ),
                                         )
-                                      : const Text(
-                                          'Hoàn tất',
-                                          style: TextStyle(
+                                      : Text(
+                                          l10n.namePetComplete,
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),

@@ -84,9 +84,10 @@ class _SettingScreenState extends State<SettingScreen> {
 
     // Show errors or cooldown messages inside the popup instead of SnackBar
     if (result.retryAfter != null) {
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _feedbackMessage = translateSendFeedbackError(
-          result.message ?? 'Vui lòng đợi trước khi gửi lại.',
+          result.message ?? l10n.feedbackWaitBeforeRetry,
         );
       });
       return;
@@ -108,9 +109,10 @@ class _SettingScreenState extends State<SettingScreen> {
         });
       });
     } else {
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _feedbackMessage = translateSendFeedbackError(
-          result.message ?? 'Gửi phản hồi thất bại. Vui lòng thử lại sau.',
+          result.message ?? l10n.feedbackSendFailed,
         );
       });
     }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import 'activity_stats_screen.dart' show formatStepCount;
 
@@ -98,7 +99,9 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       }
 
       _showMessage(
-        'Nhận thưởng thành công: +${formatStepCount(reward.reward)} Giọt Sương.',
+        AppLocalizations.of(
+          context,
+        ).stepGoalClaimSuccess(formatStepCount(reward.reward)),
       );
       await _loadProgress();
     } catch (e) {
@@ -112,17 +115,17 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
   Future<void> _saveGoal(int targetSteps) async {
     final currentTarget = _progress?.targetSteps ?? 0;
     if (targetSteps < _minimumGoalSteps) {
-      _showMessage('Mục tiêu phải lớn hơn 500 bước.');
+      _showMessage(AppLocalizations.of(context).stepGoalMinError);
       return;
     }
 
     if (targetSteps > _maximumGoalSteps) {
-      _showMessage('Mục tiêu không được vượt quá 100.000 bước.');
+      _showMessage(AppLocalizations.of(context).stepGoalMaxError);
       return;
     }
 
     if (currentTarget > 0 && targetSteps <= currentTarget) {
-      _showMessage('Mục tiêu mới phải lớn hơn mục tiêu hiện tại.');
+      _showMessage(AppLocalizations.of(context).stepGoalGreaterThanCurrent);
       return;
     }
 
@@ -132,7 +135,11 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       await _repository.setGoal(targetSteps);
       await _loadProgress();
       if (!mounted) return;
-      _showMessage('Đã lưu mục tiêu ${formatStepCount(targetSteps)} bước.');
+      _showMessage(
+        AppLocalizations.of(
+          context,
+        ).stepGoalSaved(formatStepCount(targetSteps)),
+      );
     } catch (e) {
       if (!mounted) return;
       _showMessage(_friendlyGoalError(e));
@@ -146,15 +153,15 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
     final lower = message.toLowerCase();
 
     if (lower.contains('required') || lower.contains('greater than 500')) {
-      return 'Mục tiêu phải lớn hơn 500 bước.';
+      return AppLocalizations.of(context).stepGoalMinError;
     }
 
     if (lower.contains('cannot exceed 100000')) {
-      return 'Mục tiêu không được vượt quá 100.000 bước.';
+      return AppLocalizations.of(context).stepGoalMaxError;
     }
 
     if (lower.contains('greater than the current target')) {
-      return 'Mục tiêu mới phải lớn hơn mục tiêu hiện tại.';
+      return AppLocalizations.of(context).stepGoalGreaterThanCurrent;
     }
 
     return message;
@@ -162,10 +169,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -179,10 +183,13 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         final theme = Theme.of(context);
+        final l10n = AppLocalizations.of(context);
         final isDark = theme.brightness == Brightness.dark;
         final cardColor = theme.colorScheme.surface;
         final primary = theme.colorScheme.primary;
-        final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+        final borderColor = isDark
+            ? AppColors.darkBorder
+            : AppColors.lightBorder;
         final mutedForeground = isDark
             ? AppColors.darkMutedForeground
             : AppColors.lightMutedForeground;
@@ -211,7 +218,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Mục tiêu tự chọn',
+                          l10n.stepGoalCustomTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -230,8 +237,8 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      hintText: 'Nhập số bước...',
-                      suffixText: 'bước/ngày',
+                      hintText: l10n.stepGoalInputHint,
+                      suffixText: l10n.activityStatsStepsPerDay,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -239,13 +246,13 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                     validator: (value) {
                       final parsed = int.tryParse(value ?? '');
                       if (parsed == null) {
-                        return 'Nhập số bước hợp lệ.';
+                        return l10n.stepGoalInvalidNumber;
                       }
                       if (parsed < _minimumGoalSteps) {
-                        return 'Mục tiêu phải lớn hơn 500 bước.';
+                        return l10n.stepGoalMinError;
                       }
                       if (parsed > _maximumGoalSteps) {
-                        return 'Mục tiêu tối đa là 100.000 bước.';
+                        return l10n.stepGoalMaxError;
                       }
                       return null;
                     },
@@ -261,7 +268,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                             }
                             Navigator.pop(context, int.parse(controller.text));
                           },
-                          child: const Text('Xác nhận'),
+                          child: Text(l10n.profileEditConfirm),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -269,7 +276,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            'Hủy',
+                            l10n.friendsCancel,
                             style: TextStyle(color: mutedForeground),
                           ),
                         ),
@@ -299,7 +306,9 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark ? AppColors.darkForeground : AppColors.lightForeground;
+    final foreground = isDark
+        ? AppColors.darkForeground
+        : AppColors.lightForeground;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -399,7 +408,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Gợi ý mục tiêu',
+          AppLocalizations.of(context).stepGoalSuggestions,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -490,7 +499,7 @@ class _Header extends StatelessWidget {
           ),
         ),
         Text(
-          'Mục tiêu bước chân',
+          AppLocalizations.of(context).stepGoalTitle,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w800,
           ),
@@ -522,6 +531,7 @@ class _ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasGoal = progress.targetSteps > 0;
+    final l10n = AppLocalizations.of(context);
     final value = (progress.progressPercent / 100).clamp(0.0, 1.0);
     final completedColor = Colors.green.shade500;
     final activeColor = progress.completed ? completedColor : primary;
@@ -558,7 +568,7 @@ class _ProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'TIẾN ĐỘ HÔM NAY',
+            l10n.stepGoalTodayProgress,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -581,8 +591,10 @@ class _ProgressCard extends StatelessWidget {
                   ),
                   TextSpan(
                     text: hasGoal
-                        ? ' / ${formatStepCount(progress.targetSteps)} bước'
-                        : ' bước',
+                        ? l10n.stepGoalOutOfSteps(
+                            formatStepCount(progress.targetSteps),
+                          )
+                        : ' ${l10n.activityStatsStepsUnit}',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -624,13 +636,16 @@ class _ProgressCard extends StatelessWidget {
               const Spacer(),
               if (progress.completed)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: completedColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'ĐẠT MỤC TIÊU',
+                    l10n.activityStatsGoalReached,
                     style: TextStyle(
                       color: completedColor,
                       fontSize: 10,
@@ -642,8 +657,10 @@ class _ProgressCard extends StatelessWidget {
               else
                 Text(
                   hasGoal
-                      ? 'Còn ${formatStepCount(progress.remainingSteps)} bước'
-                      : 'Chưa đặt mục tiêu',
+                      ? l10n.stepGoalRemaining(
+                          formatStepCount(progress.remainingSteps),
+                        )
+                      : l10n.stepGoalNotSet,
                   style: TextStyle(
                     color: mutedForeground,
                     fontSize: 12,
@@ -655,10 +672,10 @@ class _ProgressCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             !hasGoal
-                ? 'Chọn một mục tiêu bên dưới để bắt đầu theo dõi tiến độ hôm nay.'
+                ? l10n.stepGoalChoosePrompt
                 : progress.completed
-                    ? 'Tuyệt vời! Bạn đã hoàn thành mục tiêu ngày hôm nay.'
-                    : 'Hãy đặt mục tiêu vừa sức và tăng dần để giữ chuỗi ngày năng động.',
+                ? l10n.stepGoalCompletedMessage
+                : l10n.stepGoalActiveMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: mutedForeground,
@@ -722,7 +739,7 @@ class _PresetGoalButton extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              'bước/ngày',
+              AppLocalizations.of(context).activityStatsStepsPerDay,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -767,6 +784,7 @@ class _StreakRewardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final reward = currentStreak * 10;
     final canClaim = currentStreak > 0;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -806,7 +824,7 @@ class _StreakRewardCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Chuỗi mục tiêu',
+                      l10n.stepGoalStreakTitle,
                       style: TextStyle(
                         color: foreground,
                         fontSize: 16,
@@ -815,7 +833,7 @@ class _StreakRewardCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Hoàn thành mục tiêu để tăng thưởng ví.',
+                      l10n.stepGoalStreakSubtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -834,8 +852,8 @@ class _StreakRewardCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _StreakMetric(
-                  label: 'Hiện tại',
-                  value: '$currentStreak ngày',
+                  label: l10n.streakCurrent,
+                  value: '$currentStreak ${l10n.streakDays}',
                   muted: muted,
                   foreground: foreground,
                   mutedForeground: mutedForeground,
@@ -844,8 +862,8 @@ class _StreakRewardCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StreakMetric(
-                  label: 'Dài nhất',
-                  value: '$longestStreak ngày',
+                  label: l10n.stepGoalLongest,
+                  value: '$longestStreak ${l10n.streakDays}',
                   muted: muted,
                   foreground: foreground,
                   mutedForeground: mutedForeground,
@@ -869,7 +887,7 @@ class _StreakRewardCard extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: ' Giọt Sương',
+                        text: ' ${l10n.shopCurrency}',
                         style: TextStyle(
                           color: mutedForeground,
                           fontSize: 13,
@@ -892,7 +910,9 @@ class _StreakRewardCard extends StatelessWidget {
                         ),
                       )
                     : const Icon(Icons.wallet_giftcard_rounded, size: 18),
-                label: Text(isClaiming ? 'Đang nhận' : 'Nhận'),
+                label: Text(
+                  isClaiming ? l10n.stepGoalClaiming : l10n.missionsClaim,
+                ),
               ),
             ],
           ),
@@ -979,10 +999,7 @@ class _CustomGoalButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: borderColor,
-            style: BorderStyle.solid,
-          ),
+          border: Border.all(color: borderColor, style: BorderStyle.solid),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -990,7 +1007,7 @@ class _CustomGoalButton extends StatelessWidget {
             Icon(Icons.tune_rounded, color: mutedForeground, size: 20),
             const SizedBox(height: 6),
             Text(
-              'Tùy chỉnh',
+              AppLocalizations.of(context).stepGoalCustomShort,
               style: TextStyle(
                 color: mutedForeground,
                 fontSize: 14,
@@ -1032,7 +1049,7 @@ class _ErrorState extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             child: Text(
-              'Thử lại',
+              AppLocalizations.of(context).retry,
               style: TextStyle(color: primary, fontWeight: FontWeight.w800),
             ),
           ),

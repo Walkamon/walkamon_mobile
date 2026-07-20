@@ -3,6 +3,7 @@ import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/models/achievement_response.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 class ViewAchievementListScreen extends StatefulWidget {
   const ViewAchievementListScreen({super.key, this.repository});
@@ -58,6 +59,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
@@ -83,7 +85,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       Expanded(
                         child: Center(
                           child: Text(
-                            'Kho Thành Tựu',
+                            l10n.achievementVault,
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -106,7 +108,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       children: [
                         Expanded(
                           child: _TabButton(
-                            label: 'Đã Nhận',
+                            label: l10n.achievementsUnlockedTab,
                             selected: _activeTab == 'unlocked',
                             onTap: () =>
                                 setState(() => _activeTab = 'unlocked'),
@@ -114,7 +116,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                         ),
                         Expanded(
                           child: _TabButton(
-                            label: 'Chưa Nhận',
+                            label: l10n.achievementsLockedTab,
                             selected: _activeTab == 'locked',
                             onTap: () => setState(() => _activeTab = 'locked'),
                           ),
@@ -203,7 +205,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Tiến độ hiện tại',
+                                            l10n.achievementsCurrentProgress,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                                   fontWeight: FontWeight.bold,
@@ -227,7 +229,10 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      '${_selectedAchievement!['desc']}.\nPhần thưởng: ${_selectedAchievement!['reward']} Giọt Sương',
+                                      l10n.achievementsLockedDetail(
+                                        _selectedAchievement!['desc'],
+                                        _selectedAchievement!['reward'],
+                                      ),
                                       style: theme.textTheme.bodyMedium,
                                       textAlign: TextAlign.center,
                                     ),
@@ -277,7 +282,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      'Đạt được vào: ${_selectedAchievement!['date']}',
+                                      l10n.achievementsUnlockedAt(
+                                        _selectedAchievement!['date'],
+                                      ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme
@@ -287,7 +294,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      '${_selectedAchievement!['desc']}. Tiếp tục duy trì phong độ này để mở khóa thêm nhiều thành tựu mới nhé!',
+                                      l10n.achievementsUnlockedDetail(
+                                        _selectedAchievement!['desc'],
+                                      ),
                                       style: theme.textTheme.bodyMedium,
                                       textAlign: TextAlign.center,
                                     ),
@@ -316,8 +325,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       child: Text(
                                         _selectedAchievement!['isLocked']
                                                 as bool
-                                            ? 'Tiếp tục cố gắng'
-                                            : 'Tuyệt vời',
+                                            ? l10n.achievementsKeepTrying
+                                            : l10n.dailyLoginSuccessAction,
                                       ),
                                     ),
                                   ),
@@ -366,14 +375,16 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Bộ Sưu Tập',
+                AppLocalizations.of(context).achievementsCollection,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Bạn đã thu thập được ${_unlockedAchievements.length} danh hiệu',
+                AppLocalizations.of(
+                  context,
+                ).achievementsCollected(_unlockedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -484,14 +495,16 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Mục Tiêu',
+                AppLocalizations.of(context).achievementsGoals,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Còn ${_lockedAchievements.length} danh hiệu đang chờ bạn khám phá',
+                AppLocalizations.of(
+                  context,
+                ).achievementsLockedCount(_lockedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

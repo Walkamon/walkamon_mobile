@@ -235,6 +235,47 @@
       }
     }
   },
+  "achievementsUnlockedTab": "Claimed",
+  "achievementsLockedTab": "Unclaimed",
+  "achievementsCurrentProgress": "Current progress",
+  "achievementsLockedDetail": "{description}.\nReward: {reward} Dewdrops",
+  "@achievementsLockedDetail": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsUnlockedAt": "Unlocked at: {date}",
+  "@achievementsUnlockedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsUnlockedDetail": "{description}. Keep the momentum going to unlock more achievements!",
+  "@achievementsUnlockedDetail": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsKeepTrying": "Keep trying",
+  "achievementsCollection": "Collection",
+  "achievementsGoals": "Goals",
+  "achievementsLockedCount": "{count} badges are waiting to be discovered",
+  "@achievementsLockedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "retry": "Retry",
   "characterNotFound": "Character information not found.",
   "notUpdated": "Not updated",
@@ -243,5 +284,525 @@
   "joinDate": "Join date",
   "genderMale": "Male",
   "genderFemale": "Female",
-  "genderOther": "Other"
+  "genderOther": "Other",
+  "dailyLoginNoData": "No daily login data available.",
+  "dailyLoginTitle": "Daily Check-in",
+  "dailyLoginRewardTitle": "Daily Gift",
+  "dailyLoginRewardSubtitle": "Log in every day to receive amazing rewards.\nDon’t miss day 7!",
+  "dailyLoginAlreadyClaimed": "You already claimed your gift today!",
+  "dailyLoginSuccessTitle": "Success!",
+  "dailyLoginSuccessMessage": "Congratulations! You have successfully claimed your reward for day {day}!",
+  "@dailyLoginSuccessMessage": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessReward": "Reward: +{amount} Dewdrops",
+  "@dailyLoginSuccessReward": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessBalance": "Current balance: {balance} Dewdrops",
+  "@dailyLoginSuccessBalance": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyLoginSuccessAction": "Awesome",
+  "dailyLoginClaimedToday": "Claimed Today",
+  "dailyLoginClaimNow": "Claim Reward Now",
+  "dailyLoginNoRewardData": "No reward data yet",
+  "dayLabel": "DAY {day}",
+  "@dayLabel": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "rewardCount": "x{count}",
+  "@rewardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorPrefix": "Error",
+  "friendsLoadError": "Failed to load friends list",
+  "friendsRemoveTitle": "Remove friend",
+  "friendsRemoveConfirm": "Are you sure you want to remove {name} from your friends list?",
+  "@friendsRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsCancel": "Cancel",
+  "friendsRemove": "Remove",
+  "friendsRequest": "Requests",
+  "friendsAdd": "Add Friend",
+  "friendsSearchHint": "Search friends...",
+  "friendsEmptyTitle": "No teammates yet!",
+  "friendsEmptySubtitle": "Tap 'Add Friend' to start your journey.",
+  "friendsNoResult": "No matching friend found.",
+  "friendsRemoveSuccess": "You unfriended {name}!",
+  "@friendsRemoveSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRemoveFailure": "Failed to remove friend. Please try again!",
+  "pvpTitle": "PvP Arena",
+  "pvpComingSoonTitle": "PvP mode is under development!",
+  "pvpComingSoonDescription": "Challenge the strength of Lumina against rivals.",
+  "inventoryLoadError": "Could not load inventory.",
+  "inventoryNoItems": "No items available.",
+  "inventoryNoEffect": "No effect",
+  "inventoryUsed": "Used: {name}",
+  "@inventoryUsed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryUseFailed": "Use failed: {message}",
+  "@inventoryUseFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryUseError": "Error while using item: {message}",
+  "@inventoryUseError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "inventoryCommunity": "Community",
+  "inventoryPvp": "PvP",
+  "inventoryBag": "Inventory",
+  "inventoryStore": "Shop",
+  "inventoryHome": "Home",
+  "leaderboardTitle": "Leaderboard",
+  "leaderboardYourRank": "Your rank: #{rank}",
+  "@leaderboardYourRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardToday": "Today",
+  "leaderboardThisWeek": "This week",
+  "leaderboardThisMonth": "This month",
+  "leaderboardSteps": "Steps",
+  "leaderboardLevel": "Level",
+  "leaderboardYou": "You",
+  "leaderboardUserDefault": "User",
+  "leaderboardCouldNotLoad": "Could not load leaderboard",
+  "leaderboardCouldNotConnect": "Could not connect to the server",
+  "missionsDefaultDescription": "Complete the mission to receive a reward.",
+  "missionsChallengeDescription": "Complete the challenge to receive a reward.",
+  "missionsLoadError": "Could not load missions.",
+  "missionsClaimSuccess": "Reward claimed successfully: +{amount}",
+  "@missionsClaimSuccess": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "missionsClaimFailed": "Could not claim reward: {message}",
+  "@missionsClaimFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "missionsChallengeExists": "You already have a challenge. Please finish or cancel it first!",
+  "missionsChallengeCanceled": "Challenge canceled.",
+  "missionsCancelFailed": "Could not cancel challenge: {message}",
+  "@missionsCancelFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "missionsDailyTitle": "Daily missions",
+  "missionsOverallTitle": "Overall missions",
+  "missionsDailyEmpty": "No daily missions.",
+  "missionsOverallEmpty": "No overall missions.",
+  "missionsRandomChallenge": "Random Challenge",
+  "missionsCancelRemaining": "Cancels left: {remaining}/{limit}",
+  "@missionsCancelRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "missionsNoActiveChallenge": "There are currently no active challenges.",
+  "missionsNewChallenge": "Take a new challenge",
+  "missionsTitle": "Missions",
+  "missionsTabMission": "Mission",
+  "missionsTabChallenge": "Challenge",
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet.",
+  "notificationsDeleted": "Notification deleted",
+  "notificationsDeleteFailed": "Delete failed: {message}",
+  "@notificationsDeleteFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsDetailError": "An error occurred while loading the content.",
+  "notificationsTimeAgoDays": "{count} days ago",
+  "@notificationsTimeAgoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoHours": "{count} hours ago",
+  "@notificationsTimeAgoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoMinutes": "{count} minutes ago",
+  "@notificationsTimeAgoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationsTimeAgoJustNow": "Just now",
+  "notificationsTypeDailyReward": "Daily login reward",
+  "notificationsTypeStreakReward": "Streak reward",
+  "notificationsTypeMissionComplete": "Mission complete",
+  "notificationsTypeAchievementComplete": "Achievement complete",
+  "notificationsTypeChallengeInvite": "Challenge invitation",
+  "notificationsTypePvpInvite": "PvP invitation",
+  "notificationsTypeFriendRequest": "Friend request",
+  "notificationsTypeFriendAccepted": "Friend request accepted",
+  "notificationsTypeFriendRemoved": "Friend removed",
+  "notificationsTypeSpiritHungry": "Lumina is hungry",
+  "notificationsTypeSpiritReadyEvolution": "Ready to evolve",
+  "notificationsTypeSpiritEnergyFull": "Energy full",
+  "notificationsTypeSpiritBondLow": "Life force low",
+  "notificationsTypeSpiritLevelUp": "Level up",
+  "notificationsTypeItemPurchased": "Item purchased successfully",
+  "notificationsTypePvpResult": "PvP result",
+  "notificationsTypeMaintenance": "Maintenance notice",
+  "notificationsTypePatchNotes": "Patch notes",
+  "notificationsTypeNews": "News",
+  "notificationsTypeEvent": "Event",
+  "notificationsTypeCompensation": "Compensation reward",
+  "notificationsTypeServerAnnouncement": "Server announcement",
+  "profileEditTitle": "Edit Profile",
+  "profileEditDisplayName": "Display name",
+  "profileEditDisplayNameHint": "Enter your name",
+  "profileEditEmailLabel": "Email (Cannot be changed)",
+  "profileEditEmailHint": "Enter email",
+  "profileEditGenderLabel": "Gender",
+  "profileEditBirthLabel": "Date of birth",
+  "profileEditBioLabel": "Bio",
+  "profileEditBioHint": "A little about you...",
+  "profileEditSaveLoading": "Saving...",
+  "profileEditSave": "Save Changes",
+  "profileEditSuccessMessage": "Your profile information has been updated successfully!",
+  "profileEditFailureMessage": "Update failed. Please check again.",
+  "profileEditRequiredName": "Cannot be empty",
+  "profileEditConfirm": "Confirm",
+  "profileEditDefaultName": "Traveler",
+  "profileEditDefaultBio": "Enjoying the Walkamon journey!",
+  "activityStatsTitle": "Activity",
+  "activityStatsStats": "Statistics",
+  "activityStatsHistory": "History",
+  "activityStatsDaily": "Day",
+  "activityStatsWeekly": "Week",
+  "activityStatsMonthly": "Month",
+  "activityStatsTotalSteps": "Total steps",
+  "activityStatsDistance": "Distance",
+  "activityStatsNoChartData": "No chart data yet",
+  "activityStatsNoHistory": "No activity history yet",
+  "activityStatsGoalReached": "GOAL REACHED",
+  "activityStatsStepsUnit": "steps",
+  "activityStatsStepsPerDay": "steps/day",
+  "activityStatsSuffixKm": "km",
+  "activityStatsTodayTitle": "Today's activity",
+  "activityStatsWeekTitle": "This week's activity",
+  "activityStatsMonthTitle": "This month's activity",
+  "activityStatsTotal": "Total",
+  "activityStatsAverage": "Average",
+  "activityStatsWeekBucket": "Week {week}",
+  "@activityStatsWeekBucket": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "streakTitle": "Daily Login Streak",
+  "streakDays": "days",
+  "streakEncouragement": "You’re doing great! Keep it up to receive exciting rewards.",
+  "streakThirtyDays": "30-day streak",
+  "streakRecord": "Streak record",
+  "streakCurrent": "Current streak",
+  "shopTitle": "Shop",
+  "shopCurrency": "Dewdrops",
+  "shopNoItems": "No shop items available.",
+  "shopBuy": "Buy",
+  "shopBuySuccess": "Purchased successfully: {name}",
+  "@shopBuySuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopBuyFailed": "Purchase failed: {message}",
+  "@shopBuyFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "shopBuyError": "Error while buying: {message}",
+  "@shopBuyError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "shopType": "Type",
+  "shopPrice": "Price",
+  "shopDescription": "Description",
+  "socialTitle": "Community",
+  "socialFriends": "Friends",
+  "socialLeaderboard": "Leaderboard",
+  "dailyRewardTitle": "Daily Check-in",
+  "dailyRewardSubtitle": "Daily check-in is being developed!",
+  "dailyRewardDescription": "Log in every day to receive magical dew drops.",
+  "namePetTitle": "Name your Lumina",
+  "namePetDescription": "Choose a meaningful name for your companion.",
+  "namePetHint": "Enter a Lumina name...",
+  "namePetComplete": "Complete",
+  "seedTitleScreen": "Seed of Light",
+  "seedDescriptionScreen": "This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.",
+  "seedEvolutionTitle": "Evolution",
+  "seedEvolutionDescription": "The Seed will evolve into different Lumina forms based on your walking habits.",
+  "storySkip": "Skip",
+  "storyBack": "Back",
+  "storyContinue": "Continue",
+  "storyExplore": "Explore",
+  "close": "Close",
+  "processing": "Processing...",
+  "profileEditFailureTitle": "Failed",
+  "missionsClaim": "CLAIM",
+  "missionsClaimed": "CLAIMED",
+  "inventoryNoDescription": "No description yet.",
+  "inventoryUse": "Use",
+  "friendsListCount": "LIST ({count})",
+  "@friendsListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsSearchError": "Search failed",
+  "friendsAddNew": "Add New Friend",
+  "friendsPlayerNameHint": "Enter player name...",
+  "friendsSuggestionsCount": "FRIEND SUGGESTIONS ({count})",
+  "@friendsSuggestionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsSearchResultsCount": "SEARCH RESULTS ({count})",
+  "@friendsSearchResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsNoAvailablePlayers": "No available players",
+  "friendsAddShort": "Add",
+  "friendsInbox": "Friend Mailbox",
+  "friendsReceivedInvites": "Received invites",
+  "friendsSentInvites": "Sent",
+  "friendsNoSentInvites": "You have not sent any invites recently.",
+  "friendsNoReceivedInvites": "No friend invites.",
+  "stepGoalTitle": "Step goal",
+  "stepGoalCustomTitle": "Custom goal",
+  "stepGoalInputHint": "Enter steps...",
+  "stepGoalSuggestions": "GOAL SUGGESTIONS",
+  "stepGoalTodayProgress": "TODAY'S PROGRESS",
+  "stepGoalMinError": "Goal must be greater than 500 steps.",
+  "stepGoalMaxError": "Goal cannot exceed 100,000 steps.",
+  "stepGoalGreaterThanCurrent": "New goal must be greater than the current goal.",
+  "stepGoalInvalidNumber": "Enter a valid step count.",
+  "stepGoalSaved": "Saved goal of {steps} steps.",
+  "@stepGoalSaved": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalClaimSuccess": "Reward claimed successfully: +{amount} Dewdrops.",
+  "@stepGoalClaimSuccess": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalOutOfSteps": " / {steps} steps",
+  "@stepGoalOutOfSteps": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalRemaining": "{steps} steps left",
+  "@stepGoalRemaining": {
+    "placeholders": {
+      "steps": {
+        "type": "String"
+      }
+    }
+  },
+  "stepGoalNotSet": "No goal set",
+  "stepGoalChoosePrompt": "Choose a goal below to start tracking today's progress.",
+  "stepGoalCompletedMessage": "Great job! You completed today's goal.",
+  "stepGoalActiveMessage": "Set a realistic goal and gradually increase it to keep your active streak going.",
+  "stepGoalStreakTitle": "Goal streak",
+  "stepGoalStreakSubtitle": "Complete goals to grow your wallet reward.",
+  "stepGoalLongest": "Longest",
+  "stepGoalClaiming": "Claiming",
+  "stepGoalCustomShort": "Custom",
+  "spiritDetailTitle": "{name} Details",
+  "@spiritDetailTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spiritLevel": "Level {level}",
+  "@spiritLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritRecoveryPotion": "Recovery Potion",
+  "spiritBondBonus": "+{amount} Bonding",
+  "@spiritBondBonus": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritEnergyBonus": "+{amount} Energy",
+  "@spiritEnergyBonus": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritPlantType": "Plant Type",
+  "spiritStatsTab": "Stats",
+  "spiritEvolutionTab": "Evolution",
+  "spiritLifeForceExp": "Life Force (EXP)",
+  "spiritSupportItems": "Support Items",
+  "spiritTapLumina": "Tap Lumina",
+  "spiritTapSuccess": "Tapped Lumina successfully",
+  "spiritFeed": "Feed",
+  "spiritFeedSuccess": "Fed Lumina successfully",
+  "spiritEvolutionStages": "Evolution Stages",
+  "spiritStageSeed": "Seed",
+  "spiritStageSprout": "Sprout",
+  "spiritStageLeaf": "Leaf",
+  "spiritCurrentRequirement": "Current requirements: Lv {level} - Bond {bonding}",
+  "@spiritCurrentRequirement": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "bonding": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritReady": "Ready",
+  "spiritEvolutionHistory": "Evolution History",
+  "spiritHistoryHatched": "Hatched successfully",
+  "spiritHistorySprout": "Evolved into Sprout Form",
+  "spiritHistoryLeaf": "Evolved into Leaf Form",
+  "spiritEvolutionConditions": "Evolution Conditions",
+  "spiritReachLevel15": "Reach Level 15",
+  "spiritBondRequirement": "Bonding requirement met",
+  "spiritMet": "Met",
+  "spiritEvolveNow": "Evolve Now",
+  "spiritMaxEvolution": "Lumina has reached the current maximum evolution form!",
+  "spiritEvolving": "Evolving...",
+  "storySlide1": "You discover an old space exploration device. Inside is a Seed of Light...",
+  "storySlide2": "...a small Lumina from a planet that lost its gravity.",
+  "storySlide3": "To survive and grow, Lumina absorbs Life Force from human footsteps.",
+  "storySlide4": "Lumina does not need you to fight. It only wants to walk beside you and see the real world.",
+  "profileEditGenderMale": "Male",
+  "profileEditGenderFemale": "Female",
+  "profileEditGenderOther": "Other",
+  "friendsRequestSentTo": "Sent an invite to {name}!",
+  "@friendsRequestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRequestSendFailed": "Could not send the invite. Please try again later.",
+  "friendsRequestAlreadySent": "You already sent this player an invite!",
+  "friendsAlreadyFriend": "You are already friends!",
+  "friendsPlayerNotFound": "Could not find this player.",
+  "feedbackWaitBeforeRetry": "Please wait before sending again.",
+  "feedbackSendFailed": "Failed to send feedback. Please try again later."
 }

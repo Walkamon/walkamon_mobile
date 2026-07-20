@@ -1,41 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 class StorySlide {
-  const StorySlide({
-    required this.image,
-    required this.text,
-  });
+  const StorySlide({required this.image, required this.text});
 
   final String image;
   final String text;
 }
-
-const List<StorySlide> _storySlides = [
-  StorySlide(
-    image:
-        'https://images.unsplash.com/photo-1518002171953-a080ee817e1f?auto=format&fit=crop&q=80&w=800',
-    text:
-        "Bạn nhặt được một chiếc máy thám hiểm không gian cũ. Bên trong là một 'Mầm Ánh Sáng'...",
-  ),
-  StorySlide(
-    image:
-        'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=800',
-    text:
-        "...đó là một sinh vật (Lumina) đến từ một hành tinh đã mất đi trọng lực.",
-  ),
-  StorySlide(
-    image:
-        'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&q=80&w=800',
-    text:
-        "Để sinh tồn và lớn lên, Lumina cần hấp thụ 'Sinh Mệnh Lực' từ những bước đi của con người.",
-  ),
-  StorySlide(
-    image:
-        'https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&q=80&w=800',
-    text:
-        "Lumina không cần bạn chiến đấu, nó chỉ muốn đồng hành cùng bạn trong những chuyến đi dạo đời thực để ngắm nhìn thế giới này.",
-  ),
-];
 
 class StoryScreen extends StatefulWidget {
   const StoryScreen({super.key});
@@ -55,7 +26,8 @@ class _StoryScreenState extends State<StoryScreen> {
   }
 
   void _goNext() {
-    if (_currentPage < _storySlides.length - 1) {
+    final slides = _storySlides(AppLocalizations.of(context));
+    if (_currentPage < slides.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOut,
@@ -72,10 +44,12 @@ class _StoryScreenState extends State<StoryScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final storySlides = _storySlides(l10n);
     final isDark = theme.brightness == Brightness.dark;
     final overlayColor = isDark ? Colors.black87 : Colors.black54;
     final textColor = Colors.white;
-    final currentSlide = _storySlides[_currentPage];
+    final currentSlide = storySlides[_currentPage];
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -83,10 +57,10 @@ class _StoryScreenState extends State<StoryScreen> {
         children: [
           PageView.builder(
             controller: _pageController,
-            itemCount: _storySlides.length,
+            itemCount: storySlides.length,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
-              final slide = _storySlides[index];
+              final slide = storySlides[index];
               return Stack(
                 fit: StackFit.expand,
                 children: [
@@ -97,9 +71,7 @@ class _StoryScreenState extends State<StoryScreen> {
                       if (loadingProgress == null) {
                         return child;
                       }
-                      return const ColoredBox(
-                        color: Colors.black,
-                      );
+                      return const ColoredBox(color: Colors.black);
                     },
                     errorBuilder: (context, error, stackTrace) {
                       return const ColoredBox(
@@ -137,7 +109,7 @@ class _StoryScreenState extends State<StoryScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_currentPage + 1}/${_storySlides.length}',
+                    '${_currentPage + 1}/${storySlides.length}',
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.w700,
@@ -146,14 +118,17 @@ class _StoryScreenState extends State<StoryScreen> {
                   TextButton(
                     onPressed: _skipStory,
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       backgroundColor: Colors.white24,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     child: Text(
-                      'Bỏ qua',
+                      l10n.storySkip,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -173,10 +148,7 @@ class _StoryScreenState extends State<StoryScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    overlayColor.withOpacity(0.0),
-                    overlayColor,
-                  ],
+                  colors: [overlayColor.withOpacity(0.0), overlayColor],
                 ),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -200,22 +172,19 @@ class _StoryScreenState extends State<StoryScreen> {
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _storySlides.length,
-                      (index) {
-                        final isActive = index == _currentPage;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: isActive ? 22 : 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: isActive ? Colors.white : Colors.white38,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        );
-                      },
-                    ),
+                    children: List.generate(storySlides.length, (index) {
+                      final isActive = index == _currentPage;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: isActive ? 22 : 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: isActive ? Colors.white : Colors.white38,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      );
+                    }),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -231,7 +200,7 @@ class _StoryScreenState extends State<StoryScreen> {
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Quay lại'),
+                          child: Text(l10n.storyBack),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -247,9 +216,9 @@ class _StoryScreenState extends State<StoryScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: Text(
-                            _currentPage < _storySlides.length - 1
-                                ? 'Tiếp tục'
-                                : 'Khám phá',
+                            _currentPage < storySlides.length - 1
+                                ? l10n.storyContinue
+                                : l10n.storyExplore,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
@@ -267,4 +236,29 @@ class _StoryScreenState extends State<StoryScreen> {
       ),
     );
   }
+}
+
+List<StorySlide> _storySlides(AppLocalizations l10n) {
+  return [
+    StorySlide(
+      image:
+          'https://images.unsplash.com/photo-1518002171953-a080ee817e1f?auto=format&fit=crop&q=80&w=800',
+      text: l10n.storySlide1,
+    ),
+    StorySlide(
+      image:
+          'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=800',
+      text: l10n.storySlide2,
+    ),
+    StorySlide(
+      image:
+          'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&q=80&w=800',
+      text: l10n.storySlide3,
+    ),
+    StorySlide(
+      image:
+          'https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&q=80&w=800',
+      text: l10n.storySlide4,
+    ),
+  ];
 }

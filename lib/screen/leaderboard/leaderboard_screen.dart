@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/repositories/leaderboard_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -34,35 +35,47 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     });
 
     try {
-      final response = await _repository.getLeaderboard(_mapTimeFrameToBackend(_timeFrame));
+      final response = await _repository.getLeaderboard(
+        _mapTimeFrameToBackend(_timeFrame),
+      );
       if (!mounted) return;
 
       if (response.success && response.data != null) {
         setState(() {
           _users = response.data!.leaderboard
-              .map((item) => _UserRank(
-                    id: item.userId.hashCode,
-                    name: item.username ?? 'Người dùng',
-                    steps: {'daily': item.stepCount, 'weekly': item.stepCount, 'monthly': item.stepCount},
-                    level: 0,
-                    isMe: item.isCurrentUser,
-                    isFriend: true,
-                    rank: item.rank,
-                  ))
+              .map(
+                (item) => _UserRank(
+                  id: item.userId.hashCode,
+                  name:
+                      item.username ??
+                      AppLocalizations.of(context).leaderboardUserDefault,
+                  steps: {
+                    'daily': item.stepCount,
+                    'weekly': item.stepCount,
+                    'monthly': item.stepCount,
+                  },
+                  level: 0,
+                  isMe: item.isCurrentUser,
+                  isFriend: true,
+                  rank: item.rank,
+                ),
+              )
               .toList();
           _myRank = response.data!.myRank;
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = response.message.isNotEmpty ? response.message : 'Không tải được bảng xếp hạng';
+          _errorMessage = response.message.isNotEmpty
+              ? response.message
+              : AppLocalizations.of(context).leaderboardCouldNotLoad;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Không thể kết nối tới máy chủ';
+        _errorMessage = AppLocalizations.of(context).leaderboardCouldNotConnect;
         _isLoading = false;
       });
     }
@@ -107,6 +120,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     final sortedUsers = _sortedUsers;
     final top3 = _top3;
@@ -136,17 +150,25 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 18,
+                    ),
                     style: IconButton.styleFrom(
                       backgroundColor: colorScheme.surface,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
-                        'Bảng xếp hạng',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                        l10n.leaderboardTitle,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),
@@ -165,16 +187,29 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 3))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 18),
+                  const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Hạng của bạn: #$_myRank',
-                      style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
+                      l10n.leaderboardYourRank(_myRank!),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -192,20 +227,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Wrap(alignment: WrapAlignment.center,
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
                         spacing: 8,
                         runSpacing: 8,
                         children: [
                           for (final frame in [
-                            {'id': 'daily', 'label': 'Hôm nay'},
-                            {'id': 'weekly', 'label': 'Tuần này'},
-                            {'id': 'monthly', 'label': 'Tháng này'},
+                            {'id': 'daily', 'label': l10n.leaderboardToday},
+                            {'id': 'weekly', 'label': l10n.leaderboardThisWeek},
+                            {
+                              'id': 'monthly',
+                              'label': l10n.leaderboardThisMonth,
+                            },
                           ])
                             _buildFilterChip(
                               label: frame['label'] as String,
                               active: _timeFrame == frame['id'],
                               onTap: () {
-                                setState(() => _timeFrame = frame['id'] as String);
+                                setState(
+                                  () => _timeFrame = frame['id'] as String,
+                                );
                                 _loadLeaderboard();
                               },
                             ),
@@ -217,16 +258,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                 
-                   
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildDropdown(
-                        label: _metric == 'steps' ? 'Bước chân' : 'Cấp độ',
+                        label: _metric == 'steps'
+                            ? l10n.leaderboardSteps
+                            : l10n.leaderboardLevel,
                         selectedValue: _metric,
                         items: [
-                          {'value': 'steps', 'label': 'Bước chân'},
-                          {'value': 'level', 'label': 'Cấp độ'},
+                          {'value': 'steps', 'label': l10n.leaderboardSteps},
+                          {'value': 'level', 'label': l10n.leaderboardLevel},
                         ],
                         onChanged: (value) {
                           setState(() => _metric = value!);
@@ -244,12 +285,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 if (top3.isNotEmpty) _buildPodium(top3, colorScheme),
                 if (rest.isNotEmpty)
                   ...rest.asMap().entries.map(
-                    (entry) => _buildRankCard(entry.value, entry.key + 4, colorScheme),
+                    (entry) =>
+                        _buildRankCard(entry.value, entry.key + 4, colorScheme),
                   ),
                 if (_isMeOutsideTop10) ...[
                   const SizedBox(height: 12),
                   const Divider(),
-                  _buildRankCard(sortedUsers[_myIndex], _myIndex + 1, colorScheme),
+                  _buildRankCard(
+                    sortedUsers[_myIndex],
+                    _myIndex + 1,
+                    colorScheme,
+                  ),
                 ],
               ],
             ),
@@ -259,7 +305,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  Widget _buildFilterChip({required String label, required bool active, required VoidCallback onTap}) {
+  Widget _buildFilterChip({
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
@@ -269,7 +319,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         decoration: BoxDecoration(
           color: active ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: active ? colorScheme.primary : colorScheme.outlineVariant),
+          border: Border.all(
+            color: active ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
         ),
         child: Text(
           label,
@@ -283,7 +335,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  Widget _buildDropdown({required String label, required String selectedValue, required List<Map<String, String>> items, required ValueChanged<String?> onChanged}) {
+  Widget _buildDropdown({
+    required String label,
+    required String selectedValue,
+    required List<Map<String, String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -300,14 +357,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               .map(
                 (item) => DropdownMenuItem<String>(
                   value: item['value'],
-                  child: Text(item['label']!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    item['label']!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               )
               .toList(),
           onChanged: onChanged,
           icon: const Icon(Icons.expand_more_rounded, size: 18),
           borderRadius: BorderRadius.circular(12),
-          hint: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          hint: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
         ),
       ),
     );
@@ -359,25 +425,53 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  Widget _buildPodiumCard({required int rank, required _UserRank? user, required double height, required Color color, required Color accentColor, required ColorScheme colorScheme}) {
+  Widget _buildPodiumCard({
+    required int rank,
+    required _UserRank? user,
+    required double height,
+    required Color color,
+    required Color accentColor,
+    required ColorScheme colorScheme,
+  }) {
     if (user == null) {
       return const SizedBox.shrink();
     }
 
-    final value = _metric == 'level' ? 'Lv.${user.level}' : _formatNumber(user.steps[_timeFrame]!);
+    final value = _metric == 'level'
+        ? 'Lv.${user.level}'
+        : _formatNumber(user.steps[_timeFrame]!);
 
-    final displayName = user.isMe ? 'Bạn' : user.name;
+    final displayName = user.isMe
+        ? AppLocalizations.of(context).leaderboardYou
+        : user.name;
 
     return Column(
       children: [
         CircleAvatar(
           radius: 24,
           backgroundColor: user.isMe ? Colors.white : colorScheme.surface,
-          child: Text(displayName.substring(0, 1), style: TextStyle(fontWeight: FontWeight.w800, color: user.isMe ? accentColor : colorScheme.onSurface)),
+          child: Text(
+            displayName.substring(0, 1),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: user.isMe ? accentColor : colorScheme.onSurface,
+            ),
+          ),
         ),
         const SizedBox(height: 8),
-        Text(displayName, style: const TextStyle(fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
-        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+        Text(
+          displayName,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           height: height,
@@ -386,10 +480,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 10, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Center(
-            child: Text('$rank', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white.withOpacity(0.9))),
+            child: Text(
+              '$rank',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                color: Colors.white.withOpacity(0.9),
+              ),
+            ),
           ),
         ),
       ],
@@ -398,8 +505,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Widget _buildRankCard(_UserRank user, int rank, ColorScheme colorScheme) {
     final isMe = user.isMe;
-    final value = _metric == 'level' ? 'Lv.${user.level}' : _formatNumber(user.steps[_timeFrame]!);
-    final displayName = isMe ? 'Bạn' : user.name;
+    final value = _metric == 'level'
+        ? 'Lv.${user.level}'
+        : _formatNumber(user.steps[_timeFrame]!);
+    final l10n = AppLocalizations.of(context);
+    final displayName = isMe ? l10n.leaderboardYou : user.name;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -407,19 +517,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       decoration: BoxDecoration(
         color: isMe ? Colors.amber.shade50 : colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: isMe ? Colors.amber.shade400 : colorScheme.outlineVariant),
-        boxShadow: isMe ? [BoxShadow(color: Colors.amber.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 2))] : null,
+        border: Border.all(
+          color: isMe ? Colors.amber.shade400 : colorScheme.outlineVariant,
+        ),
+        boxShadow: isMe
+            ? [
+                BoxShadow(
+                  color: Colors.amber.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         children: [
           SizedBox(
             width: 24,
-            child: Text('$rank', style: TextStyle(fontWeight: FontWeight.w800, color: isMe ? colorScheme.primary : colorScheme.onSurfaceVariant)),
+            child: Text(
+              '$rank',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: isMe
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
           CircleAvatar(
             radius: 18,
-            backgroundColor: isMe ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-            child: Text(displayName.substring(0, 1), style: TextStyle(fontWeight: FontWeight.w800, color: isMe ? Colors.white : colorScheme.onSurface)),
+            backgroundColor: isMe
+                ? colorScheme.primary
+                : colorScheme.surfaceContainerHighest,
+            child: Text(
+              displayName.substring(0, 1),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: isMe ? Colors.white : colorScheme.onSurface,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -428,18 +564,40 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               children: [
                 Text(
                   displayName,
-                  style: TextStyle(fontWeight: FontWeight.w800, color: isMe ? Colors.amber.shade800 : colorScheme.onSurface),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: isMe ? Colors.amber.shade800 : colorScheme.onSurface,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text('Lv. ${user.level}', style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                Text(
+                  l10n.levelShort(user.level),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-              Text(_metric == 'level' ? 'Cấp độ' : 'Bước', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Text(
+                _metric == 'level' ? l10n.leaderboardLevel : l10n.step,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ],
@@ -448,7 +606,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   String _formatNumber(int value) {
-    return value.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
+    return value.toString().replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
   }
 }
 
@@ -461,5 +622,13 @@ class _UserRank {
   final bool isFriend;
   final int rank;
 
-  const _UserRank({required this.id, required this.name, required this.steps, required this.level, required this.isMe, required this.isFriend, this.rank = 0});
+  const _UserRank({
+    required this.id,
+    required this.name,
+    required this.steps,
+    required this.level,
+    required this.isMe,
+    required this.isFriend,
+    this.rank = 0,
+  });
 }
