@@ -38,7 +38,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     });
     _stateTimer = Timer(const Duration(seconds: 2), () {
       setState(() {
-        _opponentName = 'LuminaMaster99';
+        _opponentName = 'Anonymous player';
         _gameState = 'room-countdown';
       });
       _startRoomCountdown();
