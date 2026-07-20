@@ -68,8 +68,10 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
         AnimatedBuilder(
           animation: _bgController,
           builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(-(_bgController.value * width), 0),
+            return Positioned(
+              left: -(_bgController.value * width),
+              top: 0,
+              width: width * 2,
               child: Row(
                 children: [
                   _buildCloudLayer(width),
@@ -98,6 +100,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
             return Positioned(
               bottom: 0,
               left: -(_bgController.value * width),
+              width: width * 2,
               height: MediaQuery.of(context).size.height * 0.6,
               child: Row(
                 children: [
@@ -121,28 +124,43 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.3), width: 2)),
+                    color: Colors.green.shade600,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.white.withOpacity(0.3), width: 2),
+                    ),
                   ),
                   child: Stack(
                     alignment: Alignment.centerLeft,
                     children: [
+                      // Top border line aligned with yellow finish line
+                      Positioned(
+                        top: 25,
+                        left: 0,
+                        right: 0,
+                        child: Container(height: 2, color: Colors.white.withOpacity(0.3)),
+                      ),
                       // Start line
-                      AnimatedBuilder(
-                        animation: _bgController,
-                        builder: (context, child) {
-                          double offset = widget.isMoving || widget.myProgress > 0 ? -width : 20.0;
-                          return Positioned(
-                            left: offset,
-                            top: 0,
-                            bottom: 0,
-                            child: Container(width: 10, color: Colors.white),
-                          );
-                        }
+                      AnimatedPositioned(
+                        duration: const Duration(seconds: 2),
+                        curve: Curves.easeIn,
+                        left: widget.isMoving || widget.myProgress > 0 || widget.opponentProgress > 0 ? -100.0 : 80.0,
+                        top: 25,
+                        bottom: 0,
+                        child: Container(width: 10, color: Colors.white),
+                      ),
+                      // Finish line
+                      AnimatedPositioned(
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.linear,
+                        right: (widget.myProgress > 80 || widget.opponentProgress > 80) ? 60.0 : -100.0,
+                        top: 25,
+                        bottom: 0,
+                        child: Container(width: 15, color: Colors.amber),
                       ),
                       // Opponent Pet
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 100),
-                        left: 20 + (widget.opponentProgress / 100) * (width - 100), // padding
+                        left: -3 + (widget.opponentProgress / 100) * (width - 100), // padding
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -175,17 +193,22 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                     alignment: Alignment.centerLeft,
                     children: [
                       // Start line
-                      AnimatedBuilder(
-                        animation: _bgController,
-                        builder: (context, child) {
-                          double offset = widget.isMoving || widget.myProgress > 0 ? -width : 20.0;
-                          return Positioned(
-                            left: offset,
-                            top: 0,
-                            bottom: 0,
-                            child: Container(width: 10, color: Colors.white),
-                          );
-                        }
+                      AnimatedPositioned(
+                        duration: const Duration(seconds: 2),
+                        curve: Curves.easeIn,
+                        left: widget.isMoving || widget.myProgress > 0 || widget.opponentProgress > 0 ? -100.0 : 80.0,
+                        top: 0,
+                        bottom: 0,
+                        child: Container(width: 10, color: Colors.white),
+                      ),
+                      // Finish line
+                      AnimatedPositioned(
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.linear,
+                        right: (widget.myProgress > 80 || widget.opponentProgress > 80) ? 60.0 : -100.0,
+                        top: 0,
+                        bottom: 0,
+                        child: Container(width: 15, color: Colors.amber),
                       ),
                       // My Pet
                       AnimatedPositioned(
@@ -312,17 +335,33 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
       width: width,
       child: Stack(
         children: [
-          // Grass pattern
-          Positioned.fill(
-            child: Wrap(
-              spacing: 40,
-              runSpacing: 40,
-              children: List.generate(20, (index) => const Icon(Icons.grass, color: Colors.white30, size: 32)),
+          // Grass tufts at the very top strip (visible above racing lanes)
+          Positioned(
+            top: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(Icons.grass, color: Colors.white30, size: 24),
+                Icon(Icons.grass, color: Colors.white24, size: 18),
+                Icon(Icons.grass, color: Colors.white30, size: 28),
+                Icon(Icons.grass, color: Colors.white24, size: 20),
+                Icon(Icons.grass, color: Colors.white30, size: 24),
+                Icon(Icons.grass, color: Colors.white24, size: 18),
+                Icon(Icons.grass, color: Colors.white30, size: 22),
+              ],
             ),
           ),
-          // Trees
-          Positioned(top: 20, left: 50, child: Icon(Icons.park, size: 80, color: Colors.green.shade900)),
-          Positioned(top: 10, left: 250, child: Icon(Icons.park, size: 100, color: Colors.green.shade800)),
+          // Bushes in the grass strip
+          Positioned(top: 18, left: 40, child: Icon(Icons.eco, size: 28, color: Colors.green.shade700)),
+          Positioned(top: 20, left: 190, child: Icon(Icons.eco, size: 22, color: Colors.green.shade800)),
+          Positioned(top: 16, left: 390, child: Icon(Icons.eco, size: 30, color: Colors.green.shade700)),
+          Positioned(top: 20, left: 540, child: Icon(Icons.eco, size: 24, color: Colors.green.shade800)),
+          // Trees — tops visible in the grass strip, size kept moderate
+          Positioned(top: 0, left: 70, child: Icon(Icons.park, size: 80, color: Colors.green.shade900)),
+          Positioned(top: 0, left: 280, child: Icon(Icons.park, size: 95, color: Colors.green.shade800)),
+          Positioned(top: 0, left: 490, child: Icon(Icons.park, size: 75, color: Colors.green.shade900)),
         ],
       ),
     );
