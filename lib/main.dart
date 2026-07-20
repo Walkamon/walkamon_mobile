@@ -194,14 +194,14 @@ class _WalkamonAppState extends State<WalkamonApp> {
               }
 
               // 4. LOGIC CHẶN CỬA 2 (Tùy chọn UX): Đã đăng nhập rồi mà cố quay lại trang Welcome hoặc Login
-              // -> Tự động chuyển thẳng họ vào trang chủ /home luôn cho tiện.
+              // -> Đi qua /seed để kiểm tra onboarding thú cưng trước khi vào home.
               if (isLogged &&
                   (routeName == '/' ||
                       routeName == '/auth/login' ||
                       routeName == '/auth/register')) {
                 return MaterialPageRoute(
-                  builder: (_) => const HomeScreen(title: 'Home'),
-                  settings: const RouteSettings(name: '/home'),
+                  builder: (_) => const SeedScreen(),
+                  settings: const RouteSettings(name: '/seed'),
                 );
               }
 

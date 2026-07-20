@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models.dart';
+import '../../../../data/models/pvp_models.dart';
+import '../../../../data/models/friends_response.dart';
+import 'package:intl/intl.dart';
 
-void showIncomingChallengesModal(BuildContext context, List<IncomingChallengeMock> challenges, Function(int, String) onAccept, Function(int) onReject) {
+void showIncomingChallengesModal(BuildContext context, List<PvpInviteResponse> challenges, Function(String, String) onAccept, Function(String) onReject) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -15,9 +17,9 @@ void showIncomingChallengesModal(BuildContext context, List<IncomingChallengeMoc
 }
 
 class _IncomingChallengesContent extends StatelessWidget {
-  final List<IncomingChallengeMock> challenges;
-  final Function(int, String) onAccept;
-  final Function(int) onReject;
+  final List<PvpInviteResponse> challenges;
+  final Function(String, String) onAccept;
+  final Function(String) onReject;
 
   const _IncomingChallengesContent({required this.challenges, required this.onAccept, required this.onReject});
 
@@ -81,8 +83,8 @@ class _IncomingChallengesContent extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(challenge.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Text('Lv.${challenge.level}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text(challenge.user.username.isNotEmpty ? challenge.user.username : 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  Text('Lv.15', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -95,7 +97,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                               child: ElevatedButton.icon(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  onAccept(challenge.id, challenge.name);
+                                  onAccept(challenge.inviteId, challenge.user.username);
                                 },
                                 icon: const Icon(Icons.check, size: 16),
                                 label: const Text('Chấp nhận'),
@@ -110,7 +112,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                               child: OutlinedButton.icon(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  onReject(challenge.id);
+                                  onReject(challenge.inviteId);
                                 },
                                 icon: const Icon(Icons.close, size: 16),
                                 label: const Text('Từ chối'),
@@ -130,19 +132,20 @@ class _IncomingChallengesContent extends StatelessWidget {
   }
 }
 
-void showMatchHistoryModal(BuildContext context, List<MatchHistoryMock> history) {
+void showMatchHistoryModal(BuildContext context, List<PvpMatchResponse> history, String currentUserId) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _MatchHistoryContent(history: history),
+    builder: (context) => _MatchHistoryContent(history: history, currentUserId: currentUserId),
   );
 }
 
 class _MatchHistoryContent extends StatelessWidget {
-  final List<MatchHistoryMock> history;
+  final List<PvpMatchResponse> history;
+  final String currentUserId;
 
-  const _MatchHistoryContent({required this.history});
+  const _MatchHistoryContent({required this.history, required this.currentUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +181,24 @@ class _MatchHistoryContent extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final match = history[index];
-                final isWin = match.result == 'win';
+                
+                // Determine result
+                PvpParticipantResponse? me;
+                PvpParticipantResponse? opponent;
+                for (var p in match.participants) {
+                  if (p.userId == currentUserId) me = p;
+                  else opponent = p;
+                }
+                
+                bool isWin = false;
+                if (me != null && opponent != null) {
+                  isWin = (me.distanceUnits ?? 0) > (opponent.distanceUnits ?? 0);
+                }
+                
+                final oppName = opponent?.displayName ?? opponent?.userId ?? 'Unknown';
+                final dateStr = match.createdAt != null ? DateFormat('dd/MM HH:mm').format(match.createdAt!) : '';
+                final points = isWin ? '+50' : '+10'; // mockup points since no mmr here
+                
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -206,8 +226,8 @@ class _MatchHistoryContent extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(match.opponent, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(match.date, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                            Text(oppName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(dateStr, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -217,7 +237,7 @@ class _MatchHistoryContent extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                match.points,
+                                points,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -249,7 +269,7 @@ class _MatchHistoryContent extends StatelessWidget {
   }
 }
 
-void showFriendsModal(BuildContext context, List<FriendMock> online, List<FriendMock> offline, Function(String) onInvite) {
+void showFriendsModal(BuildContext context, List<FriendsResponse> online, List<FriendsResponse> offline, Function(String) onInvite) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -259,8 +279,8 @@ void showFriendsModal(BuildContext context, List<FriendMock> online, List<Friend
 }
 
 class _FriendsModalContent extends StatelessWidget {
-  final List<FriendMock> online;
-  final List<FriendMock> offline;
+  final List<FriendsResponse> online;
+  final List<FriendsResponse> offline;
   final Function(String) onInvite;
 
   const _FriendsModalContent({required this.online, required this.offline, required this.onInvite});
@@ -325,13 +345,14 @@ class _FriendsModalContent extends StatelessWidget {
     );
   }
 
-  Widget _buildFriendItem(BuildContext context, FriendMock friend, Function(String) onInvite) {
+  Widget _buildFriendItem(BuildContext context, FriendsResponse friend, Function(String) onInvite) {
     final theme = Theme.of(context);
+    final isOnline = true; // Hardcoded since API missing isOnline
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: friend.isOnline ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: isOnline ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
       ),
@@ -341,16 +362,16 @@ class _FriendsModalContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(friend.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: friend.isOnline ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant)),
-                Text('Lv.${friend.level}', style: TextStyle(color: friend.isOnline ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(friend.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isOnline ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant)),
+                Text('Lv.15', style: TextStyle(color: isOnline ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 12)),
               ],
             ),
           ),
-          if (friend.isOnline)
+          if (isOnline)
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(context);
-                onInvite(friend.name);
+                onInvite(friend.username);
               },
               icon: const Icon(Icons.sports_kabaddi, size: 16),
               label: const Text('Thách đấu'),
