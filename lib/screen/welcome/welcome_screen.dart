@@ -54,7 +54,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         if (!mounted) return;
 
         // Chuyển trang trực tiếp
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/seed');
       }
     } catch (e) {
       // Bọc catch để nếu có lỗi ngầm xảy ra, app không bị đứng hình trắng xóa
@@ -77,7 +77,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           await context.read<StepTrackingProvider>().startForUser(userId);
         }
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/seed');
         return;
       }
 

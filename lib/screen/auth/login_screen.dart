@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen>
       await context.read<StepTrackingProvider>().startForUser(userId);
     }
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/seed');
   }
 
   @override
