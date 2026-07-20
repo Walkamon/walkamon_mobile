@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
 import '../../l10n/app_localizations.dart';
+import '../profile/friend_player_profile_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -317,7 +318,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       final friend = filteredFriends[index];
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
@@ -325,7 +325,22 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             color: colorScheme.outline.withOpacity(0.3),
                           ),
                         ),
-                        child: Row(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              '/profile/friend',
+                              arguments: FriendPlayerProfileArguments(
+                                userId: friend.userId,
+                                initialName: friend.username,
+                                initialAvatarUrl: friend.avatarUrl,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
                           children: [
                             Stack(
                               children: [
@@ -396,6 +411,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               onPressed: () => _removeFriend(friend),
                             ),
                           ],
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     },

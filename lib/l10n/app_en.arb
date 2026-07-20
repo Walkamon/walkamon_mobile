@@ -437,6 +437,7 @@
   },
   "missionsChallengeExists": "You already have a challenge. Please finish or cancel it first!",
   "missionsChallengeCanceled": "Challenge canceled.",
+  "missionsChallengeCreated": "New challenge received!",
   "missionsCancelFailed": "Could not cancel challenge: {message}",
   "@missionsCancelFailed": {
     "placeholders": {
@@ -616,6 +617,7 @@
   "namePetDescription": "Choose a meaningful name for your companion.",
   "namePetHint": "Enter a Lumina name...",
   "namePetComplete": "Complete",
+  "namePetCreateFailed": "Could not create your starter pet. Please try again.",
   "seedTitleScreen": "Seed of Light",
   "seedDescriptionScreen": "This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.",
   "seedEvolutionTitle": "Evolution",
@@ -803,6 +805,54 @@
   "friendsRequestAlreadySent": "You already sent this player an invite!",
   "friendsAlreadyFriend": "You are already friends!",
   "friendsPlayerNotFound": "Could not find this player.",
+  "friendProfileTitle": "Traveler Profile",
+  "friendProfileTraveler": "Traveler",
+  "friendProfileUnknownPlayer": "Unknown player",
+  "friendProfileCompanion": "Companion Spirit",
+  "friendProfileStats": "Stats",
+  "friendProfileAchievements": "Featured Achievements",
+  "friendProfileSpiritName": "Spirit: {name}",
+  "@friendProfileSpiritName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileViewStats": "View Stats",
+  "friendProfileSpiritMeta": "{type} - Level {level}",
+  "@friendProfileSpiritMeta": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendProfileNoSpirit": "No spirit yet",
+  "friendProfileSpiritTypeUnknown": "Unknown Type",
+  "friendProfileTotalSteps": "Total steps",
+  "friendProfileStreak": "Streak",
+  "friendProfileEnergy": "Energy",
+  "friendProfileBond": "Bond",
+  "friendProfileLifeForce": "Life Force",
+  "friendProfileExp": "EXP",
+  "friendProfileUnavailable": "--",
+  "friendProfileAchievementsUnavailable": "Achievements data is not available yet.",
+  "friendProfileLoadFailed": "Could not load this player profile.",
+  "friendProfileRequestSentTitle": "Invite sent!",
+  "friendProfileRequestSentMessage": "Your friend invite has been sent to {name}. Keep walking together!",
+  "@friendProfileRequestSentMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileGreat": "Great",
+  "friendSpiritTitle": "Spirit Stats",
   "feedbackWaitBeforeRetry": "Please wait before sending again.",
   "feedbackSendFailed": "Failed to send feedback. Please try again later."
 }

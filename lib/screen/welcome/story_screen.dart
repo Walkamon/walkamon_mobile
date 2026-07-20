@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+
+import '../../providers/game_state_provider.dart';
 
 class StorySlide {
   const StorySlide({required this.image, required this.text});
@@ -25,7 +28,7 @@ class _StoryScreenState extends State<StoryScreen> {
     super.dispose();
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
     final slides = _storySlides(AppLocalizations.of(context));
     if (_currentPage < slides.length - 1) {
       _pageController.nextPage(
@@ -33,12 +36,19 @@ class _StoryScreenState extends State<StoryScreen> {
         curve: Curves.easeOut,
       );
     } else {
-      Navigator.pushReplacementNamed(context, '/seed');
+      await _goToPetOnboarding();
     }
   }
 
-  void _skipStory() {
-    Navigator.pushReplacementNamed(context, '/seed');
+  Future<void> _skipStory() async {
+    await _goToPetOnboarding();
+  }
+
+  Future<void> _goToPetOnboarding() async {
+    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, hasPet ? '/home' : '/seed');
   }
 
   @override

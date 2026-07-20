@@ -1616,6 +1616,12 @@ abstract class AppLocalizations {
   /// **'Challenge canceled.'**
   String get missionsChallengeCanceled;
 
+  /// No description provided for @missionsChallengeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'New challenge received!'**
+  String get missionsChallengeCreated;
+
   /// No description provided for @missionsCancelFailed.
   ///
   /// In en, this message translates to:
@@ -2252,6 +2258,12 @@ abstract class AppLocalizations {
   /// **'Complete'**
   String get namePetComplete;
 
+  /// No description provided for @namePetCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create your starter pet. Please try again.'**
+  String get namePetCreateFailed;
+
   /// No description provided for @seedTitleScreen.
   ///
   /// In en, this message translates to:
@@ -2797,6 +2809,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not find this player.'**
   String get friendsPlayerNotFound;
+
+  /// No description provided for @friendProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveler Profile'**
+  String get friendProfileTitle;
+
+  /// No description provided for @friendProfileTraveler.
+  ///
+  /// In en, this message translates to:
+  /// **'Traveler'**
+  String get friendProfileTraveler;
+
+  /// No description provided for @friendProfileUnknownPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown player'**
+  String get friendProfileUnknownPlayer;
+
+  /// No description provided for @friendProfileCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'Companion Spirit'**
+  String get friendProfileCompanion;
+
+  /// No description provided for @friendProfileStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get friendProfileStats;
+
+  /// No description provided for @friendProfileAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured Achievements'**
+  String get friendProfileAchievements;
+
+  /// No description provided for @friendProfileSpiritName.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirit: {name}'**
+  String friendProfileSpiritName(String name);
+
+  /// No description provided for @friendProfileViewStats.
+  ///
+  /// In en, this message translates to:
+  /// **'View Stats'**
+  String get friendProfileViewStats;
+
+  /// No description provided for @friendProfileSpiritMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} - Level {level}'**
+  String friendProfileSpiritMeta(String type, int level);
+
+  /// No description provided for @friendProfileNoSpirit.
+  ///
+  /// In en, this message translates to:
+  /// **'No spirit yet'**
+  String get friendProfileNoSpirit;
+
+  /// No description provided for @friendProfileSpiritTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Type'**
+  String get friendProfileSpiritTypeUnknown;
+
+  /// No description provided for @friendProfileTotalSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Total steps'**
+  String get friendProfileTotalSteps;
+
+  /// No description provided for @friendProfileStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get friendProfileStreak;
+
+  /// No description provided for @friendProfileEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get friendProfileEnergy;
+
+  /// No description provided for @friendProfileBond.
+  ///
+  /// In en, this message translates to:
+  /// **'Bond'**
+  String get friendProfileBond;
+
+  /// No description provided for @friendProfileLifeForce.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Force'**
+  String get friendProfileLifeForce;
+
+  /// No description provided for @friendProfileExp.
+  ///
+  /// In en, this message translates to:
+  /// **'EXP'**
+  String get friendProfileExp;
+
+  /// No description provided for @friendProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'--'**
+  String get friendProfileUnavailable;
+
+  /// No description provided for @friendProfileAchievementsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements data is not available yet.'**
+  String get friendProfileAchievementsUnavailable;
+
+  /// No description provided for @friendProfileLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this player profile.'**
+  String get friendProfileLoadFailed;
+
+  /// No description provided for @friendProfileRequestSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite sent!'**
+  String get friendProfileRequestSentTitle;
+
+  /// No description provided for @friendProfileRequestSentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend invite has been sent to {name}. Keep walking together!'**
+  String friendProfileRequestSentMessage(String name);
+
+  /// No description provided for @friendProfileGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get friendProfileGreat;
+
+  /// No description provided for @friendSpiritTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirit Stats'**
+  String get friendSpiritTitle;
 
   /// No description provided for @feedbackWaitBeforeRetry.
   ///

@@ -13,6 +13,7 @@ class ApiConstants {
   static const String login = '/api/auth/login';
   static const String googleLogin = '/api/auth/google-login';
   static const String logout = '/api/auth/logout';
+  static String friendProfile(String userId) => '/api/auth/profile-friend/$userId';
 
   // settings Endpoints
   static const String userFeedback = '/api/user-feedback';
@@ -84,4 +85,12 @@ class ApiConstants {
   static const String deactivateDeviceToken =
       '/api/notifications/device-tokens/deactivate';
   static String deleteNotification(String id) => '/api/notifications/$id';
+
+  // Pet Endpoints
+  static const String petStatus = '/api/Pet/status';
+  static const String petName = '/api/Pet/pet-name';
+  static const String createStarterPet = '/api/Pet/create-stater-pet';
+  static const String petTap = '/api/Pet/tap';
+  static const String petFeed = '/api/Pet/feed';
+  static String friendPet(String friendUserId) => '/api/Pet/friend/$friendUserId';
 }

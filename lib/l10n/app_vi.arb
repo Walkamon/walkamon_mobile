@@ -350,6 +350,7 @@
   },
   "missionsChallengeExists": "Bạn đang có một thử thách. Hãy hoàn thành hoặc hủy nó trước!",
   "missionsChallengeCanceled": "Đã hủy thử thách.",
+  "missionsChallengeCreated": "Đã nhận thử thách mới!",
   "missionsCancelFailed": "Không thể hủy thử thách: {message}",
   "@missionsCancelFailed": {
     "placeholders": {
@@ -529,6 +530,7 @@
   "namePetDescription": "Hãy chọn một cái tên thật ý nghĩa cho người bạn đồng hành của mình.",
   "namePetHint": "Nhập tên tinh linh...",
   "namePetComplete": "Hoàn tất",
+  "namePetCreateFailed": "Không thể tạo thú cưng khởi đầu. Vui lòng thử lại.",
   "seedTitleScreen": "Mầm Ánh Sáng",
   "seedDescriptionScreen": "Đây là khởi đầu của hành trình. Mầm Ánh Sáng sẽ hấp thụ Sinh Mệnh Lực từ những bước chân của bạn để phát triển.",
   "seedEvolutionTitle": "Tiến Hoá",
@@ -772,6 +774,54 @@
   "friendsRequestAlreadySent": "Bạn đã gửi lời mời cho người này rồi!",
   "friendsAlreadyFriend": "Hai bạn đã là bạn bè rồi!",
   "friendsPlayerNotFound": "Không tìm thấy người chơi này.",
+  "friendProfileTitle": "Hồ sơ Lữ hành giả",
+  "friendProfileTraveler": "Lữ hành giả",
+  "friendProfileUnknownPlayer": "Người chơi ẩn danh",
+  "friendProfileCompanion": "Linh hồn đồng hành",
+  "friendProfileStats": "Thống kê",
+  "friendProfileAchievements": "Thành tựu nổi bật",
+  "friendProfileSpiritName": "Spirit: {name}",
+  "@friendProfileSpiritName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileViewStats": "Xem thống kê",
+  "friendProfileSpiritMeta": "{type} - Cấp {level}",
+  "@friendProfileSpiritMeta": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendProfileNoSpirit": "Chưa có tinh linh",
+  "friendProfileSpiritTypeUnknown": "Chưa rõ hệ",
+  "friendProfileTotalSteps": "Tổng bước đi",
+  "friendProfileStreak": "Chuỗi ngày",
+  "friendProfileEnergy": "Năng lượng",
+  "friendProfileBond": "Gắn kết",
+  "friendProfileLifeForce": "Sinh mệnh lực",
+  "friendProfileExp": "EXP",
+  "friendProfileUnavailable": "--",
+  "friendProfileAchievementsUnavailable": "Dữ liệu thành tựu chưa sẵn sàng.",
+  "friendProfileLoadFailed": "Không thể tải hồ sơ người chơi này.",
+  "friendProfileRequestSentTitle": "Đã gửi lời mời!",
+  "friendProfileRequestSentMessage": "Lời mời kết bạn đã được gửi đến {name}. Cùng nhau tích bước nhé!",
+  "@friendProfileRequestSentMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendProfileGreat": "Tuyệt vời",
+  "friendSpiritTitle": "Thống kê tinh linh",
   "feedbackWaitBeforeRetry": "Vui lòng đợi trước khi gửi lại.",
   "feedbackSendFailed": "Gửi phản hồi thất bại. Vui lòng thử lại sau."
 }

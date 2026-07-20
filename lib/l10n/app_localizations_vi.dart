@@ -833,6 +833,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get missionsChallengeCanceled => 'Đã hủy thử thách.';
 
   @override
+  String get missionsChallengeCreated => 'Đã nhận thử thách mới!';
+
+  @override
   String missionsCancelFailed(String message) {
     return 'Không thể hủy thử thách: $message';
   }
@@ -1177,6 +1180,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get namePetComplete => 'Hoàn tất';
 
   @override
+  String get namePetCreateFailed =>
+      'Không thể tạo thú cưng khởi đầu. Vui lòng thử lại.';
+
+  @override
   String get seedTitleScreen => 'Mầm Ánh Sáng';
 
   @override
@@ -1486,6 +1493,85 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get friendsPlayerNotFound => 'Không tìm thấy người chơi này.';
+
+  @override
+  String get friendProfileTitle => 'Hồ sơ Lữ hành giả';
+
+  @override
+  String get friendProfileTraveler => 'Lữ hành giả';
+
+  @override
+  String get friendProfileUnknownPlayer => 'Người chơi ẩn danh';
+
+  @override
+  String get friendProfileCompanion => 'Linh hồn đồng hành';
+
+  @override
+  String get friendProfileStats => 'Thống kê';
+
+  @override
+  String get friendProfileAchievements => 'Thành tựu nổi bật';
+
+  @override
+  String friendProfileSpiritName(String name) {
+    return 'Spirit: $name';
+  }
+
+  @override
+  String get friendProfileViewStats => 'Xem thống kê';
+
+  @override
+  String friendProfileSpiritMeta(String type, int level) {
+    return '$type - Cấp $level';
+  }
+
+  @override
+  String get friendProfileNoSpirit => 'Chưa có tinh linh';
+
+  @override
+  String get friendProfileSpiritTypeUnknown => 'Chưa rõ hệ';
+
+  @override
+  String get friendProfileTotalSteps => 'Tổng bước đi';
+
+  @override
+  String get friendProfileStreak => 'Chuỗi ngày';
+
+  @override
+  String get friendProfileEnergy => 'Năng lượng';
+
+  @override
+  String get friendProfileBond => 'Gắn kết';
+
+  @override
+  String get friendProfileLifeForce => 'Sinh mệnh lực';
+
+  @override
+  String get friendProfileExp => 'EXP';
+
+  @override
+  String get friendProfileUnavailable => '--';
+
+  @override
+  String get friendProfileAchievementsUnavailable =>
+      'Dữ liệu thành tựu chưa sẵn sàng.';
+
+  @override
+  String get friendProfileLoadFailed => 'Không thể tải hồ sơ người chơi này.';
+
+  @override
+  String get friendProfileRequestSentTitle => 'Đã gửi lời mời!';
+
+  @override
+  String friendProfileRequestSentMessage(String name) {
+    return 'Lời mời kết bạn đã được gửi đến $name. Cùng nhau tích bước nhé!';
+  }
+
+  @override
+  String get friendProfileGreat => 'Tuyệt vời';
+
+  @override
+  String get friendSpiritTitle => 'Thống kê tinh linh';
 
   @override
   String get feedbackWaitBeforeRetry => 'Vui lòng đợi trước khi gửi lại.';

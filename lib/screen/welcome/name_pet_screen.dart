@@ -21,6 +21,7 @@ class _NamePetScreenState extends State<NamePetScreen>
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
 
+  bool _isCheckingPet = true;
   bool _isSaving = false;
 
   @override
@@ -37,10 +38,9 @@ class _NamePetScreenState extends State<NamePetScreen>
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
 
-    final currentName = context.read<GameStateProvider>().user?.name;
-    if (currentName != null && currentName.isNotEmpty) {
-      _nameController.text = currentName;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _redirectIfPetExists();
+    });
   }
 
   @override
@@ -58,22 +58,38 @@ class _NamePetScreenState extends State<NamePetScreen>
     return null;
   }
 
+  Future<void> _redirectIfPetExists() async {
+    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    if (!mounted) return;
+
+    if (hasPet) {
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
+    setState(() => _isCheckingPet = false);
+  }
+
   Future<void> _complete() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isSaving = true);
 
     final gameState = context.read<GameStateProvider>();
-    final currentUser = gameState.user;
     final name = _nameController.text.trim();
-
-    if (currentUser != null) {
-      gameState.setUser(currentUser.copyWith(name: name));
-    }
+    final success = await gameState.createStarterPet(name);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
-    Navigator.pushReplacementNamed(context, '/home');
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).namePetCreateFailed)),
+    );
   }
 
   @override
@@ -88,6 +104,10 @@ class _NamePetScreenState extends State<NamePetScreen>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+
+    if (_isCheckingPet) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       body: SafeArea(

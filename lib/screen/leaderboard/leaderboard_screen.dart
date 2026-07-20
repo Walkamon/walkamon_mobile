@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../profile/friend_player_profile_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -45,7 +46,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           _users = response.data!.leaderboard
               .map(
                 (item) => _UserRank(
-                  id: item.userId.hashCode,
+                  id: item.userId,
                   name:
                       item.username ??
                       AppLocalizations.of(context).leaderboardUserDefault,
@@ -511,7 +512,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final l10n = AppLocalizations.of(context);
     final displayName = isMe ? l10n.leaderboardYou : user.name;
 
-    return Container(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: user.isMe || user.id.isEmpty
+            ? null
+            : () => Navigator.pushNamed(
+                  context,
+                  '/profile/friend',
+                  arguments: FriendPlayerProfileArguments(
+                    userId: user.id,
+                    initialName: user.name,
+                  ),
+                ),
+        child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -602,6 +617,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           ),
         ],
       ),
+        ),
+      ),
     );
   }
 
@@ -614,7 +631,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 }
 
 class _UserRank {
-  final int id;
+  final String id;
   final String name;
   final Map<String, int> steps;
   final int level;

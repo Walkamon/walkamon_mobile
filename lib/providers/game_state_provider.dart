@@ -126,7 +126,9 @@ class GameStateProvider extends ChangeNotifier {
   int _spiritHealth = 70;
   String _spiritName = 'Lumina';
   String _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
+  bool _hasStarterPet = false;
   bool _hasSeenStory = false;
+  bool _hasLocalLanguagePreference = false;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -145,6 +147,7 @@ class GameStateProvider extends ChangeNotifier {
   int get spiritHealth => _spiritHealth;
   String get spiritName => _spiritName;
   String get spiritInfo => _spiritInfo;
+  bool get hasStarterPet => _hasStarterPet;
   bool get hasSeenStory => _hasSeenStory;
 
   bool get isLoading => _isLoading;
@@ -300,6 +303,8 @@ class GameStateProvider extends ChangeNotifier {
     TokenStorage.clear();
     _user = null;
     _profileErrorMessage = null;
+    _hasStarterPet = false;
+    _spiritName = 'Lumina';
     _isLoading = false;
     notifyListeners();
   }
@@ -311,6 +316,9 @@ class GameStateProvider extends ChangeNotifier {
 
     try {
       final profileData = await _profileRepository.getUserProfile();
+      final preferredLanguageCode = await _preferredLanguageCode(
+        profileData.languageCode,
+      );
       _isProfileLoading = false;
 
       _user = GameUser(
@@ -330,7 +338,7 @@ class GameStateProvider extends ChangeNotifier {
 
       _settings = _settings.copyWith(
         notifications: profileData.notificationsEnabled,
-        languageCode: profileData.languageCode,
+        languageCode: preferredLanguageCode,
       );
 
       _hasSeenStory = profileData.hasSeenStory;
@@ -345,11 +353,32 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
+  Future<String> _preferredLanguageCode(String serverLanguageCode) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString(_languageCodeKey);
+      if (savedLanguage != null && savedLanguage.isNotEmpty) {
+        _hasLocalLanguagePreference = true;
+        return savedLanguage;
+      }
+    } catch (e) {
+      debugPrint('KhÃ´ng thá»ƒ Ä‘á»c ngÃ´n ngá»¯ Ä‘Ã£ lÆ°u: $e');
+    }
+
+    if (_hasLocalLanguagePreference && _settings.languageCode.isNotEmpty) {
+      return _settings.languageCode;
+    }
+    if (serverLanguageCode.isNotEmpty) return serverLanguageCode;
+    if (_settings.languageCode.isNotEmpty) return _settings.languageCode;
+    return const GameSettings().languageCode;
+  }
+
   Future<void> _loadSavedLanguage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedLanguage = prefs.getString(_languageCodeKey);
       if (savedLanguage == null || savedLanguage.isEmpty) return;
+      _hasLocalLanguagePreference = true;
       if (savedLanguage == _settings.languageCode) return;
 
       _settings = _settings.copyWith(languageCode: savedLanguage);
@@ -360,6 +389,7 @@ class GameStateProvider extends ChangeNotifier {
   }
 
   Future<void> setLanguageCode(String languageCode) async {
+    _hasLocalLanguagePreference = true;
     _settings = _settings.copyWith(languageCode: languageCode);
     notifyListeners();
 
@@ -524,6 +554,44 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Lỗi khi tải trạng thái thú cưng: $e');
+      return false;
+    }
+  }
+
+  Future<bool> fetchPetName() async {
+    try {
+      final petName = await _petRepository.getPetName();
+      final hasName = petName?.hasName ?? false;
+
+      _hasStarterPet = hasName;
+      if (hasName) {
+        _spiritName = petName!.petName.trim();
+      }
+
+      notifyListeners();
+      return hasName;
+    } catch (e) {
+      debugPrint('Lỗi khi tải tên thú cưng: $e');
+      return false;
+    }
+  }
+
+  Future<bool> createStarterPet(String petName) async {
+    try {
+      final createdPet = await _petRepository.createStarterPet(petName.trim());
+      final resolvedName = createdPet?.petName.trim();
+
+      if (resolvedName != null && resolvedName.isNotEmpty) {
+        _spiritName = resolvedName;
+      } else {
+        _spiritName = petName.trim();
+      }
+
+      _hasStarterPet = true;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Lỗi khi tạo thú cưng khởi đầu: $e');
       return false;
     }
   }

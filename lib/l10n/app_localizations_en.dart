@@ -835,6 +835,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get missionsChallengeCanceled => 'Challenge canceled.';
 
   @override
+  String get missionsChallengeCreated => 'New challenge received!';
+
+  @override
   String missionsCancelFailed(String message) {
     return 'Could not cancel challenge: $message';
   }
@@ -1179,6 +1182,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get namePetComplete => 'Complete';
 
   @override
+  String get namePetCreateFailed =>
+      'Could not create your starter pet. Please try again.';
+
+  @override
   String get seedTitleScreen => 'Seed of Light';
 
   @override
@@ -1489,6 +1496,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendsPlayerNotFound => 'Could not find this player.';
+
+  @override
+  String get friendProfileTitle => 'Traveler Profile';
+
+  @override
+  String get friendProfileTraveler => 'Traveler';
+
+  @override
+  String get friendProfileUnknownPlayer => 'Unknown player';
+
+  @override
+  String get friendProfileCompanion => 'Companion Spirit';
+
+  @override
+  String get friendProfileStats => 'Stats';
+
+  @override
+  String get friendProfileAchievements => 'Featured Achievements';
+
+  @override
+  String friendProfileSpiritName(String name) {
+    return 'Spirit: $name';
+  }
+
+  @override
+  String get friendProfileViewStats => 'View Stats';
+
+  @override
+  String friendProfileSpiritMeta(String type, int level) {
+    return '$type - Level $level';
+  }
+
+  @override
+  String get friendProfileNoSpirit => 'No spirit yet';
+
+  @override
+  String get friendProfileSpiritTypeUnknown => 'Unknown Type';
+
+  @override
+  String get friendProfileTotalSteps => 'Total steps';
+
+  @override
+  String get friendProfileStreak => 'Streak';
+
+  @override
+  String get friendProfileEnergy => 'Energy';
+
+  @override
+  String get friendProfileBond => 'Bond';
+
+  @override
+  String get friendProfileLifeForce => 'Life Force';
+
+  @override
+  String get friendProfileExp => 'EXP';
+
+  @override
+  String get friendProfileUnavailable => '--';
+
+  @override
+  String get friendProfileAchievementsUnavailable =>
+      'Achievements data is not available yet.';
+
+  @override
+  String get friendProfileLoadFailed => 'Could not load this player profile.';
+
+  @override
+  String get friendProfileRequestSentTitle => 'Invite sent!';
+
+  @override
+  String friendProfileRequestSentMessage(String name) {
+    return 'Your friend invite has been sent to $name. Keep walking together!';
+  }
+
+  @override
+  String get friendProfileGreat => 'Great';
+
+  @override
+  String get friendSpiritTitle => 'Spirit Stats';
 
   @override
   String get feedbackWaitBeforeRetry => 'Please wait before sending again.';

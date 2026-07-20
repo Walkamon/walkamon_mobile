@@ -7,6 +7,7 @@ import '../../data/repositories/wallet_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/error_message_widget.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 class _ShopDisplayItem {
   const _ShopDisplayItem({
@@ -117,14 +118,12 @@ class _ShopScreenState extends State<ShopScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: ErrorMessageWidget(message: message),
-      ),
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: false);
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
   Future<void> _handleBuy(_ShopDisplayItem item) async {
@@ -155,13 +154,7 @@ class _ShopScreenState extends State<ShopScreen> {
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).shopBuySuccess(item.name),
-              ),
-            ),
-          );
+          _showSuccess(AppLocalizations.of(context).shopBuySuccess(item.name));
         }
       } else {
         if (mounted) {

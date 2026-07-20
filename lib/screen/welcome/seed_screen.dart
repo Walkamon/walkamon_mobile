@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../providers/game_state_provider.dart';
 
 class SeedScreen extends StatefulWidget {
   const SeedScreen({super.key});
@@ -29,6 +31,7 @@ class _SeedScreenState extends State<SeedScreen>
   late final AnimationController _animController;
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
+  bool _isCheckingPet = true;
 
   @override
   void initState() {
@@ -43,6 +46,10 @@ class _SeedScreenState extends State<SeedScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _redirectIfPetExists();
+    });
   }
 
   @override
@@ -51,9 +58,22 @@ class _SeedScreenState extends State<SeedScreen>
     super.dispose();
   }
 
-  Future<void> _continue() async {
+  Future<void> _redirectIfPetExists() async {
+    final hasPet = await context.read<GameStateProvider>().fetchPetName();
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/name-pet');
+
+    if (hasPet) {
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
+    setState(() => _isCheckingPet = false);
+  }
+
+  Future<void> _continue() async {
+    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, hasPet ? '/home' : '/name-pet');
   }
 
   @override
@@ -67,6 +87,10 @@ class _SeedScreenState extends State<SeedScreen>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+
+    if (_isCheckingPet) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       body: SafeArea(

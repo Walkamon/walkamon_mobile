@@ -7,7 +7,7 @@ import '../../data/models/player_mission_response.dart';
 import '../../data/repositories/missions_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
-import '../../widgets/common/error_message_widget.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 enum MissionTab { mission, challenge }
 
@@ -220,14 +220,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(
-                context,
-              ).missionsClaimSuccess(result.walletAmount),
-            ),
-          ),
+        _showSuccess(
+          AppLocalizations.of(
+            context,
+          ).missionsClaimSuccess(result.walletAmount),
         );
       }
       await _loadData();
@@ -242,7 +238,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
 
   Future<void> _handleRandomChallenge() async {
     if (_challengeQuests.isNotEmpty) {
-      _showMessage(AppLocalizations.of(context).missionsChallengeExists);
+      _showError(AppLocalizations.of(context).missionsChallengeExists);
       return;
     }
 
@@ -263,6 +259,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
             _cancelLimit = resp.data!.cancelLimit;
             _cancelRemaining = resp.data!.cancelRemaining;
           });
+          _showSuccess(AppLocalizations.of(context).missionsChallengeCreated);
         }
       } else {
         _showError(resp.message);
@@ -301,21 +298,17 @@ class _MissionsScreenState extends State<MissionsScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: ErrorMessageWidget(message: message),
-      ),
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: false);
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
   @override

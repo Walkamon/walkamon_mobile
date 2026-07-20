@@ -219,6 +219,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _feedAnim = false;
   bool _stepExpanded = false;
+  bool _isRefreshingMetrics = false;
   Timer? _refreshTimer;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
@@ -269,22 +270,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
 
-    // Fetch pet status from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final gameState = context.read<GameStateProvider>();
-      if (gameState.isAuthenticated) {
-        unawaited(gameState.fetchPetStatus());
-      }
+      unawaited(_refreshHomeMetrics());
     });
 
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (!mounted) return;
-
-      final gameState = context.read<GameStateProvider>();
-      if (gameState.isAuthenticated) {
-        unawaited(gameState.fetchPetStatus());
-      }
+      unawaited(_refreshHomeMetrics());
     });
+  }
+
+  Future<void> _refreshHomeMetrics() async {
+    if (!mounted || _isRefreshingMetrics) return;
+
+    final gameState = context.read<GameStateProvider>();
+    if (!gameState.isAuthenticated) return;
+
+    _isRefreshingMetrics = true;
+    try {
+      await gameState.fetchPetStatus();
+    } finally {
+      _isRefreshingMetrics = false;
+    }
   }
 
   @override

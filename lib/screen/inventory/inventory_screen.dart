@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/error_message_widget.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 enum InventoryCategory { food, materials }
 
@@ -148,14 +149,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: ErrorMessageWidget(message: message),
-      ),
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: false);
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
   String _formatEffect(_InventoryDisplayItem item) {
@@ -203,13 +202,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       final resp = await _repository.useItem(item.itemId);
       if (resp.success) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context).inventoryUsed(item.name),
-              ),
-            ),
-          );
+          _showSuccess(AppLocalizations.of(context).inventoryUsed(item.name));
         }
         _closeItemPopup();
         await _loadInventory();
