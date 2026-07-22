@@ -87,11 +87,29 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
     }
   }
 
-  List<AchievementResponse> get _unlockedAchievements =>
-      _achievements.where((item) => item.isUnlocked).toList();
+  List<AchievementResponse> get _claimedAchievements =>
+      _achievements.where((item) => item.claimedAt != null).toList();
 
-  List<AchievementResponse> get _lockedAchievements =>
-      _achievements.where((item) => !item.isUnlocked).toList();
+  List<AchievementResponse> get _unclaimedAchievements {
+    final list = _achievements.where((item) => item.claimedAt == null).toList();
+    list.sort((a, b) {
+      final aClaimable =
+          a.canClaim || (a.targetValue > 0 && a.progressValue >= a.targetValue);
+      final bClaimable =
+          b.canClaim || (b.targetValue > 0 && b.progressValue >= b.targetValue);
+      if (aClaimable && !bClaimable) return -1;
+      if (!aClaimable && bClaimable) return 1;
+      // If both same claimability, put the one with higher progress first
+      final aProgressRatio = a.targetValue > 0
+          ? a.progressValue / a.targetValue
+          : 0.0;
+      final bProgressRatio = b.targetValue > 0
+          ? b.progressValue / b.targetValue
+          : 0.0;
+      return bProgressRatio.compareTo(aProgressRatio);
+    });
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -353,6 +371,30 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                             _selectedAchievement!['canClaim']
                                                 as bool? ??
                                             false;
+                                        final claimedAt =
+                                            (_selectedAchievement!['claimedAt']
+                                                    as String?)
+                                                ?.toString() ??
+                                            '';
+                                        final isClaimed = claimedAt.isNotEmpty;
+                                        final progress =
+                                            int.tryParse(
+                                              _selectedAchievement!['progress']
+                                                      ?.toString() ??
+                                                  '',
+                                            ) ??
+                                            0;
+                                        final target =
+                                            int.tryParse(
+                                              _selectedAchievement!['target']
+                                                      ?.toString() ??
+                                                  '',
+                                            ) ??
+                                            0;
+                                        final completed =
+                                            target > 0 && progress >= target;
+                                        final canClaimComputed =
+                                            canClaim || completed;
 
                                         return ElevatedButton(
                                           onPressed: isLocked
@@ -360,7 +402,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                   () => _selectedAchievement =
                                                       null,
                                                 )
-                                              : (achId != null && canClaim)
+                                              : (achId != null &&
+                                                    canClaimComputed)
                                               ? () => _handleClaim(achId)
                                               : () => setState(
                                                   () => _selectedAchievement =
@@ -394,7 +437,11 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                               : Text(
                                                   isLocked
                                                       ? l10n.achievementsKeepTrying
-                                                      : l10n.dailyLoginSuccessAction,
+                                                      : (isClaimed
+                                                            ? l10n.dailyLoginSuccessAction
+                                                            : (canClaimComputed
+                                                                  ? l10n.dailyLoginClaimNow
+                                                                  : l10n.achievementsKeepTrying)),
                                                 ),
                                         );
                                       },
@@ -454,7 +501,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               Text(
                 AppLocalizations.of(
                   context,
-                ).achievementsCollected(_unlockedAchievements.length),
+                ).achievementsCollected(_claimedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -467,7 +514,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: _unlockedAchievements.length,
+          itemCount: _claimedAchievements.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 4,
             crossAxisSpacing: 10,
@@ -475,7 +522,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             childAspectRatio: 0.9,
           ),
           itemBuilder: (context, index) {
-            final item = _unlockedAchievements[index];
+            final item = _claimedAchievements[index];
             return InkWell(
               onTap: () => setState(
                 () => _selectedAchievement = {
@@ -485,7 +532,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   'iconUrl': item.iconUrl,
                   'isLocked': false,
                   'canClaim': item.canClaim,
-                  'date': item.unlockedAt,
+                  'date': item.unlockedAt ?? '',
+                  'claimedAt': item.claimedAt ?? '',
                 },
               ),
               borderRadius: BorderRadius.circular(18),
@@ -576,7 +624,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               Text(
                 AppLocalizations.of(
                   context,
-                ).achievementsLockedCount(_lockedAchievements.length),
+                ).achievementsLockedCount(_unclaimedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -586,7 +634,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ..._lockedAchievements.map((item) {
+        ..._unclaimedAchievements.map((item) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InkWell(
@@ -596,10 +644,13 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   'title': item.title,
                   'desc': item.description,
                   'iconUrl': item.iconUrl,
-                  'isLocked': true,
+                  'isLocked': !item.isUnlocked,
+                  'date': item.unlockedAt ?? '',
+                  'claimedAt': item.claimedAt ?? '',
                   'progress': item.progressValue,
                   'target': item.targetValue,
                   'reward': item.walletAmount,
+                  'canClaim': item.canClaim,
                 },
               ),
               borderRadius: BorderRadius.circular(22),
@@ -617,7 +668,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       backgroundColor: isDark
                           ? Colors.grey.shade800
                           : Colors.grey.shade100,
-                      child: const Icon(Icons.lock_rounded, color: Colors.grey),
+                      child: item.isUnlocked
+                          ? const Icon(
+                              Icons.emoji_events_rounded,
+                              color: Colors.amber,
+                            )
+                          : const Icon(Icons.lock_rounded, color: Colors.grey),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -643,14 +699,31 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                               Expanded(
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(999),
-                                  child: LinearProgressIndicator(
-                                    value:
-                                        item.progressValue / item.targetValue,
-                                    minHeight: 8,
-                                    backgroundColor: isDark
-                                        ? Colors.grey.shade800
-                                        : Colors.grey.shade200,
-                                    color: theme.colorScheme.primary,
+                                  child: Builder(
+                                    builder: (context) {
+                                      final completed =
+                                          item.targetValue > 0 &&
+                                          item.progressValue >=
+                                              item.targetValue;
+                                      final progressValue = item.targetValue > 0
+                                          ? item.progressValue /
+                                                item.targetValue
+                                          : 0.0;
+                                      final activeColor = completed
+                                          ? theme.colorScheme.primary
+                                          : (isDark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade300);
+
+                                      return LinearProgressIndicator(
+                                        value: progressValue.clamp(0.0, 1.0),
+                                        minHeight: 8,
+                                        backgroundColor: isDark
+                                            ? Colors.grey.shade800
+                                            : Colors.grey.shade200,
+                                        color: activeColor,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),

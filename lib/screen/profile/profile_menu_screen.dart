@@ -38,8 +38,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       final achievements = await _achievementRepository.getAchievements();
       if (!mounted) return;
       setState(() {
+        // Count only achievements that have been claimed (moved to "Đã Nhận").
+        // Previously used `isUnlocked` which included completed-but-unclaimed items.
         _achievementCount = achievements
-            .where((item) => item.isUnlocked)
+            .where((item) => item.claimedAt != null)
             .length;
         _isAchievementCountLoading = false;
       });
