@@ -13,7 +13,8 @@ class ApiConstants {
   static const String login = '/api/auth/login';
   static const String googleLogin = '/api/auth/google-login';
   static const String logout = '/api/auth/logout';
-  static String friendProfile(String userId) => '/api/auth/profile-friend/$userId';
+  static String friendProfile(String userId) =>
+      '/api/auth/profile-friend/$userId';
 
   // settings Endpoints
   static const String userFeedback = '/api/user-feedback';
@@ -64,6 +65,8 @@ class ApiConstants {
 
   // Achievement Endpoints
   static const String achievements = '/api/achievements';
+  static String claimAchievement(String achievementId) =>
+      '/api/achievements/$achievementId/claim';
 
   // Friend Endpoints
   static const String searchPlayers = '/api/friends/available-users';
@@ -92,5 +95,6 @@ class ApiConstants {
   static const String createStarterPet = '/api/Pet/create-stater-pet';
   static const String petTap = '/api/Pet/tap';
   static const String petFeed = '/api/Pet/feed';
-  static String friendPet(String friendUserId) => '/api/Pet/friend/$friendUserId';
+  static String friendPet(String friendUserId) =>
+      '/api/Pet/friend/$friendUserId';
 }

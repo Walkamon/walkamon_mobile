@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/models/achievement_response.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/game_state_provider.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 class ViewAchievementListScreen extends StatefulWidget {
   const ViewAchievementListScreen({super.key, this.repository});
@@ -21,6 +25,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   List<AchievementResponse> _achievements = [];
+  String? _claimingAchievementId;
 
   late final AchievementScreenRepository _repository;
 
@@ -47,6 +52,38 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         _errorMessage = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _handleClaim(String achievementId) async {
+    setState(() => _claimingAchievementId = achievementId);
+    try {
+      final result = await _repository.claimAchievement(achievementId);
+      final provider = context.read<GameStateProvider>();
+      final user = provider.user;
+      if (user != null) {
+        provider.setUser(user.copyWith(coins: result.walletBalance));
+      }
+
+      if (mounted) {
+        showGameNotificationDialog(
+          context,
+          message: 'Nhận thành công: +${result.walletAmount}',
+          isSuccess: true,
+        );
+      }
+      await _loadAchievements();
+    } catch (e) {
+      if (mounted) {
+        showGameNotificationDialog(
+          context,
+          message: 'Không thể nhận thưởng: $e',
+          isSuccess: false,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _claimingAchievementId = null);
+      if (mounted) setState(() => _selectedAchievement = null);
     }
   }
 
@@ -304,30 +341,63 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                   const SizedBox(height: 16),
                                   SizedBox(
                                     width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: () => setState(
-                                        () => _selectedAchievement = null,
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            theme.colorScheme.primary,
-                                        foregroundColor:
-                                            theme.colorScheme.onPrimary,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            999,
+                                    child: Builder(
+                                      builder: (context) {
+                                        final isLocked =
+                                            _selectedAchievement!['isLocked']
+                                                as bool;
+                                        final achId =
+                                            _selectedAchievement!['achievementId']
+                                                as String?;
+                                        final canClaim =
+                                            _selectedAchievement!['canClaim']
+                                                as bool? ??
+                                            false;
+
+                                        return ElevatedButton(
+                                          onPressed: isLocked
+                                              ? () => setState(
+                                                  () => _selectedAchievement =
+                                                      null,
+                                                )
+                                              : (achId != null && canClaim)
+                                              ? () => _handleClaim(achId)
+                                              : () => setState(
+                                                  () => _selectedAchievement =
+                                                      null,
+                                                ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                theme.colorScheme.primary,
+                                            foregroundColor:
+                                                theme.colorScheme.onPrimary,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 14,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(999),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        _selectedAchievement!['isLocked']
-                                                as bool
-                                            ? l10n.achievementsKeepTrying
-                                            : l10n.dailyLoginSuccessAction,
-                                      ),
+                                          child:
+                                              _claimingAchievementId != null &&
+                                                  _claimingAchievementId ==
+                                                      achId
+                                              ? const SizedBox(
+                                                  width: 18,
+                                                  height: 18,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : Text(
+                                                  isLocked
+                                                      ? l10n.achievementsKeepTrying
+                                                      : l10n.dailyLoginSuccessAction,
+                                                ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],
@@ -409,10 +479,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             return InkWell(
               onTap: () => setState(
                 () => _selectedAchievement = {
+                  'achievementId': item.achievementId,
                   'title': item.title,
                   'desc': item.description,
                   'iconUrl': item.iconUrl,
                   'isLocked': false,
+                  'canClaim': item.canClaim,
                   'date': item.unlockedAt,
                 },
               ),
@@ -520,6 +592,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             child: InkWell(
               onTap: () => setState(
                 () => _selectedAchievement = {
+                  'achievementId': item.achievementId,
                   'title': item.title,
                   'desc': item.description,
                   'iconUrl': item.iconUrl,
