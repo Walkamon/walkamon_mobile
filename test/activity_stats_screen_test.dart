@@ -41,12 +41,12 @@ void main() {
     });
   });
 
-  test('monthly stats are grouped into four weekly buckets', () {
+  test('monthly stats are split into pages of seven days', () {
     final data = List.generate(
-      30,
+      16,
       (index) => DailyStepStatisticItemResponse(
         label: 'day-$index',
-        stepCount: 1,
+        stepCount: index + 1,
       ),
     );
 
@@ -54,14 +54,20 @@ void main() {
       range: ActivityTimeRange.monthly,
       data: data,
     );
+    final pages = buildWeeklyChartPages(points);
 
-    expect(points.length, 4);
-    expect(points.map((point) => point.label).toList(), [
-      'Tuần 1',
-      'Tuần 2',
-      'Tuần 3',
-      'Tuần 4',
-    ]);
-    expect(points.fold<int>(0, (sum, point) => sum + point.steps), 30);
+    expect(pages.length, 3);
+    expect(pages[0].length, 7);
+    expect(pages[1].length, 7);
+    expect(pages[2].length, 2);
+    expect(pages[0].first.label, 'day-0');
+    expect(pages[1].first.label, 'day-7');
+    expect(pages[2].first.label, 'day-14');
+    expect(
+      pages
+          .expand((page) => page)
+          .fold<int>(0, (sum, point) => sum + point.steps),
+      136,
+    );
   });
 }

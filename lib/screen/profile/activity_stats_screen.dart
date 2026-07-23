@@ -62,29 +62,21 @@ List<StepChartPoint> buildChartPointsForRange({
   required ActivityTimeRange range,
   required List<DailyStepStatisticItemResponse> data,
 }) {
-  if (range != ActivityTimeRange.monthly) {
-    return data.map((item) {
-      return StepChartPoint(label: item.label, steps: item.stepCount);
-    }).toList();
-  }
+  return data.map((item) {
+    return StepChartPoint(label: item.label, steps: item.stepCount);
+  }).toList();
+}
 
-  if (data.isEmpty) {
-    return const [];
-  }
+List<List<StepChartPoint>> buildWeeklyChartPages(
+  Iterable<StepChartPoint> data,
+) {
+  final points = data.toList();
+  if (points.isEmpty) return const [];
 
-  const bucketCount = 4;
-  final itemsPerBucket = (data.length / bucketCount).ceil();
-
-  return List.generate(bucketCount, (index) {
-    final start = index * itemsPerBucket;
-    final end = (start + itemsPerBucket).clamp(0, data.length);
-    final bucketData = data.sublist(start, end);
-    final totalSteps = bucketData.fold<int>(
-      0,
-      (sum, item) => sum + item.stepCount,
-    );
-
-    return StepChartPoint(label: 'W${index + 1}', steps: totalSteps);
+  return List.generate((points.length / 7).ceil(), (index) {
+    final start = index * 7;
+    final end = (start + 7).clamp(0, points.length);
+    return points.sublist(start, end);
   });
 }
 
@@ -109,9 +101,18 @@ class ActivityStatsScreenRepository {
     : _repository = repository ?? ActivityStatsRepository();
 
   final ActivityStatsRepository _repository;
+  Future<DailyStepStatisticResponse>? _monthlyResponse;
+
+  Future<DailyStepStatisticResponse> _getMonthlyResponse() {
+    return _monthlyResponse ??= _repository.getStatistic(
+      ActivityStatsRange.monthly,
+    );
+  }
 
   Future<StepStatsResponse> getStats(ActivityTimeRange range) async {
-    final response = await _repository.getStatistic(range.toDatasourceRange());
+    final response = range == ActivityTimeRange.daily
+        ? await _repository.getStatistic(ActivityStatsRange.daily)
+        : await _getMonthlyResponse();
     final chartData = buildChartPointsForRange(
       range: range,
       data: response.data,
@@ -133,10 +134,10 @@ class ActivityStatsScreenRepository {
   }
 
   Future<List<StepHistoryItem>> getHistory() async {
-    final response = await _repository.getStatistic(ActivityStatsRange.weekly);
+    final response = await _getMonthlyResponse();
 
     return buildChartPointsForRange(
-      range: ActivityTimeRange.weekly,
+      range: ActivityTimeRange.monthly,
       data: response.data,
     ).reversed.map((point) {
       return StepHistoryItem(
@@ -145,16 +146,6 @@ class ActivityStatsScreenRepository {
         goal: calculateDynamicChartMaximum([point]),
       );
     }).toList();
-  }
-}
-
-extension on ActivityTimeRange {
-  ActivityStatsRange toDatasourceRange() {
-    return switch (this) {
-      ActivityTimeRange.daily => ActivityStatsRange.daily,
-      ActivityTimeRange.weekly => ActivityStatsRange.weekly,
-      ActivityTimeRange.monthly => ActivityStatsRange.monthly,
-    };
   }
 }
 
@@ -179,6 +170,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
 
   StepStatsResponse? _stats;
   List<StepHistoryItem> _history = [];
+  int _selectedWeekIndex = 0;
 
   @override
   void initState() {
@@ -198,6 +190,10 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       if (!mounted) return;
       setState(() {
         _stats = stats;
+        if (_timeRange != ActivityTimeRange.daily) {
+          final pages = buildWeeklyChartPages(stats.chartData);
+          _selectedWeekIndex = pages.isEmpty ? 0 : pages.length - 1;
+        }
         _isStatsLoading = false;
       });
     } catch (e) {
@@ -235,6 +231,34 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     if (_timeRange == range) return;
     setState(() => _timeRange = range);
     _loadStats();
+  }
+
+  List<List<StepChartPoint>> _weekPages(StepStatsResponse stats) {
+    return buildWeeklyChartPages(stats.chartData);
+  }
+
+  StepStatsResponse _visibleStats(StepStatsResponse stats) {
+    if (_timeRange == ActivityTimeRange.daily) return stats;
+    final pages = _weekPages(stats);
+    if (pages.isEmpty) return stats;
+    final index = _selectedWeekIndex.clamp(0, pages.length - 1);
+    final chartData = pages[index];
+    final totalSteps = chartData.fold<int>(
+      0,
+      (sum, point) => sum + point.steps,
+    );
+
+    return StepStatsResponse(
+      title: stats.title,
+      averageLabel: stats.averageLabel,
+      totalSteps: totalSteps,
+      averageSteps: chartData.isEmpty
+          ? 0
+          : (totalSteps / chartData.length).round(),
+      totalDistanceKm: totalSteps * 0.0007,
+      goal: calculateDynamicChartMaximum(chartData),
+      chartData: chartData,
+    );
   }
 
   int _chartGoal(StepStatsResponse stats) {
@@ -395,7 +419,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       );
     }
 
-    final stats = _stats!;
+    final sourceStats = _stats!;
+    final stats = _visibleStats(sourceStats);
+    final weekPages = _weekPages(sourceStats);
     final goal = _chartGoal(stats);
     final total = _displayTotal(stats);
     final average = _displayAverage(stats);
@@ -431,6 +457,37 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 foreground: foreground,
                 onChanged: _onTimeRangeChanged,
               ),
+              if (_timeRange != ActivityTimeRange.daily &&
+                  weekPages.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      tooltip: 'Tuần trước',
+                      onPressed: _selectedWeekIndex > 0
+                          ? () => setState(() => _selectedWeekIndex--)
+                          : null,
+                      icon: const Icon(Icons.chevron_left_rounded),
+                    ),
+                    Text(
+                      '${l10n.activityStatsWeekBucket(_selectedWeekIndex + 1)}'
+                      '/${weekPages.length}',
+                      style: TextStyle(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Tuần tiếp theo',
+                      onPressed: _selectedWeekIndex < weekPages.length - 1
+                          ? () => setState(() => _selectedWeekIndex++)
+                          : null,
+                      icon: const Icon(Icons.chevron_right_rounded),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -586,7 +643,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       key: key,
       physics: const BouncingScrollPhysics(),
       itemCount: _history.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = _history[index];
         return _HistoryCard(
@@ -802,54 +859,59 @@ class _TimeRangeSelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
-        children: ActivityTimeRange.values.map((range) {
-          final isActive = timeRange == range;
-          final label = switch (range) {
-            ActivityTimeRange.daily => AppLocalizations.of(
-              context,
-            ).activityStatsDaily,
-            ActivityTimeRange.weekly => AppLocalizations.of(
-              context,
-            ).activityStatsWeekly,
-            ActivityTimeRange.monthly => AppLocalizations.of(
-              context,
-            ).activityStatsMonthly,
-          };
+        children: ActivityTimeRange.values
+            .where((range) => range != ActivityTimeRange.monthly)
+            .map((range) {
+              final isActive = timeRange == range;
+              final label = switch (range) {
+                ActivityTimeRange.daily => AppLocalizations.of(
+                  context,
+                ).activityStatsDaily,
+                ActivityTimeRange.weekly => AppLocalizations.of(
+                  context,
+                ).activityStatsWeekly,
+                ActivityTimeRange.monthly => AppLocalizations.of(
+                  context,
+                ).activityStatsMonthly,
+              };
 
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(range),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  color: isActive ? cardColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: isActive
-                      ? Border.all(color: borderColor.withValues(alpha: 0.5))
-                      : null,
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isActive ? foreground : mutedForeground,
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onChanged(range),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isActive ? cardColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isActive
+                          ? Border.all(
+                              color: borderColor.withValues(alpha: 0.5),
+                            )
+                          : null,
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isActive ? foreground : mutedForeground,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            })
+            .toList(),
       ),
     );
   }
