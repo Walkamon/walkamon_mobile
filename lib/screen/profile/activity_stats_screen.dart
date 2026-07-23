@@ -88,6 +88,22 @@ List<StepChartPoint> buildChartPointsForRange({
   });
 }
 
+int calculateDynamicChartMaximum(Iterable<StepChartPoint> data) {
+  const stepSize = 1000;
+  const growThreshold = 0.7;
+  final highestSteps = data.fold<int>(
+    0,
+    (highest, point) => point.steps > highest ? point.steps : highest,
+  );
+  var maximum = stepSize;
+
+  while (highestSteps >= maximum * growThreshold) {
+    maximum += stepSize;
+  }
+
+  return maximum;
+}
+
 class ActivityStatsScreenRepository {
   ActivityStatsScreenRepository({ActivityStatsRepository? repository})
     : _repository = repository ?? ActivityStatsRepository();
@@ -111,7 +127,7 @@ class ActivityStatsScreenRepository {
       totalSteps: totalSteps,
       averageSteps: averageSteps,
       totalDistanceKm: totalSteps * 0.0007,
-      goal: range.goal,
+      goal: calculateDynamicChartMaximum(chartData),
       chartData: chartData,
     );
   }
@@ -126,7 +142,7 @@ class ActivityStatsScreenRepository {
       return StepHistoryItem(
         formattedDate: point.label,
         steps: point.steps,
-        goal: ActivityTimeRange.weekly.goal,
+        goal: calculateDynamicChartMaximum([point]),
       );
     }).toList();
   }
@@ -138,14 +154,6 @@ extension on ActivityTimeRange {
       ActivityTimeRange.daily => ActivityStatsRange.daily,
       ActivityTimeRange.weekly => ActivityStatsRange.weekly,
       ActivityTimeRange.monthly => ActivityStatsRange.monthly,
-    };
-  }
-
-  int get goal {
-    return switch (this) {
-      ActivityTimeRange.daily => 3000,
-      ActivityTimeRange.weekly => 10000,
-      ActivityTimeRange.monthly => 60000,
     };
   }
 }
@@ -230,12 +238,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   }
 
   int _chartGoal(StepStatsResponse stats) {
-    if (stats.goal > 0) return stats.goal;
-    return switch (_timeRange) {
-      ActivityTimeRange.daily => 3000,
-      ActivityTimeRange.weekly => 10000,
-      ActivityTimeRange.monthly => 60000,
-    };
+    return calculateDynamicChartMaximum(stats.chartData);
   }
 
   int _displayTotal(StepStatsResponse stats) {

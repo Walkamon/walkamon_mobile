@@ -179,11 +179,16 @@ class _NamePetScreenState extends State<NamePetScreen>
                               TextFormField(
                                 controller: _nameController,
                                 enabled: !_isSaving,
+                                style: const TextStyle(color: Colors.black),
+                                cursorColor: Colors.black,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _complete(),
                                 validator: _validateName,
                                 decoration: InputDecoration(
                                   hintText: l10n.namePetHint,
+                                  hintStyle: const TextStyle(
+                                    color: Colors.black54,
+                                  ),
                                   prefixIcon: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Image.asset(
