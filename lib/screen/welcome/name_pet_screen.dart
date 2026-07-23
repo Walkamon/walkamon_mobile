@@ -179,7 +179,6 @@ class _NamePetScreenState extends State<NamePetScreen>
                               TextFormField(
                                 controller: _nameController,
                                 enabled: !_isSaving,
-                                style: const TextStyle(color: Colors.black),
                                 cursorColor: Colors.black,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _complete(),
@@ -221,6 +220,7 @@ class _NamePetScreenState extends State<NamePetScreen>
                                 ),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
+                                  color: Colors.black,
                                 ),
                               ),
                               const SizedBox(height: 18),
