@@ -1579,4 +1579,71 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get feedbackSendFailed =>
       'Gửi phản hồi thất bại. Vui lòng thử lại sau.';
+
+  @override
+  String get friendSpiritNoData => 'Không có dữ liệu Spirit bạn bè.';
+
+  @override
+  String friendSpiritOfName(String userName) {
+    return 'Spirit của $userName';
+  }
+
+  @override
+  String friendSpiritLevel(int level) {
+    return 'Cấp $level';
+  }
+
+  @override
+  String get friendSpiritStatsTitle => 'Chỉ Số';
+
+  @override
+  String get friendSpiritEvolutionTitle => 'Tiến Hóa';
+
+  @override
+  String get friendSpiritExp => 'Kinh Nghiệm (EXP)';
+
+  @override
+  String get friendSpiritLifeForce => 'Sinh Mệnh Lực (Life Force)';
+
+  @override
+  String get friendSpiritBonding => 'Độ Gắn Kết (Bond)';
+
+  @override
+  String get friendSpiritEnergy => 'Năng Lượng (Energy)';
+
+  @override
+  String get friendSpiritCurrentStage => 'GIAI ĐOẠN HIỆN TẠI';
+
+  @override
+  String get friendSpiritCurrentProperty =>
+      'Thuộc tính hiện năng được ghi nhận';
+
+  @override
+  String get friendSpiritEvolutionStages => 'GIAI ĐOẠN TIẾN HÓA';
+
+  @override
+  String get friendSpiritMilestones => 'LỊCH SỬ DẤU MỐC';
+
+  @override
+  String friendSpiritReachLevel(int level) {
+    return 'Đạt cấp độ $level';
+  }
+
+  @override
+  String get friendSpiritRecently => 'Gần đây';
+
+  @override
+  String get friendSpiritBeginJourney => 'Bắt đầu hành trình Walkamon';
+
+  @override
+  String get friendSpiritInit => 'Khởi tạo';
+
+  @override
+  String get friendSpiritStageSeedling => 'Mầm Non';
+
+  @override
+  String get friendSpiritStageSprout => 'Chồi Non';
+
+  @override
+  String get friendSpiritStageLeaf => 'Lá Xanh';
 }

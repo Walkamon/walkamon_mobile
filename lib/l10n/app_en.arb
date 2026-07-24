@@ -854,5 +854,46 @@
   "friendProfileGreat": "Great",
   "friendSpiritTitle": "Spirit Stats",
   "feedbackWaitBeforeRetry": "Please wait before sending again.",
-  "feedbackSendFailed": "Failed to send feedback. Please try again later."
+  "feedbackSendFailed": "Failed to send feedback. Please try again later.",
+  "friendSpiritNoData": "No friend spirit data.",
+  "friendSpiritOfName": "{userName}'s Spirit",
+  "@friendSpiritOfName": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "friendSpiritLevel": "Level {level}",
+  "@friendSpiritLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendSpiritStatsTitle": "Stats",
+  "friendSpiritEvolutionTitle": "Evolution",
+  "friendSpiritExp": "Experience (EXP)",
+  "friendSpiritLifeForce": "Life Force (Life Force)",
+  "friendSpiritBonding": "Bonding (Bond)",
+  "friendSpiritEnergy": "Energy (Energy)",
+  "friendSpiritCurrentStage": "CURRENT STAGE",
+  "friendSpiritCurrentProperty": "Current energy attribute recorded",
+  "friendSpiritEvolutionStages": "EVOLUTION STAGES",
+  "friendSpiritMilestones": "MILESTONES HISTORY",
+  "friendSpiritReachLevel": "Reach Level {level}",
+  "@friendSpiritReachLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendSpiritRecently": "Recently",
+  "friendSpiritBeginJourney": "Started Walkamon Journey",
+  "friendSpiritInit": "Initialized",
+  "friendSpiritStageSeedling": "Seedling",
+  "friendSpiritStageSprout": "Sprout",
+  "friendSpiritStageLeaf": "Leaf"
 }

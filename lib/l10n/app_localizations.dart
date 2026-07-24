@@ -2965,6 +2965,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to send feedback. Please try again later.'**
   String get feedbackSendFailed;
+
+  /// No description provided for @friendSpiritNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No friend spirit data.'**
+  String get friendSpiritNoData;
+
+  /// No description provided for @friendSpiritOfName.
+  ///
+  /// In en, this message translates to:
+  /// **'{userName}\'s Spirit'**
+  String friendSpiritOfName(String userName);
+
+  /// No description provided for @friendSpiritLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String friendSpiritLevel(int level);
+
+  /// No description provided for @friendSpiritStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get friendSpiritStatsTitle;
+
+  /// No description provided for @friendSpiritEvolutionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution'**
+  String get friendSpiritEvolutionTitle;
+
+  /// No description provided for @friendSpiritExp.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience (EXP)'**
+  String get friendSpiritExp;
+
+  /// No description provided for @friendSpiritLifeForce.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Force (Life Force)'**
+  String get friendSpiritLifeForce;
+
+  /// No description provided for @friendSpiritBonding.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonding (Bond)'**
+  String get friendSpiritBonding;
+
+  /// No description provided for @friendSpiritEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy (Energy)'**
+  String get friendSpiritEnergy;
+
+  /// No description provided for @friendSpiritCurrentStage.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT STAGE'**
+  String get friendSpiritCurrentStage;
+
+  /// No description provided for @friendSpiritCurrentProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Current energy attribute recorded'**
+  String get friendSpiritCurrentProperty;
+
+  /// No description provided for @friendSpiritEvolutionStages.
+  ///
+  /// In en, this message translates to:
+  /// **'EVOLUTION STAGES'**
+  String get friendSpiritEvolutionStages;
+
+  /// No description provided for @friendSpiritMilestones.
+  ///
+  /// In en, this message translates to:
+  /// **'MILESTONES HISTORY'**
+  String get friendSpiritMilestones;
+
+  /// No description provided for @friendSpiritReachLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Level {level}'**
+  String friendSpiritReachLevel(int level);
+
+  /// No description provided for @friendSpiritRecently.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently'**
+  String get friendSpiritRecently;
+
+  /// No description provided for @friendSpiritBeginJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Started Walkamon Journey'**
+  String get friendSpiritBeginJourney;
+
+  /// No description provided for @friendSpiritInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialized'**
+  String get friendSpiritInit;
+
+  /// No description provided for @friendSpiritStageSeedling.
+  ///
+  /// In en, this message translates to:
+  /// **'Seedling'**
+  String get friendSpiritStageSeedling;
+
+  /// No description provided for @friendSpiritStageSprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get friendSpiritStageSprout;
+
+  /// No description provided for @friendSpiritStageLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaf'**
+  String get friendSpiritStageLeaf;
 }
 
 class _AppLocalizationsDelegate

@@ -823,5 +823,46 @@
   "friendProfileGreat": "Tuyệt vời",
   "friendSpiritTitle": "Thống kê tinh linh",
   "feedbackWaitBeforeRetry": "Vui lòng đợi trước khi gửi lại.",
-  "feedbackSendFailed": "Gửi phản hồi thất bại. Vui lòng thử lại sau."
+  "feedbackSendFailed": "Gửi phản hồi thất bại. Vui lòng thử lại sau.",
+  "friendSpiritNoData": "Không có dữ liệu Spirit bạn bè.",
+  "friendSpiritOfName": "Spirit của {userName}",
+  "@friendSpiritOfName": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "friendSpiritLevel": "Cấp {level}",
+  "@friendSpiritLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendSpiritStatsTitle": "Chỉ Số",
+  "friendSpiritEvolutionTitle": "Tiến Hóa",
+  "friendSpiritExp": "Kinh Nghiệm (EXP)",
+  "friendSpiritLifeForce": "Sinh Mệnh Lực (Life Force)",
+  "friendSpiritBonding": "Độ Gắn Kết (Bond)",
+  "friendSpiritEnergy": "Năng Lượng (Energy)",
+  "friendSpiritCurrentStage": "GIAI ĐOẠN HIỆN TẠI",
+  "friendSpiritCurrentProperty": "Thuộc tính hiện năng được ghi nhận",
+  "friendSpiritEvolutionStages": "GIAI ĐOẠN TIẾN HÓA",
+  "friendSpiritMilestones": "LỊCH SỬ DẤU MỐC",
+  "friendSpiritReachLevel": "Đạt cấp độ {level}",
+  "@friendSpiritReachLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "friendSpiritRecently": "Gần đây",
+  "friendSpiritBeginJourney": "Bắt đầu hành trình Walkamon",
+  "friendSpiritInit": "Khởi tạo",
+  "friendSpiritStageSeedling": "Mầm Non",
+  "friendSpiritStageSprout": "Chồi Non",
+  "friendSpiritStageLeaf": "Lá Xanh"
 }
