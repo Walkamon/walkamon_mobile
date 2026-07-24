@@ -520,7 +520,7 @@ class _SpiritCard extends StatelessWidget {
       l10n.friendProfileNoSpirit,
     ]);
     final type = _firstNotEmpty([
-      spirit?.stageName,
+      spirit != null ? _localizedStageName(spirit!.stageName, l10n) : null,
       l10n.friendProfileSpiritTypeUnknown,
     ]);
 
@@ -795,7 +795,7 @@ class _SpiritHero extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.friendProfileSpiritMeta(spirit.stageName, spirit.level),
+            l10n.friendProfileSpiritMeta(_localizedStageName(spirit.stageName, l10n), spirit.level),
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -1030,4 +1030,12 @@ String _firstNotEmpty(List<String?> values) {
 String _formatRatio(int? current, int? max) {
   if (current == null && max == null) return '-';
   return '${current ?? 0}/${max ?? 0}';
+}
+
+String _localizedStageName(String backendStageName, AppLocalizations l10n) {
+  final normalized = backendStageName.toLowerCase().trim();
+  if (normalized.contains('m\u1ea7m')) return l10n.friendSpiritStageSeedling;
+  if (normalized.contains('ch\u1ed3i')) return l10n.friendSpiritStageSprout;
+  if (normalized.contains('l\u00e1')) return l10n.friendSpiritStageLeaf;
+  return backendStageName;
 }

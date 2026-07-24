@@ -1582,4 +1582,70 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get feedbackSendFailed =>
       'Failed to send feedback. Please try again later.';
+
+  @override
+  String get friendSpiritNoData => 'No friend spirit data.';
+
+  @override
+  String friendSpiritOfName(String userName) {
+    return '$userName\'s Spirit';
+  }
+
+  @override
+  String friendSpiritLevel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get friendSpiritStatsTitle => 'Stats';
+
+  @override
+  String get friendSpiritEvolutionTitle => 'Evolution';
+
+  @override
+  String get friendSpiritExp => 'Experience (EXP)';
+
+  @override
+  String get friendSpiritLifeForce => 'Life Force (Life Force)';
+
+  @override
+  String get friendSpiritBonding => 'Bonding (Bond)';
+
+  @override
+  String get friendSpiritEnergy => 'Energy (Energy)';
+
+  @override
+  String get friendSpiritCurrentStage => 'CURRENT STAGE';
+
+  @override
+  String get friendSpiritCurrentProperty => 'Current energy attribute recorded';
+
+  @override
+  String get friendSpiritEvolutionStages => 'EVOLUTION STAGES';
+
+  @override
+  String get friendSpiritMilestones => 'MILESTONES HISTORY';
+
+  @override
+  String friendSpiritReachLevel(int level) {
+    return 'Reach Level $level';
+  }
+
+  @override
+  String get friendSpiritRecently => 'Recently';
+
+  @override
+  String get friendSpiritBeginJourney => 'Started Walkamon Journey';
+
+  @override
+  String get friendSpiritInit => 'Initialized';
+
+  @override
+  String get friendSpiritStageSeedling => 'Seedling';
+
+  @override
+  String get friendSpiritStageSprout => 'Sprout';
+
+  @override
+  String get friendSpiritStageLeaf => 'Leaf';
 }

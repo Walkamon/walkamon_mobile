@@ -23,6 +23,7 @@ import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
 import 'widgets/layouts/main_layout.dart'; // <-- ĐÃ THÊM IMPORT NÀY
+import 'screen/friends/friends_spirit_screen.dart' as fs;
 
 import 'screen/auth/forgot_password_screen.dart';
 import 'screen/auth/login_screen.dart';
@@ -321,7 +322,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   break;
                 case '/spirit/friend':
                   builder = (_) =>
-                      FriendSpiritScreen(userId: settings.arguments?.toString() ?? '');
+                      fs.FriendSpiritScreen(userId: settings.arguments?.toString() ?? '');
                   break;
                 case '/story':
                   builder = (_) => const StoryScreen();
