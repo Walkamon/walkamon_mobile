@@ -6,6 +6,7 @@ import 'widgets/pvp_modals.dart';
 class PvPWaitingRoomScreen extends StatelessWidget {
   final PvpProvider pvpProvider;
   final VoidCallback? onStartMatchmaking;
+  final VoidCallback? onCancelMatchmaking;
   final void Function(String name)? onInviteFriend;
   final VoidCallback onShowIncomingChallenges;
   final VoidCallback onShowMatchHistory;
@@ -14,6 +15,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     super.key,
     required this.pvpProvider,
     required this.onStartMatchmaking,
+    required this.onCancelMatchmaking,
     required this.onInviteFriend,
     required this.onShowIncomingChallenges,
     required this.onShowMatchHistory,
@@ -78,7 +80,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         color: theme.colorScheme.primaryContainer,
                         boxShadow: [
                           BoxShadow(
-                            color: theme.colorScheme.primary.withOpacity(0.3),
+                            color: theme.colorScheme.primary.withAlpha(77),
                             blurRadius: 40,
                             spreadRadius: 10,
                           ),
@@ -99,7 +101,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         border: Border.all(color: theme.dividerColor),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -108,7 +110,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            '${pvpProvider.petName}',
+                            pvpProvider.petName,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -146,15 +148,42 @@ class PvPWaitingRoomScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          if (pvpProvider.matchmakingState == PvpMatchmakingState.waiting)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Đang tìm đối thủ...',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
           SizedBox(
             width: double.infinity,
             height: 56,
             child: ElevatedButton.icon(
-              onPressed: onStartMatchmaking,
+              onPressed:
+                  pvpProvider.matchmakingState == PvpMatchmakingState.waiting
+                  ? onCancelMatchmaking
+                  : pvpProvider.matchmakingState == PvpMatchmakingState.idle
+                  ? onStartMatchmaking
+                  : null,
               icon: const Icon(Icons.sports_kabaddi),
-              label: const Text(
-                'Ghép trận ngẫu nhiên',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                pvpProvider.matchmakingState == PvpMatchmakingState.waiting
+                    ? 'Hủy tìm trận'
+                    : pvpProvider.matchmakingState ==
+                          PvpMatchmakingState.connecting
+                    ? 'Đang kết nối...'
+                    : pvpProvider.matchmakingState ==
+                          PvpMatchmakingState.countdown
+                    ? 'Đang chuẩn bị...'
+                    : 'Ghép trận ngẫu nhiên',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

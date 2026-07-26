@@ -1,4 +1,3 @@
-
 class PvpParticipantResponse {
   final String participantTypeCode;
   final String? userId;
@@ -35,6 +34,10 @@ class PvpMatchResponse {
   final String matchId;
   final String matchTypeCode;
   final String statusCode;
+  final DateTime? countdownEndsAt;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+  final DateTime? settlementEndsAt;
   final DateTime? serverTime;
   final DateTime? createdAt;
   final List<PvpParticipantResponse> participants;
@@ -43,6 +46,10 @@ class PvpMatchResponse {
     required this.matchId,
     required this.matchTypeCode,
     required this.statusCode,
+    this.countdownEndsAt,
+    this.startedAt,
+    this.endedAt,
+    this.settlementEndsAt,
     this.serverTime,
     this.createdAt,
     required this.participants,
@@ -50,18 +57,23 @@ class PvpMatchResponse {
 
   factory PvpMatchResponse.fromJson(Map<String, dynamic> json) {
     final participantsList = json['participants'] as List<dynamic>? ?? [];
+    DateTime? parseUtc(String? value) =>
+        value != null ? DateTime.tryParse(value)?.toUtc() : null;
+
     return PvpMatchResponse(
       matchId: json['matchId'] as String? ?? '',
       matchTypeCode: json['matchTypeCode'] as String? ?? '',
       statusCode: json['statusCode'] as String? ?? '',
-      serverTime: json['serverTime'] != null
-          ? DateTime.tryParse(json['serverTime'] as String)?.toLocal()
-          : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)?.toLocal()
-          : null,
+      countdownEndsAt: parseUtc(json['countdownEndsAt'] as String?),
+      startedAt: parseUtc(json['startedAt'] as String?),
+      endedAt: parseUtc(json['endedAt'] as String?),
+      settlementEndsAt: parseUtc(json['settlementEndsAt'] as String?),
+      serverTime: parseUtc(json['serverTime'] as String?),
+      createdAt: parseUtc(json['createdAt'] as String?),
       participants: participantsList
-          .map((e) => PvpParticipantResponse.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) => PvpParticipantResponse.fromJson(e as Map<String, dynamic>),
+          )
           .toList(),
     );
   }
@@ -107,7 +119,9 @@ class PvpInviteResponse {
   factory PvpInviteResponse.fromJson(Map<String, dynamic> json) {
     return PvpInviteResponse(
       inviteId: json['inviteId'] as String? ?? '',
-      user: PvpUserResponse.fromJson(json['user'] as Map<String, dynamic>? ?? {}),
+      user: PvpUserResponse.fromJson(
+        json['user'] as Map<String, dynamic>? ?? {},
+      ),
       statusCode: json['statusCode'] as String? ?? '',
       expiresAt: json['expiresAt'] != null
           ? DateTime.tryParse(json['expiresAt'] as String)?.toLocal()
