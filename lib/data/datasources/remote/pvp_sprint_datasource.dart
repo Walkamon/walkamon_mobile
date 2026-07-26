@@ -1,9 +1,11 @@
+import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../models/pvp_models.dart';
 
 class PvpSprintDatasource {
-  PvpSprintDatasource([ApiClient? apiClient]) : _apiClient = apiClient ?? ApiClient();
+  PvpSprintDatasource([ApiClient? apiClient])
+    : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 
@@ -13,7 +15,7 @@ class PvpSprintDatasource {
     String matchType = 'ranked',
   }) async {
     return _apiClient.get<List<PvpMatchResponse>>(
-      '/api/pvp/sprint/matches',
+      ApiConstants.pvpSprintMatches,
       queryParameters: {
         'page': page,
         'pageSize': pageSize,
@@ -36,7 +38,7 @@ class PvpSprintDatasource {
     int pageSize = 20,
   }) async {
     return _apiClient.get<List<PvpInviteResponse>>(
-      '/api/pvp/sprint/invites',
+      ApiConstants.pvpSprintInvites,
       queryParameters: {
         'direction': 'incoming',
         'status': 'pending',

@@ -80,6 +80,10 @@ class ApiConstants {
   static String respondToFriendRequest(String requestId) =>
       '/api/friends/requests/$requestId';
 
+  // PvP Sprint Endpoints
+  static const String pvpSprintMatches = '/api/pvp/sprint/matches';
+  static const String pvpSprintInvites = '/api/pvp/sprint/invites';
+
   // Notification Endpoints
   static const String updateNotification = '/api/notifications/settings';
   static const String getNotifications = '/api/notifications';
