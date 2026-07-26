@@ -56,4 +56,35 @@ class PvpSprintDatasource {
       },
     );
   }
+
+  Future<ApiResponse<PvpMatchResponse>> startMatchmaking() async {
+    return _apiClient.post<PvpMatchResponse>(
+      ApiConstants.pvpSprintMatchmaking,
+      data: {'matchTypeCode': 'ranked'},
+      fromJsonT: (json) =>
+          PvpMatchResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  Future<ApiResponse<void>> cancelMatchmaking() async {
+    return _apiClient.delete<void>(ApiConstants.pvpSprintMatchmaking);
+  }
+
+  Future<ApiResponse<PvpMatchResponse>> getMatch(String matchId) async {
+    return _apiClient.get<PvpMatchResponse>(
+      ApiConstants.pvpSprintMatchById(matchId),
+      fromJsonT: (json) =>
+          PvpMatchResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  Future<ApiResponse<void>> respondToInvite({
+    required String inviteId,
+    required bool accepted,
+  }) async {
+    return _apiClient.post<void>(
+      ApiConstants.pvpSprintInviteResponse(inviteId),
+      data: {'accepted': accepted},
+    );
+  }
 }
