@@ -22,7 +22,7 @@ import 'providers/daily_login_provider.dart';
 import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
-import 'widgets/layouts/main_layout.dart'; // <-- ĐÃ THÊM IMPORT NÀY
+import 'widgets/layouts/main_layout.dart'; 
 import 'screen/friends/friends_spirit_screen.dart' as fs;
 
 import 'screen/auth/forgot_password_screen.dart';
