@@ -166,7 +166,11 @@ class PvPWaitingRoomScreen extends StatelessWidget {
               onPressed:
                   pvpProvider.matchmakingState == PvpMatchmakingState.waiting
                   ? onCancelMatchmaking
-                  : pvpProvider.matchmakingState == PvpMatchmakingState.idle
+                  : pvpProvider.matchmakingState == PvpMatchmakingState.idle ||
+                        pvpProvider.matchmakingState ==
+                            PvpMatchmakingState.finished ||
+                        pvpProvider.matchmakingState ==
+                            PvpMatchmakingState.cancelled
                   ? onStartMatchmaking
                   : null,
               icon: const Icon(Icons.sports_kabaddi),
