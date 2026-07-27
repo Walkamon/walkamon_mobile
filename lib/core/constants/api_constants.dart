@@ -84,10 +84,10 @@ class ApiConstants {
   static const String pvpSprintMatches = '/api/pvp/sprint/matches';
   static const String pvpSprintInvites = '/api/pvp/sprint/invites';
   static const String pvpSprintMatchmaking = '/api/pvp/sprint/matchmaking';
+  static const String pvpSprintMatchmakingStatus =
+      '/api/pvp/sprint/matchmaking/status';
   static String pvpSprintMatchById(String matchId) =>
       '/api/pvp/sprint/matches/$matchId';
-  static String pvpSprintInviteResponse(String inviteId) =>
-      '/api/pvp/sprint/invites/$inviteId/response';
 
   // Notification Endpoints
   static const String updateNotification = '/api/notifications/settings';

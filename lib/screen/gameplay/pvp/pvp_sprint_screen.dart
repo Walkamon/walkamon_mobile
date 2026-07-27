@@ -34,49 +34,90 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     super.dispose();
   }
 
-  void _inviteFriend(String name) {
+  Future<void> _startMatchmaking() async {
+    setState(() {
+      _gameState = 'matching';
+    });
+
+    await context.read<PvpProvider>().startMatchmaking();
+
+    if (!mounted) return;
+
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
+      setState(() {
+        _opponentName = provider.currentOpponentName;
+        _gameState = 'room-countdown';
+      });
+      _startRoomCountdown();
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
+    } else if (provider.matchmakingState == PvpMatchmakingState.waiting ||
+        provider.matchmakingState == PvpMatchmakingState.connecting) {
+      setState(() {
+        _gameState = 'matching';
+      });
+    } else {
+      setState(() {
+        _gameState = 'waiting';
+      });
+    }
+  }
+
+  Future<void> _inviteFriend(String name) async {
     setState(() {
       _opponentName = name;
       _gameState = 'waiting-for-friend';
     });
-    _stateTimer = Timer(const Duration(seconds: 3), () {
+
+    await context.read<PvpProvider>().sendInvite(name);
+
+    if (!mounted) return;
+
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
       setState(() {
+        _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
       });
       _startRoomCountdown();
-    });
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
+    } else if (provider.matchmakingState == PvpMatchmakingState.invitePending) {
+      setState(() {
+        _gameState = 'waiting-for-friend';
+      });
+    }
   }
 
   Future<void> _acceptChallenge(String id, String name) async {
-    final success = await context.read<PvpProvider>().acceptChallenge(id);
+    await context.read<PvpProvider>().respondToInvite(id, accept: true);
+
     if (!mounted) return;
 
-    if (success) {
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
       setState(() {
-        _opponentName = name;
+        _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
       });
       _startRoomCountdown();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể chấp nhận lời mời. Vui lòng thử lại.'),
-        ),
-      );
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
     }
   }
 
   Future<void> _rejectChallenge(String id) async {
-    final success = await context.read<PvpProvider>().rejectChallenge(id);
-    if (!mounted) return;
-
-    if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể từ chối lời mời. Vui lòng thử lại.'),
-        ),
-      );
-    }
+    await context.read<PvpProvider>().respondToInvite(id, accept: false);
   }
 
   void _cancelInvite() {
@@ -194,11 +235,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         if (showWaitingRoom)
           PvPWaitingRoomScreen(
             pvpProvider: pvpProvider,
-            onStartMatchmaking: canStartMatchmaking
-                ? () => pvpProvider.startMatchmaking()
+            onStartMatchmaking: _gameState == 'waiting'
+                ? () => _startMatchmaking()
                 : null,
-            onCancelMatchmaking: isProviderWaiting ? _cancelMatchmaking : null,
-            onInviteFriend: _gameState == 'waiting' ? _inviteFriend : null,
+            onInviteFriend: _gameState == 'waiting'
+                ? (name) => _inviteFriend(name)
+                : null,
             onShowIncomingChallenges: () => showIncomingChallengesModal(
               context,
               pvpProvider.incomingInvites,
