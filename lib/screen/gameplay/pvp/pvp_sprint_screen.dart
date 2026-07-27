@@ -18,7 +18,6 @@ class PvPSprintScreen extends StatefulWidget {
 class _PvPSprintScreenState extends State<PvPSprintScreen> {
   String _gameState =
       'waiting'; // waiting, matching, waiting-for-friend, room-countdown, racing, finished
-  int _roomCountdown = 5;
   dynamic _racePhase = 'ready'; // 'ready', 3, 2, 1, 'go', 'running'
   double _myProgress = 0;
   double _opponentProgress = 0;
@@ -26,6 +25,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
   Timer? _stateTimer;
   Timer? _raceTimer;
+  PvpMatchmakingState? _lastObservedMatchmakingState;
 
   @override
   void dispose() {
@@ -128,6 +128,14 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     });
   }
 
+  void _startRoomCountdown() {
+    _stateTimer?.cancel();
+    setState(() {
+      _gameState = 'room-countdown';
+      _opponentName = context.read<PvpProvider>().currentOpponentName;
+    });
+  }
+
   Future<void> _cancelMatchmaking() async {
     await context.read<PvpProvider>().cancelMatchmaking();
     _stateTimer?.cancel();
@@ -135,29 +143,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     setState(() {
       _gameState = 'waiting';
       _opponentName = '';
-    });
-  }
-
-  void _startRoomCountdown() {
-    _stateTimer?.cancel();
-    final providerCountdown = context
-        .read<PvpProvider>()
-        .countdownSecondsRemaining;
-    _roomCountdown = providerCountdown > 0 ? providerCountdown : 5;
-    _stateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_roomCountdown > 1) {
-        setState(() {
-          _roomCountdown--;
-        });
-      } else {
-        timer.cancel();
-        _stateTimer = null;
-        setState(() {
-          _gameState = 'racing';
-          _racePhase = 3;
-        });
-        _startRaceCountdown();
-      }
     });
   }
 
@@ -216,7 +201,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     context.read<PvpProvider>().clearMatchState();
     setState(() {
       _gameState = 'waiting';
-      _roomCountdown = 5;
       _racePhase = 'ready';
       _myProgress = 0;
       _opponentProgress = 0;
@@ -227,6 +211,29 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   @override
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
+    if (_lastObservedMatchmakingState != pvpProvider.matchmakingState) {
+      _lastObservedMatchmakingState = pvpProvider.matchmakingState;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          switch (pvpProvider.matchmakingState) {
+            case PvpMatchmakingState.countdown:
+              _gameState = 'room-countdown';
+              _opponentName = pvpProvider.currentOpponentName;
+              break;
+            case PvpMatchmakingState.running:
+              _gameState = 'racing';
+              _racePhase = 'ready';
+              break;
+            case PvpMatchmakingState.finished:
+              _gameState = 'finished';
+              break;
+            default:
+              break;
+          }
+        });
+      });
+    }
     final isProviderRunning =
         pvpProvider.matchmakingState == PvpMatchmakingState.running;
     final isProviderCountdown =
@@ -237,17 +244,13 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
 
     final showWaitingRoom = !isProviderRunning;
-    final canStartMatchmaking =
-        _gameState == 'waiting' &&
-        (pvpProvider.matchmakingState == PvpMatchmakingState.idle ||
-            pvpProvider.matchmakingState == PvpMatchmakingState.finished ||
-            pvpProvider.matchmakingState == PvpMatchmakingState.cancelled);
+    final effectiveGameState = isProviderRunning
+        ? 'racing'
+        : isProviderCountdown
+        ? 'room-countdown'
+        : _gameState;
 
-    final countdownSeconds = _gameState == 'room-countdown'
-        ? _roomCountdown
-        : pvpProvider.countdownSecondsRemaining > 0
-        ? pvpProvider.countdownSecondsRemaining
-        : _roomCountdown;
+    final countdownSeconds = pvpProvider.countdownSecondsRemaining;
 
     return Stack(
       children: [
@@ -278,12 +281,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           )
         else
           PvPRacingEnvironment(
-            isMoving: _gameState == 'racing' && _racePhase == 'running',
+            isMoving: effectiveGameState == 'racing' && _racePhase == 'running',
             myProgress: _myProgress,
             opponentProgress: _opponentProgress,
             opponentName: pvpProvider.currentOpponentName,
             racePhase: _racePhase.toString(),
-            isFinished: _gameState == 'finished',
+            isFinished: effectiveGameState == 'finished',
             onClose: _resetGame,
           ),
 
@@ -299,7 +302,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             opponentName: _opponentName,
             onCancel: _cancelInvite,
           ),
-        if (_gameState == 'finished')
+        if (effectiveGameState == 'finished')
           PvPFinishedOverlay(
             isWin: _myProgress >= 100,
             opponentName: _opponentName,
