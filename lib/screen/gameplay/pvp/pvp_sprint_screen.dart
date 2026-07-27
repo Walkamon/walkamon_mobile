@@ -34,42 +34,90 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     super.dispose();
   }
 
-  void _startMatchmaking() {
+  Future<void> _startMatchmaking() async {
     setState(() {
       _gameState = 'matching';
     });
-    _stateTimer = Timer(const Duration(seconds: 2), () {
+
+    await context.read<PvpProvider>().startMatchmaking();
+
+    if (!mounted) return;
+
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
       setState(() {
-        _opponentName = 'Anonymous player';
+        _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
       });
       _startRoomCountdown();
-    });
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
+    } else if (provider.matchmakingState == PvpMatchmakingState.waiting ||
+        provider.matchmakingState == PvpMatchmakingState.connecting) {
+      setState(() {
+        _gameState = 'matching';
+      });
+    } else {
+      setState(() {
+        _gameState = 'waiting';
+      });
+    }
   }
 
-  void _inviteFriend(String name) {
+  Future<void> _inviteFriend(String name) async {
     setState(() {
       _opponentName = name;
       _gameState = 'waiting-for-friend';
     });
-    _stateTimer = Timer(const Duration(seconds: 3), () {
+
+    await context.read<PvpProvider>().sendInvite(name);
+
+    if (!mounted) return;
+
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
       setState(() {
+        _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
       });
       _startRoomCountdown();
-    });
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
+    } else if (provider.matchmakingState == PvpMatchmakingState.invitePending) {
+      setState(() {
+        _gameState = 'waiting-for-friend';
+      });
+    }
   }
 
-  void _acceptChallenge(String id, String name) {
-    setState(() {
-      _opponentName = name;
-      _gameState = 'room-countdown';
-    });
-    _startRoomCountdown();
+  Future<void> _acceptChallenge(String id, String name) async {
+    await context.read<PvpProvider>().respondToInvite(id, accept: true);
+
+    if (!mounted) return;
+
+    final provider = context.read<PvpProvider>();
+    if (provider.matchmakingState == PvpMatchmakingState.countdown) {
+      setState(() {
+        _opponentName = provider.currentOpponentName;
+        _gameState = 'room-countdown';
+      });
+      _startRoomCountdown();
+    } else if (provider.matchmakingState == PvpMatchmakingState.running) {
+      setState(() {
+        _gameState = 'racing';
+        _racePhase = 'ready';
+      });
+    }
   }
 
-  void _rejectChallenge(String id) {
-    // API handled by provider
+  Future<void> _rejectChallenge(String id) async {
+    await context.read<PvpProvider>().respondToInvite(id, accept: false);
   }
 
   void _cancelInvite() {
@@ -174,9 +222,11 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           PvPWaitingRoomScreen(
             pvpProvider: pvpProvider,
             onStartMatchmaking: _gameState == 'waiting'
-                ? _startMatchmaking
+                ? () => _startMatchmaking()
                 : null,
-            onInviteFriend: _gameState == 'waiting' ? _inviteFriend : null,
+            onInviteFriend: _gameState == 'waiting'
+                ? (name) => _inviteFriend(name)
+                : null,
             onShowIncomingChallenges: () => showIncomingChallengesModal(
               context,
               pvpProvider.incomingInvites,
