@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class PvpParticipantResponse {
   final String participantTypeCode;
   final String? userId;
@@ -81,35 +83,51 @@ class PvpMatchResponse {
 
   factory PvpMatchResponse.fromJson(Map<String, dynamic> json) {
     final participantsList = json['participants'] as List<dynamic>? ?? [];
-    DateTime? parseUtc(String? value) =>
-        value != null ? DateTime.tryParse(value)?.toUtc() : null;
+    final rawServerTime = json['serverTime'] as String?;
+    final rawCreatedAt = json['createdAt'] as String?;
+    final rawCountdownEndsAt = json['countdownEndsAt'] as String?;
+    final rawStartedAt = json['startedAt'] as String?;
+    final rawEndedAt = json['endedAt'] as String?;
+    final rawSettlementEndsAt = json['settlementEndsAt'] as String?;
+
+    final parsedServerTime = rawServerTime != null
+        ? DateTime.parse(rawServerTime)
+        : null;
+    final parsedCreatedAt = rawCreatedAt != null
+        ? DateTime.parse(rawCreatedAt)
+        : null;
+    final parsedCountdownEndsAt = rawCountdownEndsAt != null
+        ? DateTime.parse(rawCountdownEndsAt)
+        : null;
+    final parsedStartedAt = rawStartedAt != null
+        ? DateTime.parse(rawStartedAt)
+        : null;
+    final parsedEndedAt = rawEndedAt != null
+        ? DateTime.parse(rawEndedAt)
+        : null;
+    final parsedSettlementEndsAt = rawSettlementEndsAt != null
+        ? DateTime.parse(rawSettlementEndsAt)
+        : null;
+
+    debugPrint('RAW countdownEndsAt=$rawCountdownEndsAt');
+    debugPrint('PARSED countdownEndsAt=$parsedCountdownEndsAt');
+    debugPrint('RAW serverTime=$rawServerTime');
+    debugPrint('PARSED serverTime=$parsedServerTime');
 
     return PvpMatchResponse(
       matchId: json['matchId'] as String? ?? '',
       matchTypeCode: json['matchTypeCode'] as String? ?? '',
       statusCode: json['statusCode'] as String? ?? '',
       sourceCode: json['sourceCode'] as String?,
-      serverTime: json['serverTime'] != null
-          ? DateTime.tryParse(json['serverTime'] as String)?.toLocal()
-          : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)?.toLocal()
-          : null,
-      countdownEndsAt: json['countdownEndsAt'] != null
-          ? DateTime.tryParse(json['countdownEndsAt'] as String)?.toLocal()
-          : null,
+      serverTime: parsedServerTime,
+      createdAt: parsedCreatedAt,
+      countdownEndsAt: parsedCountdownEndsAt,
       countdownSecondsRemaining: json['countdownSecondsRemaining'] is int
           ? json['countdownSecondsRemaining'] as int
           : int.tryParse('${json['countdownSecondsRemaining']}'),
-      startedAt: json['startedAt'] != null
-          ? DateTime.tryParse(json['startedAt'] as String)?.toLocal()
-          : null,
-      endedAt: json['endedAt'] != null
-          ? DateTime.tryParse(json['endedAt'] as String)?.toLocal()
-          : null,
-      settlementEndsAt: json['settlementEndsAt'] != null
-          ? DateTime.tryParse(json['settlementEndsAt'] as String)?.toLocal()
-          : null,
+      startedAt: parsedStartedAt,
+      endedAt: parsedEndedAt,
+      settlementEndsAt: parsedSettlementEndsAt,
       lastEventSequence: (json['lastEventSequence'] as num?)?.toInt(),
       participants: participantsList
           .map(
@@ -138,16 +156,16 @@ class PvpMatchmakingStatusResponse {
   });
 
   factory PvpMatchmakingStatusResponse.fromJson(Map<String, dynamic> json) {
-    DateTime? parseUtc(String? value) =>
-        value != null ? DateTime.tryParse(value)?.toUtc() : null;
+    DateTime? parseDateTime(String? value) =>
+        value != null ? DateTime.parse(value) : null;
 
     return PvpMatchmakingStatusResponse(
       activityType: json['activityType'] as String? ?? 'idle',
       statusCode: json['statusCode'] as String? ?? 'idle',
       matchId: json['matchId'] as String?,
-      queuedAt: parseUtc(json['queuedAt'] as String?),
-      botFallbackAt: parseUtc(json['botFallbackAt'] as String?),
-      serverTime: parseUtc(json['serverTime'] as String?),
+      queuedAt: parseDateTime(json['queuedAt'] as String?),
+      botFallbackAt: parseDateTime(json['botFallbackAt'] as String?),
+      serverTime: parseDateTime(json['serverTime'] as String?),
     );
   }
 }
@@ -197,10 +215,10 @@ class PvpInviteResponse {
       ),
       statusCode: json['statusCode'] as String? ?? '',
       expiresAt: json['expiresAt'] != null
-          ? DateTime.tryParse(json['expiresAt'] as String)?.toLocal()
+          ? DateTime.parse(json['expiresAt'] as String)
           : null,
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)?.toLocal()
+          ? DateTime.parse(json['createdAt'] as String)
           : null,
       matchId: json['matchId'] as String?,
     );
