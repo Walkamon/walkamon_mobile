@@ -79,6 +79,9 @@ class PvpMatchResponse {
 
   factory PvpMatchResponse.fromJson(Map<String, dynamic> json) {
     final participantsList = json['participants'] as List<dynamic>? ?? [];
+    DateTime? parseUtc(String? value) =>
+        value != null ? DateTime.tryParse(value)?.toUtc() : null;
+
     return PvpMatchResponse(
       matchId: json['matchId'] as String? ?? '',
       matchTypeCode: json['matchTypeCode'] as String? ?? '',

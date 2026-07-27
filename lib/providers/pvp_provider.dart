@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import '../core/constants/api_constants.dart';
 import '../core/network/api_client.dart';
+import '../core/network/pvp_realtime_service.dart';
 import '../data/datasources/remote/pvp_sprint_datasource.dart';
 import '../data/datasources/remote/pet_screen_datasource.dart';
 import '../data/datasources/remote/activity_stats_datasource.dart';
