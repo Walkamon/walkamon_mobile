@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import '../core/constants/api_constants.dart';
 import '../core/network/api_client.dart';
-import '../core/network/pvp_realtime_service.dart';
 import '../data/datasources/remote/pvp_sprint_datasource.dart';
 import '../data/datasources/remote/pet_screen_datasource.dart';
 import '../data/datasources/remote/activity_stats_datasource.dart';
@@ -73,7 +72,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
 
   String _hubPath() => (configuredHubUrl?.isNotEmpty == true
       ? configuredHubUrl!
-      : apiBaseUrl.replaceAll(RegExp(r'/*$'), '') + '/hubs/pvp-sprint');
+      : '${apiBaseUrl.replaceAll(RegExp(r'/*$'), '')}/hubs/pvp-sprint');
 
   @override
   String? get hubUrl => configuredHubUrl ?? _hubPath();
@@ -94,42 +93,41 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         _log('accessTokenFactory is null = true');
       } else {
         _log('accessTokenFactory is null = false');
-        String? t;
         try {
-          t = await accessTokenFactory!();
+          final t = await accessTokenFactory!();
           _log('Token: length=${t.length}');
           final prefix = t.length > 10 ? t.substring(0, 10) : t;
           _log('Token prefix=$prefix');
-        } catch (e) {
-          _log('accessTokenFactory threw: $e');
-        }
 
-        // Compare with in-memory and SharedPreferences storage used by REST
-        try {
-          final ram = TokenStorage.token;
-          _log(
-            'TokenStorage.token ${ram == null ? 'null' : 'present (length=${ram.length})'}',
-          );
-        } catch (_) {}
+          // Compare with in-memory and SharedPreferences storage used by REST
+          try {
+            final ram = TokenStorage.token;
+            _log(
+              'TokenStorage.token ${ram == null ? 'null' : 'present (length=${ram.length})'}',
+            );
+          } catch (_) {}
 
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          final stored = prefs.getString('access_token');
-          if (stored == null) {
-            _log('SharedPreferences(access_token) = null');
-          } else {
-            _log('SharedPreferences(access_token): length=${stored.length}');
-            final eq = (t != null && stored == t) ? 'MATCH' : 'DIFFER';
-            _log('SharedPreferences token vs accessTokenFactory: $eq');
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final stored = prefs.getString('access_token');
+            if (stored == null) {
+              _log('SharedPreferences(access_token) = null');
+            } else {
+              _log('SharedPreferences(access_token): length=${stored.length}');
+              final eq = stored == t ? 'MATCH' : 'DIFFER';
+              _log('SharedPreferences token vs accessTokenFactory: $eq');
+            }
+          } catch (e) {
+            _log('Failed to read SharedPreferences: $e');
           }
         } catch (e) {
-          _log('Failed to read SharedPreferences: $e');
+          _log('accessTokenFactory threw: $e');
         }
       }
 
       // Negotiate URL
       final negotiate =
-          _hubPath().replaceAll(RegExp(r'/*$'), '') + '/negotiate';
+          '${_hubPath().replaceAll(RegExp(r'/*$'), '')}/negotiate';
       _log('Negotiate URL: $negotiate');
       _log(
         'SignalR negotiation transport: access_token will be sent as query param when accessTokenFactory is used',
@@ -148,9 +146,6 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     final tokenFactory = accessTokenFactory != null
         ? () async {
             final t = await accessTokenFactory!();
-            if (t == null) {
-              throw Exception('accessTokenFactory returned null');
-            }
             return t; // do NOT add 'Bearer '
           }
         : null;
@@ -240,8 +235,10 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       } catch (e) {
         return;
       }
+    } else if (payload is Map<String, dynamic>) {
+      data = payload;
     } else if (payload is Map) {
-      data = Map<String, dynamic>.from(payload as Map);
+      data = Map<String, dynamic>.from(payload);
     } else {
       return;
     }
@@ -486,6 +483,28 @@ class PvpProvider extends ChangeNotifier {
     return '';
   }
 
+  int get countdownSecondsRemaining {
+    final serverCountdown = _currentMatch?.countdownSecondsRemaining;
+    if (serverCountdown != null && serverCountdown > 0) {
+      return serverCountdown;
+    }
+
+    final countdownEndsAt = _currentMatch?.countdownEndsAt;
+    if (countdownEndsAt == null) {
+      return 0;
+    }
+
+    final remaining = countdownEndsAt.difference(DateTime.now()).inSeconds;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  void clearMatchState() {
+    _currentMatch = null;
+    _activeMatchId = null;
+    _hasMatchRoomJoined = false;
+    _updateState(PvpMatchmakingState.idle);
+  }
+
   Future<void> initializeSignalR() async {
     _signalRService.setEventHandlers(
       onAssigned: (event) => unawaited(handleSignalREvent(event)),
@@ -504,8 +523,7 @@ class PvpProvider extends ChangeNotifier {
     // If using the default implementation, print debug info about token and negotiate URL
     try {
       if (_signalRService is DefaultPvpSignalRService) {
-        await (_signalRService as DefaultPvpSignalRService)
-            .debugLogAccessTokenAndNegotiateInfo();
+        await _signalRService.debugLogAccessTokenAndNegotiateInfo();
       }
     } catch (e) {
       _log('Failed to run SignalR debug logs: $e');
@@ -1019,6 +1037,7 @@ class PvpProvider extends ChangeNotifier {
       _updateState(PvpMatchmakingState.idle);
       if (_activeMatchId != null) {
         unawaited(_signalRService.leaveMatch(_activeMatchId!));
+        _activeMatchId = null;
       }
       return;
     }

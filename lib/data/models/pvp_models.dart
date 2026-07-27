@@ -56,6 +56,7 @@ class PvpMatchResponse {
   final DateTime? serverTime;
   final DateTime? createdAt;
   final DateTime? countdownEndsAt;
+  final int? countdownSecondsRemaining;
   final DateTime? startedAt;
   final DateTime? endedAt;
   final DateTime? settlementEndsAt;
@@ -70,6 +71,7 @@ class PvpMatchResponse {
     this.serverTime,
     this.createdAt,
     this.countdownEndsAt,
+    this.countdownSecondsRemaining,
     this.startedAt,
     this.endedAt,
     this.settlementEndsAt,
@@ -96,6 +98,9 @@ class PvpMatchResponse {
       countdownEndsAt: json['countdownEndsAt'] != null
           ? DateTime.tryParse(json['countdownEndsAt'] as String)?.toLocal()
           : null,
+      countdownSecondsRemaining: json['countdownSecondsRemaining'] is int
+          ? json['countdownSecondsRemaining'] as int
+          : int.tryParse('${json['countdownSecondsRemaining']}'),
       startedAt: json['startedAt'] != null
           ? DateTime.tryParse(json['startedAt'] as String)?.toLocal()
           : null,
