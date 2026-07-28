@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/auth/token_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -23,12 +24,15 @@ abstract class PvpSignalRService {
   Future<void> disconnect();
   Future<bool> joinMatch(String matchId);
   Future<void> leaveMatch(String matchId);
+  Future<Map<String, dynamic>> readyMatch(String matchId);
   void setEventHandlers({
     required void Function(Map<String, dynamic> event) onAssigned,
     required void Function(Map<String, dynamic> event) onProgress,
     required void Function(Map<String, dynamic> event) onFinished,
     required void Function(Map<String, dynamic> event) onSettling,
     required void Function(Map<String, dynamic> event) onCancelled,
+    required void Function(Map<String, dynamic> event) onCountdownStarted,
+    required void Function(Map<String, dynamic> event) onStarted,
   });
 
   void setReconnectedHandler(Future<void> Function()? onReconnected);
@@ -68,6 +72,8 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   void Function(Map<String, dynamic> event)? _onFinished;
   void Function(Map<String, dynamic> event)? _onSettling;
   void Function(Map<String, dynamic> event)? _onCancelled;
+  void Function(Map<String, dynamic> event)? _onCountdownStarted;
+  void Function(Map<String, dynamic> event)? _onStarted;
   Future<void> Function()? _onReconnected;
 
   String _hubPath() => (configuredHubUrl?.isNotEmpty == true
@@ -168,6 +174,8 @@ class DefaultPvpSignalRService implements PvpSignalRService {
           'EventBroadcast',
           'match.progress',
           'MatchProgress',
+          'match.countdown.started',
+          'match.started',
           'match.finished',
           'match.settling',
           'match.cancelled',
@@ -252,6 +260,12 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       case 'match.progress':
         _onProgress?.call(data);
         break;
+      case 'match.countdown.started':
+        _onCountdownStarted?.call(data);
+        break;
+      case 'match.started':
+        _onStarted?.call(data);
+        break;
       case 'match.finished':
         _onFinished?.call(data);
         break;
@@ -312,18 +326,44 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   }
 
   @override
+  Future<Map<String, dynamic>> readyMatch(String matchId) async {
+    if (!_isConnected) {
+      return <String, dynamic>{'matchId': matchId, 'allReady': false};
+    }
+    try {
+      final result = await _connection.invoke(
+        'ReadyMatch',
+        args: <Object>[matchId],
+      );
+      if (result is Map<String, dynamic>) {
+        return result;
+      }
+      if (result is Map) {
+        return Map<String, dynamic>.from(result);
+      }
+      return <String, dynamic>{'matchId': matchId, 'allReady': false};
+    } catch (_) {
+      return <String, dynamic>{'matchId': matchId, 'allReady': false};
+    }
+  }
+
+  @override
   void setEventHandlers({
     required void Function(Map<String, dynamic> event) onAssigned,
     required void Function(Map<String, dynamic> event) onProgress,
     required void Function(Map<String, dynamic> event) onFinished,
     required void Function(Map<String, dynamic> event) onSettling,
     required void Function(Map<String, dynamic> event) onCancelled,
+    required void Function(Map<String, dynamic> event) onCountdownStarted,
+    required void Function(Map<String, dynamic> event) onStarted,
   }) {
     _onAssigned = onAssigned;
     _onProgress = onProgress;
     _onFinished = onFinished;
     _onSettling = onSettling;
     _onCancelled = onCancelled;
+    _onCountdownStarted = onCountdownStarted;
+    _onStarted = onStarted;
   }
 
   @override
@@ -336,6 +376,12 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         break;
       case 'match.progress':
         _onProgress?.call(event);
+        break;
+      case 'match.countdown.started':
+        _onCountdownStarted?.call(event);
+        break;
+      case 'match.started':
+        _onStarted?.call(event);
         break;
       case 'match.finished':
         _onFinished?.call(event);
@@ -367,6 +413,36 @@ enum PvpMatchmakingState {
   invitePending,
   finished,
   cancelled,
+}
+
+enum PvpCountdownPhase { beforeStart, countdown, finished }
+
+PvpCountdownPhase resolveCountdownPhase({
+  required bool countdownActive,
+  required DateTime? countdownStartsAt,
+  required DateTime? countdownEndsAt,
+  required DateTime serverNow,
+}) {
+  if (!countdownActive ||
+      countdownStartsAt == null ||
+      countdownEndsAt == null) {
+    return PvpCountdownPhase.finished;
+  }
+
+  if (serverNow.isBefore(countdownStartsAt)) {
+    return PvpCountdownPhase.beforeStart;
+  }
+
+  final remainingMilliseconds = countdownEndsAt
+      .difference(serverNow)
+      .inMilliseconds;
+  if (serverNow.isAtSameMomentAs(countdownEndsAt) ||
+      serverNow.isAfter(countdownEndsAt) ||
+      remainingMilliseconds <= 0) {
+    return PvpCountdownPhase.finished;
+  }
+
+  return PvpCountdownPhase.countdown;
 }
 
 class PvpProvider extends ChangeNotifier {
@@ -457,9 +533,20 @@ class PvpProvider extends ChangeNotifier {
   PvpMatchResponse? _currentMatch;
   PvpMatchResponse? get currentMatch => _currentMatch;
 
-  DateTime? _countdownServerTimeSnapshot;
-  DateTime? _countdownServerTimeSnapshotAt;
   Timer? _countdownTicker;
+  Timer? _raceTicker;
+  Duration? _serverOffset;
+  DateTime? _countdownStartsAt;
+  DateTime? _countdownEndsAt;
+  bool _countdownActive = false;
+  int? _lastLoggedCountdownValue;
+
+  DateTime? _raceStartedAt;
+  static const Duration _raceDuration = Duration(seconds: 30);
+  double _raceTimeProgress = 0.0;
+  double _myProgress = 0.0;
+  double _opponentProgress = 0.0;
+  bool _isRaceFinished = false;
 
   // Matchmaking trace
   String _lastMatchmakingStep = 'none';
@@ -489,110 +576,120 @@ class PvpProvider extends ChangeNotifier {
 
   void _setCurrentMatchSnapshot(PvpMatchResponse match) {
     _currentMatch = match;
-    final snapshotServerTime = match.serverTime;
-    final nowUtc = DateTime.now().toUtc();
-    _countdownServerTimeSnapshot = snapshotServerTime;
-    _countdownServerTimeSnapshotAt = snapshotServerTime == null ? null : nowUtc;
   }
 
-  DateTime _currentServerTimeFromSnapshot(PvpMatchResponse match) {
-    final snapshotServerTime = match.serverTime;
-    if (snapshotServerTime == null) {
-      return DateTime.now().toUtc();
+  void _logSignalREvent(
+    Map<String, dynamic> event, {
+    required String eventType,
+  }) {}
+
+  DateTime estimatedServerNow() {
+    final localNow = DateTime.now().toUtc();
+    if (_serverOffset == null) {
+      return localNow;
     }
-
-    if (_countdownServerTimeSnapshotAt != null &&
-        _countdownServerTimeSnapshot != null) {
-      final nowUtc = DateTime.now().toUtc();
-      final elapsed = nowUtc.difference(_countdownServerTimeSnapshotAt!);
-      return _countdownServerTimeSnapshot!.add(elapsed);
-    }
-
-    return snapshotServerTime.toUtc();
+    return localNow.add(_serverOffset!);
   }
 
-  void _logCountdownDebugInfo(
-    PvpMatchResponse match,
-    DateTime currentServerTime,
-  ) {
-    final now = DateTime.now();
-    final nowUtc = now.toUtc();
-    final serverTime = match.serverTime;
-    final countdownEndsAt = match.countdownEndsAt;
-    final localSnapshotTime = _countdownServerTimeSnapshotAt;
-    final elapsed =
-        _countdownServerTimeSnapshotAt == null ||
-            _countdownServerTimeSnapshot == null
-        ? null
-        : nowUtc.difference(_countdownServerTimeSnapshotAt!);
-    final remainingSeconds = countdownEndsAt == null
-        ? null
-        : countdownEndsAt.difference(currentServerTime).inSeconds;
+  void _applyCountdownSchedule({
+    required DateTime countdownStartsAt,
+    required DateTime countdownEndsAt,
+    required DateTime serverTime,
+  }) {
+    final localNow = DateTime.now().toUtc();
+    final serverOffset = serverTime.difference(localNow);
 
-    debugPrint('[PvP][Countdown] DateTime.now()=$now');
-    debugPrint('[PvP][Countdown] DateTime.now().toUtc()=$nowUtc');
-    debugPrint('[PvP][Countdown] localSnapshotTime=$localSnapshotTime');
-    debugPrint('[PvP][Countdown] serverTime=$serverTime');
-    debugPrint('[PvP][Countdown] countdownEndsAt=$countdownEndsAt');
-    debugPrint('[PvP][Countdown] elapsed=$elapsed');
-    debugPrint('[PvP][Countdown] currentServerTime=$currentServerTime');
-    debugPrint('[PvP][Countdown] remainingSeconds=$remainingSeconds');
+    debugPrint('[PvP][Schedule]');
+    debugPrint('serverTime=$serverTime');
+    debugPrint('startsAt=$countdownStartsAt');
+    debugPrint('endsAt=$countdownEndsAt');
+    debugPrint('serverOffset=$serverOffset');
+
+    _countdownStartsAt = countdownStartsAt.toUtc();
+    _countdownEndsAt = countdownEndsAt.toUtc();
+    _serverOffset = serverOffset;
+    _countdownActive = true;
+    _lastLoggedCountdownValue = null;
+    _updateState(PvpMatchmakingState.countdown, reason: 'countdown schedule');
   }
 
-  int get countdownSecondsRemaining {
-    final match = _currentMatch;
-    if (match == null) {
-      debugPrint('[PvP][Countdown] no current match; remaining=0');
+  void _stopCountdownSchedule() {
+    _countdownTicker?.cancel();
+    _countdownTicker = null;
+    _countdownActive = false;
+    _countdownStartsAt = null;
+    _countdownEndsAt = null;
+    _lastLoggedCountdownValue = null;
+  }
+
+  int calculateCountdown() {
+    final phase = resolveCountdownPhase(
+      countdownActive: _countdownActive,
+      countdownStartsAt: _countdownStartsAt,
+      countdownEndsAt: _countdownEndsAt,
+      serverNow: estimatedServerNow(),
+    );
+
+    if (phase != PvpCountdownPhase.countdown) {
       return 0;
     }
 
-    final now = DateTime.now();
-    final currentServerTime = _currentServerTimeFromSnapshot(match);
-    final countdownEndsAt = match.countdownEndsAt;
+    final serverNow = estimatedServerNow();
+    final remainingMilliseconds = _countdownEndsAt!
+        .difference(serverNow)
+        .inMilliseconds;
 
-    if (match.countdownSecondsRemaining != null &&
-        match.countdownSecondsRemaining! > 0) {
-      final serverCountdown = match.countdownSecondsRemaining!;
-      _logCountdownDebugInfo(match, currentServerTime);
-      debugPrint('[PvP][Countdown] now=$now serverCountdown=$serverCountdown');
-      return serverCountdown;
-    }
-
-    if (countdownEndsAt != null) {
-      final remaining = countdownEndsAt.difference(currentServerTime).inSeconds;
-      _logCountdownDebugInfo(match, currentServerTime);
-      debugPrint('[PvP][Countdown] now=$now remainingSeconds=$remaining');
-      return remaining > 0 ? remaining : 0;
-    }
-
-    _logCountdownDebugInfo(match, currentServerTime);
-    debugPrint('[PvP][Countdown] now=$now remainingSeconds=0');
-    return 0;
+    return (remainingMilliseconds / 1000).ceil().clamp(1, 5);
   }
+
+  int get countdownSecondsRemaining => calculateCountdown();
 
   void _startCountdownTicker() {
     _countdownTicker?.cancel();
-    if (_matchmakingState != PvpMatchmakingState.countdown ||
-        _currentMatch == null) {
+    if (!_countdownActive ||
+        _countdownStartsAt == null ||
+        _countdownEndsAt == null ||
+        _matchmakingState != PvpMatchmakingState.countdown) {
       return;
     }
 
-    debugPrint('Countdown timer started');
-    _countdownTicker = Timer.periodic(const Duration(seconds: 1), (timer) {
-      final remaining = countdownSecondsRemaining;
-      debugPrint('Countdown tick: remaining=$remaining');
-      if (remaining <= 0) {
-        debugPrint('[PvP][Countdown] finished');
+    _countdownTicker = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) {
+      final phase = resolveCountdownPhase(
+        countdownActive: _countdownActive,
+        countdownStartsAt: _countdownStartsAt,
+        countdownEndsAt: _countdownEndsAt,
+        serverNow: estimatedServerNow(),
+      );
+
+      if (phase == PvpCountdownPhase.finished) {
+        debugPrint('[PvP][Countdown Finished]');
         timer.cancel();
-        _stopCountdownTicker();
-        if (_matchmakingState == PvpMatchmakingState.countdown) {
-          _updateState(PvpMatchmakingState.running);
-        }
+        cancelCountdownTimer(reason: 'timer finished', matchId: _activeMatchId);
         return;
       }
 
-      debugPrint('notifyListeners countdown: $remaining');
-      notifyListeners();
+      if (phase == PvpCountdownPhase.countdown) {
+        final remaining = countdownSecondsRemaining;
+        if (_lastLoggedCountdownValue != remaining) {
+          _lastLoggedCountdownValue = remaining;
+          final localNow = DateTime.now().toUtc();
+          final serverNow = estimatedServerNow();
+          final remainingMilliseconds = _countdownEndsAt!
+              .difference(serverNow)
+              .inMilliseconds;
+          debugPrint('[Countdown]');
+          debugPrint('number=$remaining');
+          debugPrint('localNow=$localNow');
+          debugPrint('estimatedServerNow=$serverNow');
+          debugPrint('countdownStartsAt=${_countdownStartsAt?.toUtc()}');
+          debugPrint('countdownEndsAt=${_countdownEndsAt?.toUtc()}');
+          debugPrint('remainingMs=$remainingMilliseconds');
+          debugPrint('displayed countdown number=$remaining');
+        }
+        notifyListeners();
+      }
     });
   }
 
@@ -601,13 +698,97 @@ class PvpProvider extends ChangeNotifier {
     _countdownTicker = null;
   }
 
+  void _stopRaceTicker() {
+    _raceTicker?.cancel();
+    _raceTicker = null;
+  }
+
+  bool get isRaceRunning =>
+      _matchmakingState == PvpMatchmakingState.running && !_isRaceFinished;
+
+  bool get isRaceFinished =>
+      _isRaceFinished || _matchmakingState == PvpMatchmakingState.finished;
+
+  double get myProgress => _myProgress;
+
+  double get opponentProgress => _opponentProgress;
+
+  double get raceTimeProgress => _raceTimeProgress;
+
+  String get racePhase {
+    if (_matchmakingState == PvpMatchmakingState.running && !_isRaceFinished) {
+      return 'running';
+    }
+    if (_matchmakingState == PvpMatchmakingState.finished || _isRaceFinished) {
+      return 'finished';
+    }
+    return 'ready';
+  }
+
+  Duration get elapsed {
+    if (_raceStartedAt == null) return Duration.zero;
+    final elapsed = DateTime.now().difference(_raceStartedAt!);
+    if (elapsed.isNegative) return Duration.zero;
+    return elapsed > _raceDuration ? _raceDuration : elapsed;
+  }
+
+  Duration get totalDuration => _raceDuration;
+
+  void _resetRaceState() {
+    _raceStartedAt = null;
+    _raceTimeProgress = 0.0;
+    _myProgress = 0.0;
+    _opponentProgress = 0.0;
+    _isRaceFinished = false;
+    _stopRaceTicker();
+  }
+
+  void _updateRaceProgress() {
+    if (_raceStartedAt == null) return;
+
+    final elapsedMs = elapsed.inMilliseconds;
+    final totalMs = _raceDuration.inMilliseconds;
+    final progress = totalMs == 0 ? 0.0 : elapsedMs / totalMs;
+    _raceTimeProgress = progress.clamp(0.0, 1.0);
+    _myProgress = _raceTimeProgress * 100.0;
+    _opponentProgress = math.min(100.0, _raceTimeProgress * 98.0);
+  }
+
+  void _startRaceTicker() {
+    _stopRaceTicker();
+    _raceTicker = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      _updateRaceProgress();
+      notifyListeners();
+      if (_raceTimeProgress >= 1.0) {
+        timer.cancel();
+        _isRaceFinished = true;
+        _updateState(
+          PvpMatchmakingState.finished,
+          reason: 'race duration complete',
+        );
+      }
+    });
+  }
+
+  void _startRace() {
+    _resetRaceState();
+    _raceStartedAt = DateTime.now();
+    _updateRaceProgress();
+    notifyListeners();
+    _startRaceTicker();
+  }
+
   void clearMatchState() {
     _currentMatch = null;
-    _countdownServerTimeSnapshot = null;
-    _countdownServerTimeSnapshotAt = null;
     _activeMatchId = null;
     _hasMatchRoomJoined = false;
-    _updateState(PvpMatchmakingState.idle);
+    _serverOffset = null;
+    _countdownStartsAt = null;
+    _countdownEndsAt = null;
+    _countdownActive = false;
+    _resetRaceState();
+    cancelCountdownTimer(reason: 'clearMatchState', matchId: _activeMatchId);
+    _updateState(PvpMatchmakingState.idle, reason: 'clearMatchState');
   }
 
   Future<void> initializeSignalR() async {
@@ -617,6 +798,8 @@ class PvpProvider extends ChangeNotifier {
       onFinished: (event) => unawaited(handleSignalREvent(event)),
       onSettling: (event) => unawaited(handleSignalREvent(event)),
       onCancelled: (event) => unawaited(handleSignalREvent(event)),
+      onCountdownStarted: (event) => unawaited(handleSignalREvent(event)),
+      onStarted: (event) => unawaited(handleSignalREvent(event)),
     );
 
     // When SignalR reconnects, recover authoritative matchmaking state
@@ -701,13 +884,30 @@ class PvpProvider extends ChangeNotifier {
     }
   }
 
-  void _log(String message, {String? matchId}) {
-    debugPrint(
-      '[PvP][${DateTime.now().toIso8601String()}] $message${matchId != null ? ' matchId=$matchId' : ''}',
-    );
+  void _log(String message, {String? matchId}) {}
+
+  void _enterRunning({required String reason, String? matchId}) {
+    _stopCountdownSchedule();
+    _updateState(PvpMatchmakingState.running, reason: reason);
+    _startRace();
   }
 
-  void _updateState(PvpMatchmakingState state) {
+  void startRace({required String reason, String? matchId}) {
+    if (_matchmakingState == PvpMatchmakingState.running && !_isRaceFinished) {
+      return;
+    }
+    _enterRunning(reason: reason, matchId: matchId);
+  }
+
+  void stopCountdown({required String reason, String? matchId}) {
+    _stopCountdownSchedule();
+  }
+
+  void cancelCountdownTimer({required String reason, String? matchId}) {
+    _stopCountdownTicker();
+  }
+
+  void _updateState(PvpMatchmakingState state, {String reason = 'other'}) {
     _matchmakingState = state;
     if (_matchmakingState == PvpMatchmakingState.countdown) {
       _startCountdownTicker();
@@ -731,21 +931,35 @@ class PvpProvider extends ChangeNotifier {
     _setCurrentMatchSnapshot(match);
     _lastSequences[matchId] = match.lastEventSequence ?? 0;
 
+    if (_countdownActive &&
+        match.countdownStartsAt != null &&
+        match.countdownEndsAt != null) {
+      _applyCountdownSchedule(
+        countdownStartsAt: match.countdownStartsAt!,
+        countdownEndsAt: match.countdownEndsAt!,
+        serverTime: match.serverTime ?? DateTime.now().toUtc(),
+      );
+      return;
+    }
+
     final normalizedStatus = match.statusCode.toLowerCase();
-    if (normalizedStatus == 'countdown') {
-      _log('match.assigned -> countdown snapshot loaded', matchId: matchId);
-    }
-    if (normalizedStatus == 'countdown') {
-      _updateState(PvpMatchmakingState.countdown);
+    if (normalizedStatus == 'running') {
+      _stopCountdownSchedule();
+      startRace(reason: 'match snapshot running', matchId: matchId);
       return;
     }
 
-    if (normalizedStatus == 'running' || normalizedStatus == 'settling') {
-      _updateState(PvpMatchmakingState.running);
+    if (normalizedStatus == 'settling') {
+      _stopCountdownSchedule();
+      _updateState(
+        PvpMatchmakingState.waiting,
+        reason: 'match snapshot settling',
+      );
       return;
     }
 
-    _updateState(PvpMatchmakingState.waiting);
+    _stopCountdownSchedule();
+    _updateState(PvpMatchmakingState.waiting, reason: 'match snapshot waiting');
   }
 
   PvpMatchmakingState _mapStatusCodeToState(String statusCode) {
@@ -753,8 +967,9 @@ class PvpProvider extends ChangeNotifier {
       case 'countdown':
         return PvpMatchmakingState.countdown;
       case 'running':
-      case 'settling':
         return PvpMatchmakingState.running;
+      case 'settling':
+        return PvpMatchmakingState.waiting;
       case 'waiting':
         return PvpMatchmakingState.waiting;
       default:
@@ -839,28 +1054,29 @@ class PvpProvider extends ChangeNotifier {
     final matchId =
         payload['matchId']?.toString() ?? event['aggregateId']?.toString();
 
+    final payloadSequence =
+        payload['sequence'] as int? ?? event['sequence'] as int?;
+    final lastSequence = matchId != null ? _lastSequences[matchId] : null;
+
     // dedupe
     if (eventId != null && _processedEventIds.contains(eventId)) {
-      _log('SignalR duplicate event ignored', matchId: matchId);
-      _traceMatchmaking('stopped at: duplicate event');
+      return;
+    }
+
+    if (payloadSequence != null &&
+        lastSequence != null &&
+        payloadSequence <= lastSequence) {
       return;
     }
 
     if (eventId != null) {
       _processedEventIds.add(eventId);
     }
-
-    // Log reception and payload
-    _log('SignalR Event: $eventType', matchId: matchId);
-    _log('Exact payload: $event');
-    final receivedMethod = event['_receivedMethod']?.toString();
-    if (receivedMethod != null) {
-      _log('SignalR method received: $receivedMethod');
-      _traceMatchmaking('[6] SignalR event received ($receivedMethod)');
-    } else {
-      _traceMatchmaking('[6] SignalR event received (method unknown)');
+    if (payloadSequence != null && matchId != null) {
+      _lastSequences[matchId] = payloadSequence;
     }
-    _traceMatchmaking('[7] Event payload');
+
+    _logSignalREvent(event, eventType: eventType);
 
     // Handle specific events
     if (eventType == 'match.assigned') {
@@ -885,14 +1101,29 @@ class PvpProvider extends ChangeNotifier {
         _traceMatchmaking('[10] GET /matches/$matchId');
         await _joinAndSyncMatch(matchId);
 
-        // after sync, report snapshot and state
-        _traceMatchmaking('[11] Match snapshot loaded');
-        if (_matchmakingState == PvpMatchmakingState.countdown) {
-          _traceMatchmaking('[12] Countdown entered');
-          _log('Entered Countdown', matchId: matchId);
-        } else if (_matchmakingState == PvpMatchmakingState.running) {
-          _traceMatchmaking('[13] Running entered');
-          _log('Entered Running', matchId: matchId);
+        final readyResponse = await _signalRService.readyMatch(matchId);
+        final allReady = readyResponse['allReady'] as bool? ?? false;
+        final readyStartsAt = readyResponse['countdownStartsAt'] as String?;
+        final readyEndsAt = readyResponse['countdownEndsAt'] as String?;
+        final readyServerTime = readyResponse['serverTime'] as String?;
+        debugPrint('[PvP][ReadyMatch]');
+        debugPrint('matchId=$matchId');
+        debugPrint('allReady=$allReady');
+        debugPrint('serverTime=$readyServerTime');
+        debugPrint('countdownStartsAt=$readyStartsAt');
+        debugPrint('countdownEndsAt=$readyEndsAt');
+        if (allReady &&
+            readyStartsAt != null &&
+            readyEndsAt != null &&
+            readyServerTime != null) {
+          _applyCountdownSchedule(
+            countdownStartsAt: DateTime.parse(readyStartsAt).toUtc(),
+            countdownEndsAt: DateTime.parse(readyEndsAt).toUtc(),
+            serverTime: DateTime.parse(readyServerTime).toUtc(),
+          );
+        } else {
+          _stopCountdownSchedule();
+          _updateState(PvpMatchmakingState.waiting);
         }
       } else {
         _log('match.assigned without matchId');
@@ -901,42 +1132,75 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
+    if (eventType == 'match.countdown.started') {
+      final details = payload['details'] as Map<String, dynamic>?;
+      final startsAt = details?['countdownStartsAt'] as String?;
+      final endsAt = details?['countdownEndsAt'] as String?;
+      final serverTimeValue = payload['serverTime'] as String?;
+      if (matchId != null &&
+          matchId.isNotEmpty &&
+          startsAt != null &&
+          endsAt != null &&
+          serverTimeValue != null) {
+        debugPrint('[PvP][CountdownStarted]');
+        debugPrint('eventId=$eventId');
+        debugPrint('sequence=${payloadSequence ?? 'null'}');
+        debugPrint('serverTime=$serverTimeValue');
+        debugPrint('countdownStartsAt=$startsAt');
+        debugPrint('countdownEndsAt=$endsAt');
+        _applyCountdownSchedule(
+          countdownStartsAt: DateTime.parse(startsAt).toUtc(),
+          countdownEndsAt: DateTime.parse(endsAt).toUtc(),
+          serverTime: DateTime.parse(serverTimeValue).toUtc(),
+        );
+      }
+      return;
+    }
+
+    if (eventType == 'match.started') {
+      final estimatedNow = estimatedServerNow();
+      final countdownEndsAtValue = _countdownEndsAt;
+      final difference = countdownEndsAtValue?.difference(estimatedNow);
+      final serverTimeValue = payload['serverTime']?.toString();
+      debugPrint('[PvP][MatchStarted]');
+      debugPrint('serverTime=$serverTimeValue');
+      debugPrint('estimatedServerNow=$estimatedNow');
+      debugPrint('deltaFromCountdownEnd=$difference');
+      startRace(reason: 'match.started event', matchId: matchId);
+      return;
+    }
+
     if (eventType == 'match.progress') {
-      _log('match.progress', matchId: matchId);
       if (matchId != null && matchId.isNotEmpty) {
         await _joinAndSyncMatch(matchId);
-        _traceMatchmaking('handled match.progress');
       }
       return;
     }
 
     if (eventType == 'match.finished') {
-      _log('match.finished', matchId: matchId);
+      stopCountdown(reason: 'match.finished', matchId: matchId);
       if (matchId != null && matchId.isNotEmpty) {
         await _joinAndSyncMatch(matchId);
       }
-      _updateState(PvpMatchmakingState.finished);
-      _traceMatchmaking('handled match.finished');
+      _updateState(PvpMatchmakingState.finished, reason: 'match.finished');
       return;
     }
 
     if (eventType == 'match.settling') {
-      _log('match.settling', matchId: matchId);
+      stopCountdown(reason: 'match.settling', matchId: matchId);
       if (matchId != null && matchId.isNotEmpty) {
         await _joinAndSyncMatch(matchId);
       }
-      _updateState(PvpMatchmakingState.running);
-      _traceMatchmaking('handled match.settling');
+      _updateState(PvpMatchmakingState.waiting, reason: 'match.settling');
       return;
     }
 
     if (eventType == 'match.cancelled') {
-      _log('match.cancelled', matchId: matchId);
+      stopCountdown(reason: 'match.cancelled', matchId: matchId);
       if (matchId != null && matchId.isNotEmpty) {
         await _joinAndSyncMatch(matchId);
       }
-      _updateState(PvpMatchmakingState.cancelled);
-      _traceMatchmaking('handled match.cancelled');
+      _updateState(PvpMatchmakingState.cancelled, reason: 'match.cancelled');
       return;
     }
   }
@@ -1021,8 +1285,13 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
-    if (normalizedStatus == 'running' || normalizedStatus == 'settling') {
-      _updateState(PvpMatchmakingState.running);
+    if (normalizedStatus == 'running') {
+      startRace(reason: 'syncMatch running', matchId: matchId);
+      return;
+    }
+
+    if (normalizedStatus == 'settling') {
+      _updateState(PvpMatchmakingState.waiting, reason: 'syncMatch settling');
       return;
     }
 
