@@ -57,6 +57,7 @@ class PvpMatchResponse {
   final String? sourceCode;
   final DateTime? serverTime;
   final DateTime? createdAt;
+  final DateTime? countdownStartsAt;
   final DateTime? countdownEndsAt;
   final int? countdownSecondsRemaining;
   final DateTime? startedAt;
@@ -72,6 +73,7 @@ class PvpMatchResponse {
     this.sourceCode,
     this.serverTime,
     this.createdAt,
+    this.countdownStartsAt,
     this.countdownEndsAt,
     this.countdownSecondsRemaining,
     this.startedAt,
@@ -85,19 +87,23 @@ class PvpMatchResponse {
     final participantsList = json['participants'] as List<dynamic>? ?? [];
     final rawServerTime = json['serverTime'] as String?;
     final rawCreatedAt = json['createdAt'] as String?;
+    final rawCountdownStartsAt = json['countdownStartsAt'] as String?;
     final rawCountdownEndsAt = json['countdownEndsAt'] as String?;
     final rawStartedAt = json['startedAt'] as String?;
     final rawEndedAt = json['endedAt'] as String?;
     final rawSettlementEndsAt = json['settlementEndsAt'] as String?;
 
     final parsedServerTime = rawServerTime != null
-        ? DateTime.parse(rawServerTime)
+        ? DateTime.parse(rawServerTime).toUtc()
         : null;
     final parsedCreatedAt = rawCreatedAt != null
-        ? DateTime.parse(rawCreatedAt)
+        ? DateTime.parse(rawCreatedAt).toUtc()
+        : null;
+    final parsedCountdownStartsAt = rawCountdownStartsAt != null
+        ? DateTime.parse(rawCountdownStartsAt).toUtc()
         : null;
     final parsedCountdownEndsAt = rawCountdownEndsAt != null
-        ? DateTime.parse(rawCountdownEndsAt)
+        ? DateTime.parse(rawCountdownEndsAt).toUtc()
         : null;
     final parsedStartedAt = rawStartedAt != null
         ? DateTime.parse(rawStartedAt)
@@ -109,6 +115,8 @@ class PvpMatchResponse {
         ? DateTime.parse(rawSettlementEndsAt)
         : null;
 
+    debugPrint('RAW countdownStartsAt=$rawCountdownStartsAt');
+    debugPrint('PARSED countdownStartsAt=$parsedCountdownStartsAt');
     debugPrint('RAW countdownEndsAt=$rawCountdownEndsAt');
     debugPrint('PARSED countdownEndsAt=$parsedCountdownEndsAt');
     debugPrint('RAW serverTime=$rawServerTime');
@@ -121,6 +129,7 @@ class PvpMatchResponse {
       sourceCode: json['sourceCode'] as String?,
       serverTime: parsedServerTime,
       createdAt: parsedCreatedAt,
+      countdownStartsAt: parsedCountdownStartsAt,
       countdownEndsAt: parsedCountdownEndsAt,
       countdownSecondsRemaining: json['countdownSecondsRemaining'] is int
           ? json['countdownSecondsRemaining'] as int

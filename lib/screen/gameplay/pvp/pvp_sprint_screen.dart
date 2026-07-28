@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math';
 import 'package:provider/provider.dart';
 import '../../../providers/pvp_provider.dart';
 import 'pvp_waiting_room_screen.dart';
@@ -18,19 +17,15 @@ class PvPSprintScreen extends StatefulWidget {
 class _PvPSprintScreenState extends State<PvPSprintScreen> {
   String _gameState =
       'waiting'; // waiting, matching, waiting-for-friend, room-countdown, racing, finished
-  dynamic _racePhase = 'ready'; // 'ready', 3, 2, 1, 'go', 'running'
-  double _myProgress = 0;
-  double _opponentProgress = 0;
   String _opponentName = '';
 
-  Timer? _stateTimer;
-  Timer? _raceTimer;
+  Timer? _successPopupTimer;
+  bool _showMatchSuccessPopup = false;
   PvpMatchmakingState? _lastObservedMatchmakingState;
 
   @override
   void dispose() {
-    _stateTimer?.cancel();
-    _raceTimer?.cancel();
+    _successPopupTimer?.cancel();
     super.dispose();
   }
 
@@ -48,12 +43,19 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       setState(() {
         _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
+        _showMatchSuccessPopup = true;
       });
-      _startRoomCountdown();
+      _successPopupTimer?.cancel();
+      _successPopupTimer = Timer(const Duration(milliseconds: 900), () {
+        if (!mounted) return;
+        setState(() {
+          _showMatchSuccessPopup = false;
+          _gameState = 'racing';
+        });
+      });
     } else if (provider.matchmakingState == PvpMatchmakingState.running) {
       setState(() {
         _gameState = 'racing';
-        _racePhase = 'ready';
       });
     } else if (provider.matchmakingState == PvpMatchmakingState.waiting ||
         provider.matchmakingState == PvpMatchmakingState.connecting) {
@@ -87,7 +89,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     } else if (provider.matchmakingState == PvpMatchmakingState.running) {
       setState(() {
         _gameState = 'racing';
-        _racePhase = 'ready';
       });
     } else if (provider.matchmakingState == PvpMatchmakingState.invitePending) {
       setState(() {
@@ -107,11 +108,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         _opponentName = provider.currentOpponentName;
         _gameState = 'room-countdown';
       });
-      _startRoomCountdown();
     } else if (provider.matchmakingState == PvpMatchmakingState.running) {
       setState(() {
         _gameState = 'racing';
-        _racePhase = 'ready';
       });
     }
   }
@@ -121,7 +120,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   }
 
   void _cancelInvite() {
-    _stateTimer?.cancel();
     setState(() {
       _gameState = 'waiting';
       _opponentName = '';
@@ -129,7 +127,6 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   }
 
   void _startRoomCountdown() {
-    _stateTimer?.cancel();
     setState(() {
       _gameState = 'room-countdown';
       _opponentName = context.read<PvpProvider>().currentOpponentName;
@@ -138,72 +135,21 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
   Future<void> _cancelMatchmaking() async {
     await context.read<PvpProvider>().cancelMatchmaking();
-    _stateTimer?.cancel();
+    _successPopupTimer?.cancel();
     if (!mounted) return;
     setState(() {
+      _showMatchSuccessPopup = false;
       _gameState = 'waiting';
       _opponentName = '';
     });
   }
 
-  void _startRaceCountdown() {
-    _stateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_racePhase is int) {
-        int phase = _racePhase as int;
-        if (phase > 1) {
-          setState(() {
-            _racePhase = phase - 1;
-          });
-        } else {
-          setState(() {
-            _racePhase = 'go';
-          });
-          Timer(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              setState(() {
-                _racePhase = 'running';
-              });
-              _startRacing();
-            }
-          });
-          timer.cancel();
-        }
-      }
-    });
-  }
-
-  void _startRacing() {
-    final random = Random();
-    _raceTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      setState(() {
-        _myProgress += (random.nextDouble() * 1.5 + 0.2);
-        _opponentProgress += (random.nextDouble() * 1.5 + 0.2);
-
-        if (_myProgress >= 100 || _opponentProgress >= 100) {
-          _myProgress = min(_myProgress, 100);
-          _opponentProgress = min(_opponentProgress, 100);
-          timer.cancel();
-          Timer(const Duration(seconds: 1), () {
-            if (mounted) {
-              setState(() {
-                _gameState = 'finished';
-              });
-            }
-          });
-        }
-      });
-    });
-  }
-
   void _resetGame() {
-    _stateTimer?.cancel();
-    _raceTimer?.cancel();
+    _successPopupTimer?.cancel();
     context.read<PvpProvider>().clearMatchState();
     setState(() {
+      _showMatchSuccessPopup = false;
       _gameState = 'waiting';
-      _racePhase = 'ready';
-      _myProgress = 0;
-      _opponentProgress = 0;
       _opponentName = '';
     });
   }
@@ -218,17 +164,28 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         setState(() {
           switch (pvpProvider.matchmakingState) {
             case PvpMatchmakingState.countdown:
+              _showMatchSuccessPopup = true;
               _gameState = 'room-countdown';
               _opponentName = pvpProvider.currentOpponentName;
+              _successPopupTimer?.cancel();
+              _successPopupTimer = Timer(const Duration(milliseconds: 900), () {
+                if (!mounted) return;
+                setState(() {
+                  _showMatchSuccessPopup = false;
+                  _gameState = 'racing';
+                });
+              });
               break;
             case PvpMatchmakingState.running:
+              _showMatchSuccessPopup = false;
               _gameState = 'racing';
-              _racePhase = 'ready';
               break;
             case PvpMatchmakingState.finished:
+              _showMatchSuccessPopup = false;
               _gameState = 'finished';
               break;
             default:
+              _showMatchSuccessPopup = false;
               break;
           }
         });
@@ -240,15 +197,13 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         pvpProvider.matchmakingState == PvpMatchmakingState.countdown;
     final isProviderConnecting =
         pvpProvider.matchmakingState == PvpMatchmakingState.connecting;
-    final isProviderWaiting =
-        pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
 
-    final showWaitingRoom = !isProviderRunning;
-    final effectiveGameState = isProviderRunning
+    final effectiveGameState = (isProviderRunning || _gameState == 'racing')
         ? 'racing'
         : isProviderCountdown
         ? 'room-countdown'
         : _gameState;
+    final showWaitingRoom = effectiveGameState != 'racing';
 
     final countdownSeconds = pvpProvider.countdownSecondsRemaining;
 
@@ -281,18 +236,21 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           )
         else
           PvPRacingEnvironment(
-            isMoving: effectiveGameState == 'racing' && _racePhase == 'running',
-            myProgress: _myProgress,
-            opponentProgress: _opponentProgress,
+            isMoving: pvpProvider.isRaceRunning,
+            myProgress: pvpProvider.myProgress,
+            opponentProgress: pvpProvider.opponentProgress,
             opponentName: pvpProvider.currentOpponentName,
-            racePhase: _racePhase.toString(),
-            isFinished: effectiveGameState == 'finished',
+            racePhase: pvpProvider.racePhase,
+            isFinished: pvpProvider.isRaceFinished,
             onClose: _resetGame,
           ),
 
         // Overlays
         if (isProviderConnecting) PvPMatchingOverlay(),
-        if (isProviderCountdown)
+        if (_showMatchSuccessPopup) const PvPMatchSuccessOverlay(),
+        if (isProviderCountdown &&
+            _gameState == 'room-countdown' &&
+            !_showMatchSuccessPopup)
           PvPRoomCountdownOverlay(
             opponentName: pvpProvider.currentOpponentName,
             countdown: countdownSeconds,
@@ -304,7 +262,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           ),
         if (effectiveGameState == 'finished')
           PvPFinishedOverlay(
-            isWin: _myProgress >= 100,
+            isWin: pvpProvider.myProgress >= 100,
             opponentName: _opponentName,
             onContinue: _resetGame,
           ),

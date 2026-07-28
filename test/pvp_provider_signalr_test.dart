@@ -49,12 +49,25 @@ class _FakeSignalRService implements PvpSignalRService {
   Future<void> leaveMatch(String matchId) async {}
 
   @override
+  Future<Map<String, dynamic>> readyMatch(String matchId) async {
+    return {
+      'matchId': matchId,
+      'allReady': true,
+      'countdownStartsAt': '2026-07-27T03:00:00Z',
+      'countdownEndsAt': '2026-07-27T03:00:05Z',
+      'serverTime': '2026-07-27T03:00:00Z',
+    };
+  }
+
+  @override
   void setEventHandlers({
     required void Function(Map<String, dynamic> event) onAssigned,
     required void Function(Map<String, dynamic> event) onProgress,
     required void Function(Map<String, dynamic> event) onFinished,
     required void Function(Map<String, dynamic> event) onSettling,
     required void Function(Map<String, dynamic> event) onCancelled,
+    required void Function(Map<String, dynamic> event) onCountdownStarted,
+    required void Function(Map<String, dynamic> event) onStarted,
   }) {}
 
   @override
@@ -75,6 +88,21 @@ class _FakeSignalRService implements PvpSignalRService {
 }
 
 void main() {
+  test('resolveCountdownPhase keeps a pre-start countdown alive', () {
+    final now = DateTime.utc(2026, 7, 27, 3, 0, 29);
+    final startsAt = DateTime.utc(2026, 7, 27, 3, 0, 33);
+    final endsAt = DateTime.utc(2026, 7, 27, 3, 0, 38);
+
+    final phase = resolveCountdownPhase(
+      countdownActive: true,
+      countdownStartsAt: startsAt,
+      countdownEndsAt: endsAt,
+      serverNow: now,
+    );
+
+    expect(phase, PvpCountdownPhase.beforeStart);
+  });
+
   test(
     'assigned event refreshes match snapshot and moves to countdown',
     () async {

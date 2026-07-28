@@ -103,7 +103,9 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Overlay rebuild countdown: $countdown');
+    debugPrint(
+      'Overlay rebuild countdown=$countdown time=${DateTime.now().toUtc()}',
+    );
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
@@ -151,7 +153,7 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                countdown <= 0 ? 'GO' : '$countdown',
+                countdown > 0 ? '$countdown' : '',
                 style: const TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
@@ -164,6 +166,59 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PvPMatchSuccessOverlay extends StatelessWidget {
+  const PvPMatchSuccessOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: Colors.black54,
+      alignment: Alignment.center,
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  size: 48,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Ghép trận thành công!',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Đang vào cuộc đua. Đếm ngược sẽ bắt đầu ngay sau khi trận đấu sẵn sàng.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
                   color: Colors.grey,
                 ),
               ),
