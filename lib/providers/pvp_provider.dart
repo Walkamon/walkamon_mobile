@@ -33,6 +33,7 @@ abstract class PvpSignalRService {
     required void Function(Map<String, dynamic> event) onCancelled,
     required void Function(Map<String, dynamic> event) onCountdownStarted,
     required void Function(Map<String, dynamic> event) onStarted,
+    void Function(Map<String, dynamic> event)? onForfeited,
   });
 
   void setReconnectedHandler(Future<void> Function()? onReconnected);
@@ -74,6 +75,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   void Function(Map<String, dynamic> event)? _onCancelled;
   void Function(Map<String, dynamic> event)? _onCountdownStarted;
   void Function(Map<String, dynamic> event)? _onStarted;
+  void Function(Map<String, dynamic> event)? _onForfeited;
   Future<void> Function()? _onReconnected;
 
   String _hubPath() => (configuredHubUrl?.isNotEmpty == true
@@ -266,6 +268,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       case 'match.started':
         _onStarted?.call(data);
         break;
+      case 'match.forfeited':
+        _onForfeited?.call(data);
+        break;
       case 'match.finished':
         _onFinished?.call(data);
         break;
@@ -354,8 +359,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     required void Function(Map<String, dynamic> event) onFinished,
     required void Function(Map<String, dynamic> event) onSettling,
     required void Function(Map<String, dynamic> event) onCancelled,
-    required void Function(Map<String, dynamic> event) onCountdownStarted,
-    required void Function(Map<String, dynamic> event) onStarted,
+    void Function(Map<String, dynamic> event)? onCountdownStarted,
+    void Function(Map<String, dynamic> event)? onStarted,
+    void Function(Map<String, dynamic> event)? onForfeited,
   }) {
     _onAssigned = onAssigned;
     _onProgress = onProgress;
@@ -364,6 +370,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     _onCancelled = onCancelled;
     _onCountdownStarted = onCountdownStarted;
     _onStarted = onStarted;
+    _onForfeited = onForfeited;
   }
 
   @override
@@ -520,6 +527,13 @@ class PvpProvider extends ChangeNotifier {
 
   List<PvpInviteResponse> _incomingInvites = [];
   List<PvpInviteResponse> get incomingInvites => _incomingInvites;
+  int _incomingInvitesTotal = 0;
+  int get incomingInvitesTotal => _incomingInvitesTotal;
+
+  List<PvpInviteResponse> _sentInvites = [];
+  List<PvpInviteResponse> get sentInvites => _sentInvites;
+  int _sentInvitesTotal = 0;
+  int get sentInvitesTotal => _sentInvitesTotal;
 
   List<PvpMatchResponse> _matchHistory = [];
   List<PvpMatchResponse> get matchHistory => _matchHistory;
@@ -1100,6 +1114,7 @@ class PvpProvider extends ChangeNotifier {
       onCancelled: (event) => unawaited(handleSignalREvent(event)),
       onCountdownStarted: (event) => unawaited(handleSignalREvent(event)),
       onStarted: (event) => unawaited(handleSignalREvent(event)),
+      onForfeited: (event) => unawaited(handleSignalREvent(event)),
     );
 
     // When SignalR reconnects, recover authoritative matchmaking state
@@ -1486,6 +1501,22 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
+    if (eventType == 'match.forfeited') {
+      debugPrint('[PvP] MatchForfeited matchId=$matchId');
+      stopCountdown(reason: 'match.forfeited', matchId: matchId);
+      _stopRaceTicker();
+      _isRaceFinished = true;
+      final details = payload['details'] as Map<String, dynamic>?;
+      final forfeitedByUserId = details?['forfeitedByUserId']?.toString();
+      if (forfeitedByUserId != null && forfeitedByUserId == _currentUserId) {
+        _forcedResultCode = 'lose';
+      } else if (forfeitedByUserId != null) {
+        _forcedResultCode = 'win';
+      }
+      notifyListeners();
+      return;
+    }
+
     if (eventType == 'match.progress') {
       final details = payload['details'];
       if (details is Map) {
@@ -1561,47 +1592,7 @@ class PvpProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> sendInvite(String targetUserId) async {
-    _currentInviteId = null;
-    _updateState(PvpMatchmakingState.invitePending);
 
-    final response = await _pvpDatasource.createInvite(targetUserId);
-    if (!response.success || response.data == null) {
-      _updateState(PvpMatchmakingState.idle);
-      return;
-    }
-
-    _currentInviteId = response.data!.inviteId;
-    notifyListeners();
-  }
-
-  Future<void> respondToInvite(String inviteId, {required bool accept}) async {
-    final response = await _pvpDatasource.respondToInvite(
-      inviteId,
-      accept: accept,
-    );
-    if (!response.success || response.data == null) {
-      return;
-    }
-
-    if (accept &&
-        response.data!.matchId != null &&
-        response.data!.matchId!.isNotEmpty) {
-      await syncMatch(response.data!.matchId!);
-      return;
-    }
-
-    _currentInviteId = null;
-    _updateState(PvpMatchmakingState.idle);
-  }
-
-  Future<void> cancelInvite(String inviteId) async {
-    final response = await _pvpDatasource.cancelInvite(inviteId);
-    if (response.success) {
-      _currentInviteId = null;
-      _updateState(PvpMatchmakingState.idle);
-    }
-  }
 
   Future<void> syncMatch(String matchId) async {
     final response = await _pvpDatasource.getMatch(matchId);
@@ -1648,27 +1639,35 @@ class PvpProvider extends ChangeNotifier {
     _updateState(PvpMatchmakingState.waiting);
   }
 
+  bool _isLoadingMatchResult = false;
+
   Future<void> loadMatchResult(String matchId, {int maxAttempts = 3}) async {
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      final response = await _pvpDatasource.getMatchResult(matchId);
-      if (response.success && response.data != null) {
-        _matchResult = response.data!;
-        _setCurrentMatchSnapshot(_matchResult!.match);
-        notifyListeners();
+    if (_isLoadingMatchResult) return;
+    _isLoadingMatchResult = true;
+    try {
+      for (var attempt = 0; attempt < maxAttempts; attempt++) {
+        final response = await _pvpDatasource.getMatchResult(matchId);
+        if (response.success && response.data != null) {
+          _matchResult = response.data!;
+          _setCurrentMatchSnapshot(_matchResult!.match);
+          notifyListeners();
+          return;
+        }
+
+        // UC-69: result only available after finished; earlier calls return 409.
+        if (response.status == 409 && attempt < maxAttempts - 1) {
+          await Future.delayed(Duration(milliseconds: 400 * (attempt + 1)));
+          continue;
+        }
+
+        debugPrint(
+          '[PvP] loadMatchResult failed matchId=$matchId '
+          'status=${response.status} message=${response.message}',
+        );
         return;
       }
-
-      // UC-69: result only available after finished; earlier calls return 409.
-      if (response.status == 409 && attempt < maxAttempts - 1) {
-        await Future.delayed(Duration(milliseconds: 400 * (attempt + 1)));
-        continue;
-      }
-
-      debugPrint(
-        '[PvP] loadMatchResult failed matchId=$matchId '
-        'status=${response.status} message=${response.message}',
-      );
-      return;
+    } finally {
+      _isLoadingMatchResult = false;
     }
   }
 
@@ -1726,7 +1725,7 @@ class PvpProvider extends ChangeNotifier {
     }
 
     // 409 = state already moved; resync authoritative match/result.
-    if (response.status == 409 || response.success) {
+    if (response.status == 409) {
       await _joinAndSyncMatch(matchId);
       if (_matchmakingState == PvpMatchmakingState.finished) {
         if (_matchResult == null) {
@@ -1743,24 +1742,11 @@ class PvpProvider extends ChangeNotifier {
 
     debugPrint(
       '[PvP] forfeitMatch API status=${response.status} '
-      'message=${response.message} — applying local lose + LeaveMatch',
+      'message=${response.message} — applying local lose',
     );
-
-    try {
-      await _signalRService.leaveMatch(matchId);
-    } catch (e) {
-      debugPrint('[PvP] LeaveMatch after forfeit failed: $e');
-    }
 
     _applyLocalForfeitResult();
     _updateState(PvpMatchmakingState.finished, reason: 'forfeit local');
-    // Still try UC-69 in case BE ended the match from disconnect.
-    unawaited(loadMatchResult(matchId).then((_) {
-      if (_matchResult != null) {
-        _forcedResultCode = null;
-        notifyListeners();
-      }
-    }));
     return true;
   }
 
@@ -1930,6 +1916,117 @@ class PvpProvider extends ChangeNotifier {
 
     _currentMatch = null;
     _updateState(PvpMatchmakingState.idle);
+  }
+
+  /// UC-73 — fetch incoming invites
+  Future<void> fetchIncomingInvites({
+    String? status = 'pending',
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _pvpDatasource.getInvites(
+      direction: 'incoming',
+      status: status,
+      page: page,
+      pageSize: pageSize,
+    );
+    if (response.success && response.data != null) {
+      _incomingInvites = response.data!.items;
+      _incomingInvitesTotal = response.data!.total;
+      notifyListeners();
+    }
+  }
+
+  /// UC-73 — fetch sent invites
+  Future<void> fetchSentInvites({
+    String? status = 'pending',
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _pvpDatasource.getInvites(
+      direction: 'sent',
+      status: status,
+      page: page,
+      pageSize: pageSize,
+    );
+    if (response.success && response.data != null) {
+      _sentInvites = response.data!.items;
+      _sentInvitesTotal = response.data!.total;
+      notifyListeners();
+    }
+  }
+
+  /// UC-67 — create sprint invite
+  Future<PvpInviteResponse?> sendInvite(String targetUserIdOrName) async {
+    String targetUserId = targetUserIdOrName;
+    for (final friend in _friendsList) {
+      if (friend.username.toLowerCase() == targetUserIdOrName.toLowerCase() ||
+          friend.userId == targetUserIdOrName) {
+        targetUserId = friend.userId;
+        break;
+      }
+    }
+
+    final response = await _pvpDatasource.createInvite(targetUserId);
+    if (response.success && response.data != null) {
+      final invite = response.data!;
+      _currentInviteId = invite.inviteId;
+      _updateState(PvpMatchmakingState.invitePending);
+      notifyListeners();
+      return invite;
+    } else {
+      debugPrint('[PvP] createInvite failed status=${response.status}: ${response.message}');
+      return null;
+    }
+  }
+
+  /// UC-67 — accept or decline sprint invite
+  Future<PvpInviteResponse?> respondToInvite(
+    String inviteId, {
+    required bool accept,
+  }) async {
+    final response = await _pvpDatasource.respondToInvite(
+      inviteId,
+      accept: accept,
+    );
+
+    if (response.success && response.data != null) {
+      final inviteData = response.data!;
+      _incomingInvites.removeWhere((item) => item.inviteId == inviteId);
+      notifyListeners();
+
+      if (accept && inviteData.matchId != null && inviteData.matchId!.isNotEmpty) {
+        _log('Invite accepted, joining match directly: ${inviteData.matchId}');
+        await _joinAndSyncMatch(inviteData.matchId!);
+      }
+      return inviteData;
+    } else {
+      debugPrint('[PvP] respondToInvite failed status=${response.status}: ${response.message}');
+      return null;
+    }
+  }
+
+  /// UC-67 — cancel pending sprint invite
+  Future<bool> cancelInvite([String? inviteId]) async {
+    final targetId = inviteId ?? _currentInviteId;
+    if (targetId == null || targetId.isEmpty) {
+      _updateState(PvpMatchmakingState.idle);
+      return false;
+    }
+
+    final response = await _pvpDatasource.cancelInvite(targetId);
+    if (response.success) {
+      if (_currentInviteId == targetId) {
+        _currentInviteId = null;
+      }
+      _updateState(PvpMatchmakingState.idle);
+      notifyListeners();
+      return true;
+    } else {
+      debugPrint('[PvP] cancelInvite failed status=${response.status}: ${response.message}');
+      _updateState(PvpMatchmakingState.idle);
+      return false;
+    }
   }
 
   void acceptChallenge(String inviteId) {

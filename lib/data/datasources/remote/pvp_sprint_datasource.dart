@@ -57,54 +57,90 @@ class PvpSprintDatasource {
     );
   }
 
-  Future<ApiResponse<List<PvpInviteResponse>>> getIncomingInvites({
+  /// UC-73 — list invites (direction: incoming|sent, status: pending|accepted|declined|cancelled|expired).
+  Future<ApiResponse<PvpInvitePage>> getInvites({
+    String direction = 'incoming',
+    String? status = 'pending',
     int page = 1,
     int pageSize = 20,
   }) async {
-    return _apiClient.get<List<PvpInviteResponse>>(
+    return _apiClient.get<PvpInvitePage>(
       ApiConstants.pvpSprintInvites,
       queryParameters: {
-        'direction': 'incoming',
-        'status': 'pending',
+        'direction': direction,
+        if (status != null && status.isNotEmpty) 'status': status,
         'page': page,
         'pageSize': pageSize,
       },
       fromJsonT: (json) {
-        if (json is Map<String, dynamic> && json['items'] != null) {
-          final items = json['items'] as List;
-          return items
-              .map((e) => PvpInviteResponse.fromJson(e as Map<String, dynamic>))
-              .toList();
+        if (json is Map<String, dynamic>) {
+          return PvpInvitePage.fromJson(json);
         }
-        return [];
+        return PvpInvitePage(
+          page: page,
+          pageSize: pageSize,
+          total: 0,
+          items: [],
+        );
       },
+    );
+  }
+
+  Future<ApiResponse<List<PvpInviteResponse>>> getIncomingInvites({
+    int page = 1,
+    int pageSize = 20,
+    String? status = 'pending',
+  }) async {
+    final pageResp = await getInvites(
+      direction: 'incoming',
+      status: status,
+      page: page,
+      pageSize: pageSize,
+    );
+    if (pageResp.success && pageResp.data != null) {
+      return ApiResponse<List<PvpInviteResponse>>(
+        success: true,
+        status: pageResp.status,
+        message: pageResp.message,
+        data: pageResp.data!.items,
+      );
+    }
+    return ApiResponse<List<PvpInviteResponse>>(
+      success: false,
+      status: pageResp.status,
+      message: pageResp.message,
+      data: [],
     );
   }
 
   Future<ApiResponse<List<PvpInviteResponse>>> getSentInvites({
     int page = 1,
     int pageSize = 20,
+    String? status = 'pending',
   }) async {
-    return _apiClient.get<List<PvpInviteResponse>>(
-      ApiConstants.pvpSprintInvites,
-      queryParameters: {
-        'direction': 'sent',
-        'status': 'pending',
-        'page': page,
-        'pageSize': pageSize,
-      },
-      fromJsonT: (json) {
-        if (json is Map<String, dynamic> && json['items'] != null) {
-          final items = json['items'] as List;
-          return items
-              .map((e) => PvpInviteResponse.fromJson(e as Map<String, dynamic>))
-              .toList();
-        }
-        return [];
-      },
+    final pageResp = await getInvites(
+      direction: 'sent',
+      status: status,
+      page: page,
+      pageSize: pageSize,
+    );
+    if (pageResp.success && pageResp.data != null) {
+      return ApiResponse<List<PvpInviteResponse>>(
+        success: true,
+        status: pageResp.status,
+        message: pageResp.message,
+        data: pageResp.data!.items,
+      );
+    }
+    return ApiResponse<List<PvpInviteResponse>>(
+      success: false,
+      status: pageResp.status,
+      message: pageResp.message,
+      data: [],
     );
   }
 
+  /// UC-67 — create sprint invite.
   Future<ApiResponse<PvpInviteResponse>> createInvite(
     String targetUserId,
   ) async {
@@ -116,6 +152,7 @@ class PvpSprintDatasource {
     );
   }
 
+  /// UC-67 — accept or decline sprint invite.
   Future<ApiResponse<PvpInviteResponse>> respondToInvite(
     String inviteId, {
     required bool accept,
@@ -128,6 +165,7 @@ class PvpSprintDatasource {
     );
   }
 
+  /// UC-67 — cancel pending sprint invite.
   Future<ApiResponse<void>> cancelInvite(String inviteId) async {
     return _apiClient.delete<void>(
       '${ApiConstants.pvpSprintInvites}/$inviteId',

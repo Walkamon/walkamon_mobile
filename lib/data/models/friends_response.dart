@@ -4,6 +4,7 @@ class FriendsResponse {
   final String email;
   final String? avatarUrl;
   final String? bio;
+  final bool isOnline;
 
   FriendsResponse({
     required this.userId,
@@ -11,6 +12,7 @@ class FriendsResponse {
     required this.email,
     this.avatarUrl,
     this.bio,
+    this.isOnline = false,
   });
 
   factory FriendsResponse.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,12 @@ class FriendsResponse {
       email: json['email'] ?? '',
       avatarUrl: json['avatarUrl'],
       bio: json['bio'],
+      isOnline: json['isOnline'] == true ||
+          json['is_online'] == true ||
+          json['online'] == true ||
+          json['status'] == 'online' ||
+          json['status'] == 'Online' ||
+          json['isUserOnline'] == true,
     );
   }
 }

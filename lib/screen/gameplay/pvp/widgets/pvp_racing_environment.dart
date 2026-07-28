@@ -231,23 +231,31 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
           right: 0,
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
                   IconButton.filledTonal(
                     onPressed: widget.onClose,
                     icon: const Icon(Icons.close),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black45,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('SPRINT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                    child: const Text(
+                      'SPRINT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       height: 12,
