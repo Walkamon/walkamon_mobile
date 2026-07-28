@@ -103,9 +103,6 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      'Overlay rebuild countdown=$countdown time=${DateTime.now().toUtc()}',
-    );
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
