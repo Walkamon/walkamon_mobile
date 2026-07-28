@@ -162,6 +162,56 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     });
   }
 
+  Future<void> _onCloseRacePressed() async {
+    final provider = context.read<PvpProvider>();
+    final isRacing =
+        provider.matchmakingState == PvpMatchmakingState.running ||
+        provider.matchmakingState == PvpMatchmakingState.countdown;
+
+    if (!isRacing || provider.isRaceFinished) {
+      _resetGame();
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thoát trận?'),
+        content: const Text(
+          'Nếu thoát bây giờ bạn sẽ nhận kết quả THẤT BẠI và đối thủ thắng.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Ở lại'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Thoát & nhận thua'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _gameState = 'finished';
+      _isLoadingResult = true;
+    });
+
+    await provider.forfeitMatch();
+    if (!mounted) return;
+
+    setState(() {
+      _isLoadingResult = false;
+      _gameState = 'finished';
+      _opponentName = provider.currentOpponentName.isNotEmpty
+          ? provider.currentOpponentName
+          : _opponentName;
+    });
+  }
+
   Future<void> _ensureMatchResultLoaded(PvpProvider provider) async {
     final matchId = provider.activeMatchId;
     if (matchId == null || matchId.isEmpty) return;
@@ -194,6 +244,10 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
     final currentUserId = context.watch<GameStateProvider>().user?.id ?? '';
+    if (currentUserId.isNotEmpty &&
+        pvpProvider.currentUserId != currentUserId) {
+      pvpProvider.setCurrentUserId(currentUserId);
+    }
 
     if (_lastObservedMatchmakingState != pvpProvider.matchmakingState) {
       _lastObservedMatchmakingState = pvpProvider.matchmakingState;
@@ -293,8 +347,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             ),
             onShowMatchHistory: () => showMatchHistoryModal(
               context,
-              pvpProvider.matchHistory,
-              currentUserId,
+              currentUserId: currentUserId,
             ),
           )
         else
@@ -305,7 +358,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             opponentName: pvpProvider.currentOpponentName,
             racePhase: pvpProvider.racePhase,
             isFinished: pvpProvider.isRaceFinished,
-            onClose: _resetGame,
+            onClose: _onCloseRacePressed,
           ),
 
         if (isProviderConnecting) const PvPMatchingOverlay(),
@@ -320,9 +373,13 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             result: pvpProvider.matchResult,
             isLoading:
                 _isLoadingResult ||
-                awaitingServerResult ||
-                (isProviderFinished && pvpProvider.matchResult == null),
+                (awaitingServerResult &&
+                    pvpProvider.forcedResultCode == null) ||
+                (isProviderFinished &&
+                    pvpProvider.matchResult == null &&
+                    pvpProvider.forcedResultCode == null),
             currentUserId: currentUserId,
+            forcedResultCode: pvpProvider.forcedResultCode,
             opponentName: _opponentName.isNotEmpty
                 ? _opponentName
                 : pvpProvider.currentOpponentName,

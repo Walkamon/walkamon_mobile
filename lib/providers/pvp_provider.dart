@@ -524,6 +524,80 @@ class PvpProvider extends ChangeNotifier {
   List<PvpMatchResponse> _matchHistory = [];
   List<PvpMatchResponse> get matchHistory => _matchHistory;
 
+  int _historyPage = 1;
+  int _historyTotal = 0;
+  bool _historyLoading = false;
+  bool _historyLoadingMore = false;
+  String _historyMatchType = '';
+  String _historyResult = '';
+  bool _historyIncludeActive = false;
+
+  int get historyPage => _historyPage;
+  int get historyTotal => _historyTotal;
+  int get historyPageSize => 20;
+  int get historyTotalPages =>
+      _historyTotal == 0 ? 1 : (_historyTotal / historyPageSize).ceil();
+  bool get historyLoading => _historyLoading;
+  bool get historyLoadingMore => _historyLoadingMore;
+  bool get historyHasMore => _matchHistory.length < _historyTotal;
+  String get historyMatchType => _historyMatchType;
+  String get historyResultFilter => _historyResult;
+
+  /// UC-70 — load / refresh / paginate match history.
+  Future<void> loadMatchHistory({
+    bool refresh = false,
+    int? page,
+    String? matchType,
+    String? result,
+    DateTime? from,
+    DateTime? to,
+    bool? includeActive,
+  }) async {
+    if (_historyLoading) return;
+    _historyLoading = true;
+    if (matchType != null) _historyMatchType = matchType;
+    if (result != null) _historyResult = result;
+    if (includeActive != null) _historyIncludeActive = includeActive;
+
+    int targetPage = page ?? (refresh ? 1 : _historyPage);
+    if (targetPage < 1) targetPage = 1;
+    notifyListeners();
+
+    try {
+      final response = await _pvpDatasource.getMatchHistory(
+        page: targetPage,
+        pageSize: historyPageSize,
+        matchType: _historyMatchType,
+        result: _historyResult,
+        from: from,
+        to: to,
+        includeActive: _historyIncludeActive,
+      );
+
+      if (response.success && response.data != null) {
+        final pageData = response.data!;
+        _historyPage = pageData.page;
+        _historyTotal = pageData.total;
+        _matchHistory = List<PvpMatchResponse>.from(pageData.items);
+      } else {
+        _matchHistory = [];
+        _historyTotal = 0;
+        debugPrint(
+          '[PvP] loadMatchHistory failed status=${response.status} '
+          'message=${response.message}',
+        );
+      }
+    } catch (e, st) {
+      debugPrint('[PvP] loadMatchHistory error: $e\n$st');
+      _matchHistory = [];
+      _historyTotal = 0;
+    } finally {
+      _historyLoading = false;
+      _historyLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
   List<FriendsResponse> _friendsList = [];
   List<FriendsResponse> get friendsList => _friendsList;
 
@@ -559,24 +633,157 @@ class PvpProvider extends ChangeNotifier {
   PvpMatchResultResponse? _matchResult;
   PvpMatchResultResponse? get matchResult => _matchResult;
 
+  /// Used when server result is not ready yet after local forfeit.
+  String? _forcedResultCode;
+  String? get forcedResultCode => _forcedResultCode;
+
+  String? _currentUserId;
+  String? get currentUserId => _currentUserId;
+
+  void setCurrentUserId(String? userId) {
+    _currentUserId = userId;
+  }
+
   String? _currentInviteId;
   String? get currentInviteId => _currentInviteId;
 
   String? get activeMatchId => _activeMatchId;
 
+  bool _hasServerProgress = false;
+
   String get currentOpponentName {
-    for (final participant
-        in _currentMatch?.participants ?? <PvpParticipantResponse>[]) {
+    final participants =
+        _currentMatch?.participants ?? <PvpParticipantResponse>[];
+    for (final participant in participants) {
+      if (_isMyParticipant(participant)) continue;
       final name = participant.displayName?.trim();
       if (name != null && name.isNotEmpty) {
         return name;
       }
     }
+    for (final participant in participants) {
+      if (_isMyParticipant(participant)) continue;
+      final id = participant.userId ?? participant.botProfileId;
+      if (id != null && id.isNotEmpty) return id;
+    }
     return '';
+  }
+
+  bool _isMyParticipant(PvpParticipantResponse participant) {
+    final userId = _currentUserId;
+    if (userId != null &&
+        userId.isNotEmpty &&
+        participant.userId != null &&
+        participant.userId == userId) {
+      return true;
+    }
+    return false;
+  }
+
+  PvpParticipantResponse? get _myParticipant {
+    final participants = _currentMatch?.participants;
+    if (participants == null) return null;
+    for (final p in participants) {
+      if (_isMyParticipant(p)) return p;
+    }
+    for (final p in participants) {
+      if (p.participantTypeCode.toLowerCase() == 'user' &&
+          p.userId != null &&
+          p.userId!.isNotEmpty) {
+        return p;
+      }
+    }
+    return null;
   }
 
   void _setCurrentMatchSnapshot(PvpMatchResponse match) {
     _currentMatch = match;
+    _applyHudFromMatch(match);
+  }
+
+  void _applyHudFromMatch(PvpMatchResponse match) {
+    PvpParticipantResponse? me;
+    PvpParticipantResponse? opponent;
+    for (final p in match.participants) {
+      if (_isMyParticipant(p)) {
+        me = p;
+      } else {
+        opponent ??= p;
+      }
+    }
+    if (me == null) {
+      for (final p in match.participants) {
+        if (p.participantTypeCode.toLowerCase() == 'user' &&
+            p.userId != null &&
+            p.userId!.isNotEmpty) {
+          me = p;
+          break;
+        }
+      }
+    }
+    if (opponent == null || identical(opponent, me)) {
+      for (final p in match.participants) {
+        if (!identical(p, me)) {
+          opponent = p;
+          break;
+        }
+      }
+    }
+
+    final myDist = me?.distanceUnits ?? 0;
+    final oppDist = opponent?.distanceUnits ?? 0;
+    if (myDist <= 0 && oppDist <= 0) {
+      return;
+    }
+
+    _hasServerProgress = true;
+    final scale = math.max(math.max(myDist, oppDist), 1);
+    _myProgress = ((myDist / scale) * 100).clamp(0, 100).toDouble();
+    _opponentProgress = ((oppDist / scale) * 100).clamp(0, 100).toDouble();
+  }
+
+  void _applyProgressDetails(Map<String, dynamic> details) {
+    final playerId =
+        details['playerId']?.toString() ??
+        details['matchPlayerId']?.toString();
+    final distance = (details['distanceUnits'] as num?)?.toInt();
+    if (playerId == null || playerId.isEmpty || distance == null) {
+      return;
+    }
+
+    final match = _currentMatch;
+    if (match == null) return;
+
+    final updated = match.participants.map((p) {
+      if (p.matchPlayerId == playerId) {
+        return p.copyWith(
+          distanceUnits: distance,
+          validatedSteps: (details['validatedSteps'] as num?)?.toInt(),
+          speedMultiplierBps: (details['speedMultiplierBps'] as num?)?.toInt(),
+          score: (details['score'] as num?)?.toInt(),
+        );
+      }
+      return p;
+    }).toList();
+
+    _currentMatch = PvpMatchResponse(
+      matchId: match.matchId,
+      matchTypeCode: match.matchTypeCode,
+      statusCode: match.statusCode,
+      sourceCode: match.sourceCode,
+      serverTime: match.serverTime,
+      createdAt: match.createdAt,
+      countdownStartsAt: match.countdownStartsAt,
+      countdownEndsAt: match.countdownEndsAt,
+      countdownSecondsRemaining: match.countdownSecondsRemaining,
+      startedAt: match.startedAt,
+      endedAt: match.endedAt,
+      settlementEndsAt: match.settlementEndsAt,
+      lastEventSequence: match.lastEventSequence,
+      participants: updated,
+    );
+    _applyHudFromMatch(_currentMatch!);
+    notifyListeners();
   }
 
   void _logSignalREvent(
@@ -746,6 +953,7 @@ class PvpProvider extends ChangeNotifier {
     _myProgress = 0.0;
     _opponentProgress = 0.0;
     _isRaceFinished = false;
+    _hasServerProgress = false;
     _stopRaceTicker();
     _stopSettlementPoll();
   }
@@ -762,8 +970,12 @@ class PvpProvider extends ChangeNotifier {
     final totalMs = _raceDuration.inMilliseconds;
     final progress = totalMs == 0 ? 0.0 : elapsedMs / totalMs;
     _raceTimeProgress = progress.clamp(0.0, 1.0);
-    _myProgress = _raceTimeProgress * 100.0;
-    _opponentProgress = math.min(100.0, _raceTimeProgress * 98.0);
+
+    // UC-72: HUD must come from server distance/progress, not local invention.
+    if (!_hasServerProgress) {
+      _myProgress = _raceTimeProgress * 100.0;
+      _opponentProgress = math.min(100.0, _raceTimeProgress * 98.0);
+    }
   }
 
   void _startRaceTicker() {
@@ -868,6 +1080,7 @@ class PvpProvider extends ChangeNotifier {
     _currentMatch = null;
     _activeMatchId = null;
     _matchResult = null;
+    _forcedResultCode = null;
     _hasMatchRoomJoined = false;
     _serverOffset = null;
     _countdownStartsAt = null;
@@ -926,7 +1139,7 @@ class PvpProvider extends ChangeNotifier {
         _activityDatasource.getStatistic(ActivityStatsRange.daily),
         _friendsDatasource.getFriends(),
         _pvpDatasource.getIncomingInvites(),
-        _pvpDatasource.getMatchHistory(),
+        _pvpDatasource.getMatchHistory(includeActive: false),
       ]);
 
       final petNameResp = futures[0] as dynamic;
@@ -961,7 +1174,10 @@ class PvpProvider extends ChangeNotifier {
       }
 
       if (historyResp.success && historyResp.data != null) {
-        _matchHistory = historyResp.data!;
+        final page = historyResp.data as PvpMatchHistoryPage;
+        _matchHistory = List<PvpMatchResponse>.from(page.items);
+        _historyPage = page.page;
+        _historyTotal = page.total;
       }
     } catch (e) {
       debugPrint('Error fetching PvP waiting room data: $e');
@@ -1034,7 +1250,13 @@ class PvpProvider extends ChangeNotifier {
 
     if (normalizedStatus == 'running') {
       _stopCountdownSchedule();
-      startRace(reason: 'match snapshot running', matchId: matchId);
+      if (_matchmakingState != PvpMatchmakingState.running ||
+          _raceStartedAt == null) {
+        startRace(reason: 'match snapshot running', matchId: matchId);
+      } else {
+        _applyHudFromMatch(match);
+        notifyListeners();
+      }
       return;
     }
 
@@ -1265,8 +1487,16 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (eventType == 'match.progress') {
-      if (matchId != null && matchId.isNotEmpty) {
-        await _joinAndSyncMatch(matchId);
+      final details = payload['details'];
+      if (details is Map) {
+        _applyProgressDetails(Map<String, dynamic>.from(details));
+      } else if (matchId != null && matchId.isNotEmpty) {
+        // Authoritative resync without restarting the race clock.
+        final response = await _pvpDatasource.getMatch(matchId);
+        if (response.success && response.data != null) {
+          _setCurrentMatchSnapshot(response.data!);
+          notifyListeners();
+        }
       }
       return;
     }
@@ -1460,6 +1690,143 @@ class PvpProvider extends ChangeNotifier {
       'status=${response.status} message=${response.message}',
     );
     return false;
+  }
+
+  /// Quit mid-race via X: current user loses, opponent wins.
+  Future<bool> forfeitMatch() async {
+    final matchId = _activeMatchId;
+    if (matchId == null || matchId.isEmpty) {
+      return false;
+    }
+    if (_matchmakingState == PvpMatchmakingState.finished ||
+        _matchmakingState == PvpMatchmakingState.cancelled) {
+      return true;
+    }
+
+    _stopRaceTicker();
+    _stopSettlementPoll();
+    _isRaceFinished = true;
+    _forcedResultCode = 'lose';
+    notifyListeners();
+
+    final response = await _pvpDatasource.forfeitMatch(matchId);
+    if (response.success && response.data != null) {
+      _setCurrentMatchSnapshot(response.data!);
+      final status = response.data!.statusCode.toLowerCase();
+      if (status == 'finished') {
+        _updateState(PvpMatchmakingState.finished, reason: 'forfeit finished');
+        await loadMatchResult(matchId);
+        if (_matchResult != null) {
+          _forcedResultCode = null;
+        } else {
+          _applyLocalForfeitResult();
+        }
+        return true;
+      }
+    }
+
+    // 409 = state already moved; resync authoritative match/result.
+    if (response.status == 409 || response.success) {
+      await _joinAndSyncMatch(matchId);
+      if (_matchmakingState == PvpMatchmakingState.finished) {
+        if (_matchResult == null) {
+          await loadMatchResult(matchId);
+        }
+        if (_matchResult != null) {
+          _forcedResultCode = null;
+        } else {
+          _applyLocalForfeitResult();
+        }
+        return true;
+      }
+    }
+
+    debugPrint(
+      '[PvP] forfeitMatch API status=${response.status} '
+      'message=${response.message} — applying local lose + LeaveMatch',
+    );
+
+    try {
+      await _signalRService.leaveMatch(matchId);
+    } catch (e) {
+      debugPrint('[PvP] LeaveMatch after forfeit failed: $e');
+    }
+
+    _applyLocalForfeitResult();
+    _updateState(PvpMatchmakingState.finished, reason: 'forfeit local');
+    // Still try UC-69 in case BE ended the match from disconnect.
+    unawaited(loadMatchResult(matchId).then((_) {
+      if (_matchResult != null) {
+        _forcedResultCode = null;
+        notifyListeners();
+      }
+    }));
+    return true;
+  }
+
+  void _applyLocalForfeitResult() {
+    final match = _currentMatch;
+    if (match == null) {
+      _forcedResultCode = 'lose';
+      return;
+    }
+
+    final me = _myParticipant;
+    final updatedParticipants = match.participants.map((p) {
+      final isMe = me != null
+          ? ((p.matchPlayerId != null &&
+                  me.matchPlayerId != null &&
+                  p.matchPlayerId == me.matchPlayerId) ||
+              (p.userId != null &&
+                  me.userId != null &&
+                  p.userId == me.userId) ||
+              identical(p, me))
+          : _isMyParticipant(p);
+      return p.copyWith(resultCode: isMe ? 'lose' : 'win');
+    }).toList();
+
+    // Ensure exactly one lose for me if identification failed.
+    final hasLose = updatedParticipants.any(
+      (p) => p.resultCode?.toLowerCase() == 'lose',
+    );
+    final participants = hasLose
+        ? updatedParticipants
+        : [
+            for (var i = 0; i < updatedParticipants.length; i++)
+              i == 0
+                  ? updatedParticipants[i].copyWith(resultCode: 'lose')
+                  : updatedParticipants[i].copyWith(resultCode: 'win'),
+          ];
+
+    final forfeitedMatch = PvpMatchResponse(
+      matchId: match.matchId,
+      matchTypeCode: match.matchTypeCode,
+      statusCode: 'finished',
+      sourceCode: match.sourceCode,
+      serverTime: match.serverTime,
+      createdAt: match.createdAt,
+      countdownStartsAt: match.countdownStartsAt,
+      countdownEndsAt: match.countdownEndsAt,
+      countdownSecondsRemaining: match.countdownSecondsRemaining,
+      startedAt: match.startedAt,
+      endedAt: DateTime.now().toUtc(),
+      settlementEndsAt: match.settlementEndsAt,
+      lastEventSequence: match.lastEventSequence,
+      participants: participants,
+    );
+
+    _currentMatch = forfeitedMatch;
+    _matchResult = PvpMatchResultResponse(
+      match: forfeitedMatch,
+      mmrBefore: 0,
+      mmrDelta: 0,
+      mmrAfter: 0,
+      tierChanged: false,
+      canClaimReward: false,
+      claimedAt: null,
+    );
+    _forcedResultCode = 'lose';
+    notifyListeners();
   }
 
   Future<void> startMatchmaking() async {

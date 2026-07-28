@@ -9,30 +9,50 @@ class PvpSprintDatasource {
 
   final ApiClient _apiClient;
 
-  Future<ApiResponse<List<PvpMatchResponse>>> getMatchHistory({
+  /// UC-70 — paginated match history.
+  /// Default `includeActive=false` → only `finished` and `cancelled`.
+  Future<ApiResponse<PvpMatchHistoryPage>> getMatchHistory({
     int page = 1,
     int pageSize = 20,
-    String matchType = 'ranked',
+    String matchType = '',
     String result = '',
+    DateTime? from,
+    DateTime? to,
     bool includeActive = false,
   }) async {
-    return _apiClient.get<List<PvpMatchResponse>>(
+    return _apiClient.get<PvpMatchHistoryPage>(
       ApiConstants.pvpSprintMatches,
       queryParameters: {
         'page': page,
         'pageSize': pageSize,
-        'matchType': matchType,
+        if (matchType.isNotEmpty) 'matchType': matchType,
         if (result.isNotEmpty) 'result': result,
+        if (from != null) 'from': from.toUtc().toIso8601String(),
+        if (to != null) 'to': to.toUtc().toIso8601String(),
         'includeActive': includeActive.toString(),
       },
       fromJsonT: (json) {
-        if (json is Map<String, dynamic> && json['items'] != null) {
-          final items = json['items'] as List;
-          return items
-              .map((e) => PvpMatchResponse.fromJson(e as Map<String, dynamic>))
-              .toList();
+        if (json is Map<String, dynamic>) {
+          return PvpMatchHistoryPage.fromJson(json);
         }
-        return [];
+        if (json is List) {
+          return PvpMatchHistoryPage(
+            page: page,
+            pageSize: pageSize,
+            total: json.length,
+            items: json
+                .map(
+                  (e) => PvpMatchResponse.fromJson(e as Map<String, dynamic>),
+                )
+                .toList(),
+          );
+        }
+        return PvpMatchHistoryPage(
+          page: page,
+          pageSize: pageSize,
+          total: 0,
+          items: const [],
+        );
       },
     );
   }
@@ -139,6 +159,15 @@ class PvpSprintDatasource {
   Future<ApiResponse<PvpMatchResponse>> getMatch(String matchId) async {
     return _apiClient.get<PvpMatchResponse>(
       ApiConstants.pvpSprintMatchById(matchId),
+      fromJsonT: (json) =>
+          PvpMatchResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  /// Forfeit / leave an active sprint match. Caller is marked lose; opponent win.
+  Future<ApiResponse<PvpMatchResponse>> forfeitMatch(String matchId) async {
+    return _apiClient.post<PvpMatchResponse>(
+      '${ApiConstants.pvpSprintMatchById(matchId)}/forfeit',
       fromJsonT: (json) =>
           PvpMatchResponse.fromJson(json as Map<String, dynamic>),
     );

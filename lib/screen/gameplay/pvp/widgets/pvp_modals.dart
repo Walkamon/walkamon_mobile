@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/pvp_models.dart';
-import '../../../../data/models/friends_response.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../../data/models/friends_response.dart';
+import '../../../../data/models/pvp_models.dart';
+import '../../../../providers/pvp_provider.dart';
 
 void showIncomingChallengesModal(BuildContext context, List<PvpInviteResponse> challenges, Function(String, String) onAccept, Function(String) onReject) {
   showModalBottomSheet(
@@ -40,7 +42,7 @@ class _IncomingChallengesContent extends StatelessWidget {
             width: 48,
             height: 6,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -60,13 +62,13 @@ class _IncomingChallengesContent extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: challenges.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final challenge = challenges[index];
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: theme.dividerColor),
                     ),
@@ -132,31 +134,91 @@ class _IncomingChallengesContent extends StatelessWidget {
   }
 }
 
-void showMatchHistoryModal(BuildContext context, List<PvpMatchResponse> history, String currentUserId) {
+void showMatchHistoryModal(
+  BuildContext context, {
+  required String currentUserId,
+}) {
+  final pvpProvider = context.read<PvpProvider>();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useRootNavigator: false,
     backgroundColor: Colors.transparent,
-    builder: (context) => _MatchHistoryContent(history: history, currentUserId: currentUserId),
+    builder: (sheetContext) => ChangeNotifierProvider<PvpProvider>.value(
+      value: pvpProvider,
+      child: _MatchHistorySheet(currentUserId: currentUserId),
+    ),
   );
 }
 
-class _MatchHistoryContent extends StatelessWidget {
-  final List<PvpMatchResponse> history;
+class _MatchHistorySheet extends StatefulWidget {
   final String currentUserId;
 
-  const _MatchHistoryContent({required this.history, required this.currentUserId});
+  const _MatchHistorySheet({required this.currentUserId});
+
+  @override
+  State<_MatchHistorySheet> createState() => _MatchHistorySheetState();
+}
+
+class _MatchHistorySheetState extends State<_MatchHistorySheet> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<PvpProvider>().loadMatchHistory(page: 1);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  String _matchTypeLabel(String code) {
+    switch (code.toLowerCase()) {
+      case 'ranked':
+        return 'Xếp hạng';
+      case 'friendly':
+        return 'Bạn bè';
+      case 'event':
+        return 'Sự kiện';
+      default:
+        return code.isEmpty ? code : code.toUpperCase();
+    }
+  }
+
+  String _sourceLabel(String? source) {
+    switch ((source ?? '').toLowerCase()) {
+      case 'bot':
+        return 'Bot';
+      case 'matchmaking':
+        return 'Ghép trận';
+      case 'invite':
+        return 'Mời';
+      default:
+        return source ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final provider = context.watch<PvpProvider>();
+    final history = provider.matchHistory;
+
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.all(24),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -164,152 +226,366 @@ class _MatchHistoryContent extends StatelessWidget {
             width: 48,
             height: 6,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Lịch sử thi đấu',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: history.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final match = history[index];
-
-                PvpParticipantResponse? me;
-                PvpParticipantResponse? opponent;
-                for (final p in match.participants) {
-                  final isMe = currentUserId.isNotEmpty &&
-                      p.userId != null &&
-                      p.userId == currentUserId;
-                  if (isMe) {
-                    me = p;
-                  } else {
-                    opponent ??= p;
-                  }
-                }
-                if (me == null) {
-                  for (final p in match.participants) {
-                    if (p.userId != null && p.userId!.isNotEmpty) {
-                      me = p;
-                      break;
-                    }
-                  }
-                }
-                if (opponent == null ||
-                    (me != null &&
-                        opponent.userId != null &&
-                        opponent.userId == me.userId)) {
-                  for (final p in match.participants) {
-                    if (!identical(p, me)) {
-                      opponent = p;
-                      break;
-                    }
-                  }
-                }
-
-                final resultCode = me?.resultCode?.toLowerCase();
-                final isWin = resultCode == 'win';
-                final isDraw = resultCode == 'draw';
-                final resultLabel = isWin
-                    ? 'CHIẾN THẮNG'
-                    : isDraw
-                    ? 'HÒA'
-                    : resultCode == 'lose'
-                    ? 'THẤT BẠI'
-                    : (match.statusCode.toLowerCase() == 'cancelled'
-                        ? 'HỦY'
-                        : match.statusCode.toUpperCase());
-
-                final oppName =
-                    opponent?.displayName ?? opponent?.userId ?? 'Unknown';
-                final dateStr = match.createdAt != null
-                    ? DateFormat('dd/MM HH:mm').format(match.createdAt!)
-                    : '';
-                final matchType = match.matchTypeCode.toUpperCase();
-
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: theme.dividerColor.withOpacity(0.5),
-                    ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Lịch sử thi đấu',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isWin
-                              ? Colors.amber.withOpacity(0.2)
-                              : theme.colorScheme.surfaceContainerHighest,
-                          border: isWin
-                              ? null
-                              : Border.all(color: theme.dividerColor),
-                        ),
-                        child: Icon(
-                          isWin
-                              ? Icons.emoji_events
-                              : isDraw
-                              ? Icons.handshake
-                              : Icons.close,
-                          color: isWin
-                              ? Colors.amber
-                              : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (provider.historyTotal > 0)
+                Text(
+                  '${history.length}/${provider.historyTotal}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              IconButton(
+                tooltip: 'Làm mới',
+                onPressed: provider.historyLoading
+                    ? null
+                    : () => provider.loadMatchHistory(page: 1),
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: 'Tất cả',
+                  selected: provider.historyMatchType.isEmpty,
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    matchType: '',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Xếp hạng',
+                  selected: provider.historyMatchType == 'ranked',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    matchType: 'ranked',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Bạn bè',
+                  selected: provider.historyMatchType == 'friendly',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    matchType: 'friendly',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Sự kiện',
+                  selected: provider.historyMatchType == 'event',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    matchType: 'event',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: 'Mọi kết quả',
+                  selected: provider.historyResultFilter.isEmpty,
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    result: '',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Thắng',
+                  selected: provider.historyResultFilter == 'win',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    result: 'win',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Hủy',
+                  selected: provider.historyResultFilter == 'cancelled',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    result: 'cancelled',
+                  ),
+                ),
+                _FilterChip(
+                  label: 'Thua',
+                  selected: provider.historyResultFilter == 'lose',
+                  onSelected: () => provider.loadMatchHistory(
+                    page: 1,
+                    result: 'lose',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Flexible(
+            child: provider.historyLoading
+                ? const Center(child: CircularProgressIndicator())
+                : history.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Text(
+                        'Chưa có trận nào',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                  )
+                : ListView.separated(
+                    controller: _scrollController,
+                    shrinkWrap: true,
+                    itemCount: history.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final match = history[index];
+                      PvpParticipantResponse? me;
+                      PvpParticipantResponse? opponent;
+                      for (final p in match.participants) {
+                        final isMe =
+                            widget.currentUserId.isNotEmpty &&
+                            p.userId != null &&
+                            p.userId == widget.currentUserId;
+                        if (isMe) {
+                          me = p;
+                        } else {
+                          opponent ??= p;
+                        }
+                      }
+                      if (me == null) {
+                        for (final p in match.participants) {
+                          if (p.participantTypeCode.toLowerCase() == 'user' &&
+                              p.userId != null &&
+                              p.userId!.isNotEmpty) {
+                            me = p;
+                            break;
+                          }
+                        }
+                      }
+                      if (opponent == null || identical(opponent, me)) {
+                        for (final p in match.participants) {
+                          if (!identical(p, me)) {
+                            opponent = p;
+                            break;
+                          }
+                        }
+                      }
+
+                      final resultCode = me?.resultCode?.toLowerCase();
+                      final isWin = resultCode == 'win';
+                      final isDraw = resultCode == 'draw';
+                      final isCancelled =
+                          match.statusCode.toLowerCase() == 'cancelled' ||
+                          resultCode == 'cancelled';
+                      final resultLabel = isWin
+                          ? 'CHIẾN THẮNG'
+                          : isCancelled
+                          ? 'HỦY'
+                          : resultCode == 'lose'
+                          ? 'THẤT BẠI'
+                          : isDraw
+                          ? 'HÒA'
+                          : match.statusCode.toUpperCase();
+
+                      final oppName =
+                          opponent?.displayName ??
+                          (opponent?.participantTypeCode.toLowerCase() == 'bot'
+                              ? 'Bot'
+                              : null) ??
+                          opponent?.userId ??
+                          'Đối thủ';
+                      final when = match.endedAt ?? match.createdAt;
+                      final dateStr = when != null
+                          ? DateFormat('dd/MM HH:mm').format(when.toLocal())
+                          : '';
+                      final typeLabel = _matchTypeLabel(match.matchTypeCode);
+                      final sourceLabel = _sourceLabel(match.sourceCode);
+                      final meta = [
+                        if (dateStr.isNotEmpty) dateStr,
+                        if (typeLabel.isNotEmpty) typeLabel,
+                        if (sourceLabel.isNotEmpty) sourceLabel,
+                      ].join(' · ');
+
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: theme.dividerColor.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              oppName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isWin
+                                    ? Colors.amber.withValues(alpha: 0.2)
+                                    : theme
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                border: isWin
+                                    ? null
+                                    : Border.all(color: theme.dividerColor),
+                              ),
+                              child: Icon(
+                                isWin
+                                    ? Icons.emoji_events
+                                    : isCancelled
+                                    ? Icons.block
+                                    : isDraw
+                                    ? Icons.handshake
+                                    : Icons.close,
+                                color: isWin
+                                    ? Colors.amber
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    oppName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  if (meta.isNotEmpty)
+                                    Text(
+                                      meta,
+                                      style: TextStyle(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                             Text(
-                              dateStr.isEmpty
-                                  ? matchType
-                                  : '$dateStr · $matchType',
+                              resultLabel,
                               style: TextStyle(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                                color: isWin
+                                    ? Colors.amber
+                                    : theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Text(
-                        resultLabel,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                          color: isWin
-                              ? Colors.amber
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
+          if (provider.historyTotal > 20) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Trang trước',
+                  onPressed:
+                      (provider.historyLoading || provider.historyPage <= 1)
+                          ? null
+                          : () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0);
+                              }
+                              provider.loadMatchHistory(
+                                page: provider.historyPage - 1,
+                              );
+                            },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Trang ${provider.historyPage} / ${provider.historyTotalPages}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Trang sau',
+                  onPressed:
+                      (provider.historyLoading ||
+                              provider.historyPage >=
+                                  provider.historyTotalPages)
+                          ? null
+                          : () {
+                              if (_scrollController.hasClients) {
+                                _scrollController.jumpTo(0);
+                              }
+                              provider.loadMatchHistory(
+                                page: provider.historyPage + 1,
+                              );
+                            },
+                ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onSelected(),
+        selectedColor: theme.colorScheme.primaryContainer,
+        labelStyle: TextStyle(
+          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -348,7 +624,7 @@ class _FriendsModalContent extends StatelessWidget {
             width: 48,
             height: 6,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -393,14 +669,13 @@ class _FriendsModalContent extends StatelessWidget {
 
   Widget _buildFriendItem(BuildContext context, FriendsResponse friend, Function(String) onInvite) {
     final theme = Theme.of(context);
-    final isOnline = true; // Hardcoded since API missing isOnline
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isOnline ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -408,25 +683,24 @@ class _FriendsModalContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(friend.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isOnline ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant)),
-                Text('Lv.15', style: TextStyle(color: isOnline ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(friend.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface)),
+                Text('Lv.15', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
               ],
             ),
           ),
-          if (isOnline)
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                onInvite(friend.username);
-              },
-              icon: const Icon(Icons.sports_kabaddi, size: 16),
-              label: const Text('Thách đấu'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.primary,
-                elevation: 0,
-              ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              onInvite(friend.username);
+            },
+            icon: const Icon(Icons.sports_kabaddi, size: 16),
+            label: const Text('Thách đấu'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primaryContainer,
+              foregroundColor: theme.colorScheme.primary,
+              elevation: 0,
             ),
+          ),
         ],
       ),
     );

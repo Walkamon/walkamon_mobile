@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class PvPRacingEnvironment extends StatefulWidget {
   final bool isMoving;
@@ -7,7 +8,7 @@ class PvPRacingEnvironment extends StatefulWidget {
   final String opponentName;
   final String racePhase;
   final bool isFinished;
-  final VoidCallback onClose;
+  final FutureOr<void> Function() onClose;
 
   const PvPRacingEnvironment({
     super.key,
@@ -152,7 +153,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                       ),
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 100),
-                        left: -3 + (widget.opponentProgress / 100) * (width - 100),
+                        left: 18 + (widget.opponentProgress / 100) * (width - 100),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [

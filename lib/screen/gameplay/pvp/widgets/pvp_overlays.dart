@@ -232,6 +232,7 @@ class PvPFinishedOverlay extends StatelessWidget {
   final PvpMatchResultResponse? result;
   final bool isLoading;
   final String? currentUserId;
+  final String? forcedResultCode;
   final String opponentName;
   final VoidCallback onContinue;
   final Future<void> Function()? onClaimReward;
@@ -242,6 +243,7 @@ class PvPFinishedOverlay extends StatelessWidget {
     required this.result,
     required this.isLoading,
     required this.currentUserId,
+    this.forcedResultCode,
     required this.opponentName,
     required this.onContinue,
     this.onClaimReward,
@@ -279,6 +281,11 @@ class PvPFinishedOverlay extends StatelessWidget {
       case 'draw':
         return 'Hai bên ngang điểm';
       case 'lose':
+        if (forcedResultCode == 'lose') {
+          return opponentName.isEmpty
+              ? 'Bạn đã thoát trận và nhận thua.'
+              : 'Bạn đã thoát trận. $opponentName thắng.';
+        }
         return 'Cố gắng thêm chút nữa nhé!';
       default:
         return 'Đang tải kết quả từ máy chủ...';
@@ -293,7 +300,11 @@ class PvPFinishedOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resultCode = result?.resultCodeForUser(currentUserId);
+    final resultCode =
+        (forcedResultCode?.isNotEmpty == true
+            ? forcedResultCode!.toLowerCase()
+            : null) ??
+        result?.resultCodeForUser(currentUserId);
     final isWin = resultCode == 'win';
     final isDraw = resultCode == 'draw';
     final rank = result?.rankAfter ?? result?.rankBefore;
@@ -303,7 +314,8 @@ class PvPFinishedOverlay extends StatelessWidget {
         result != null &&
         result!.canClaimReward &&
         result!.claimedAt == null &&
-        onClaimReward != null;
+        onClaimReward != null &&
+        forcedResultCode == null;
 
     return Container(
       color: Colors.black87,
