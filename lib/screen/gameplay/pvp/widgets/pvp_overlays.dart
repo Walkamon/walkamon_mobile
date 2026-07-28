@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../data/models/pvp_models.dart';
 
 class PvPMatchingOverlay extends StatelessWidget {
   const PvPMatchingOverlay({super.key});
@@ -228,20 +229,82 @@ class PvPMatchSuccessOverlay extends StatelessWidget {
 }
 
 class PvPFinishedOverlay extends StatelessWidget {
-  final bool isWin;
+  final PvpMatchResultResponse? result;
+  final bool isLoading;
+  final String? currentUserId;
   final String opponentName;
   final VoidCallback onContinue;
+  final Future<void> Function()? onClaimReward;
+  final bool isClaiming;
 
   const PvPFinishedOverlay({
     super.key,
-    required this.isWin,
+    required this.result,
+    required this.isLoading,
+    required this.currentUserId,
     required this.opponentName,
     required this.onContinue,
+    this.onClaimReward,
+    this.isClaiming = false,
   });
+
+  Color? _parseHexColor(String? hex) {
+    if (hex == null || hex.isEmpty) return null;
+    final normalized = hex.startsWith('#') ? hex.substring(1) : hex;
+    if (normalized.length != 6 && normalized.length != 8) return null;
+    final value = int.tryParse(normalized, radix: 16);
+    if (value == null) return null;
+    return Color(normalized.length == 6 ? (0xFF000000 | value) : value);
+  }
+
+  String _titleForResult(String? resultCode) {
+    switch (resultCode) {
+      case 'win':
+        return 'Chiến thắng!';
+      case 'draw':
+        return 'Hòa!';
+      case 'lose':
+        return 'Thất bại';
+      default:
+        return 'Kết quả trận đấu';
+    }
+  }
+
+  String _subtitleForResult(String? resultCode) {
+    switch (resultCode) {
+      case 'win':
+        return opponentName.isEmpty
+            ? 'Bạn đã thắng trận sprint!'
+            : 'Bạn đã đánh bại $opponentName';
+      case 'draw':
+        return 'Hai bên ngang điểm';
+      case 'lose':
+        return 'Cố gắng thêm chút nữa nhé!';
+      default:
+        return 'Đang tải kết quả từ máy chủ...';
+    }
+  }
+
+  String _formatMmrDelta(int delta) {
+    if (delta > 0) return '+$delta';
+    return '$delta';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final resultCode = result?.resultCodeForUser(currentUserId);
+    final isWin = resultCode == 'win';
+    final isDraw = resultCode == 'draw';
+    final rank = result?.rankAfter ?? result?.rankBefore;
+    final rankColor =
+        _parseHexColor(rank?.colorHex) ?? theme.colorScheme.primary;
+    final canClaim =
+        result != null &&
+        result!.canClaimReward &&
+        result!.claimedAt == null &&
+        onClaimReward != null;
+
     return Container(
       color: Colors.black87,
       alignment: Alignment.center,
@@ -249,109 +312,183 @@ class PvPFinishedOverlay extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isWin) ...[
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.emoji_events,
-                    size: 64,
-                    color: Colors.amber,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Chiến thắng!',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.bodyMedium,
-                    children: [
-                      const TextSpan(text: 'Mochi đã đánh bại '),
-                      TextSpan(
-                        text: opponentName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildRewardCard(
-                      context,
-                      'Thưởng',
-                      '+50',
-                      Icons.water_drop,
-                      Colors.blue,
-                    ),
-                    const SizedBox(width: 16),
-                    _buildRewardCard(
-                      context,
-                      'Gắn kết',
-                      '+10',
-                      Icons.favorite,
-                      Colors.red,
-                    ),
-                  ],
-                ),
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '#2',
-                    style: TextStyle(
-                      fontSize: 48,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLoading && result == null) ...[
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Đang tải kết quả...',
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Đang chờ máy chủ chốt trận...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.grey,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Về nhì',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                ] else if (result == null) ...[
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: theme.colorScheme.error,
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text('Cố gắng thêm chút nữa nhé!'),
-              ],
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: onContinue,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Chưa lấy được kết quả trận',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Trận đã kết thúc. Thử lại sau hoặc tiếp tục.',
+                    textAlign: TextAlign.center,
+                  ),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: (isWin
+                              ? Colors.amber
+                              : isDraw
+                              ? Colors.blueGrey
+                              : Colors.grey)
+                          .withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isWin
+                          ? Icons.emoji_events
+                          : isDraw
+                          ? Icons.handshake
+                          : Icons.close,
+                      size: 64,
+                      color: isWin
+                          ? Colors.amber
+                          : isDraw
+                          ? Colors.blueGrey
+                          : Colors.grey,
                     ),
                   ),
-                  child: const Text(
-                    'Tiếp tục',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 24),
+                  Text(
+                    _titleForResult(resultCode),
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _subtitleForResult(resultCode),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (result != null) ...[
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        if (result!.isRanked) ...[
+                          _buildRewardCard(
+                            context,
+                            'MMR',
+                            _formatMmrDelta(result!.mmrDelta),
+                            Icons.trending_up,
+                            result!.mmrDelta >= 0
+                                ? Colors.amber
+                                : theme.colorScheme.error,
+                          ),
+                          _buildRewardCard(
+                            context,
+                            'MMR hiện tại',
+                            '${result!.mmrAfter}',
+                            Icons.speed,
+                            theme.colorScheme.primary,
+                          ),
+                        ],
+                        if (rank != null)
+                          _buildRewardCard(
+                            context,
+                            result!.tierChanged ? 'Rank mới' : 'Rank',
+                            rank.displayName,
+                            Icons.military_tech,
+                            rankColor,
+                          ),
+                      ],
+                    ),
+                    if (result!.claimedAt != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'Đã nhận thưởng',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ],
+                const SizedBox(height: 32),
+                if (canClaim) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: isClaiming ? null : () => onClaimReward?.call(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      child: isClaiming
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'Nhận thưởng',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: onContinue,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tiếp tục',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -366,7 +503,7 @@ class PvPFinishedOverlay extends StatelessWidget {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         color: Theme.of(
           context,
@@ -386,13 +523,14 @@ class PvPFinishedOverlay extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 20, color: color),
               const SizedBox(width: 4),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
 import 'pvp_waiting_room_screen.dart';
 import 'widgets/pvp_modals.dart';
@@ -23,6 +24,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   bool _showMatchSuccessPopup = false;
   bool _enterRacingAfterPopup = false;
   PvpMatchmakingState? _lastObservedMatchmakingState;
+  bool _isClaimingReward = false;
+  bool _isLoadingResult = false;
+  String? _resultRequestedForMatchId;
 
   @override
   void dispose() {
@@ -150,14 +154,47 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     setState(() {
       _showMatchSuccessPopup = false;
       _enterRacingAfterPopup = false;
+      _isClaimingReward = false;
+      _isLoadingResult = false;
+      _resultRequestedForMatchId = null;
       _gameState = 'waiting';
       _opponentName = '';
     });
   }
 
+  Future<void> _ensureMatchResultLoaded(PvpProvider provider) async {
+    final matchId = provider.activeMatchId;
+    if (matchId == null || matchId.isEmpty) return;
+    if (provider.matchResult != null) return;
+    if (_resultRequestedForMatchId == matchId && _isLoadingResult) return;
+
+    setState(() {
+      _isLoadingResult = true;
+      _resultRequestedForMatchId = matchId;
+    });
+    await provider.loadMatchResult(matchId);
+    if (!mounted) return;
+    setState(() {
+      _isLoadingResult = false;
+    });
+  }
+
+  Future<void> _claimReward() async {
+    final provider = context.read<PvpProvider>();
+    final matchId = provider.activeMatchId ?? provider.matchResult?.matchId;
+    if (matchId == null || matchId.isEmpty) return;
+
+    setState(() => _isClaimingReward = true);
+    await provider.claimMatchReward(matchId);
+    if (!mounted) return;
+    setState(() => _isClaimingReward = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
+    final currentUserId = context.watch<GameStateProvider>().user?.id ?? '';
+
     if (_lastObservedMatchmakingState != pvpProvider.matchmakingState) {
       _lastObservedMatchmakingState = pvpProvider.matchmakingState;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -186,7 +223,11 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             setState(() {
               _showMatchSuccessPopup = false;
               _gameState = 'finished';
+              _opponentName = pvpProvider.currentOpponentName.isNotEmpty
+                  ? pvpProvider.currentOpponentName
+                  : _opponentName;
             });
+            unawaited(_ensureMatchResultLoaded(pvpProvider));
             break;
           default:
             break;
@@ -200,8 +241,22 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         pvpProvider.matchmakingState == PvpMatchmakingState.countdown;
     final isProviderConnecting =
         pvpProvider.matchmakingState == PvpMatchmakingState.connecting;
+    final isProviderFinished =
+        pvpProvider.matchmakingState == PvpMatchmakingState.finished;
+    final isProviderCancelled =
+        pvpProvider.matchmakingState == PvpMatchmakingState.cancelled;
+    final awaitingServerResult =
+        pvpProvider.isRaceFinished &&
+        !isProviderFinished &&
+        !isProviderCancelled &&
+        pvpProvider.matchResult == null;
 
-    final effectiveGameState = (isProviderRunning || _gameState == 'racing')
+    final effectiveGameState =
+        (isProviderFinished ||
+            _gameState == 'finished' ||
+            awaitingServerResult)
+        ? 'finished'
+        : (isProviderRunning || _gameState == 'racing')
         ? 'racing'
         : isProviderCountdown
         ? 'room-countdown'
@@ -239,7 +294,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             onShowMatchHistory: () => showMatchHistoryModal(
               context,
               pvpProvider.matchHistory,
-              'currentUserId',
+              currentUserId,
             ),
           )
         else
@@ -262,9 +317,18 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           ),
         if (effectiveGameState == 'finished')
           PvPFinishedOverlay(
-            isWin: pvpProvider.myProgress >= 100,
-            opponentName: _opponentName,
+            result: pvpProvider.matchResult,
+            isLoading:
+                _isLoadingResult ||
+                awaitingServerResult ||
+                (isProviderFinished && pvpProvider.matchResult == null),
+            currentUserId: currentUserId,
+            opponentName: _opponentName.isNotEmpty
+                ? _opponentName
+                : pvpProvider.currentOpponentName,
             onContinue: _resetGame,
+            onClaimReward: _claimReward,
+            isClaiming: _isClaimingReward,
           ),
       ],
     );

@@ -234,34 +234,119 @@ class PvpInviteResponse {
   }
 }
 
+class PvpRankTierResponse {
+  final String tierCode;
+  final String displayName;
+  final int minMmr;
+  final String? assetKey;
+  final String? colorHex;
+
+  PvpRankTierResponse({
+    required this.tierCode,
+    required this.displayName,
+    required this.minMmr,
+    this.assetKey,
+    this.colorHex,
+  });
+
+  factory PvpRankTierResponse.fromJson(Map<String, dynamic> json) {
+    return PvpRankTierResponse(
+      tierCode: json['tierCode'] as String? ?? '',
+      displayName: json['displayName'] as String? ?? '',
+      minMmr: (json['minMmr'] as num?)?.toInt() ?? 0,
+      assetKey: json['assetKey'] as String?,
+      colorHex: json['colorHex'] as String?,
+    );
+  }
+
+  /// Converts API `Assets/Mobile/...` keys to Flutter asset paths.
+  String? get flutterAssetPath {
+    final key = assetKey?.trim();
+    if (key == null || key.isEmpty) return null;
+    if (key.startsWith('assets/')) return key;
+    if (key.startsWith('Assets/')) {
+      return 'assets/${key.substring('Assets/'.length)}';
+    }
+    return key;
+  }
+}
+
 class PvpMatchResultResponse {
+  /// Full match payload (same fields as GET match).
+  final PvpMatchResponse match;
   final int mmrBefore;
   final int mmrDelta;
   final int mmrAfter;
+  final PvpRankTierResponse? rankBefore;
+  final PvpRankTierResponse? rankAfter;
   final bool tierChanged;
   final bool canClaimReward;
   final DateTime? claimedAt;
 
   PvpMatchResultResponse({
+    required this.match,
     required this.mmrBefore,
     required this.mmrDelta,
     required this.mmrAfter,
+    this.rankBefore,
+    this.rankAfter,
     required this.tierChanged,
     required this.canClaimReward,
     this.claimedAt,
   });
 
+  String get matchId => match.matchId;
+  String get matchTypeCode => match.matchTypeCode;
+  String get statusCode => match.statusCode;
+  List<PvpParticipantResponse> get participants => match.participants;
+
+  /// Ranked matches change MMR; friendly/event keep `mmrDelta = 0`.
+  bool get isRanked => matchTypeCode.toLowerCase() == 'ranked';
+
+  PvpParticipantResponse? participantForUser(String? userId) {
+    if (userId != null && userId.isNotEmpty) {
+      for (final p in participants) {
+        if (p.userId == userId) return p;
+      }
+      return null;
+    }
+    for (final p in participants) {
+      final id = p.userId;
+      if (id != null && id.isNotEmpty) return p;
+    }
+    return null;
+  }
+
+  String? resultCodeForUser(String? userId) =>
+      participantForUser(userId)?.resultCode?.toLowerCase();
+
   factory PvpMatchResultResponse.fromJson(Map<String, dynamic> json) {
     return PvpMatchResultResponse(
+      match: PvpMatchResponse.fromJson(json),
       mmrBefore: (json['mmrBefore'] as num?)?.toInt() ?? 0,
       mmrDelta: (json['mmrDelta'] as num?)?.toInt() ?? 0,
       mmrAfter: (json['mmrAfter'] as num?)?.toInt() ?? 0,
+      rankBefore: _parseRankTier(json['rankBefore']),
+      rankAfter: _parseRankTier(json['rankAfter']),
       tierChanged: json['tierChanged'] as bool? ?? false,
       canClaimReward: json['canClaimReward'] as bool? ?? false,
-      claimedAt: json['claimedAt'] != null
-          ? DateTime.tryParse(json['claimedAt'] as String)?.toLocal()
-          : null,
+      claimedAt: json['claimedAt'] == null
+          ? null
+          : DateTime.tryParse(json['claimedAt'].toString())?.toLocal(),
     );
+  }
+
+  static PvpRankTierResponse? _parseRankTier(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is! Map) return null;
+    final map = <String, dynamic>{};
+    raw.forEach((key, value) {
+      map[key.toString()] = value;
+    });
+    if (map.isEmpty) return null;
+    final tierCode = map['tierCode']?.toString();
+    if (tierCode == null || tierCode.isEmpty) return null;
+    return PvpRankTierResponse.fromJson(map);
   }
 }
 

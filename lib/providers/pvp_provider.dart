@@ -535,6 +535,7 @@ class PvpProvider extends ChangeNotifier {
 
   Timer? _countdownTicker;
   Timer? _raceTicker;
+  Timer? _settlementPollTimer;
   Duration? _serverOffset;
   DateTime? _countdownStartsAt;
   DateTime? _countdownEndsAt;
@@ -746,6 +747,12 @@ class PvpProvider extends ChangeNotifier {
     _opponentProgress = 0.0;
     _isRaceFinished = false;
     _stopRaceTicker();
+    _stopSettlementPoll();
+  }
+
+  void _stopSettlementPoll() {
+    _settlementPollTimer?.cancel();
+    _settlementPollTimer = null;
   }
 
   void _updateRaceProgress() {
@@ -766,11 +773,85 @@ class PvpProvider extends ChangeNotifier {
       notifyListeners();
       if (_raceTimeProgress >= 1.0) {
         timer.cancel();
+        // Local HUD clock ended — do not invent win/MMR. Poll server until
+        // finished/cancelled, then UC-69 result becomes available.
         _isRaceFinished = true;
-        _updateState(
-          PvpMatchmakingState.finished,
-          reason: 'race duration complete',
-        );
+        notifyListeners();
+        unawaited(_pollMatchUntilTerminal());
+      }
+    });
+  }
+
+  Future<void> _pollMatchUntilTerminal() async {
+    final matchId = _activeMatchId;
+    if (matchId == null || matchId.isEmpty) return;
+    if (_matchmakingState == PvpMatchmakingState.finished ||
+        _matchmakingState == PvpMatchmakingState.cancelled) {
+      if (_matchResult == null &&
+          _matchmakingState == PvpMatchmakingState.finished) {
+        await loadMatchResult(matchId);
+      }
+      return;
+    }
+
+    _stopSettlementPoll();
+    var attempts = 0;
+    _settlementPollTimer = Timer.periodic(const Duration(seconds: 1), (
+      timer,
+    ) async {
+      attempts++;
+      if (attempts > 30 ||
+          _matchmakingState == PvpMatchmakingState.finished ||
+          _matchmakingState == PvpMatchmakingState.cancelled ||
+          _activeMatchId != matchId) {
+        timer.cancel();
+        if (_settlementPollTimer == timer) {
+          _settlementPollTimer = null;
+        }
+        return;
+      }
+
+      try {
+        final response = await _pvpDatasource.getMatch(matchId);
+        if (!response.success || response.data == null) return;
+
+        final status = response.data!.statusCode.toLowerCase();
+        _setCurrentMatchSnapshot(response.data!);
+
+        if (status == 'finished') {
+          timer.cancel();
+          if (_settlementPollTimer == timer) {
+            _settlementPollTimer = null;
+          }
+          _isRaceFinished = true;
+          _updateState(
+            PvpMatchmakingState.finished,
+            reason: 'settlement poll finished',
+          );
+          await loadMatchResult(matchId);
+          return;
+        }
+
+        if (status == 'cancelled') {
+          timer.cancel();
+          if (_settlementPollTimer == timer) {
+            _settlementPollTimer = null;
+          }
+          _updateState(
+            PvpMatchmakingState.cancelled,
+            reason: 'settlement poll cancelled',
+          );
+          return;
+        }
+
+        if (status == 'settling') {
+          _updateState(
+            PvpMatchmakingState.waiting,
+            reason: 'settlement poll settling',
+          );
+        }
+      } catch (e, st) {
+        debugPrint('[PvP] settlement poll failed: $e\n$st');
       }
     });
   }
@@ -786,6 +867,7 @@ class PvpProvider extends ChangeNotifier {
   void clearMatchState() {
     _currentMatch = null;
     _activeMatchId = null;
+    _matchResult = null;
     _hasMatchRoomJoined = false;
     _serverOffset = null;
     _countdownStartsAt = null;
@@ -961,6 +1043,26 @@ class PvpProvider extends ChangeNotifier {
       _updateState(
         PvpMatchmakingState.waiting,
         reason: 'match snapshot settling',
+      );
+      return;
+    }
+
+    if (normalizedStatus == 'finished') {
+      _stopCountdownSchedule();
+      _isRaceFinished = true;
+      _updateState(
+        PvpMatchmakingState.finished,
+        reason: 'match snapshot finished',
+      );
+      await loadMatchResult(matchId);
+      return;
+    }
+
+    if (normalizedStatus == 'cancelled') {
+      _stopCountdownSchedule();
+      _updateState(
+        PvpMatchmakingState.cancelled,
+        reason: 'match snapshot cancelled',
       );
       return;
     }
@@ -1171,10 +1273,17 @@ class PvpProvider extends ChangeNotifier {
 
     if (eventType == 'match.finished') {
       stopCountdown(reason: 'match.finished', matchId: matchId);
+      _isRaceFinished = true;
       if (matchId != null && matchId.isNotEmpty) {
+        // Snapshot + UC-69 result (finished branch inside _joinAndSyncMatch).
         await _joinAndSyncMatch(matchId);
+        if (_matchResult == null) {
+          await loadMatchResult(matchId);
+        }
       }
-      _updateState(PvpMatchmakingState.finished, reason: 'match.finished');
+      if (_matchmakingState != PvpMatchmakingState.finished) {
+        _updateState(PvpMatchmakingState.finished, reason: 'match.finished');
+      }
       return;
     }
 
@@ -1295,7 +1404,9 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (normalizedStatus == 'finished') {
+      _isRaceFinished = true;
       _updateState(PvpMatchmakingState.finished);
+      await loadMatchResult(matchId);
       return;
     }
 
@@ -1307,23 +1418,48 @@ class PvpProvider extends ChangeNotifier {
     _updateState(PvpMatchmakingState.waiting);
   }
 
-  Future<void> loadMatchResult(String matchId) async {
-    final response = await _pvpDatasource.getMatchResult(matchId);
-    if (!response.success || response.data == null) {
+  Future<void> loadMatchResult(String matchId, {int maxAttempts = 3}) async {
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      final response = await _pvpDatasource.getMatchResult(matchId);
+      if (response.success && response.data != null) {
+        _matchResult = response.data!;
+        _setCurrentMatchSnapshot(_matchResult!.match);
+        notifyListeners();
+        return;
+      }
+
+      // UC-69: result only available after finished; earlier calls return 409.
+      if (response.status == 409 && attempt < maxAttempts - 1) {
+        await Future.delayed(Duration(milliseconds: 400 * (attempt + 1)));
+        continue;
+      }
+
+      debugPrint(
+        '[PvP] loadMatchResult failed matchId=$matchId '
+        'status=${response.status} message=${response.message}',
+      );
       return;
     }
-
-    _matchResult = response.data!;
-    notifyListeners();
   }
 
-  Future<void> claimMatchReward(String matchId) async {
+  Future<bool> claimMatchReward(String matchId) async {
     final response = await _pvpDatasource.claimMatchReward(matchId);
-    if (!response.success || response.data == null) {
-      return;
+    if (response.success && response.data != null) {
+      await loadMatchResult(matchId);
+      return true;
     }
 
-    await loadMatchResult(matchId);
+    // Retry-safe: 409 already claimed → refresh result; claimedAt means success.
+    if (response.status == 409) {
+      await loadMatchResult(matchId);
+      return _matchResult?.claimedAt != null;
+    }
+
+    debugPrint(
+      '[PvP] claimMatchReward failed matchId=$matchId '
+      'status=${response.status} message=${response.message}',
+    );
+    return false;
   }
 
   Future<void> startMatchmaking() async {
