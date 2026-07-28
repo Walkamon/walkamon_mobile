@@ -48,6 +48,38 @@ class PvpParticipantResponse {
       resultCode: json['resultCode'] as String?,
     );
   }
+
+  PvpParticipantResponse copyWith({
+    String? participantTypeCode,
+    String? userId,
+    String? matchPlayerId,
+    String? botProfileId,
+    String? displayName,
+    String? avatarUrl,
+    int? score,
+    int? validatedSteps,
+    int? distanceUnits,
+    int? speedMultiplierBps,
+    String? spiritAffinityCode,
+    int? passiveSpeedBps,
+    String? resultCode,
+  }) {
+    return PvpParticipantResponse(
+      participantTypeCode: participantTypeCode ?? this.participantTypeCode,
+      userId: userId ?? this.userId,
+      matchPlayerId: matchPlayerId ?? this.matchPlayerId,
+      botProfileId: botProfileId ?? this.botProfileId,
+      displayName: displayName ?? this.displayName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      score: score ?? this.score,
+      validatedSteps: validatedSteps ?? this.validatedSteps,
+      distanceUnits: distanceUnits ?? this.distanceUnits,
+      speedMultiplierBps: speedMultiplierBps ?? this.speedMultiplierBps,
+      spiritAffinityCode: spiritAffinityCode ?? this.spiritAffinityCode,
+      passiveSpeedBps: passiveSpeedBps ?? this.passiveSpeedBps,
+      resultCode: resultCode ?? this.resultCode,
+    );
+  }
 }
 
 class PvpMatchResponse {
@@ -142,6 +174,35 @@ class PvpMatchResponse {
           .map(
             (e) => PvpParticipantResponse.fromJson(e as Map<String, dynamic>),
           )
+          .toList(),
+    );
+  }
+}
+
+/// UC-70 paginated sprint match history.
+class PvpMatchHistoryPage {
+  final int page;
+  final int pageSize;
+  final int total;
+  final List<PvpMatchResponse> items;
+
+  PvpMatchHistoryPage({
+    required this.page,
+    required this.pageSize,
+    required this.total,
+    required this.items,
+  });
+
+  bool get hasMore => page * pageSize < total;
+
+  factory PvpMatchHistoryPage.fromJson(Map<String, dynamic> json) {
+    final items = json['items'] as List<dynamic>? ?? [];
+    return PvpMatchHistoryPage(
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      pageSize: (json['pageSize'] as num?)?.toInt() ?? 20,
+      total: (json['total'] as num?)?.toInt() ?? items.length,
+      items: items
+          .map((e) => PvpMatchResponse.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
