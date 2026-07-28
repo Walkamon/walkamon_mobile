@@ -599,17 +599,14 @@ class PvpProvider extends ChangeNotifier {
     final localNow = DateTime.now().toUtc();
     final serverOffset = serverTime.difference(localNow);
 
-    debugPrint('[PvP][Schedule]');
-    debugPrint('serverTime=$serverTime');
-    debugPrint('startsAt=$countdownStartsAt');
-    debugPrint('endsAt=$countdownEndsAt');
-    debugPrint('serverOffset=$serverOffset');
-
     _countdownStartsAt = countdownStartsAt.toUtc();
     _countdownEndsAt = countdownEndsAt.toUtc();
     _serverOffset = serverOffset;
     _countdownActive = true;
     _lastLoggedCountdownValue = null;
+    debugPrint(
+      '[PvP] Countdown scheduled starts=$_countdownStartsAt ends=$_countdownEndsAt offset=$serverOffset',
+    );
     _updateState(PvpMatchmakingState.countdown, reason: 'countdown schedule');
   }
 
@@ -664,9 +661,13 @@ class PvpProvider extends ChangeNotifier {
       );
 
       if (phase == PvpCountdownPhase.finished) {
-        debugPrint('[PvP][Countdown Finished]');
         timer.cancel();
         cancelCountdownTimer(reason: 'timer finished', matchId: _activeMatchId);
+        if (_lastLoggedCountdownValue != 0) {
+          _lastLoggedCountdownValue = 0;
+          debugPrint('[PvP] Countdown finished → GO');
+        }
+        notifyListeners();
         return;
       }
 
@@ -674,19 +675,7 @@ class PvpProvider extends ChangeNotifier {
         final remaining = countdownSecondsRemaining;
         if (_lastLoggedCountdownValue != remaining) {
           _lastLoggedCountdownValue = remaining;
-          final localNow = DateTime.now().toUtc();
-          final serverNow = estimatedServerNow();
-          final remainingMilliseconds = _countdownEndsAt!
-              .difference(serverNow)
-              .inMilliseconds;
-          debugPrint('[Countdown]');
-          debugPrint('number=$remaining');
-          debugPrint('localNow=$localNow');
-          debugPrint('estimatedServerNow=$serverNow');
-          debugPrint('countdownStartsAt=${_countdownStartsAt?.toUtc()}');
-          debugPrint('countdownEndsAt=${_countdownEndsAt?.toUtc()}');
-          debugPrint('remainingMs=$remainingMilliseconds');
-          debugPrint('displayed countdown number=$remaining');
+          debugPrint('[PvP] Countdown=$remaining');
         }
         notifyListeners();
       }
@@ -716,6 +705,22 @@ class PvpProvider extends ChangeNotifier {
   double get raceTimeProgress => _raceTimeProgress;
 
   String get racePhase {
+    if (_matchmakingState == PvpMatchmakingState.countdown) {
+      final phase = resolveCountdownPhase(
+        countdownActive: _countdownActive,
+        countdownStartsAt: _countdownStartsAt,
+        countdownEndsAt: _countdownEndsAt,
+        serverNow: estimatedServerNow(),
+      );
+      if (phase == PvpCountdownPhase.countdown) {
+        return '$countdownSecondsRemaining';
+      }
+      if (phase == PvpCountdownPhase.beforeStart) {
+        return 'ready';
+      }
+      // Local countdown ended; wait for match.started while showing GO.
+      return 'go';
+    }
     if (_matchmakingState == PvpMatchmakingState.running && !_isRaceFinished) {
       return 'running';
     }
@@ -884,7 +889,9 @@ class PvpProvider extends ChangeNotifier {
     }
   }
 
-  void _log(String message, {String? matchId}) {}
+  void _log(String message, {String? matchId}) {
+    // Keep quiet by default; use targeted debugPrint for countdown lifecycle only.
+  }
 
   void _enterRunning({required String reason, String? matchId}) {
     _stopCountdownSchedule();
@@ -931,7 +938,8 @@ class PvpProvider extends ChangeNotifier {
     _setCurrentMatchSnapshot(match);
     _lastSequences[matchId] = match.lastEventSequence ?? 0;
 
-    if (_countdownActive &&
+    final normalizedStatus = match.statusCode.toLowerCase();
+    if (normalizedStatus == 'countdown' &&
         match.countdownStartsAt != null &&
         match.countdownEndsAt != null) {
       _applyCountdownSchedule(
@@ -942,7 +950,6 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
-    final normalizedStatus = match.statusCode.toLowerCase();
     if (normalizedStatus == 'running') {
       _stopCountdownSchedule();
       startRace(reason: 'match snapshot running', matchId: matchId);
@@ -1106,12 +1113,9 @@ class PvpProvider extends ChangeNotifier {
         final readyStartsAt = readyResponse['countdownStartsAt'] as String?;
         final readyEndsAt = readyResponse['countdownEndsAt'] as String?;
         final readyServerTime = readyResponse['serverTime'] as String?;
-        debugPrint('[PvP][ReadyMatch]');
-        debugPrint('matchId=$matchId');
-        debugPrint('allReady=$allReady');
-        debugPrint('serverTime=$readyServerTime');
-        debugPrint('countdownStartsAt=$readyStartsAt');
-        debugPrint('countdownEndsAt=$readyEndsAt');
+        debugPrint(
+          '[PvP] ReadyMatch allReady=$allReady matchId=$matchId',
+        );
         if (allReady &&
             readyStartsAt != null &&
             readyEndsAt != null &&
@@ -1142,12 +1146,7 @@ class PvpProvider extends ChangeNotifier {
           startsAt != null &&
           endsAt != null &&
           serverTimeValue != null) {
-        debugPrint('[PvP][CountdownStarted]');
-        debugPrint('eventId=$eventId');
-        debugPrint('sequence=${payloadSequence ?? 'null'}');
-        debugPrint('serverTime=$serverTimeValue');
-        debugPrint('countdownStartsAt=$startsAt');
-        debugPrint('countdownEndsAt=$endsAt');
+        debugPrint('[PvP] CountdownStarted matchId=$matchId');
         _applyCountdownSchedule(
           countdownStartsAt: DateTime.parse(startsAt).toUtc(),
           countdownEndsAt: DateTime.parse(endsAt).toUtc(),
@@ -1158,14 +1157,7 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (eventType == 'match.started') {
-      final estimatedNow = estimatedServerNow();
-      final countdownEndsAtValue = _countdownEndsAt;
-      final difference = countdownEndsAtValue?.difference(estimatedNow);
-      final serverTimeValue = payload['serverTime']?.toString();
-      debugPrint('[PvP][MatchStarted]');
-      debugPrint('serverTime=$serverTimeValue');
-      debugPrint('estimatedServerNow=$estimatedNow');
-      debugPrint('deltaFromCountdownEnd=$difference');
+      debugPrint('[PvP] MatchStarted matchId=$matchId');
       startRace(reason: 'match.started event', matchId: matchId);
       return;
     }
@@ -1278,10 +1270,17 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
-    _setCurrentMatchSnapshot(response.data!);
-    final normalizedStatus = response.data!.statusCode.toLowerCase();
-    if (normalizedStatus == 'countdown') {
-      _updateState(PvpMatchmakingState.countdown);
+    final match = response.data!;
+    _setCurrentMatchSnapshot(match);
+    final normalizedStatus = match.statusCode.toLowerCase();
+    if (normalizedStatus == 'countdown' &&
+        match.countdownStartsAt != null &&
+        match.countdownEndsAt != null) {
+      _applyCountdownSchedule(
+        countdownStartsAt: match.countdownStartsAt!,
+        countdownEndsAt: match.countdownEndsAt!,
+        serverTime: match.serverTime ?? DateTime.now().toUtc(),
+      );
       return;
     }
 
