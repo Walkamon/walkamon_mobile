@@ -181,30 +181,68 @@ class _MatchHistoryContent extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final match = history[index];
-                
-                // Determine result
+
                 PvpParticipantResponse? me;
                 PvpParticipantResponse? opponent;
-                for (var p in match.participants) {
-                  if (p.userId == currentUserId) me = p;
-                  else opponent = p;
+                for (final p in match.participants) {
+                  final isMe = currentUserId.isNotEmpty &&
+                      p.userId != null &&
+                      p.userId == currentUserId;
+                  if (isMe) {
+                    me = p;
+                  } else {
+                    opponent ??= p;
+                  }
                 }
-                
-                bool isWin = false;
-                if (me != null && opponent != null) {
-                  isWin = (me.distanceUnits ?? 0) > (opponent.distanceUnits ?? 0);
+                if (me == null) {
+                  for (final p in match.participants) {
+                    if (p.userId != null && p.userId!.isNotEmpty) {
+                      me = p;
+                      break;
+                    }
+                  }
                 }
-                
-                final oppName = opponent?.displayName ?? opponent?.userId ?? 'Unknown';
-                final dateStr = match.createdAt != null ? DateFormat('dd/MM HH:mm').format(match.createdAt!) : '';
-                final points = isWin ? '+50' : '+10'; // mockup points since no mmr here
-                
+                if (opponent == null ||
+                    (me != null &&
+                        opponent.userId != null &&
+                        opponent.userId == me.userId)) {
+                  for (final p in match.participants) {
+                    if (!identical(p, me)) {
+                      opponent = p;
+                      break;
+                    }
+                  }
+                }
+
+                final resultCode = me?.resultCode?.toLowerCase();
+                final isWin = resultCode == 'win';
+                final isDraw = resultCode == 'draw';
+                final resultLabel = isWin
+                    ? 'CHIẾN THẮNG'
+                    : isDraw
+                    ? 'HÒA'
+                    : resultCode == 'lose'
+                    ? 'THẤT BẠI'
+                    : (match.statusCode.toLowerCase() == 'cancelled'
+                        ? 'HỦY'
+                        : match.statusCode.toUpperCase());
+
+                final oppName =
+                    opponent?.displayName ?? opponent?.userId ?? 'Unknown';
+                final dateStr = match.createdAt != null
+                    ? DateFormat('dd/MM HH:mm').format(match.createdAt!)
+                    : '';
+                final matchType = match.matchTypeCode.toUpperCase();
+
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withOpacity(0.3),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+                    border: Border.all(
+                      color: theme.dividerColor.withOpacity(0.5),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -213,12 +251,22 @@ class _MatchHistoryContent extends StatelessWidget {
                         height: 48,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isWin ? Colors.amber.withOpacity(0.2) : theme.colorScheme.surfaceContainerHighest,
-                          border: isWin ? null : Border.all(color: theme.dividerColor),
+                          color: isWin
+                              ? Colors.amber.withOpacity(0.2)
+                              : theme.colorScheme.surfaceContainerHighest,
+                          border: isWin
+                              ? null
+                              : Border.all(color: theme.dividerColor),
                         ),
                         child: Icon(
-                          isWin ? Icons.emoji_events : Icons.close,
-                          color: isWin ? Colors.amber : theme.colorScheme.onSurfaceVariant,
+                          isWin
+                              ? Icons.emoji_events
+                              : isDraw
+                              ? Icons.handshake
+                              : Icons.close,
+                          color: isWin
+                              ? Colors.amber
+                              : theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -226,36 +274,34 @@ class _MatchHistoryContent extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(oppName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(dateStr, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
+                            Text(
+                              oppName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              dateStr.isEmpty
+                                  ? matchType
+                                  : '$dateStr · $matchType',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                points,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: isWin ? Colors.amber : theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              Icon(Icons.water_drop, size: 16, color: isWin ? Colors.amber : theme.colorScheme.onSurfaceVariant),
-                            ],
-                          ),
-                          Text(
-                            isWin ? 'CHIẾN THẮNG' : 'THẤT BẠI',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                              color: isWin ? Colors.amber : theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        resultLabel,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          color: isWin
+                              ? Colors.amber
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
