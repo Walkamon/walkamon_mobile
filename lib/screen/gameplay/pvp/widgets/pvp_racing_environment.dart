@@ -52,6 +52,16 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
     super.dispose();
   }
 
+  bool get _shouldShowCountdown {
+    if (widget.isFinished) return false;
+    final phase = widget.racePhase.toLowerCase();
+    if (phase == 'ready' || phase == 'running' || phase == 'finished') {
+      return false;
+    }
+    // "5".."1" or "go"
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -59,12 +69,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
     
     return Stack(
       children: [
-        // Background Map
-        Container(
-          color: Colors.lightBlue.shade100, // Sky
-        ),
-        
-        // Clouds
+        Container(color: Colors.lightBlue.shade100),
         AnimatedBuilder(
           animation: _bgController,
           builder: (context, child) {
@@ -81,19 +86,13 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
             );
           },
         ),
-
-        // Ground/Grass
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
           height: MediaQuery.of(context).size.height * 0.6,
-          child: Container(
-            color: Colors.green.shade600,
-          ),
+          child: Container(color: Colors.green.shade600),
         ),
-
-        // Track Lines & Props
         AnimatedBuilder(
           animation: _bgController,
           builder: (context, child) {
@@ -111,8 +110,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
             );
           },
         ),
-
-        // Racing Area
         Positioned(
           bottom: MediaQuery.of(context).size.height * 0.1,
           left: 0,
@@ -120,7 +117,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
           height: MediaQuery.of(context).size.height * 0.4,
           child: Column(
             children: [
-              // Opponent Track
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -132,14 +128,12 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                   child: Stack(
                     alignment: Alignment.centerLeft,
                     children: [
-                      // Top border line aligned with yellow finish line
                       Positioned(
                         top: 25,
                         left: 0,
                         right: 0,
                         child: Container(height: 2, color: Colors.white.withOpacity(0.3)),
                       ),
-                      // Start line
                       AnimatedPositioned(
                         duration: const Duration(seconds: 2),
                         curve: Curves.easeIn,
@@ -148,7 +142,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                         bottom: 0,
                         child: Container(width: 10, color: Colors.white),
                       ),
-                      // Finish line
                       AnimatedPositioned(
                         duration: const Duration(seconds: 1),
                         curve: Curves.linear,
@@ -157,10 +150,9 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                         bottom: 0,
                         child: Container(width: 15, color: Colors.amber),
                       ),
-                      // Opponent Pet
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 100),
-                        left: -3 + (widget.opponentProgress / 100) * (width - 100), // padding
+                        left: -3 + (widget.opponentProgress / 100) * (width - 100),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -182,8 +174,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                   ),
                 ),
               ),
-              
-              // My Track
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -192,7 +182,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                   child: Stack(
                     alignment: Alignment.centerLeft,
                     children: [
-                      // Start line
                       AnimatedPositioned(
                         duration: const Duration(seconds: 2),
                         curve: Curves.easeIn,
@@ -201,7 +190,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                         bottom: 0,
                         child: Container(width: 10, color: Colors.white),
                       ),
-                      // Finish line
                       AnimatedPositioned(
                         duration: const Duration(seconds: 1),
                         curve: Curves.linear,
@@ -210,7 +198,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                         bottom: 0,
                         child: Container(width: 15, color: Colors.amber),
                       ),
-                      // My Pet
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 100),
                         left: 20 + (widget.myProgress / 100) * (width - 100),
@@ -237,8 +224,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
             ],
           ),
         ),
-
-        // Top UI (Close button + Progress Bar)
         Positioned(
           top: 0,
           left: 0,
@@ -273,7 +258,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 100),
-                            width: (widget.myProgress / 100) * (width - 160), // approx width
+                            width: (widget.myProgress / 100) * (width - 160),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primary,
                               borderRadius: BorderRadius.circular(6),
@@ -296,18 +281,20 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
             ),
           ),
         ),
-
-        // Big countdown text
-        if (widget.racePhase != 'ready' && widget.racePhase != 'running' && !widget.isFinished)
+        if (_shouldShowCountdown)
           Center(
             child: Text(
-              widget.racePhase.toString().toUpperCase(),
+              widget.racePhase.toUpperCase(),
               style: TextStyle(
-                fontSize: 120,
+                fontSize: widget.racePhase == 'go' ? 110 : 120,
                 fontWeight: FontWeight.bold,
                 color: widget.racePhase == 'go' ? Colors.amber : Colors.white,
                 shadows: [
-                  Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 10)),
+                  Shadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
                 ],
               ),
             ),
@@ -335,7 +322,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
       width: width,
       child: Stack(
         children: [
-          // Grass tufts at the very top strip (visible above racing lanes)
           Positioned(
             top: 8,
             left: 0,
@@ -353,12 +339,10 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
               ],
             ),
           ),
-          // Bushes in the grass strip
           Positioned(top: 18, left: 40, child: Icon(Icons.eco, size: 28, color: Colors.green.shade700)),
           Positioned(top: 20, left: 190, child: Icon(Icons.eco, size: 22, color: Colors.green.shade800)),
           Positioned(top: 16, left: 390, child: Icon(Icons.eco, size: 30, color: Colors.green.shade700)),
           Positioned(top: 20, left: 540, child: Icon(Icons.eco, size: 24, color: Colors.green.shade800)),
-          // Trees — tops visible in the grass strip, size kept moderate
           Positioned(top: 0, left: 70, child: Icon(Icons.park, size: 80, color: Colors.green.shade900)),
           Positioned(top: 0, left: 280, child: Icon(Icons.park, size: 95, color: Colors.green.shade800)),
           Positioned(top: 0, left: 490, child: Icon(Icons.park, size: 75, color: Colors.green.shade900)),
