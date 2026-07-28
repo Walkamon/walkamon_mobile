@@ -7,7 +7,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   final PvpProvider pvpProvider;
   final VoidCallback? onStartMatchmaking;
   final VoidCallback? onCancelMatchmaking;
-  final void Function(String name)? onInviteFriend;
+  final void Function(String userId, String username)? onInviteFriend;
   final VoidCallback onShowIncomingChallenges;
   final VoidCallback onShowMatchHistory;
 
@@ -31,38 +31,56 @@ class PvPWaitingRoomScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
+              IconButton.filledTonal(
+                tooltip: 'Quay lại',
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushNamed(context, '/home');
+                  }
+                },
+                icon: const Icon(Icons.arrow_back),
+              ),
+              Row(
                 children: [
-                  IconButton.filledTonal(
-                    onPressed: onShowIncomingChallenges,
-                    icon: const Icon(Icons.mail),
-                  ),
-                  if (pvpProvider.incomingInvites.isNotEmpty)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${pvpProvider.incomingInvites.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton.filledTonal(
+                        tooltip: 'Lời mời',
+                        onPressed: onShowIncomingChallenges,
+                        icon: const Icon(Icons.mail),
+                      ),
+                      if (pvpProvider.incomingInvites.isNotEmpty)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${pvpProvider.incomingInvites.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    tooltip: 'Lịch sử',
+                    onPressed: onShowMatchHistory,
+                    icon: const Icon(Icons.history),
+                  ),
                 ],
-              ),
-              IconButton.filledTonal(
-                onPressed: onShowMatchHistory,
-                icon: const Icon(Icons.history),
               ),
             ],
           ),
@@ -198,12 +216,20 @@ class PvPWaitingRoomScreen extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onInviteFriend == null
                   ? null
-                  : () => showFriendsModal(
-                      context,
-                      pvpProvider.friendsList,
-                      [],
-                      onInviteFriend!,
-                    ),
+                  : () {
+                      final online = pvpProvider.friendsList
+                          .where((f) => f.isOnline)
+                          .toList();
+                      final offline = pvpProvider.friendsList
+                          .where((f) => !f.isOnline)
+                          .toList();
+                      showFriendsModal(
+                        context,
+                        online,
+                        offline,
+                        (userId, username) => onInviteFriend!(userId, username),
+                      );
+                    },
               icon: const Icon(Icons.people),
               label: const Text(
                 'Thách đấu với bạn bè',

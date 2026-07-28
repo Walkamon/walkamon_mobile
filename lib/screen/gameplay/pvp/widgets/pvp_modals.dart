@@ -5,15 +5,25 @@ import '../../../../data/models/friends_response.dart';
 import '../../../../data/models/pvp_models.dart';
 import '../../../../providers/pvp_provider.dart';
 
-void showIncomingChallengesModal(BuildContext context, List<PvpInviteResponse> challenges, Function(String, String) onAccept, Function(String) onReject) {
+void showIncomingChallengesModal(
+  BuildContext context,
+  List<PvpInviteResponse> challenges,
+  Function(String, String) onAccept,
+  Function(String) onReject,
+) {
+  final pvpProvider = context.read<PvpProvider>();
+  pvpProvider.fetchIncomingInvites();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _IncomingChallengesContent(
-      challenges: challenges,
-      onAccept: onAccept,
-      onReject: onReject,
+    builder: (sheetContext) => ChangeNotifierProvider<PvpProvider>.value(
+      value: pvpProvider,
+      child: _IncomingChallengesContent(
+        challenges: challenges,
+        onAccept: onAccept,
+        onReject: onReject,
+      ),
     ),
   );
 }
@@ -23,18 +33,27 @@ class _IncomingChallengesContent extends StatelessWidget {
   final Function(String, String) onAccept;
   final Function(String) onReject;
 
-  const _IncomingChallengesContent({required this.challenges, required this.onAccept, required this.onReject});
+  const _IncomingChallengesContent({
+    required this.challenges,
+    required this.onAccept,
+    required this.onReject,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final providerInvites = context.watch<PvpProvider>().incomingInvites;
+    final activeChallenges =
+        providerInvites.isNotEmpty ? providerInvites : challenges;
+
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(24),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -49,26 +68,31 @@ class _IncomingChallengesContent extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Lời mời thách đấu',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style:
+                theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          if (challenges.isEmpty)
+          if (activeChallenges.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
-              child: Text('Không có lời mời nào', style: TextStyle(fontWeight: FontWeight.w500)),
+              child: Text(
+                'Không có lời mời nào',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
             )
           else
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
-                itemCount: challenges.length,
+                itemCount: activeChallenges.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final challenge = challenges[index];
+                  final challenge = activeChallenges[index];
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      color: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: theme.dividerColor),
                     ),
@@ -77,16 +101,35 @@ class _IncomingChallengesContent extends StatelessWidget {
                         Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: theme.colorScheme.primaryContainer,
-                              child: Icon(Icons.flash_on, color: theme.colorScheme.primary),
+                              backgroundColor:
+                                  theme.colorScheme.primaryContainer,
+                              child: Icon(
+                                Icons.flash_on,
+                                color: theme.colorScheme.primary,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(challenge.user.username.isNotEmpty ? challenge.user.username : 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Text('Lv.15', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text(
+                                    challenge.user.username.isNotEmpty
+                                        ? challenge.user.username
+                                        : 'Đối thủ',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Lv.15',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -99,7 +142,10 @@ class _IncomingChallengesContent extends StatelessWidget {
                               child: ElevatedButton.icon(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  onAccept(challenge.inviteId, challenge.user.username);
+                                  onAccept(
+                                    challenge.inviteId,
+                                    challenge.user.username,
+                                  );
                                 },
                                 icon: const Icon(Icons.check, size: 16),
                                 label: const Text('Chấp nhận'),
@@ -591,19 +637,25 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-void showFriendsModal(BuildContext context, List<FriendsResponse> online, List<FriendsResponse> offline, Function(String) onInvite) {
+void showFriendsModal(
+  BuildContext context,
+  List<FriendsResponse> online,
+  List<FriendsResponse> offline,
+  Function(String userId, String username) onInvite,
+) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _FriendsModalContent(online: online, offline: offline, onInvite: onInvite),
+    builder: (context) =>
+        _FriendsModalContent(online: online, offline: offline, onInvite: onInvite),
   );
 }
 
 class _FriendsModalContent extends StatelessWidget {
   final List<FriendsResponse> online;
   final List<FriendsResponse> offline;
-  final Function(String) onInvite;
+  final Function(String userId, String username) onInvite;
 
   const _FriendsModalContent({required this.online, required this.offline, required this.onInvite});
 
@@ -647,7 +699,16 @@ class _FriendsModalContent extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  ...online.map((f) => _buildFriendItem(context, f, onInvite)),
+                  if (online.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'Không có bạn bè đang online',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    )
+                  else
+                    ...online.map((f) => _buildFriendItem(context, f, onInvite, isOnline: true)),
                   const Divider(height: 32),
                   Row(
                     children: [
@@ -657,7 +718,16 @@ class _FriendsModalContent extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  ...offline.map((f) => _buildFriendItem(context, f, onInvite)),
+                  if (offline.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'Không có bạn bè ngoại tuyến',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                    )
+                  else
+                    ...offline.map((f) => _buildFriendItem(context, f, onInvite, isOnline: false)),
                 ],
               ),
             ),
@@ -667,7 +737,12 @@ class _FriendsModalContent extends StatelessWidget {
     );
   }
 
-  Widget _buildFriendItem(BuildContext context, FriendsResponse friend, Function(String) onInvite) {
+  Widget _buildFriendItem(
+    BuildContext context,
+    FriendsResponse friend,
+    Function(String userId, String username) onInvite, {
+    required bool isOnline,
+  }) {
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -683,24 +758,52 @@ class _FriendsModalContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(friend.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface)),
-                Text('Lv.15', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(
+                  friend.username,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'Lv.15',
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              onInvite(friend.username);
-            },
-            icon: const Icon(Icons.sports_kabaddi, size: 16),
-            label: const Text('Thách đấu'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primaryContainer,
-              foregroundColor: theme.colorScheme.primary,
-              elevation: 0,
+          if (isOnline)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                final uid =
+                    friend.userId.isNotEmpty ? friend.userId : friend.username;
+                onInvite(uid, friend.username);
+              },
+              icon: Icon(
+                Icons.sports_kabaddi,
+                size: 16,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+              label: Text(
+                'Thách đấu',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimaryContainer,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
             ),
-          ),
         ],
       ),
     );

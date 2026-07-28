@@ -295,6 +295,32 @@ class PvpInviteResponse {
   }
 }
 
+class PvpInvitePage {
+  final int page;
+  final int pageSize;
+  final int total;
+  final List<PvpInviteResponse> items;
+
+  PvpInvitePage({
+    required this.page,
+    required this.pageSize,
+    required this.total,
+    required this.items,
+  });
+
+  factory PvpInvitePage.fromJson(Map<String, dynamic> json) {
+    final itemsList = json['items'] as List? ?? [];
+    return PvpInvitePage(
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      pageSize: (json['pageSize'] as num?)?.toInt() ?? 20,
+      total: (json['total'] as num?)?.toInt() ?? 0,
+      items: itemsList
+          .map((e) => PvpInviteResponse.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 class PvpRankTierResponse {
   final String tierCode;
   final String displayName;
@@ -389,8 +415,8 @@ class PvpMatchResultResponse {
       mmrAfter: (json['mmrAfter'] as num?)?.toInt() ?? 0,
       rankBefore: _parseRankTier(json['rankBefore']),
       rankAfter: _parseRankTier(json['rankAfter']),
-      tierChanged: json['tierChanged'] as bool? ?? false,
-      canClaimReward: json['canClaimReward'] as bool? ?? false,
+      tierChanged: json['tierChanged'] == true,
+      canClaimReward: json['canClaimReward'] == true,
       claimedAt: json['claimedAt'] == null
           ? null
           : DateTime.tryParse(json['claimedAt'].toString())?.toLocal(),

@@ -82,13 +82,13 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     }
   }
 
-  Future<void> _inviteFriend(String name) async {
+  Future<void> _inviteFriend(String userId, String username) async {
     setState(() {
-      _opponentName = name;
+      _opponentName = username;
       _gameState = 'waiting-for-friend';
     });
 
-    await context.read<PvpProvider>().sendInvite(name);
+    await context.read<PvpProvider>().sendInvite(userId);
 
     if (!mounted) return;
 
@@ -129,7 +129,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     await context.read<PvpProvider>().respondToInvite(id, accept: false);
   }
 
-  void _cancelInvite() {
+  Future<void> _cancelInvite() async {
+    await context.read<PvpProvider>().cancelInvite();
+    if (!mounted) return;
     setState(() {
       _gameState = 'waiting';
       _opponentName = '';
@@ -163,6 +165,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   }
 
   Future<void> _onCloseRacePressed() async {
+    if (_isLoadingResult) return;
     final provider = context.read<PvpProvider>();
     final isRacing =
         provider.matchmakingState == PvpMatchmakingState.running ||
@@ -283,6 +286,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             });
             unawaited(_ensureMatchResultLoaded(pvpProvider));
             break;
+          case PvpMatchmakingState.idle:
+            if (_gameState == 'waiting-for-friend' ||
+                _gameState == 'matching') {
+              setState(() {
+                _gameState = 'waiting';
+                _opponentName = '';
+                _showMatchSuccessPopup = false;
+              });
+            }
+            break;
           default:
             break;
         }
@@ -337,7 +350,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             onCancelMatchmaking: _cancelMatchmaking,
             onInviteFriend:
                 (_gameState == 'waiting' || _gameState == 'finished')
-                ? (name) => _inviteFriend(name)
+                ? (userId, username) => _inviteFriend(userId, username)
                 : null,
             onShowIncomingChallenges: () => showIncomingChallengesModal(
               context,
