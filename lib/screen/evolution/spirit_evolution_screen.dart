@@ -47,6 +47,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
   bool _isAnimating = false;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  final ScrollController _animScrollController = ScrollController();
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
   @override
   void dispose() {
     _pulseController.dispose();
+    _animScrollController.dispose();
     super.dispose();
   }
 
@@ -167,6 +169,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       title: stageDisplayName.isNotEmpty
                           ? stageDisplayName
                           : l10n.spiritStageSeed,
+                      imageUrl: currentStage?.stateUrl,
                       isDone: true,
                       isActive: true,
                       pulseAnimation: _pulseAnimation,
@@ -239,6 +242,84 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       ),
                   ],
                 ),
+                
+                // Animations of current stage
+                if (currentStage != null && currentStage.animations.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Divider(height: 1, thickness: 0.5),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Trạng thái của pet ở dạng hiện tại:',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: mutedFg,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 85,
+                    child: RawScrollbar(
+                      controller: _animScrollController,
+                      thumbColor: primary.withOpacity(0.5),
+                      radius: const Radius.circular(8),
+                      thickness: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SingleChildScrollView(
+                          controller: _animScrollController,
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: currentStage.animations.map((anim) {
+                              final isNetwork = anim.animationUrl.startsWith('http');
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 46,
+                                      height: 46,
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: isNetwork
+                                            ? Image.network(
+                                                anim.animationUrl,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 20),
+                                              )
+                                            : Image.asset(
+                                                anim.animationUrl,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 20),
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      anim.typeAnimation,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        fontSize: 9,
+                                        color: mutedFg,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -382,6 +463,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
         Expanded(
           child: _StageNode(
             title: stage.stageName,
+            imageUrl: stage.stateUrl,
             isDone: isDone,
             isActive: isActive,
             pulseAnimation: _pulseAnimation,
@@ -521,12 +603,14 @@ class _SectionLabel extends StatelessWidget {
 class _StageNode extends StatelessWidget {
   const _StageNode({
     required this.title,
+    this.imageUrl,
     required this.isDone,
     required this.isActive,
     required this.pulseAnimation,
   });
 
   final String title;
+  final String? imageUrl;
   final bool isDone;
   final bool isActive;
   final Animation<double> pulseAnimation;
@@ -542,6 +626,8 @@ class _StageNode extends StatelessWidget {
         AnimatedBuilder(
           animation: pulseAnimation,
           builder: (context, child) {
+            final isNetworkImage = imageUrl?.startsWith('http') ?? false;
+
             return Transform.scale(
               scale: isActive ? pulseAnimation.value : 1.0,
               child: Stack(
@@ -580,12 +666,20 @@ class _StageNode extends StatelessWidget {
                             ]
                           : null,
                     ),
-                    child: Icon(
-                      isDone ? Icons.check_rounded : Icons.circle_outlined,
-                      size: 18,
-                      color: isDone
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface.withOpacity(0.4),
+                    child: ClipOval(
+                      child: imageUrl != null && imageUrl!.isNotEmpty
+                          ? (isNetworkImage
+                              ? Image.network(
+                                  imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildFallbackIcon(theme, isDone),
+                                )
+                              : Image.asset(
+                                  imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildFallbackIcon(theme, isDone),
+                                ))
+                          : _buildFallbackIcon(theme, isDone),
                     ),
                   ),
                 ],
@@ -608,6 +702,15 @@ class _StageNode extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+  Widget _buildFallbackIcon(ThemeData theme, bool isDone) {
+    return Icon(
+      isDone ? Icons.check_rounded : Icons.circle_outlined,
+      size: 18,
+      color: isDone
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.onSurface.withOpacity(0.4),
     );
   }
 }
