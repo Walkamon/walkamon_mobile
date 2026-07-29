@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../evolution/spirit_evolution_screen.dart';
 
 class SpiritDetailScreen extends StatefulWidget {
   const SpiritDetailScreen({super.key});
@@ -17,23 +19,122 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
   String _activeTab = 'stats';
   bool _isLoading = true;
   bool _isSubmitting = false;
-  bool _showEvolutionAnimation = false;
   bool _isEvolved = false;
+  PetOverviewResponse? _petOverview;
+  List<PetEvolutionStageResponse> _evolutionStages =
+      <PetEvolutionStageResponse>[];
+  List<PetEvolutionHistoryResponse> _evolutionHistory =
+      <PetEvolutionHistoryResponse>[];
+  PetCurrentAnimationResponse? _currentAnimation;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
+      await _loadPetData();
+    });
+  }
+
+  Future<void> _loadPetData({bool showLoading = true}) async {
+    if (!mounted) return;
+
+    if (showLoading) {
       setState(() => _isLoading = true);
+    }
 
+    try {
       final gameState = context.read<GameStateProvider>();
-      await gameState.fetchPetStatus();
+      final petRepository = gameState.petRepository;
 
+      await gameState.fetchPetStatus();
+      final overview = await petRepository.getPetOverview();
+      final stages = await petRepository.getEvolutionStages();
+      final history = await petRepository.getEvolutionHistory();
+      final animation = await petRepository.getCurrentAnimation();
+
+      if (!mounted) return;
+
+      final sortedStages = [...stages]
+        ..sort((a, b) => a.stageNo.compareTo(b.stageNo));
+      final sortedHistory = [...history]
+        ..sort((a, b) {
+          final aTime = DateTime.tryParse(a.evolvedAt);
+          final bTime = DateTime.tryParse(b.evolvedAt);
+          if (aTime == null || bTime == null) {
+            return b.stageNo.compareTo(a.stageNo);
+          }
+          return bTime.compareTo(aTime);
+        });
+
+      setState(() {
+        _petOverview = overview;
+        _evolutionStages = sortedStages;
+        _evolutionHistory = sortedHistory;
+        _currentAnimation = animation;
+        _isEvolved = overview.stageNo > 1;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    });
+    }
+  }
+
+  Future<bool> _handleEvolutionSubmit() async {
+    if (_isSubmitting) return false;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final petRepository = context.read<GameStateProvider>().petRepository;
+      final success = await petRepository.evolveToNextStage();
+
+      if (!mounted) return false;
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Không thể tiến hóa lúc này.'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+      return false;
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   Future<void> _handleAction(
@@ -62,20 +163,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     }
   }
 
-  Future<void> _handleEvolveClick() async {
-    if (_showEvolutionAnimation) return;
-    setState(() => _showEvolutionAnimation = true);
-
-    await Future.delayed(const Duration(milliseconds: 2400));
-
-    if (!mounted) return;
-
-    setState(() {
-      _showEvolutionAnimation = false;
-      _isEvolved = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -88,13 +175,21 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
 
     return Consumer<GameStateProvider>(
       builder: (context, gameState, _) {
-        final bonding = gameState.bondingLevel.clamp(0, 100);
-        final energy = gameState.spiritEnergy.clamp(0, 100);
-        final health = gameState.spiritHealth.clamp(0, 100);
-        final level = gameState.spiritLevel;
-        final exp = gameState.spiritExp.clamp(0, 100);
-        final spiritName = gameState.spiritName;
+        final bonding = (_petOverview?.currentBond ?? gameState.bondingLevel)
+            .clamp(0, 100);
+        final energy = (_petOverview?.currentEnergy ?? gameState.spiritEnergy)
+            .clamp(0, 100);
+        final health =
+            (_petOverview?.currentLifeForce ?? gameState.spiritHealth).clamp(
+              0,
+              100,
+            );
+        final level = _petOverview?.level ?? gameState.spiritLevel;
+        final exp = _petOverview?.currentExp ?? gameState.spiritExp;
+        final maxExp = _petOverview?.maxExp ?? 100;
+        final spiritName = _petOverview?.nickname ?? gameState.spiritName;
         final isEvolved = _isEvolved || level >= 15;
+        final safeMaxExp = maxExp > 0 ? maxExp : 100;
 
         final usableItems = <_SupportItemData>[
           _SupportItemData(
@@ -245,6 +340,17 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       color: primary,
                                                     ),
                                               ),
+                                              if (_currentAnimation != null)
+                                                Text(
+                                                  'Animation: ${_currentAnimation!.animationType}',
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: primary
+                                                            .withOpacity(0.8),
+                                                      ),
+                                                ),
                                             ],
                                           ),
                                         ),
@@ -418,16 +524,38 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       energy: energy,
                                                       health: health,
                                                       exp: exp,
+                                                      maxExp: safeMaxExp,
                                                       usableItems: usableItems,
                                                       isDark: isDark,
                                                     )
-                                                  : _buildEvolutionContent(
-                                                      theme: theme,
-                                                      primary: primary,
-                                                      mutedFg: mutedFg,
+                                                  : SpiritEvolutionScreen(
+                                                      key: ValueKey(
+                                                        'evolution',
+                                                      ),
                                                       level: level,
                                                       bonding: bonding,
-                                                      isEvolved: isEvolved,
+                                                      initialIsEvolved:
+                                                          isEvolved,
+                                                      overview: _petOverview,
+                                                      stages: _evolutionStages,
+                                                      history:
+                                                          _evolutionHistory,
+                                                      isLoading: _isLoading,
+                                                      isSubmitting:
+                                                          _isSubmitting,
+                                                      onEvolve:
+                                                          _handleEvolutionSubmit,
+                                                      onRefresh: () =>
+                                                          _loadPetData(
+                                                            showLoading: false,
+                                                          ),
+                                                      onEvolved: () {
+                                                        if (!mounted) return;
+                                                        setState(
+                                                          () =>
+                                                              _isEvolved = true,
+                                                        );
+                                                      },
                                                     ),
                                             ),
                                           ),
@@ -442,7 +570,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                   ],
                 ),
               ),
-              if (_showEvolutionAnimation) _buildEvolutionOverlay(primary),
             ],
           ),
         );
@@ -458,6 +585,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     required int energy,
     required int health,
     required int exp,
+    required int maxExp,
     required List<_SupportItemData> usableItems,
     required bool isDark,
   }) {
@@ -470,8 +598,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         children: [
           _StatRow(
             title: l10n.spiritLifeForceExp,
-            value: '$exp/100',
-            progress: exp / 100,
+            value: '$exp/$maxExp',
+            progress: (exp / maxExp).clamp(0.0, 1.0),
             color: AppColors.lightLife,
           ),
           const SizedBox(height: 10),
@@ -602,262 +730,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEvolutionContent({
-    required ThemeData theme,
-    required Color primary,
-    required Color mutedFg,
-    required int level,
-    required int bonding,
-    required bool isEvolved,
-  }) {
-    final l10n = AppLocalizations.of(context);
-    final readyForEvolution = level >= 15 && bonding >= 70;
-
-    return SingleChildScrollView(
-      key: const ValueKey('evolution'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.spiritEvolutionStages,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: primary.withOpacity(0.18)),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _EvolutionStepItem(
-                        title: l10n.spiritStageSeed,
-                        done: true,
-                        active: true,
-                      ),
-                    ),
-                    Expanded(
-                      child: _EvolutionStepItem(
-                        title: l10n.spiritStageSprout,
-                        done: level >= 10,
-                        active: level >= 10,
-                      ),
-                    ),
-                    Expanded(
-                      child: _EvolutionStepItem(
-                        title: l10n.spiritStageLeaf,
-                        done: isEvolved,
-                        active: isEvolved,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.spiritCurrentRequirement(level, bonding),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: mutedFg,
-                        ),
-                      ),
-                    ),
-                    if (readyForEvolution)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: primary.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          l10n.spiritReady,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: primary.withOpacity(0.16)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.spiritEvolutionHistory,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _HistoryRow(
-                  icon: Icons.auto_awesome,
-                  title: l10n.spiritHistoryHatched,
-                  subtitle: '01/05/2026',
-                ),
-                _HistoryRow(
-                  icon: Icons.shield_outlined,
-                  title: l10n.spiritHistorySprout,
-                  subtitle: '14/05/2026',
-                ),
-                if (isEvolved)
-                  _HistoryRow(
-                    icon: Icons.stars_rounded,
-                    title: l10n.spiritHistoryLeaf,
-                    subtitle: l10n.notificationsTimeAgoJustNow,
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (!isEvolved)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.spiritEvolutionConditions,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _ConditionCard(
-                  text: l10n.spiritReachLevel15,
-                  value: '15/15',
-                  ok: true,
-                ),
-                const SizedBox(height: 8),
-                _ConditionCard(
-                  text: l10n.spiritBondRequirement,
-                  value: l10n.spiritMet,
-                  ok: true,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _handleEvolveClick,
-                    icon: const Icon(Icons.auto_awesome),
-                    label: Text(
-                      l10n.spiritEvolveNow,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          else
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: primary.withOpacity(0.10),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: primary.withOpacity(0.20)),
-              ),
-              child: Text(
-                l10n.spiritMaxEvolution,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEvolutionOverlay(Color primary) {
-    final theme = Theme.of(context);
-
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 300),
-      opacity: 1,
-      child: Container(
-        color: theme.colorScheme.background.withOpacity(0.95),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 1200),
-                curve: Curves.easeOutCubic,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      primary.withOpacity(0.20),
-                      primary.withOpacity(0.06),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.45, 1.0],
-                  ),
-                ),
-              ),
-            ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).spiritEvolving,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: primary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 1200),
-                    curve: Curves.easeOutBack,
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: primary.withOpacity(0.12),
-                    ),
-                    child: Center(
-                      child: Icon(Icons.spa_rounded, size: 88, color: primary),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1008,163 +880,6 @@ class _ActionButton extends StatelessWidget {
       ),
       icon: Icon(icon, size: 18),
       label: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
-    );
-  }
-}
-
-class _EvolutionStepItem extends StatelessWidget {
-  const _EvolutionStepItem({
-    required this.title,
-    required this.done,
-    required this.active,
-    super.key,
-  });
-
-  final String title;
-  final bool done;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return Column(
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: done ? primary : theme.colorScheme.surfaceVariant,
-          ),
-          child: Icon(
-            done ? Icons.check : Icons.circle_outlined,
-            size: 16,
-            color: done
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurface.withOpacity(0.7),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-            color: active
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurface.withOpacity(0.7),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HistoryRow extends StatelessWidget {
-  const _HistoryRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    super.key,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Icon(icon, size: 16, color: theme.colorScheme.primary),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConditionCard extends StatelessWidget {
-  const _ConditionCard({
-    required this.text,
-    required this.value,
-    required this.ok,
-    super.key,
-  });
-
-  final String text;
-  final String value;
-  final bool ok;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            ok ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-            color: ok
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurface.withOpacity(0.55),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

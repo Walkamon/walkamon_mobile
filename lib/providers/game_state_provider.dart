@@ -149,6 +149,7 @@ class GameStateProvider extends ChangeNotifier {
   String get spiritInfo => _spiritInfo;
   bool get hasStarterPet => _hasStarterPet;
   bool get hasSeenStory => _hasSeenStory;
+  PetScreenRepository get petRepository => _petRepository;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
