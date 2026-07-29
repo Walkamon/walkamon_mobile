@@ -294,13 +294,10 @@ class GameStateProvider extends ChangeNotifier {
       // Bỏ qua lỗi gọi API
     }
 
-    // 2. Xóa token dưới thiết bị
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
-    await prefs.remove('user_id');
+    // 2. Xóa token dưới thiết bị và trên RAM ngay lập tức
+    await TokenStorage.clearAuthData();
 
-    // 3. Xóa token trên RAM và reset trạng thái app
-    TokenStorage.clear();
+    // 3. Reset trạng thái app
     _user = null;
     _profileErrorMessage = null;
     _hasStarterPet = false;
