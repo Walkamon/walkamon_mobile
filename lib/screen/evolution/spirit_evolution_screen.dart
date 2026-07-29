@@ -125,7 +125,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     })();
     final stageDisplayName =
         currentStage?.stageName ?? widget.overview?.stageName ?? '';
-    final canEvolve = widget.overview?.canEvolve ?? false;
+    final canEvolveBE = widget.overview?.canEvolve ?? false;
 
     // Required level from options (next tier above current)
     final currentLvl = widget.overview?.level ?? widget.level;
@@ -143,6 +143,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     final conditionLevelTarget = (widget.overview != null && widget.overview!.nextEvolutionLevel > 0)
         ? widget.overview!.nextEvolutionLevel
         : nextRequiredLevel;
+
+    final canEvolve = canEvolveBE || (conditionLevelTarget != null && currentLvl >= conditionLevelTarget);
+    final bool actuallyHasNextStage = hasNextStage || conditionLevelTarget != null;
 
     return SingleChildScrollView(
       key: const ValueKey('evolution'),
@@ -245,83 +248,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                   ],
                 ),
                 
-                // Animations of current stage
-                if (currentStage != null && currentStage.animations.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  const Divider(height: 1, thickness: 0.5),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Trạng thái của pet ở dạng hiện tại:',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: mutedFg,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 85,
-                    child: RawScrollbar(
-                      controller: _animScrollController,
-                      thumbColor: primary.withOpacity(0.5),
-                      radius: const Radius.circular(8),
-                      thickness: 4,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: SingleChildScrollView(
-                          controller: _animScrollController,
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          child: Row(
-                            children: currentStage.animations.map((anim) {
-                              final isNetwork = anim.animationUrl.startsWith('http');
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 46,
-                                      height: 46,
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-                                        ),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: isNetwork
-                                            ? Image.network(
-                                                anim.animationUrl,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 20),
-                                              )
-                                            : Image.asset(
-                                                anim.animationUrl,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 20),
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      anim.typeAnimation,
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        fontSize: 9,
-                                        color: mutedFg,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+
               ],
             ),
           ),
@@ -383,7 +310,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
           const SizedBox(height: 14),
 
           // ── Điều Kiện Tiến Hóa ──────────────────────────────────
-          if (!_isEvolved || hasNextStage) ...[
+          if (!_isEvolved || actuallyHasNextStage) ...[
             _SectionLabel(label: l10n.spiritEvolutionConditions),
             const SizedBox(height: 8),
             if (conditionLevelTarget != null) ...[
@@ -401,7 +328,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
               l10n,
               primary,
               canEvolve: canEvolve,
-              hasNextStage: hasNextStage,
+              hasNextStage: actuallyHasNextStage,
             ),
           ] else ...[
             // Max evolution card
@@ -1168,80 +1095,7 @@ class _PreviewSectionState extends State<_PreviewSection> {
                           ),
                         ],
                       ),
-                      if (stage.animations.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          'Hoạt ảnh:',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: mutedFg,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 85,
-                          child: RawScrollbar(
-                            controller: _getController(scrollKey),
-                            thumbColor: primary.withOpacity(0.3),
-                            radius: const Radius.circular(8),
-                            thickness: 3,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: SingleChildScrollView(
-                                controller: _getController(scrollKey),
-                                scrollDirection: Axis.horizontal,
-                                physics: const BouncingScrollPhysics(),
-                                child: Row(
-                                  children: stage.animations.map((anim) {
-                                    final animIsNetwork = anim.animationUrl.startsWith('http');
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 12),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme.surface,
-                                              borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(
-                                                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-                                              ),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10),
-                                              child: animIsNetwork
-                                                  ? Image.network(
-                                                      anim.animationUrl,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 16),
-                                                    )
-                                                  : Image.asset(
-                                                      anim.animationUrl,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 16),
-                                                    ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            anim.typeAnimation,
-                                            style: theme.textTheme.labelSmall?.copyWith(
-                                              fontSize: 9,
-                                              color: mutedFg,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+
                     ],
                   ),
                 );
