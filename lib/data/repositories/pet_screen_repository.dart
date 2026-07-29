@@ -165,4 +165,18 @@ class PetScreenRepository {
     final apiResponse = await _datasource.evolveToFamily(petId);
     return apiResponse.success;
   }
+
+  Future<List<PetEvolutionPreviewResponse>> getEvolutionPreviews() async {
+    final apiResponse = await _datasource.getEvolutionPreviews();
+
+    if (apiResponse.success) {
+      return apiResponse.data ?? <PetEvolutionPreviewResponse>[];
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải xem trước tiến hóa.',
+    );
+  }
 }

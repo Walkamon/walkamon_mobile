@@ -178,4 +178,36 @@ class PetScreenDatasource {
   Future<ApiResponse<Map<String, dynamic>>> evolveToNextStage() async {
     return _apiClient.post<Map<String, dynamic>>('/api/pet/evolution/next');
   }
+
+  Future<ApiResponse<List<PetEvolutionPreviewResponse>>>
+  getEvolutionPreviews() async {
+    final resp = await _apiClient.get<List<PetEvolutionPreviewResponse>>(
+      '/api/Pet/evolution/preview',
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .whereType<Map>()
+              .map(
+                (item) => PetEvolutionPreviewResponse.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              .toList();
+        }
+        return <PetEvolutionPreviewResponse>[];
+      },
+    );
+
+    if (resp.success && resp.data == null) {
+      return ApiResponse<List<PetEvolutionPreviewResponse>>(
+        success: resp.success,
+        status: resp.status,
+        message: resp.message,
+        data: <PetEvolutionPreviewResponse>[],
+        traceId: resp.traceId,
+      );
+    }
+
+    return resp;
+  }
 }

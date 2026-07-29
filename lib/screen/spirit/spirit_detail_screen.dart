@@ -27,6 +27,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       <PetEvolutionHistoryResponse>[];
   List<PetEvolutionOptionResponse> _evolutionOptions =
       <PetEvolutionOptionResponse>[];
+  List<PetEvolutionPreviewResponse> _evolutionPreviews =
+      <PetEvolutionPreviewResponse>[];
   PetCurrentAnimationResponse? _currentAnimation;
 
   @override
@@ -57,6 +59,11 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       try {
         options = await petRepository.getEvolutionOptions();
       } catch (_) {}
+      
+      List<PetEvolutionPreviewResponse> previews = <PetEvolutionPreviewResponse>[];
+      try {
+        previews = await petRepository.getEvolutionPreviews();
+      } catch (_) {}
 
       if (!mounted) return;
 
@@ -77,6 +84,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         _evolutionStages = sortedStages;
         _evolutionHistory = sortedHistory;
         _evolutionOptions = options;
+        _evolutionPreviews = previews;
         _currentAnimation = animation;
         _isEvolved = overview.stageNo > 1;
       });
@@ -545,10 +553,11 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                           isEvolved,
                                                       overview: _petOverview,
                                                       stages: _evolutionStages,
-                                                      history:
-                                                          _evolutionHistory,
+                                                      history: _evolutionHistory,
                                                       evolutionOptions:
                                                           _evolutionOptions,
+                                                      evolutionPreviews:
+                                                          _evolutionPreviews,
                                                       isLoading: _isLoading,
                                                       isSubmitting:
                                                           _isSubmitting,

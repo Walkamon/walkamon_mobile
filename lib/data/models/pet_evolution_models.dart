@@ -207,3 +207,75 @@ class PetEvolutionOptionResponse {
     );
   }
 }
+
+// ─── Preview Models ────────────────────────────────────────────────────────
+
+class PetEvolutionPreviewStageResponse {
+  const PetEvolutionPreviewStageResponse({
+    required this.stageNo,
+    required this.stageName,
+    required this.stageImage,
+    required this.requiredLevel,
+    required this.animations,
+  });
+
+  final int stageNo;
+  final String stageName;
+  final String stageImage;
+  final int requiredLevel;
+  final List<PetEvolutionAnimationResponse> animations;
+
+  factory PetEvolutionPreviewStageResponse.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    final animationsJson = json['animations'];
+    return PetEvolutionPreviewStageResponse(
+      stageNo: int.tryParse(json['stageNo']?.toString() ?? '0') ?? 0,
+      stageName: json['stageName']?.toString() ?? '',
+      stageImage: json['stageImage']?.toString() ?? '',
+      requiredLevel:
+          int.tryParse(json['requiredLevel']?.toString() ?? '0') ?? 0,
+      animations: animationsJson is List
+          ? animationsJson
+                .whereType<Map>()
+                .map(
+                  (item) => PetEvolutionAnimationResponse.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+                )
+                .toList()
+          : <PetEvolutionAnimationResponse>[],
+    );
+  }
+}
+
+class PetEvolutionPreviewResponse {
+  const PetEvolutionPreviewResponse({
+    required this.petId,
+    required this.petName,
+    required this.stages,
+  });
+
+  final String petId;
+  final String petName;
+  final List<PetEvolutionPreviewStageResponse> stages;
+
+  factory PetEvolutionPreviewResponse.fromJson(Map<String, dynamic> json) {
+    final stagesJson = json['stages'];
+    return PetEvolutionPreviewResponse(
+      petId: json['petId']?.toString() ?? '',
+      petName: json['petName']?.toString() ?? '',
+      stages: stagesJson is List
+          ? stagesJson
+                .whereType<Map>()
+                .map(
+                  (item) => PetEvolutionPreviewStageResponse.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+                )
+                .toList()
+          : <PetEvolutionPreviewStageResponse>[],
+    );
+  }
+}
+

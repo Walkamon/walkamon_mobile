@@ -16,6 +16,7 @@ class SpiritEvolutionScreen extends StatefulWidget {
     this.stages = const <PetEvolutionStageResponse>[],
     this.history = const <PetEvolutionHistoryResponse>[],
     this.evolutionOptions = const <PetEvolutionOptionResponse>[],
+    this.evolutionPreviews = const <PetEvolutionPreviewResponse>[],
     this.isLoading = false,
     this.isSubmitting = false,
     this.onEvolve,
@@ -31,6 +32,7 @@ class SpiritEvolutionScreen extends StatefulWidget {
   final List<PetEvolutionStageResponse> stages;
   final List<PetEvolutionHistoryResponse> history;
   final List<PetEvolutionOptionResponse> evolutionOptions;
+  final List<PetEvolutionPreviewResponse> evolutionPreviews;
   final bool isLoading;
   final bool isSubmitting;
   final Future<bool> Function()? onEvolve;
@@ -443,7 +445,14 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             ),
           ],
 
-          const SizedBox(height: 8),
+          if (widget.evolutionPreviews.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _SectionLabel(label: 'Xem trước các dạng tiến hóa'),
+            const SizedBox(height: 8),
+            _PreviewSection(previews: widget.evolutionPreviews),
+          ],
+          
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -785,10 +794,10 @@ class _HistoryRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 16, color: theme.colorScheme.primary),
+            child: Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1027,5 +1036,220 @@ class _EvolutionOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _EvolutionOverlayStateful(primary: primary);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Preview Section
+// ─────────────────────────────────────────────────────────
+class _PreviewSection extends StatefulWidget {
+  const _PreviewSection({required this.previews});
+
+  final List<PetEvolutionPreviewResponse> previews;
+
+  @override
+  State<_PreviewSection> createState() => _PreviewSectionState();
+}
+
+class _PreviewSectionState extends State<_PreviewSection> {
+  final Map<String, ScrollController> _scrollControllers = {};
+
+  @override
+  void dispose() {
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  ScrollController _getController(String key) {
+    if (!_scrollControllers.containsKey(key)) {
+      _scrollControllers[key] = ScrollController();
+    }
+    return _scrollControllers[key]!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+
+    return Column(
+      children: widget.previews.map((pet) {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: primary.withOpacity(0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header pet name
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.pets, size: 16, color: primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        pet.petName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, thickness: 0.5),
+              // Stages
+              ...pet.stages.map((stage) {
+                final isNetworkImage = stage.stageImage.startsWith('http');
+                final scrollKey = '${pet.petId}_${stage.stageNo}';
+                
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: primary.withOpacity(0.3)),
+                            ),
+                            child: ClipOval(
+                              child: stage.stageImage.isNotEmpty
+                                  ? (isNetworkImage
+                                      ? Image.network(
+                                          stage.stageImage,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
+                                        )
+                                      : Image.asset(
+                                          stage.stageImage,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
+                                        ))
+                                  : Icon(Icons.help_outline, color: mutedFg),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  stage.stageName,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Cấp độ yêu cầu: ${stage.requiredLevel}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: mutedFg,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (stage.animations.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'Hoạt ảnh:',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: mutedFg,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 85,
+                          child: RawScrollbar(
+                            controller: _getController(scrollKey),
+                            thumbColor: primary.withOpacity(0.3),
+                            radius: const Radius.circular(8),
+                            thickness: 3,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: SingleChildScrollView(
+                                controller: _getController(scrollKey),
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                child: Row(
+                                  children: stage.animations.map((anim) {
+                                    final animIsNetwork = anim.animationUrl.startsWith('http');
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface,
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                                              ),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: animIsNetwork
+                                                  ? Image.network(
+                                                      anim.animationUrl,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 16),
+                                                    )
+                                                  : Image.asset(
+                                                      anim.animationUrl,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 16),
+                                                    ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            anim.typeAnimation,
+                                            style: theme.textTheme.labelSmall?.copyWith(
+                                              fontSize: 9,
+                                              color: mutedFg,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }
