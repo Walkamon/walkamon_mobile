@@ -136,7 +136,8 @@ class PetScreenDatasource {
     );
   }
 
-  Future<ApiResponse<List<PetEvolutionOptionResponse>>> getEvolutionOptions() async {
+  Future<ApiResponse<List<PetEvolutionOptionResponse>>>
+  getEvolutionOptions() async {
     final resp = await _apiClient.get<List<PetEvolutionOptionResponse>>(
       '/api/pet/evolution/options',
       fromJsonT: (json) {

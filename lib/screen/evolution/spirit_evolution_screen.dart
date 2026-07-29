@@ -92,8 +92,8 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen> {
     final readyForEvolution = widget.overview?.canEvolve ?? widget.level >= 15;
     final currentStage =
         widget.stages.where((stage) => stage.isCurrent).isNotEmpty
-            ? widget.stages.firstWhere((stage) => stage.isCurrent)
-            : null;
+        ? widget.stages.firstWhere((stage) => stage.isCurrent)
+        : null;
     final bool hasNextStage = (() {
       if (widget.stages.isEmpty) return false;
       final currentIndex = widget.stages.indexWhere((s) => s.isCurrent);
@@ -264,10 +264,13 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: (widget.isSubmitting || !canEvolve ||
-                          widget.onEvolve == null || !hasNextStage)
-                      ? null
-                      : _handleEvolveClick,
+                    onPressed:
+                        (widget.isSubmitting ||
+                            !canEvolve ||
+                            widget.onEvolve == null ||
+                            !hasNextStage)
+                        ? null
+                        : _handleEvolveClick,
                     icon: const Icon(Icons.auto_awesome),
                     label: Text(
                       widget.isSubmitting
