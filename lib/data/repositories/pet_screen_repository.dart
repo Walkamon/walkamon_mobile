@@ -1,4 +1,5 @@
 import '../datasources/remote/pet_screen_datasource.dart';
+import '../models/pet_evolution_models.dart';
 import '../models/pet_name_response.dart';
 import '../models/pet_status_response.dart';
 
@@ -83,5 +84,85 @@ class PetScreenRepository {
           ? apiResponse.message
           : 'Không thể cho thú cưng ăn.',
     );
+  }
+
+  Future<PetOverviewResponse> getPetOverview() async {
+    final apiResponse = await _datasource.getPetOverview();
+
+    if (apiResponse.success && apiResponse.data != null) {
+      return apiResponse.data!;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải thông tin tiến hóa thú cưng.',
+    );
+  }
+
+  Future<List<PetEvolutionStageResponse>> getEvolutionStages() async {
+    final apiResponse = await _datasource.getEvolutionStages();
+
+    if (apiResponse.success) {
+      return apiResponse.data ?? <PetEvolutionStageResponse>[];
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải giai đoạn tiến hóa.',
+    );
+  }
+
+  Future<List<PetEvolutionHistoryResponse>> getEvolutionHistory() async {
+    final apiResponse = await _datasource.getEvolutionHistory();
+
+    if (apiResponse.success) {
+      return apiResponse.data ?? <PetEvolutionHistoryResponse>[];
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải lịch sử tiến hóa.',
+    );
+  }
+
+  Future<PetCurrentAnimationResponse> getCurrentAnimation() async {
+    final apiResponse = await _datasource.getCurrentAnimation();
+
+    if (apiResponse.success && apiResponse.data != null) {
+      return apiResponse.data!;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải animation hiện tại.',
+    );
+  }
+
+  Future<bool> evolveToNextStage() async {
+    final apiResponse = await _datasource.evolveToNextStage();
+    return apiResponse.success;
+  }
+
+  Future<List<PetEvolutionOptionResponse>> getEvolutionOptions() async {
+    final apiResponse = await _datasource.getEvolutionOptions();
+
+    if (apiResponse.success) {
+      return apiResponse.data ?? <PetEvolutionOptionResponse>[];
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải tùy chọn tiến hóa.',
+    );
+  }
+
+  Future<bool> evolveToFamily(String petId) async {
+    final apiResponse = await _datasource.evolveToFamily(petId);
+    return apiResponse.success;
   }
 }
