@@ -25,6 +25,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       <PetEvolutionStageResponse>[];
   List<PetEvolutionHistoryResponse> _evolutionHistory =
       <PetEvolutionHistoryResponse>[];
+  List<PetEvolutionOptionResponse> _evolutionOptions =
+      <PetEvolutionOptionResponse>[];
   PetCurrentAnimationResponse? _currentAnimation;
 
   @override
@@ -51,6 +53,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       final stages = await petRepository.getEvolutionStages();
       final history = await petRepository.getEvolutionHistory();
       final animation = await petRepository.getCurrentAnimation();
+      List<PetEvolutionOptionResponse> options = <PetEvolutionOptionResponse>[];
+      try {
+        options = await petRepository.getEvolutionOptions();
+      } catch (_) {}
 
       if (!mounted) return;
 
@@ -70,6 +76,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         _petOverview = overview;
         _evolutionStages = sortedStages;
         _evolutionHistory = sortedHistory;
+        _evolutionOptions = options;
         _currentAnimation = animation;
         _isEvolved = overview.stageNo > 1;
       });
@@ -540,6 +547,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       stages: _evolutionStages,
                                                       history:
                                                           _evolutionHistory,
+                                                      evolutionOptions:
+                                                          _evolutionOptions,
                                                       isLoading: _isLoading,
                                                       isSubmitting:
                                                           _isSubmitting,
