@@ -107,14 +107,20 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     }
   }
 
-  Future<bool> _handleEvolutionSubmit() async {
+  Future<bool> _handleEvolutionSubmit([String? petId]) async {
     if (_isSubmitting) return false;
 
     setState(() => _isSubmitting = true);
 
     try {
       final petRepository = context.read<GameStateProvider>().petRepository;
-      final success = await petRepository.evolveToNextStage();
+      
+      bool success = false;
+      if (petId != null) {
+        success = await petRepository.evolveToFamily(petId);
+      } else {
+        success = await petRepository.evolveToNextStage();
+      }
 
       if (!mounted) return false;
 

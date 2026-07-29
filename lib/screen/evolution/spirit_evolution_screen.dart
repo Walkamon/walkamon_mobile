@@ -35,7 +35,7 @@ class SpiritEvolutionScreen extends StatefulWidget {
   final List<PetEvolutionPreviewResponse> evolutionPreviews;
   final bool isLoading;
   final bool isSubmitting;
-  final Future<bool> Function()? onEvolve;
+  final Future<bool> Function([String? petId])? onEvolve;
   final Future<void> Function()? onRefresh;
   final VoidCallback? onEvolved;
 
@@ -74,6 +74,13 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
   Future<void> _handleEvolveClick() async {
     if (_isAnimating || widget.isSubmitting || widget.onEvolve == null) return;
 
+    String? selectedPetId;
+
+    if (widget.evolutionOptions.isNotEmpty) {
+      selectedPetId = await _showEvolutionOptionsBottomSheet();
+      if (selectedPetId == null) return; // User cancelled
+    }
+
     _isAnimating = true;
 
     await Navigator.of(context).push(
@@ -86,7 +93,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
 
     if (!mounted) return;
 
-    final success = await widget.onEvolve!();
+    final success = await widget.onEvolve!(selectedPetId);
 
     if (!mounted) return;
 
@@ -101,6 +108,19 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     if (success) {
       await widget.onRefresh?.call();
     }
+  }
+
+  Future<String?> _showEvolutionOptionsBottomSheet() {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _EvolutionOptionsSheet(
+          options: widget.evolutionOptions,
+        );
+      },
+    );
   }
 
   @override
@@ -1104,6 +1124,110 @@ class _PreviewSectionState extends State<_PreviewSection> {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class _EvolutionOptionsSheet extends StatelessWidget {
+  const _EvolutionOptionsSheet({required this.options});
+  
+  final List<PetEvolutionOptionResponse> options;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Chọn nhánh tiến hóa',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...options.map((option) {
+              final isNetworkImage = option.stateUrl.startsWith('http');
+              return InkWell(
+                onTap: () => Navigator.of(context).pop(option.petId),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: primary.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.surface,
+                          border: Border.all(color: primary.withOpacity(0.5)),
+                        ),
+                        child: ClipOval(
+                          child: option.stateUrl.isNotEmpty
+                              ? (isNetworkImage
+                                  ? Image.network(
+                                      option.stateUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
+                                    )
+                                  : Image.asset(
+                                      option.stateUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
+                                    ))
+                              : Icon(Icons.help_outline, color: mutedFg),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              option.petName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Cấp độ yêu cầu: ${option.requiredLevel}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: mutedFg,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: primary),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 }
