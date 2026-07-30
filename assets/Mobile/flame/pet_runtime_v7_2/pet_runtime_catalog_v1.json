@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "packageId": "walkamon_pet_runtime_v7_2",
+  "candidateOnly": true,
+  "productionEnabled": false,
+  "combinedManifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/pet_animations_v4.json",
+  "databaseMapping": {
+    "affinityColumn": "pets.pvp_affinity_code",
+    "stageColumn": "pet_stages.stage_no",
+    "serverStateField": "PetOverviewResponse.animationType"
+  },
+  "forms": [
+    {
+      "key": "sprout_stage0",
+      "affinityCode": "sprout",
+      "stageNo": 0,
+      "animationCount": 66,
+      "storedFrameEntries": 1856,
+      "atlasPageCount": 48,
+      "maxPagesPerClip": 14,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_sprout_stage0_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_sprout_stage0_eef089f06193e311.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_sprout_stage0_eef089f06193e311.png"
+      ],
+      "approval": "user-approved complete V6 candidate"
+    },
+    {
+      "key": "warm_sun_stage1",
+      "affinityCode": "warm_sun",
+      "stageNo": 1,
+      "animationCount": 84,
+      "storedFrameEntries": 3650,
+      "atlasPageCount": 161,
+      "maxPagesPerClip": 53,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage1_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage1_e2992a6362d2f2f0.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage1_e2992a6362d2f2f0.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage1_e2992a6362d2f2f0.png"
+      ],
+      "approval": "user-approved V7.1 species candidate"
+    },
+    {
+      "key": "warm_sun_stage2",
+      "affinityCode": "warm_sun",
+      "stageNo": 2,
+      "animationCount": 84,
+      "storedFrameEntries": 3650,
+      "atlasPageCount": 115,
+      "maxPagesPerClip": 43,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage2_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage2_854ad2fb82016339.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage2_854ad2fb82016339.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage2_854ad2fb82016339.png"
+      ],
+      "approval": "user-approved V7.1 species candidate"
+    },
+    {
+      "key": "dawn_stage1",
+      "affinityCode": "dawn",
+      "stageNo": 1,
+      "animationCount": 84,
+      "storedFrameEntries": 3681,
+      "atlasPageCount": 137,
+      "maxPagesPerClip": 37,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage1_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage1_d1a28f0045a3211e.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage1_d1a28f0045a3211e.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage1_d1a28f0045a3211e.png"
+      ],
+      "approval": "user-approved V7.1 species candidate"
+    },
+    {
+      "key": "dawn_stage2",
+      "affinityCode": "dawn",
+      "stageNo": 2,
+      "animationCount": 84,
+      "storedFrameEntries": 3681,
+      "atlasPageCount": 145,
+      "maxPagesPerClip": 37,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage2_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png"
+      ],
+      "approval": "user-approved V7.1 species candidate"
+    },
+    {
+      "key": "moonlight_stage1",
+      "affinityCode": "moonlight",
+      "stageNo": 1,
+      "animationCount": 84,
+      "storedFrameEntries": 3675,
+      "atlasPageCount": 128,
+      "maxPagesPerClip": 44,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage1_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png",
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png"
+      ],
+      "approval": "user-approved V7.1 species candidate"
+    },
+    {
+      "key": "moonlight_stage2",
+      "affinityCode": "moonlight",
+      "stageNo": 2,
+      "animationCount": 84,
+      "storedFrameEntries": 3675,
+      "atlasPageCount": 122,
+      "maxPagesPerClip": 38,
+      "manifestAsset": "assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage2_v4.json",
+      "fallbackAssets": [
+        "assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png"
+      ],
+      "approval": "user-approved V7.2 sharp replacement"
+    }
+  ]
+}
