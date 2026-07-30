@@ -788,27 +788,40 @@ class PvpProvider extends ChangeNotifier {
   }
 
   void _applyProgressDetails(Map<String, dynamic> details) {
-    final playerId =
-        details['playerId']?.toString() ??
-        details['matchPlayerId']?.toString();
-    final distance = (details['distanceUnits'] as num?)?.toInt();
-    if (playerId == null || playerId.isEmpty || distance == null) {
+    final rawParticipants = details['participants'];
+    if (rawParticipants is! List || rawParticipants.isEmpty) {
       return;
     }
 
     final match = _currentMatch;
     if (match == null) return;
 
+    final updatesById = <String, Map<String, dynamic>>{};
+    for (final item in rawParticipants) {
+      if (item is! Map) continue;
+      final row = Map<String, dynamic>.from(item);
+      final id = row['matchPlayerId']?.toString();
+      if (id == null || id.isEmpty) continue;
+      updatesById[id] = row;
+    }
+    if (updatesById.isEmpty) return;
+
     final updated = match.participants.map((p) {
-      if (p.matchPlayerId == playerId) {
-        return p.copyWith(
-          distanceUnits: distance,
-          validatedSteps: (details['validatedSteps'] as num?)?.toInt(),
-          speedMultiplierBps: (details['speedMultiplierBps'] as num?)?.toInt(),
-          score: (details['score'] as num?)?.toInt(),
-        );
-      }
-      return p;
+      final id = p.matchPlayerId;
+      if (id == null || id.isEmpty) return p;
+      final row = updatesById[id];
+      if (row == null) return p;
+
+      final distance = (row['distanceUnits'] as num?)?.toInt();
+      print(
+        '[PvP][match.progress][apply] participant=$id distance=$distance',
+      );
+      return p.copyWith(
+        distanceUnits: distance,
+        validatedSteps: (row['validatedSteps'] as num?)?.toInt(),
+        speedMultiplierBps: (row['speedMultiplierBps'] as num?)?.toInt(),
+        score: (row['score'] as num?)?.toInt(),
+      );
     }).toList();
 
     _currentMatch = PvpMatchResponse(
