@@ -1,0 +1,65 @@
+{
+  "packageId": "walkamon_pet_runtime_v7_2",
+  "manifestVersion": 4,
+  "catalogVersion": 1,
+  "formCount": 7,
+  "animationCount": 570,
+  "atlasFileCount": 856,
+  "atlasCompressedBytes": 2517386882,
+  "estimatedGpuDecodedBytesAllPages": 11941392196,
+  "materializationModes": {
+    "hardlink": 863,
+    "existing": 11
+  },
+  "provenance": [
+    {
+      "key": "sprout_stage0",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v6/candidates/sprout_stage0_66_v6_complete/candidate_atlas/sprout_stage0_66_v6_complete_pet_animations_v4.json",
+      "sourceManifestSha256": "786d920e834a445e1c0a736e05a61e6c33f1e9b5189128aa114bfdef86845ee1",
+      "sourcePageCount": 48,
+      "uniquePageContentCount": 48
+    },
+    {
+      "key": "warm_sun_stage1",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_1/candidates/warm_sun_stage1_84_v7_species/candidate_atlas/warm_sun_stage1_84_v7_species_pet_animations_v4.json",
+      "sourceManifestSha256": "1e24e0edd5159f70c4a5e494e8cfc4701be5c1f3092b2320c52ffad279b7b3c1",
+      "sourcePageCount": 161,
+      "uniquePageContentCount": 161
+    },
+    {
+      "key": "warm_sun_stage2",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_1/candidates/warm_sun_stage2_84_v7_species/candidate_atlas/warm_sun_stage2_84_v7_species_pet_animations_v4.json",
+      "sourceManifestSha256": "73024459c3de2c147a6d05dd61c2ea9c637c3c0cfaa04437f207623bffd26aa6",
+      "sourcePageCount": 115,
+      "uniquePageContentCount": 115
+    },
+    {
+      "key": "dawn_stage1",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_1/candidates/dawn_stage1_84_v7_species/candidate_atlas/dawn_stage1_84_v7_species_pet_animations_v4.json",
+      "sourceManifestSha256": "3be8b3897e01567f06402250ea6f1c8e44ce3fbe03162eb78e22d6d0445600f7",
+      "sourcePageCount": 137,
+      "uniquePageContentCount": 137
+    },
+    {
+      "key": "dawn_stage2",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_1/candidates/dawn_stage2_84_v7_species/candidate_atlas/dawn_stage2_84_v7_species_pet_animations_v4.json",
+      "sourceManifestSha256": "45127028548948d8b4c5c6ea852baf981b9fbef96887e849b411bc5d10f0e349",
+      "sourcePageCount": 145,
+      "uniquePageContentCount": 145
+    },
+    {
+      "key": "moonlight_stage1",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_1/candidates/moonlight_stage1_84_v7_species/candidate_atlas/moonlight_stage1_84_v7_species_pet_animations_v4.json",
+      "sourceManifestSha256": "5fb0817f7dba0f1c2da0ce69cac8616a508d13381352d50d311b9ff60eefb30c",
+      "sourcePageCount": 128,
+      "uniquePageContentCount": 128
+    },
+    {
+      "key": "moonlight_stage2",
+      "sourceManifest": "artifacts/pet_animation_rebuild/v7_2/candidates/moonlight_stage2_84_v7_2_sharp/candidate_atlas/moonlight_stage2_84_v7_2_sharp_pet_animations_v4.json",
+      "sourceManifestSha256": "dc6b39a6f30bd6fa290f952e3d2909fe3b3e9c9130a875d6262430450e559e36",
+      "sourcePageCount": 122,
+      "uniquePageContentCount": 122
+    }
+  ]
+}
