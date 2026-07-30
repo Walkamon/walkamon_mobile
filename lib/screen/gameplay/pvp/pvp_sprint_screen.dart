@@ -252,6 +252,26 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       pvpProvider.setCurrentUserId(currentUserId);
     }
 
+    if (pvpProvider.inviteDeclined) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        pvpProvider.clearInviteDeclined();
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Thông báo'),
+            content: const Text('Người chơi từ chối lời mời'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        );
+      });
+    }
+
     if (_lastObservedMatchmakingState != pvpProvider.matchmakingState) {
       _lastObservedMatchmakingState = pvpProvider.matchmakingState;
       WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -438,14 +438,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                     result: 'win',
                   ),
                 ),
-                _FilterChip(
-                  label: 'Hủy',
-                  selected: provider.historyResultFilter == 'cancelled',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    result: 'cancelled',
-                  ),
-                ),
+
                 _FilterChip(
                   label: 'Thua',
                   selected: provider.historyResultFilter == 'lose',
