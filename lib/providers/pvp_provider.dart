@@ -535,6 +535,13 @@ class PvpProvider extends ChangeNotifier {
   bool _hasMatchRoomJoined = false;
   String? _activeMatchId;
   DateTime? _matchmakingStartedAt;
+  bool _inviteDeclined = false;
+  bool get inviteDeclined => _inviteDeclined;
+
+  void clearInviteDeclined() {
+    _inviteDeclined = false;
+    notifyListeners();
+  }
   final Set<String> _processedEventIds = <String>{};
   final Map<String, int> _lastSequences = <String, int>{};
 
@@ -1204,6 +1211,10 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (eventType.startsWith('invite.')) {
+      if (eventType == 'invite.declined') {
+        _inviteDeclined = true;
+        _updateState(PvpMatchmakingState.idle);
+      }
       await _refreshPresenceSnapshots();
       return;
     }
