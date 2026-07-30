@@ -419,6 +419,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             onContinue: _resetGame,
             onClaimReward: _claimReward,
             isClaiming: _isClaimingReward,
+            claimResponse: pvpProvider.lastClaimResponse,
           ),
       ],
     );

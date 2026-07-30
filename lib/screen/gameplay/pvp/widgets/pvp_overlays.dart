@@ -237,6 +237,7 @@ class PvPFinishedOverlay extends StatelessWidget {
   final VoidCallback onContinue;
   final Future<void> Function()? onClaimReward;
   final bool isClaiming;
+  final PvpRewardClaimResponse? claimResponse;
 
   const PvPFinishedOverlay({
     super.key,
@@ -248,6 +249,7 @@ class PvPFinishedOverlay extends StatelessWidget {
     required this.onContinue,
     this.onClaimReward,
     this.isClaiming = false,
+    this.claimResponse,
   });
 
   Color? _parseHexColor(String? hex) {
@@ -366,31 +368,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: (isWin
-                              ? Colors.amber
-                              : isDraw
-                              ? Colors.blueGrey
-                              : Colors.grey)
-                          .withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isWin
-                          ? Icons.emoji_events
-                          : isDraw
-                          ? Icons.handshake
-                          : Icons.close,
-                      size: 64,
-                      color: isWin
-                          ? Colors.amber
-                          : isDraw
-                          ? Colors.blueGrey
-                          : Colors.grey,
-                    ),
-                  ),
+
                   const SizedBox(height: 24),
                   Text(
                     _titleForResult(resultCode),
@@ -447,6 +425,83 @@ class PvPFinishedOverlay extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      // Hiển thị chi tiết phần thưởng từ BE sau khi claim
+                      if (claimResponse != null) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.amber.withOpacity(0.4),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'PHẦN THƯỞNG NHẬN ĐƯỢC',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (claimResponse!.walletReward > 0)
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.monetization_on,
+                                      size: 20,
+                                      color: Colors.amber,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '+${claimResponse!.walletReward} coin',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              if (claimResponse!.rewardItems.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                ...claimResponse!.rewardItems.map(
+                                  (item) => Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.card_giftcard,
+                                          size: 18,
+                                          color: Colors.green,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'x${item.quantity} vật phẩm',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ],

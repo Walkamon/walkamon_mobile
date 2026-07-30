@@ -669,7 +669,7 @@ class PvpProvider extends ChangeNotifier {
   int? _lastLoggedCountdownValue;
 
   DateTime? _raceStartedAt;
-  static const Duration _raceDuration = Duration(seconds: 30);
+  Duration _raceDuration = const Duration(seconds: 30);
   double _raceTimeProgress = 0.0;
   double _myProgress = 0.0;
   double _opponentProgress = 0.0;
@@ -684,6 +684,9 @@ class PvpProvider extends ChangeNotifier {
 
   PvpMatchResultResponse? _matchResult;
   PvpMatchResultResponse? get matchResult => _matchResult;
+
+  PvpRewardClaimResponse? _lastClaimResponse;
+  PvpRewardClaimResponse? get lastClaimResponse => _lastClaimResponse;
 
   /// Used when server result is not ready yet after local forfeit.
   String? _forcedResultCode;
@@ -701,7 +704,6 @@ class PvpProvider extends ChangeNotifier {
 
   String? get activeMatchId => _activeMatchId;
 
-  bool _hasServerProgress = false;
 
   String get currentOpponentName {
     final participants =
@@ -782,16 +784,7 @@ class PvpProvider extends ChangeNotifier {
       }
     }
 
-    final myDist = me?.distanceUnits ?? 0;
-    final oppDist = opponent?.distanceUnits ?? 0;
-    if (myDist <= 0 && oppDist <= 0) {
-      return;
-    }
-
-    _hasServerProgress = true;
-    final scale = math.max(math.max(myDist, oppDist), 1);
-    _myProgress = ((myDist / scale) * 100).clamp(0, 100).toDouble();
-    _opponentProgress = ((oppDist / scale) * 100).clamp(0, 100).toDouble();
+    // Do nothing here, we will smoothly update _myProgress and _opponentProgress in _updateRaceProgress()
   }
 
   void _applyProgressDetails(Map<String, dynamic> details) {
@@ -992,7 +985,8 @@ class PvpProvider extends ChangeNotifier {
 
   Duration get elapsed {
     if (_raceStartedAt == null) return Duration.zero;
-    final elapsed = DateTime.now().difference(_raceStartedAt!);
+    final serverNow = estimatedServerNow();
+    final elapsed = serverNow.difference(_raceStartedAt!);
     if (elapsed.isNegative) return Duration.zero;
     return elapsed > _raceDuration ? _raceDuration : elapsed;
   }
@@ -1005,7 +999,6 @@ class PvpProvider extends ChangeNotifier {
     _myProgress = 0.0;
     _opponentProgress = 0.0;
     _isRaceFinished = false;
-    _hasServerProgress = false;
     _stopRaceTicker();
     _stopSettlementPoll();
   }
@@ -1023,10 +1016,27 @@ class PvpProvider extends ChangeNotifier {
     final progress = totalMs == 0 ? 0.0 : elapsedMs / totalMs;
     _raceTimeProgress = progress.clamp(0.0, 1.0);
 
-    // UC-72: HUD must come from server distance/progress, not local invention.
-    if (!_hasServerProgress) {
+    // UC-72: HUD mượt mà kết hợp giữa Server Distance và Time Progress
+    final me = _myParticipant;
+    PvpParticipantResponse? opponent;
+    final participants = _currentMatch?.participants ?? [];
+    for (final p in participants) {
+      if (me == null || p.matchPlayerId != me.matchPlayerId) {
+        opponent = p;
+        break;
+      }
+    }
+
+    final myDist = me?.distanceUnits ?? 0;
+    final oppDist = opponent?.distanceUnits ?? 0;
+
+    if (myDist <= 0 && oppDist <= 0) {
       _myProgress = _raceTimeProgress * 100.0;
-      _opponentProgress = math.min(100.0, _raceTimeProgress * 98.0);
+      _opponentProgress = _raceTimeProgress * 100.0;
+    } else {
+      final scale = math.max(math.max(myDist, oppDist), 1);
+      _myProgress = ((myDist / scale) * _raceTimeProgress * 100).clamp(0, 100).toDouble();
+      _opponentProgress = ((oppDist / scale) * _raceTimeProgress * 100).clamp(0, 100).toDouble();
     }
   }
 
@@ -1120,9 +1130,26 @@ class PvpProvider extends ChangeNotifier {
     });
   }
 
-  void _startRace() {
+  void _startRace({PvpMatchResponse? match}) {
     _resetRaceState();
-    _raceStartedAt = DateTime.now();
+
+    // UC-72: Tính thời gian đua từ server time (startedAt + endedAt).
+    // Fallback về server estimate clock + 30s nếu BE không cung cấp.
+    final serverStarted = match?.startedAt;
+    final serverEnded = match?.endedAt;
+
+    if (serverStarted != null && serverEnded != null) {
+      final raceTotalMs = serverEnded.difference(serverStarted).inMilliseconds;
+      _raceDuration = Duration(milliseconds: raceTotalMs > 0 ? raceTotalMs : 30000);
+      _raceStartedAt = serverStarted.toUtc();
+    } else if (serverStarted != null) {
+      _raceDuration = const Duration(seconds: 30);
+      _raceStartedAt = serverStarted.toUtc();
+    } else {
+      _raceDuration = const Duration(seconds: 30);
+      _raceStartedAt = estimatedServerNow();
+    }
+
     _updateRaceProgress();
     notifyListeners();
     _startRaceTicker();
@@ -1132,6 +1159,7 @@ class PvpProvider extends ChangeNotifier {
     _currentMatch = null;
     _activeMatchId = null;
     _matchResult = null;
+    _lastClaimResponse = null;
     _forcedResultCode = null;
     _hasMatchRoomJoined = false;
     _serverOffset = null;
@@ -1305,10 +1333,14 @@ class PvpProvider extends ChangeNotifier {
     // Keep quiet by default; use targeted debugPrint for countdown lifecycle only.
   }
 
-  void _enterRunning({required String reason, String? matchId}) {
+  void _enterRunning({
+    required String reason,
+    String? matchId,
+    PvpMatchResponse? match,
+  }) {
     _stopCountdownSchedule();
     _updateState(PvpMatchmakingState.running, reason: reason);
-    _startRace();
+    _startRace(match: match ?? _currentMatch);
   }
 
   void startRace({required String reason, String? matchId}) {
@@ -1867,6 +1899,8 @@ class PvpProvider extends ChangeNotifier {
   Future<bool> claimMatchReward(String matchId) async {
     final response = await _pvpDatasource.claimMatchReward(matchId);
     if (response.success && response.data != null) {
+      _lastClaimResponse = response.data;
+      notifyListeners();
       await loadMatchResult(matchId);
       return true;
     }

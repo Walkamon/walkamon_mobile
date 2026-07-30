@@ -138,13 +138,13 @@ class PvpMatchResponse {
         ? DateTime.parse(rawCountdownEndsAt).toUtc()
         : null;
     final parsedStartedAt = rawStartedAt != null
-        ? DateTime.parse(rawStartedAt)
+        ? DateTime.parse(rawStartedAt).toUtc()
         : null;
     final parsedEndedAt = rawEndedAt != null
-        ? DateTime.parse(rawEndedAt)
+        ? DateTime.parse(rawEndedAt).toUtc()
         : null;
     final parsedSettlementEndsAt = rawSettlementEndsAt != null
-        ? DateTime.parse(rawSettlementEndsAt)
+        ? DateTime.parse(rawSettlementEndsAt).toUtc()
         : null;
 
     debugPrint('RAW countdownStartsAt=$rawCountdownStartsAt');
