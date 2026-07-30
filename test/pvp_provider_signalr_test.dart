@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/network/api_response.dart';
+import 'package:walkamon_mobile/core/network/presence_realtime_service.dart';
 import 'package:walkamon_mobile/data/datasources/remote/pvp_sprint_datasource.dart';
 import 'package:walkamon_mobile/data/models/pvp_models.dart';
+import 'package:walkamon_mobile/providers/presence_provider.dart';
 import 'package:walkamon_mobile/providers/pvp_provider.dart';
 
 class _FakePvpSprintDatasource extends PvpSprintDatasource {
@@ -68,6 +72,8 @@ class _FakeSignalRService implements PvpSignalRService {
     required void Function(Map<String, dynamic> event) onCancelled,
     required void Function(Map<String, dynamic> event) onCountdownStarted,
     required void Function(Map<String, dynamic> event) onStarted,
+    void Function(Map<String, dynamic> event)? onForfeited,
+    void Function(Map<String, dynamic> event)? onPresenceChanged,
   }) {}
 
   @override
@@ -87,7 +93,40 @@ class _FakeSignalRService implements PvpSignalRService {
   String? get connectionId => 'fake-conn';
 }
 
+class _FakePresenceRealtimeClient implements PresenceRealtimeClient {
+  final _statusController =
+      StreamController<PresenceConnectionStatus>.broadcast();
+  final _eventController = StreamController<Map<String, dynamic>>.broadcast();
+  var _status = PresenceConnectionStatus.disconnected;
+
+  @override
+  PresenceConnectionStatus get status => _status;
+
+  @override
+  Stream<PresenceConnectionStatus> get statusChanges =>
+      _statusController.stream;
+
+  @override
+  Stream<Map<String, dynamic>> get events => _eventController.stream;
+
+  @override
+  Future<void> connect() async {
+    _status = PresenceConnectionStatus.connected;
+    _statusController.add(_status);
+  }
+
+  @override
+  Future<void> disconnect() async {
+    _status = PresenceConnectionStatus.disconnected;
+    _statusController.add(_status);
+  }
+
+  void emit(Map<String, dynamic> event) => _eventController.add(event);
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('resolveCountdownPhase keeps a pre-start countdown alive', () {
     final now = DateTime.utc(2026, 7, 27, 3, 0, 29);
     final startsAt = DateTime.utc(2026, 7, 27, 3, 0, 33);
@@ -126,6 +165,43 @@ void main() {
       expect(provider.currentMatch?.matchId, 'match-1');
       expect(datasource.fetchedMatchIds, contains('match-1'));
       expect(signalRService.joinedMatchIds, contains('match-1'));
+    },
+  );
+
+  test(
+    'PresenceHub assignment connects SprintHub and is deduped across hubs',
+    () async {
+      final datasource = _FakePvpSprintDatasource();
+      final signalRService = _FakeSignalRService();
+      final presenceClient = _FakePresenceRealtimeClient();
+      final presenceProvider = PresenceProvider(client: presenceClient);
+      await presenceProvider.synchronizeAuthentication(true);
+      final provider = PvpProvider(
+        pvpDatasource: datasource,
+        signalRService: signalRService,
+        presenceProvider: presenceProvider,
+      );
+      final event = <String, dynamic>{
+        'eventId': 'assigned-event-1',
+        'eventType': 'match.assigned',
+        'payload': <String, dynamic>{
+          'matchId': 'match-presence-1',
+          'statusCode': 'countdown',
+          'serverTime': '2026-07-27T03:00:00Z',
+        },
+      };
+
+      presenceClient.emit(event);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await provider.handleSignalREvent(event);
+
+      expect(signalRService.joinedMatchIds, ['match-presence-1']);
+      expect(datasource.fetchedMatchIds, ['match-presence-1']);
+      expect(provider.matchmakingState, PvpMatchmakingState.countdown);
+      expect(presenceProvider.latestMatchAssignedEvent, isNull);
+
+      provider.dispose();
+      presenceProvider.dispose();
     },
   );
 }
