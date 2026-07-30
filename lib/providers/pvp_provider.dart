@@ -13,6 +13,7 @@ import '../data/datasources/remote/activity_stats_datasource.dart';
 import '../data/datasources/remote/friends_datasource.dart';
 import '../data/models/pvp_models.dart';
 import '../data/models/friends_response.dart';
+import 'presence_provider.dart';
 
 abstract class PvpSignalRService {
   bool get isConnected;
@@ -473,6 +474,9 @@ class PvpProvider extends ChangeNotifier {
   final ActivityStatsDatasource _activityDatasource;
   final FriendsDatasource _friendsDatasource;
   final PvpSignalRService _signalRService;
+  final PresenceProvider? _presenceProvider;
+  StreamSubscription<Map<String, dynamic>>? _presenceEventSubscription;
+  Future<void>? _signalRInitialization;
 
   PvpProvider({
     ApiClient? apiClient,
@@ -485,12 +489,14 @@ class PvpProvider extends ChangeNotifier {
     List<String>? signalRMethodNames,
     String? signalRJoinMethod,
     String? signalRLeaveMethod,
+    PresenceProvider? presenceProvider,
   }) : _pvpDatasource = pvpDatasource ?? PvpSprintDatasource(apiClient),
        _petDatasource = petDatasource ?? PetScreenDatasource(apiClient),
        _activityDatasource =
            activityDatasource ?? ActivityStatsDatasource(apiClient: apiClient),
        _friendsDatasource =
            friendsDatasource ?? FriendsDatasource(apiClient ?? ApiClient()),
+       _presenceProvider = presenceProvider,
        _signalRService =
            signalRService ??
            DefaultPvpSignalRService(
@@ -510,7 +516,17 @@ class PvpProvider extends ChangeNotifier {
              serverMethodNames: signalRMethodNames,
              joinMethodName: signalRJoinMethod ?? 'JoinMatch',
              leaveMethodName: signalRLeaveMethod ?? 'LeaveMatch',
-           );
+           ) {
+    _presenceEventSubscription = _presenceProvider?.events.listen(
+      (event) => unawaited(_handlePresenceHubEvent(event)),
+    );
+    final pendingAssigned = _presenceProvider?.latestMatchAssignedEvent;
+    if (pendingAssigned != null) {
+      scheduleMicrotask(
+        () => unawaited(_handlePresenceHubEvent(pendingAssigned)),
+      );
+    }
+  }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -1120,7 +1136,21 @@ class PvpProvider extends ChangeNotifier {
     _updateState(PvpMatchmakingState.idle, reason: 'clearMatchState');
   }
 
-  Future<void> initializeSignalR() async {
+  Future<void> initializeSignalR() {
+    if (_signalRInitialized) return Future<void>.value();
+    final current = _signalRInitialization;
+    if (current != null) return current;
+
+    final future = _initializeSignalR();
+    _signalRInitialization = future;
+    return future.whenComplete(() {
+      if (identical(_signalRInitialization, future)) {
+        _signalRInitialization = null;
+      }
+    });
+  }
+
+  Future<void> _initializeSignalR() async {
     _signalRService.setEventHandlers(
       onAssigned: (event) => unawaited(handleSignalREvent(event)),
       onProgress: (event) => unawaited(handleSignalREvent(event)),
@@ -1161,6 +1191,45 @@ class PvpProvider extends ChangeNotifier {
   }
 
   bool _signalRInitialized = false;
+
+  Future<void> _handlePresenceHubEvent(Map<String, dynamic> event) async {
+    final eventType =
+        event['eventType']?.toString() ??
+        event['_receivedMethod']?.toString() ??
+        '';
+
+    if (eventType == 'presence.changed') {
+      _handlePresenceChanged(event);
+      return;
+    }
+
+    if (eventType.startsWith('invite.')) {
+      await _refreshPresenceSnapshots();
+      return;
+    }
+
+    if (eventType == 'match.assigned' ||
+        eventType == 'match.forfeited' ||
+        eventType == 'match.finished' ||
+        eventType == 'match.cancelled') {
+      if (!_signalRInitialized) {
+        try {
+          await initializeSignalR();
+        } catch (error) {
+          debugPrint(
+            '[PvP] Cannot connect SprintHub after PresenceHub $eventType: $error',
+          );
+          return;
+        }
+      }
+      await handleSignalREvent(event);
+      if (eventType == 'match.assigned') {
+        _presenceProvider?.clearLatestMatchAssignedEvent(
+          event['eventId']?.toString(),
+        );
+      }
+    }
+  }
 
   Future<void> fetchWaitingRoomData() async {
     _isLoading = true;
@@ -1610,8 +1679,6 @@ class PvpProvider extends ChangeNotifier {
       }
     }
   }
-
-
 
   // ---------------------------------------------------------------------------
   // Presence helpers
@@ -2150,5 +2217,15 @@ class PvpProvider extends ChangeNotifier {
 
   void rejectChallenge(String inviteId) {
     respondToInvite(inviteId, accept: false);
+  }
+
+  @override
+  void dispose() {
+    _countdownTicker?.cancel();
+    _raceTicker?.cancel();
+    _settlementPollTimer?.cancel();
+    unawaited(_presenceEventSubscription?.cancel());
+    unawaited(_signalRService.disconnect());
+    super.dispose();
   }
 }

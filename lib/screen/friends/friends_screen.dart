@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/presence_provider.dart';
 import '../profile/friend_player_profile_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
@@ -193,8 +194,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final presence = context.watch<PresenceProvider>();
+    final effectiveFriends = friends.map(presence.applyPresence).toList();
 
-    final filteredFriends = friends
+    final filteredFriends = effectiveFriends
         .where(
           (f) => f.username.toLowerCase().contains(searchQuery.toLowerCase()),
         )
@@ -274,7 +277,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           const SizedBox(height: 16),
 
           Expanded(
-            child: friends.isEmpty
+            child: effectiveFriends.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

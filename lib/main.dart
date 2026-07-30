@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -17,12 +19,13 @@ import 'data/repositories/pet_screen_repository.dart';
 
 import 'core/theme/app_theme.dart';
 import 'providers/game_state_provider.dart';
+import 'providers/presence_provider.dart';
 import 'providers/step_tracking_provider.dart';
 import 'providers/daily_login_provider.dart';
 import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
-import 'widgets/layouts/main_layout.dart'; 
+import 'widgets/layouts/main_layout.dart';
 import 'screen/friends/friends_spirit_screen.dart' as fs;
 
 import 'screen/auth/forgot_password_screen.dart';
@@ -115,6 +118,18 @@ class _WalkamonAppState extends State<WalkamonApp> {
             FCMService(notificationRepository),
             petRepository,
           ),
+        ),
+        ChangeNotifierProxyProvider<GameStateProvider, PresenceProvider>(
+          create: (_) => PresenceProvider(),
+          update: (_, gameState, presence) {
+            final provider = presence ?? PresenceProvider();
+            scheduleMicrotask(
+              () => unawaited(
+                provider.synchronizeAuthentication(gameState.isAuthenticated),
+              ),
+            );
+            return provider;
+          },
         ),
         ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
         ChangeNotifierProvider(

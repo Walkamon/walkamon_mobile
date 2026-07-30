@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
+import '../../providers/presence_provider.dart';
 import '../../providers/pvp_provider.dart';
 import 'pvp/pvp_screen.dart';
 
@@ -9,8 +10,11 @@ class PvPScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final presenceProvider = context.read<PresenceProvider>();
     return ChangeNotifierProvider(
-      create: (_) => PvpProvider()..fetchWaitingRoomData(),
+      create: (_) =>
+          PvpProvider(presenceProvider: presenceProvider)
+            ..fetchWaitingRoomData(),
       child: const Scaffold(body: SafeArea(child: PvPMainScreen())),
     );
   }
