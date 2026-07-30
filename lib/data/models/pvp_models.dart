@@ -268,6 +268,13 @@ class PvpInviteResponse {
   final DateTime? createdAt;
   final String? matchId;
 
+  /// Presence của user trong object `user` (người kia, không phải user đang login).
+  /// true = đang có SignalR connection.
+  final bool otherUserIsOnline;
+
+  /// Trạng thái PvP của người kia: 'available' | 'busy' | 'offline'.
+  final String otherUserPvpAvailabilityCode;
+
   PvpInviteResponse({
     required this.inviteId,
     required this.user,
@@ -275,7 +282,33 @@ class PvpInviteResponse {
     this.expiresAt,
     this.createdAt,
     this.matchId,
+    this.otherUserIsOnline = false,
+    this.otherUserPvpAvailabilityCode = 'offline',
   });
+
+  /// Có thể chấp nhận invite này: người kia online & available & invite chưa hết hạn.
+  bool get canAccept =>
+      statusCode == 'pending' &&
+      otherUserIsOnline &&
+      otherUserPvpAvailabilityCode == 'available' &&
+      (expiresAt == null || DateTime.now().isBefore(expiresAt!));
+
+  /// Tạo bản sao với presence mới từ SignalR presence.changed
+  PvpInviteResponse copyWithPresence({
+    required bool isOnline,
+    required String pvpAvailabilityCode,
+  }) {
+    return PvpInviteResponse(
+      inviteId: inviteId,
+      user: user,
+      statusCode: statusCode,
+      expiresAt: expiresAt,
+      createdAt: createdAt,
+      matchId: matchId,
+      otherUserIsOnline: isOnline,
+      otherUserPvpAvailabilityCode: pvpAvailabilityCode,
+    );
+  }
 
   factory PvpInviteResponse.fromJson(Map<String, dynamic> json) {
     return PvpInviteResponse(
@@ -291,6 +324,9 @@ class PvpInviteResponse {
           ? DateTime.parse(json['createdAt'] as String)
           : null,
       matchId: json['matchId'] as String?,
+      otherUserIsOnline: json['otherUserIsOnline'] == true,
+      otherUserPvpAvailabilityCode:
+          json['otherUserPvpAvailabilityCode'] as String? ?? 'offline',
     );
   }
 }
