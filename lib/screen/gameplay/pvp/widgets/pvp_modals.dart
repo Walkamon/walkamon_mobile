@@ -88,6 +88,23 @@ class _IncomingChallengesContent extends StatelessWidget {
                 separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final challenge = activeChallenges[index];
+                  final senderOnline = challenge.otherUserIsOnline;
+                  final senderCode = challenge.otherUserPvpAvailabilityCode;
+                  final canAccept = challenge.canAccept;
+
+                  String presenceLabel;
+                  Color presenceColor;
+                  if (!senderOnline) {
+                    presenceLabel = 'Ngoại tuyến';
+                    presenceColor = Colors.grey;
+                  } else if (senderCode == 'busy') {
+                    presenceLabel = 'Đang bận';
+                    presenceColor = Colors.orange;
+                  } else {
+                    presenceLabel = 'Đang online';
+                    presenceColor = Colors.green;
+                  }
+
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -122,31 +139,88 @@ class _IncomingChallengesContent extends StatelessWidget {
                                       fontSize: 16,
                                     ),
                                   ),
-                                  Text(
-                                    'Lv.15',
-                                    style: TextStyle(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: BoxDecoration(
+                                          color: presenceColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        presenceLabel,
+                                        style: TextStyle(
+                                          color: presenceColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
+                        if (!canAccept && senderOnline && senderCode == 'busy')
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 14,
+                                  color: Colors.orange.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Người gửi đang trong trận khác',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.orange.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (!canAccept && !senderOnline)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.wifi_off,
+                                  size: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Người gửi đã ngoại tuyến',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  onAccept(
-                                    challenge.inviteId,
-                                    challenge.user.username,
-                                  );
-                                },
+                                onPressed: canAccept
+                                    ? () {
+                                        Navigator.pop(context);
+                                        onAccept(
+                                          challenge.inviteId,
+                                          challenge.user.username,
+                                        );
+                                      }
+                                    : null,
                                 icon: const Icon(Icons.check, size: 16),
                                 label: const Text('Chấp nhận'),
                                 style: ElevatedButton.styleFrom(
@@ -708,7 +782,7 @@ class _FriendsModalContent extends StatelessWidget {
                       ),
                     )
                   else
-                    ...online.map((f) => _buildFriendItem(context, f, onInvite, isOnline: true)),
+                    ...online.map((f) => _buildFriendItem(context, f, onInvite)),
                   const Divider(height: 32),
                   Row(
                     children: [
@@ -727,7 +801,7 @@ class _FriendsModalContent extends StatelessWidget {
                       ),
                     )
                   else
-                    ...offline.map((f) => _buildFriendItem(context, f, onInvite, isOnline: false)),
+                    ...offline.map((f) => _buildFriendItem(context, f, onInvite)),
                 ],
               ),
             ),
@@ -740,10 +814,12 @@ class _FriendsModalContent extends StatelessWidget {
   Widget _buildFriendItem(
     BuildContext context,
     FriendsResponse friend,
-    Function(String userId, String username) onInvite, {
-    required bool isOnline,
-  }) {
+    Function(String userId, String username) onInvite,
+  ) {
     final theme = Theme.of(context);
+    final canChallenge = friend.isPvpAvailable;
+    final isBusy = friend.isPvpBusy;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -766,42 +842,98 @@ class _FriendsModalContent extends StatelessWidget {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
-                Text(
-                  'Lv.15',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                if (isBusy)
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Đang bận',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  )
+                else if (friend.isOnline)
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Online',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  const Text(
+                    'Ngoại tuyến',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 11,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
-          if (isOnline)
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                final uid =
-                    friend.userId.isNotEmpty ? friend.userId : friend.username;
-                onInvite(uid, friend.username);
-              },
-              icon: Icon(
-                Icons.sports_kabaddi,
-                size: 16,
-                color: theme.colorScheme.onPrimaryContainer,
-              ),
-              label: Text(
-                'Thách đấu',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onPrimaryContainer,
+          if (friend.isOnline)
+            Tooltip(
+              message: isBusy ? 'Bạn bè đang bận' : 'Thách đấu',
+              child: ElevatedButton.icon(
+                onPressed: canChallenge
+                    ? () {
+                        Navigator.pop(context);
+                        final uid = friend.userId.isNotEmpty
+                            ? friend.userId
+                            : friend.username;
+                        onInvite(uid, friend.username);
+                      }
+                    : null,
+                icon: Icon(
+                  isBusy ? Icons.hourglass_top : Icons.sports_kabaddi,
+                  size: 16,
+                  color: canChallenge
+                      ? theme.colorScheme.onPrimaryContainer
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.onPrimaryContainer,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                label: Text(
+                  isBusy ? 'Đang bận' : 'Thách đấu',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: canChallenge
+                        ? theme.colorScheme.onPrimaryContainer
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: canChallenge
+                      ? theme.colorScheme.primaryContainer
+                      : theme.colorScheme.surfaceContainerHighest,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
               ),
             ),
         ],

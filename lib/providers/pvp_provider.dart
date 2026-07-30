@@ -34,6 +34,7 @@ abstract class PvpSignalRService {
     required void Function(Map<String, dynamic> event) onCountdownStarted,
     required void Function(Map<String, dynamic> event) onStarted,
     void Function(Map<String, dynamic> event)? onForfeited,
+    void Function(Map<String, dynamic> event)? onPresenceChanged,
   });
 
   void setReconnectedHandler(Future<void> Function()? onReconnected);
@@ -76,6 +77,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   void Function(Map<String, dynamic> event)? _onCountdownStarted;
   void Function(Map<String, dynamic> event)? _onStarted;
   void Function(Map<String, dynamic> event)? _onForfeited;
+  void Function(Map<String, dynamic> event)? _onPresenceChanged;
   Future<void> Function()? _onReconnected;
 
   String _hubPath() => (configuredHubUrl?.isNotEmpty == true
@@ -181,6 +183,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
           'match.finished',
           'match.settling',
           'match.cancelled',
+          'presence.changed',
         ];
     for (final name in methodNames) {
       _log('Registering SignalR handler: $name');
@@ -280,7 +283,14 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       case 'match.cancelled':
         _onCancelled?.call(data);
         break;
+      case 'presence.changed':
+        _onPresenceChanged?.call(data);
+        break;
       default:
+        // Fallback: nếu method name là 'presence.changed' nhưng eventType khác
+        if (methodName == 'presence.changed') {
+          _onPresenceChanged?.call(data);
+        }
         break;
     }
   }
@@ -362,6 +372,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     void Function(Map<String, dynamic> event)? onCountdownStarted,
     void Function(Map<String, dynamic> event)? onStarted,
     void Function(Map<String, dynamic> event)? onForfeited,
+    void Function(Map<String, dynamic> event)? onPresenceChanged,
   }) {
     _onAssigned = onAssigned;
     _onProgress = onProgress;
@@ -371,6 +382,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     _onCountdownStarted = onCountdownStarted;
     _onStarted = onStarted;
     _onForfeited = onForfeited;
+    _onPresenceChanged = onPresenceChanged;
   }
 
   @override
@@ -398,6 +410,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         break;
       case 'match.cancelled':
         _onCancelled?.call(event);
+        break;
+      case 'presence.changed':
+        _onPresenceChanged?.call(event);
         break;
       default:
         break;
@@ -1115,12 +1130,16 @@ class PvpProvider extends ChangeNotifier {
       onCountdownStarted: (event) => unawaited(handleSignalREvent(event)),
       onStarted: (event) => unawaited(handleSignalREvent(event)),
       onForfeited: (event) => unawaited(handleSignalREvent(event)),
+      onPresenceChanged: (event) => _handlePresenceChanged(event),
     );
 
     // When SignalR reconnects, recover authoritative matchmaking state
+    // và refresh friends + invites để lấy snapshot presence mới nhất.
     _signalRService.setReconnectedHandler(() async {
       _log('SignalR reconnected - recovering matchmaking status');
       await _recoverMatchmakingStateFromStatus();
+      // Refresh friends list and pending invites after reconnect.
+      await _refreshPresenceSnapshots();
     });
 
     // If using the default implementation, print debug info about token and negotiate URL
@@ -1593,6 +1612,102 @@ class PvpProvider extends ChangeNotifier {
   }
 
 
+
+  // ---------------------------------------------------------------------------
+  // Presence helpers
+  // ---------------------------------------------------------------------------
+
+  /// Refresh friends list + pending invites — dùng sau reconnect để đồng bộ
+  /// snapshot presence authoritative từ server.
+  Future<void> _refreshPresenceSnapshots() async {
+    try {
+      final friendsResp = await _friendsDatasource.getFriends();
+      _friendsList = friendsResp;
+    } catch (e) {
+      debugPrint('[PvP] _refreshPresenceSnapshots friends error: $e');
+    }
+    try {
+      final incomingResp = await _pvpDatasource.getInvites(
+        direction: 'incoming',
+        status: 'pending',
+      );
+      if (incomingResp.success && incomingResp.data != null) {
+        _incomingInvites = incomingResp.data!.items;
+        _incomingInvitesTotal = incomingResp.data!.total;
+      }
+    } catch (e) {
+      debugPrint('[PvP] _refreshPresenceSnapshots invites error: $e');
+    }
+    notifyListeners();
+  }
+
+  /// Handler cho SignalR event `presence.changed`.
+  /// Cập nhật card bạn bè và card invite tương ứng với userId thay đổi.
+  void _handlePresenceChanged(Map<String, dynamic> event) {
+    // Dedupe theo eventId
+    final eventId = event['eventId']?.toString();
+    if (eventId != null && _processedEventIds.contains(eventId)) return;
+    if (eventId != null) _processedEventIds.add(eventId);
+
+    final payload = (event['payload'] as Map<String, dynamic>?) ?? event;
+
+    final userId = payload['userId']?.toString()
+        ?? event['aggregateId']?.toString();
+    if (userId == null || userId.isEmpty) return;
+
+    final isOnline = payload['isOnline'] == true;
+    final pvpCode =
+        payload['pvpAvailabilityCode'] as String? ?? (isOnline ? 'available' : 'offline');
+
+    debugPrint(
+      '[PvP] presence.changed userId=$userId isOnline=$isOnline pvpCode=$pvpCode',
+    );
+
+    // Cập nhật friend card
+    bool friendsUpdated = false;
+    final updatedFriends = _friendsList.map((f) {
+      if (f.userId == userId) {
+        friendsUpdated = true;
+        return f.copyWithPresence(
+          isOnline: isOnline,
+          pvpAvailabilityCode: pvpCode,
+        );
+      }
+      return f;
+    }).toList();
+    if (friendsUpdated) _friendsList = updatedFriends;
+
+    // Cập nhật invite card (incoming + sent) theo user.userId
+    bool invitesUpdated = false;
+    final updatedIncoming = _incomingInvites.map((inv) {
+      if (inv.user.userId == userId) {
+        invitesUpdated = true;
+        return inv.copyWithPresence(
+          isOnline: isOnline,
+          pvpAvailabilityCode: pvpCode,
+        );
+      }
+      return inv;
+    }).toList();
+    if (invitesUpdated) _incomingInvites = updatedIncoming;
+
+    bool sentUpdated = false;
+    final updatedSent = _sentInvites.map((inv) {
+      if (inv.user.userId == userId) {
+        sentUpdated = true;
+        return inv.copyWithPresence(
+          isOnline: isOnline,
+          pvpAvailabilityCode: pvpCode,
+        );
+      }
+      return inv;
+    }).toList();
+    if (sentUpdated) _sentInvites = updatedSent;
+
+    if (friendsUpdated || invitesUpdated || sentUpdated) {
+      notifyListeners();
+    }
+  }
 
   Future<void> syncMatch(String matchId) async {
     final response = await _pvpDatasource.getMatch(matchId);
