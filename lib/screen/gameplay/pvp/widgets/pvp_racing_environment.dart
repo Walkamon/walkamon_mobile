@@ -146,7 +146,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                       AnimatedPositioned(
                         duration: const Duration(seconds: 1),
                         curve: Curves.linear,
-                        right: (widget.myProgress > 80 || widget.opponentProgress > 80) ? 60.0 : -100.0,
+                        right: (widget.myProgress > 95 || widget.opponentProgress > 95) ? 60.0 : -100.0,
                         top: 25,
                         bottom: 0,
                         child: Container(width: 15, color: Colors.amber),
@@ -194,7 +194,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                       AnimatedPositioned(
                         duration: const Duration(seconds: 1),
                         curve: Curves.linear,
-                        right: (widget.myProgress > 80 || widget.opponentProgress > 80) ? 60.0 : -100.0,
+                        right: (widget.myProgress > 95 || widget.opponentProgress > 95) ? 60.0 : -100.0,
                         top: 0,
                         bottom: 0,
                         child: Container(width: 15, color: Colors.amber),
