@@ -130,6 +130,11 @@ class GameStateProvider extends ChangeNotifier {
   bool _hasSeenStory = false;
   bool _hasLocalLanguagePreference = false;
 
+  String _affinityCode = 'sprout';
+  int _petStageNo = 0;
+  String _animationType = 'idle';
+  String _petStageName = '';
+
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -149,6 +154,10 @@ class GameStateProvider extends ChangeNotifier {
   String get spiritInfo => _spiritInfo;
   bool get hasStarterPet => _hasStarterPet;
   bool get hasSeenStory => _hasSeenStory;
+  String get affinityCode => _affinityCode;
+  int get petStageNo => _petStageNo;
+  String get animationType => _animationType;
+  String get petStageName => _petStageName;
   PetScreenRepository get petRepository => _petRepository;
 
   bool get isLoading => _isLoading;
@@ -303,6 +312,10 @@ class GameStateProvider extends ChangeNotifier {
     _profileErrorMessage = null;
     _hasStarterPet = false;
     _spiritName = 'Lumina';
+    _affinityCode = 'sprout';
+    _petStageNo = 0;
+    _animationType = 'idle';
+    _petStageName = '';
     _isLoading = false;
     notifyListeners();
   }
@@ -554,6 +567,72 @@ class GameStateProvider extends ChangeNotifier {
       debugPrint('Lỗi khi tải trạng thái thú cưng: $e');
       return false;
     }
+  }
+
+  /// Loads affinity/stage/animation from `/api/pet/me` + current-animation.
+  Future<bool> fetchPetVisual() async {
+    try {
+      final overview = await _petRepository.getPetOverview();
+      final code = overview.affinityCode.trim();
+      if (code.isNotEmpty) {
+        _affinityCode = code;
+      }
+      _petStageNo = overview.stageNo;
+      if (overview.animationType.trim().isNotEmpty) {
+        _animationType = overview.animationType.trim();
+      }
+      if (overview.nickname.trim().isNotEmpty) {
+        _spiritName = overview.nickname.trim();
+        _hasStarterPet = true;
+      }
+      if (overview.formName.trim().isNotEmpty) {
+        _spiritInfo = '${overview.formName} đang sẵn sàng khám phá.';
+      }
+      if (overview.level > 0) {
+        _spiritLevel = overview.level;
+      }
+      _spiritExp = overview.currentExp;
+      _spiritEnergy = overview.currentEnergy;
+      _spiritHealth = overview.currentLifeForce;
+      _bondingLevel = overview.currentBond;
+
+      try {
+        final anim = await _petRepository.getCurrentAnimation();
+        if (anim.animationType.trim().isNotEmpty) {
+          _animationType = anim.animationType.trim();
+        }
+        if (anim.stageNo > 0) {
+          _petStageNo = anim.stageNo;
+        }
+        if (anim.stageName.trim().isNotEmpty) {
+          _petStageName = anim.stageName.trim();
+          _spiritInfo = '${anim.stageName} · $_animationType';
+        }
+        final fromUrl = _affinityFromAnimationUrl(anim.animationUrl);
+        if (fromUrl != null) {
+          _affinityCode = fromUrl;
+        }
+      } catch (e) {
+        debugPrint('Lỗi khi tải animation hiện tại: $e');
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Lỗi khi tải visual thú cưng: $e');
+      return false;
+    }
+  }
+
+  String? _affinityFromAnimationUrl(String url) {
+    final normalized = url.trim();
+    if (normalized.isEmpty) return null;
+    final withoutScheme = normalized.replaceFirst(RegExp(r'^asset://'), '');
+    final parts = withoutScheme.split('/');
+    if (parts.length < 2) return null;
+    final code = parts[1].trim().toLowerCase();
+    const known = {'sprout', 'warm_sun', 'dawn', 'moonlight'};
+    return known.contains(code) ? code : null;
   }
 
   Future<bool> fetchPetName() async {

@@ -192,6 +192,25 @@ flutter:
     - assets/Mobile/TinhLinhNangAm/stage2/sad/
     - assets/Mobile/TinhLinhNangAm/stage2/sleep/
     - assets/Mobile/TinhLinhNangAm/stage2/tap_hello/
+    # Pet runtime V7.2: catalog/manifests/fallbacks only.
+    # Do NOT bundle the full master atlas folder (~2.36 GiB / 856 pages).
+    # See docs/PET_ANIMATION_FLAME_IMPLEMENTATION_GUIDE.md section 6.
+    - assets/Mobile/flame/pet_runtime_v7_2/pet_runtime_catalog_v1.json
+    - assets/Mobile/flame/pet_runtime_v7_2/pet_animations_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_sprout_stage0_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage1_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage2_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage1_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage2_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage1_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage2_v4.json
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_sprout_stage0_eef089f06193e311.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage1_e2992a6362d2f2f0.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage2_854ad2fb82016339.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage1_d1a28f0045a3211e.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png
+    - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png
     - assets/Mobile/ui_frames/
 
   # An image asset can refer to one or more resolution-specific "variants", see

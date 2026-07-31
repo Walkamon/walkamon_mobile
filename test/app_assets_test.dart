@@ -19,8 +19,8 @@ void main() {
     }
   });
 
-  test('PvP catalog has 17 icons, one HUD and 40 VFX frames', () async {
-    expect(AppAssets.pvpCatalogAssets, hasLength(58));
+  test('PvP catalog has icons, maps, HUD and VFX frames', () async {
+    expect(AppAssets.pvpCatalogAssets, hasLength(64));
 
     for (final path in AppAssets.pvpCatalogAssets) {
       final data = await rootBundle.load(path);
@@ -32,6 +32,24 @@ void main() {
     expect(AppAssets.notificationCatalogAssets, hasLength(13));
 
     for (final path in AppAssets.notificationCatalogAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Pet runtime assets are bundled', () async {
+    expect(AppAssets.petRuntimeCatalogAssets, hasLength(16));
+
+    for (final path in AppAssets.petRuntimeCatalogAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Home chrome icons and backgrounds are bundled', () async {
+    expect(AppAssets.homeChromeAssets, hasLength(19));
+
+    for (final path in AppAssets.homeChromeAssets) {
       final data = await rootBundle.load(path);
       expect(data.lengthInBytes, greaterThan(0), reason: path);
     }

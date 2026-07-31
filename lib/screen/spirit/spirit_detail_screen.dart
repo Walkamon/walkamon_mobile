@@ -7,6 +7,7 @@ import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../evolution/spirit_evolution_screen.dart';
+import '../../widgets/pet_runtime/pet_runtime_preview.dart';
 
 class SpiritDetailScreen extends StatefulWidget {
   const SpiritDetailScreen({super.key});
@@ -59,8 +60,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       try {
         options = await petRepository.getEvolutionOptions();
       } catch (_) {}
-      
-      List<PetEvolutionPreviewResponse> previews = <PetEvolutionPreviewResponse>[];
+
+      List<PetEvolutionPreviewResponse> previews =
+          <PetEvolutionPreviewResponse>[];
       try {
         previews = await petRepository.getEvolutionPreviews();
       } catch (_) {}
@@ -114,7 +116,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
 
     try {
       final petRepository = context.read<GameStateProvider>().petRepository;
-      
+
       bool success = false;
       if (petId != null) {
         success = await petRepository.evolveToFamily(petId);
@@ -559,7 +561,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                           isEvolved,
                                                       overview: _petOverview,
                                                       stages: _evolutionStages,
-                                                      history: _evolutionHistory,
+                                                      history:
+                                                          _evolutionHistory,
                                                       evolutionOptions:
                                                           _evolutionOptions,
                                                       evolutionPreviews:
@@ -620,6 +623,18 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_petOverview != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: PetRuntimePreview(
+                affinityCode: _petOverview!.affinityCode,
+                stageNo: _petOverview!.stageNo,
+                animationType: _petOverview!.animationType.isEmpty
+                    ? 'idle'
+                    : _petOverview!.animationType,
+                height: 200,
+              ),
+            ),
           _StatRow(
             title: l10n.spiritLifeForceExp,
             value: '$exp/$maxExp',
