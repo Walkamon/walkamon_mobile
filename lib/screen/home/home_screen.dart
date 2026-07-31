@@ -3,113 +3,36 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
+import '../../widgets/pet_runtime/pet_runtime_preview.dart';
 
-// ── Dewdrop Icon (SVG → CustomPaint) ────────────────────────────────────────
-class _DewdropIcon extends StatelessWidget {
-  const _DewdropIcon({this.size = 16, this.color});
-  final double size;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _DewdropPainter(color: color ?? Colors.blue),
-    );
-  }
+Widget _assetIcon(String path, {double size = 20, Color? color}) {
+  return Image.asset(
+    path,
+    width: size,
+    height: size,
+    fit: BoxFit.contain,
+    color: color,
+    colorBlendMode: color == null ? null : BlendMode.srcIn,
+    errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, size: size),
+  );
 }
 
-class _DewdropPainter extends CustomPainter {
-  const _DewdropPainter({required this.color});
-  final Color color;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    final sx = size.width / 24;
-    final sy = size.height / 24;
-
-    final path = Path()
-      ..moveTo(12 * sx, 2.5 * sy)
-      ..cubicTo(12 * sx, 2.5 * sy, 4.5 * sx, 9.5 * sy, 4.5 * sx, 14 * sy)
-      ..cubicTo(4.5 * sx, 18.14 * sy, 7.86 * sx, 21.5 * sy, 12 * sx, 21.5 * sy)
-      ..cubicTo(
-        16.14 * sx,
-        21.5 * sy,
-        19.5 * sx,
-        18.14 * sy,
-        19.5 * sx,
-        14 * sy,
-      )
-      ..cubicTo(19.5 * sx, 9.5 * sy, 12 * sx, 2.5 * sy, 12 * sx, 2.5 * sy)
-      ..close();
-
-    canvas.drawPath(path, paint);
+String _homeBackgroundForAffinity(String affinityCode) {
+  switch (affinityCode.trim().toLowerCase()) {
+    case 'dawn':
+      return AppAssets.homeDawn;
+    case 'warm_sun':
+      return AppAssets.homeWarmSun;
+    case 'moonlight':
+      return AppAssets.homeMoonlight;
+    default:
+      return AppAssets.homeSprout;
   }
-
-  @override
-  bool shouldRepaint(_DewdropPainter oldDelegate) => oldDelegate.color != color;
-}
-
-// ── Swords Icon (CustomPaint) ──────────────────────────────────────────────
-class _SwordsIcon extends StatelessWidget {
-  const _SwordsIcon({this.size = 22, this.color});
-  final double size;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _SwordsPainter(color: color ?? Colors.white),
-    );
-  }
-}
-
-class _SwordsPainter extends CustomPainter {
-  const _SwordsPainter({required this.color});
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final w = size.width;
-    final h = size.height;
-
-    canvas.drawLine(
-      Offset(w * 0.25, h * 0.75),
-      Offset(w * 0.75, h * 0.25),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.2, h * 0.55),
-      Offset(w * 0.45, h * 0.8),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.75, h * 0.75),
-      Offset(w * 0.25, h * 0.25),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.8, h * 0.55),
-      Offset(w * 0.55, h * 0.8),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_SwordsPainter oldDelegate) => oldDelegate.color != color;
 }
 
 // ── StatBar Widget ──────────────────────────────────────────────────────────
@@ -287,7 +210,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     _isRefreshingMetrics = true;
     try {
-      await gameState.fetchPetStatus();
+      await Future.wait([
+        gameState.fetchPetStatus(),
+        gameState.fetchPetVisual(),
+      ]);
     } finally {
       _isRefreshingMetrics = false;
     }
@@ -302,18 +228,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  String _getMood(int bondingLevel) {
-    if (bondingLevel > 80) return 'excited';
-    if (bondingLevel > 40) return 'happy';
-    if (bondingLevel < 10) return 'sleepy';
-    return 'neutral';
-  }
-
   void _handlePetTap(GameStateProvider gameState) async {
     final success = await gameState.tapSpirit();
 
     if (!success) {
-      // Handle error if needed
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chạm thú cưng thất bại. Thử lại nhé.')),
+      );
       return;
     }
 
@@ -326,6 +248,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
 
     _rippleCtrl.forward(from: 0);
+    unawaited(gameState.fetchPetVisual());
 
     Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) setState(() => _feedAnim = false);
@@ -342,7 +265,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _handleDewdropTap(GameStateProvider gameState) async {
-    await gameState.feedSpirit();
+    final success = await gameState.feedSpirit();
+    if (!success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cho ăn thất bại. Thử lại nhé.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _feedAnim = true;
+      final id = DateTime.now().millisecondsSinceEpoch;
+      _floatingNums.add(
+        _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
+      );
+    });
+    _rippleCtrl.forward(from: 0);
+    unawaited(gameState.fetchPetVisual());
+
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) setState(() => _feedAnim = false);
+    });
   }
 
   void _collectBubble(int id, GameStateProvider gameState) {
@@ -384,14 +328,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final String spiritName = gameState.spiritName;
     final String spiritInfo = gameState.spiritInfo;
     final bool isLoggedIn = gameState.isAuthenticated;
+    final homeBg = _homeBackgroundForAffinity(gameState.affinityCode);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
       bottomNavigationBar: _buildBottomNavigation(context),
-      body: SafeArea(
-        child: Stack(
-          children: [
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            homeBg,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (_, __, ___) => Container(
+              color: isDark ? const Color(0xFF1E2E24) : const Color(0xFFE8F0E4),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(isDark ? 0.28 : 0.12)),
+          SafeArea(
+            child: Stack(
+              children: [
             // ── Main scrollable content ──
             Column(
               children: [
@@ -514,8 +472,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     : AppColors.lightBorder,
                                               ),
                                             ),
-                                            child: Icon(
-                                              Icons.close,
+                                            child: _assetIcon(
+                                              AppAssets.iconClose,
                                               size: 18,
                                               color:
                                                   theme.colorScheme.onSurface,
@@ -530,8 +488,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         children: [
                                           Row(
                                             children: [
-                                              Icon(
-                                                Icons.directions_walk,
+                                              _assetIcon(
+                                                AppAssets.iconSteps,
                                                 size: 14,
                                                 color: mutedFg,
                                               ),
@@ -620,8 +578,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.directions_walk,
+                                  _assetIcon(
+                                    AppAssets.iconSteps,
                                     size: 14,
                                     color: mutedFg,
                                   ),
@@ -662,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                _DewdropIcon(size: 16, color: dewColor),
+                                _assetIcon(AppAssets.iconDewDrop, size: 16),
                                 const SizedBox(width: 6),
                                 Text(
                                   '1,240',
@@ -716,9 +674,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         backgroundColor: primary.withOpacity(
                                           0.2,
                                         ),
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 11,
+                                        child: _assetIcon(
+                                          AppAssets.iconProfileNav,
+                                          size: 12,
                                           color: primary,
                                         ),
                                       ),
@@ -824,7 +782,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             children: [
                               // Pet visual
                               _LuminaSprite(
-                                mood: _getMood(bondingLevel),
+                                affinityCode: gameState.affinityCode,
+                                stageNo: gameState.petStageNo,
+                                animationType: _feedAnim
+                                    ? 'excited'
+                                    : (gameState.animationType.isEmpty
+                                          ? 'idle'
+                                          : gameState.animationType),
                                 primary: primary,
                                 luminaGlow: luminaGlow,
                               ),
@@ -957,13 +921,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             shape: BoxShape.circle,
                                           ),
                                           child: Center(
-                                            child: Text(
-                                              'i',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: mutedFg,
-                                              ),
+                                            child: _assetIcon(
+                                              AppAssets.iconInfo,
+                                              size: 12,
+                                              color: mutedFg,
                                             ),
                                           ),
                                         ),
@@ -1043,10 +1004,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                             child: Center(
-                              child: _DewdropIcon(
-                                size: 28,
-                                color: const Color(0xFF2A3A2C),
-                              ),
+                              child: _assetIcon(AppAssets.iconDewDrop, size: 28),
                             ),
                           ),
                         ),
@@ -1066,14 +1024,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   // Settings
                   _buildFloatingIconBtn(
                     context: context,
-                    icon: Icons.settings_outlined,
+                    assetPath: AppAssets.iconSettingsNav,
                     onTap: () => Navigator.pushNamed(context, '/settings'),
                   ),
                   const SizedBox(height: 16),
                   // Daily Reward
                   _buildFloatingIconBtn(
                     context: context,
-                    icon: Icons.calendar_today_outlined,
+                    assetPath: AppAssets.iconDailyReward,
                     hasBadge: true,
                     onTap: () =>
                         Navigator.pushNamed(context, '/daily-login-calendar'),
@@ -1082,7 +1040,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   // Missions / Quests
                   _buildFloatingIconBtn(
                     context: context,
-                    icon: Icons.receipt_long_outlined,
+                    assetPath: AppAssets.iconMissionNav,
                     hasBadge: true,
                     onTap: () => Navigator.pushNamed(context, '/missions'),
                   ),
@@ -1096,13 +1054,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               right: 24,
               child: _buildFloatingIconBtn(
                 context: context,
-                icon: Icons.notifications_none_outlined,
+                assetPath: AppAssets.iconNotificationBell,
                 hasBadge: true,
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1118,7 +1078,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // ── Helper: Floating icon button ──
   Widget _buildFloatingIconBtn({
     required BuildContext context,
-    required IconData icon,
+    required String assetPath,
     required VoidCallback onTap,
     bool hasBadge = false,
   }) {
@@ -1145,7 +1105,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            Icon(icon, size: 20, color: theme.colorScheme.onSurface),
+            _assetIcon(assetPath, size: 20),
             if (hasBadge)
               Positioned(
                 top: -2,
@@ -1212,38 +1172,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(
-                  Icons.bolt_rounded,
-                  size: 22,
-                  color: inactiveColor,
-                ),
+                iconWidget: _assetIcon(AppAssets.iconFriendsNav, size: 22),
                 label: l10n.homeNavCommunity,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/friends'),
               ),
               _buildNavItem(
-                iconWidget: _SwordsIcon(size: 22, color: inactiveColor),
+                iconWidget: _assetIcon(AppAssets.iconPvpBattle, size: 22),
                 label: l10n.homeNavPvp,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/pvp'),
               ),
               const SizedBox(width: 64), // Giữ chỗ cho nút giữa nổi
               _buildNavItem(
-                iconWidget: Icon(
-                  Icons.backpack_outlined,
-                  size: 22,
-                  color: inactiveColor,
-                ),
+                iconWidget: _assetIcon(AppAssets.iconInventoryNav, size: 22),
                 label: l10n.homeNavInventory,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(
-                  Icons.storefront_outlined,
-                  size: 22,
-                  color: inactiveColor,
-                ),
+                iconWidget: _assetIcon(AppAssets.iconShopNav, size: 22),
                 label: l10n.homeNavStore,
                 color: inactiveColor,
                 onTap: () => Navigator.pushNamed(context, '/shop'),
@@ -1276,10 +1224,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ],
                     ),
                     child: Center(
-                      child: Icon(
-                        Icons.home_rounded,
-                        size: 28,
-                        color: activeIconColor,
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          activeIconColor,
+                          BlendMode.srcIn,
+                        ),
+                        child: _assetIcon(AppAssets.iconHomeNav, size: 28),
                       ),
                     ),
                   ),
@@ -1334,11 +1284,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 // ── Lumina Sprite Widget ────────────────────────────────────────────────────
 class _LuminaSprite extends StatefulWidget {
   const _LuminaSprite({
-    required this.mood,
+    required this.affinityCode,
+    required this.stageNo,
+    required this.animationType,
     required this.primary,
     required this.luminaGlow,
   });
-  final String mood;
+  final String affinityCode;
+  final int stageNo;
+  final String animationType;
   final Color primary;
   final Color luminaGlow;
 
@@ -1365,19 +1319,6 @@ class _LuminaSpriteState extends State<_LuminaSprite>
     super.dispose();
   }
 
-  String _getMoodEmoji() {
-    switch (widget.mood) {
-      case 'excited':
-        return '😊';
-      case 'happy':
-        return '😊';
-      case 'sleepy':
-        return '😴';
-      default:
-        return '😊';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -1387,8 +1328,8 @@ class _LuminaSpriteState extends State<_LuminaSprite>
         return Transform.translate(offset: Offset(0, -bounce), child: child);
       },
       child: Container(
-        width: 140,
-        height: 140,
+        width: 180,
+        height: 180,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
@@ -1400,22 +1341,16 @@ class _LuminaSpriteState extends State<_LuminaSprite>
             stops: const [0.0, 0.6, 1.0],
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.spa_outlined, size: 64, color: widget.primary),
-              const SizedBox(height: 8),
-              Text(
-                'Lumina',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: widget.primary.withOpacity(0.8),
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: IgnorePointer(
+            child: PetRuntimePreview(
+              affinityCode: widget.affinityCode,
+              stageNo: widget.stageNo,
+              animationType: widget.animationType,
+              compact: true,
+              height: 164,
+            ),
           ),
         ),
       ),
@@ -1545,9 +1480,9 @@ class _BubbleWidgetState extends State<_BubbleWidget>
                 ),
               ),
               child: Center(
-                child: _DewdropIcon(
+                child: _assetIcon(
+                  AppAssets.iconDewDrop,
                   size: widget.bubble.size * 0.5,
-                  color: widget.dewColor.withOpacity(0.75),
                 ),
               ),
             ),

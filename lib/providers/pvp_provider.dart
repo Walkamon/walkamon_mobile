@@ -548,8 +548,34 @@ class PvpProvider extends ChangeNotifier {
   String _petName = '...';
   String get petName => _petName;
 
-  final String _spiritAffinity = 'Thực Vật';
-  String get spiritAffinity => _spiritAffinity;
+  String _spiritAffinityCode = 'sprout';
+  String get spiritAffinityCode => _spiritAffinityCode;
+  String get spiritAffinity =>
+      _spiritAffinityLabel.isEmpty
+          ? 'Thực Vật'
+          : _spiritAffinityLabel;
+  String _spiritAffinityLabel = 'Thực Vật';
+
+  int _petStageNo = 0;
+  int get petStageNo => _petStageNo;
+
+  String get mySpiritAffinityCode =>
+      _myParticipant?.spiritAffinityCode?.trim().isNotEmpty == true
+          ? _myParticipant!.spiritAffinityCode!.trim()
+          : _spiritAffinityCode;
+
+  String get opponentSpiritAffinityCode {
+    final participants = _currentMatch?.participants;
+    if (participants == null) return 'sprout';
+    for (final p in participants) {
+      if (!_isMyParticipant(p) &&
+          p.spiritAffinityCode != null &&
+          p.spiritAffinityCode!.trim().isNotEmpty) {
+        return p.spiritAffinityCode!.trim();
+      }
+    }
+    return 'sprout';
+  }
 
   int _currentEnergy = 0;
   int get currentEnergy => _currentEnergy;
@@ -1291,6 +1317,7 @@ class PvpProvider extends ChangeNotifier {
       final futures = await Future.wait([
         _petDatasource.getPetName(),
         _petDatasource.getPetStatus(),
+        _petDatasource.getPetOverview(),
         _activityDatasource.getStatistic(ActivityStatsRange.daily),
         _friendsDatasource.getFriends(),
         _pvpDatasource.getIncomingInvites(),
@@ -1299,10 +1326,11 @@ class PvpProvider extends ChangeNotifier {
 
       final petNameResp = futures[0] as dynamic;
       final petStatusResp = futures[1] as dynamic;
-      final activityResp = futures[2] as dynamic;
-      final friendsResp = futures[3] as List<FriendsResponse>;
-      final invitesResp = futures[4] as dynamic;
-      final historyResp = futures[5] as dynamic;
+      final petOverviewResp = futures[2] as dynamic;
+      final activityResp = futures[3] as dynamic;
+      final friendsResp = futures[4] as List<FriendsResponse>;
+      final invitesResp = futures[5] as dynamic;
+      final historyResp = futures[6] as dynamic;
 
       if (petNameResp.success && petNameResp.data != null) {
         _petName = petNameResp.data!.petName;
@@ -1312,6 +1340,21 @@ class PvpProvider extends ChangeNotifier {
         _currentEnergy = petStatusResp.data!.currentEnergy;
         _maxEnergy = petStatusResp.data!.maxEnergy;
         _currentBond = petStatusResp.data!.currentBond;
+      }
+
+      if (petOverviewResp.success && petOverviewResp.data != null) {
+        final overview = petOverviewResp.data!;
+        final code = overview.affinityCode.trim();
+        if (code.isNotEmpty) {
+          _spiritAffinityCode = code;
+        }
+        _petStageNo = overview.stageNo;
+        final formName = overview.formName.trim();
+        if (formName.isNotEmpty) {
+          _spiritAffinityLabel = formName;
+        } else if (code.isNotEmpty) {
+          _spiritAffinityLabel = code;
+        }
       }
 
       if (activityResp.success && activityResp.data != null) {

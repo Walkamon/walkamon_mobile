@@ -1,5 +1,12 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../../../../core/constants/app_assets.dart';
+import '../../../../widgets/pet_runtime/pet_runtime_preview.dart';
+import '../pvp_asset_resolver.dart';
+import 'pvp_frame_animation.dart';
+import 'pvp_two_slot_hud.dart';
 
 class PvPRacingEnvironment extends StatefulWidget {
   final bool isMoving;
@@ -9,6 +16,15 @@ class PvPRacingEnvironment extends StatefulWidget {
   final String racePhase;
   final bool isFinished;
   final FutureOr<void> Function() onClose;
+  final String mapAsset;
+  final String myAffinityCode;
+  final String opponentAffinityCode;
+  final int myStageNo;
+  final int opponentStageNo;
+  final List<String> myActiveEffects;
+  final List<String> opponentActiveEffects;
+  final PvpHudSlot leftSlot;
+  final PvpHudSlot rightSlot;
 
   const PvPRacingEnvironment({
     super.key,
@@ -19,21 +35,34 @@ class PvPRacingEnvironment extends StatefulWidget {
     required this.racePhase,
     required this.isFinished,
     required this.onClose,
+    required this.mapAsset,
+    this.myAffinityCode = 'sprout',
+    this.opponentAffinityCode = 'sprout',
+    this.myStageNo = 0,
+    this.opponentStageNo = 0,
+    this.myActiveEffects = const <String>[],
+    this.opponentActiveEffects = const <String>[],
+    this.leftSlot = const PvpHudSlot(itemCode: 'haste'),
+    this.rightSlot = const PvpHudSlot(itemCode: 'shield'),
   });
 
   @override
   State<PvPRacingEnvironment> createState() => _PvPRacingEnvironmentState();
 }
 
-class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with SingleTickerProviderStateMixin {
-  late AnimationController _bgController;
+class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _parallaxController;
 
   @override
   void initState() {
     super.initState();
-    _bgController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _parallaxController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 18),
+    );
     if (widget.isMoving) {
-      _bgController.repeat();
+      _parallaxController.repeat();
     }
   }
 
@@ -41,15 +70,15 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
   void didUpdateWidget(PvPRacingEnvironment oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isMoving && !oldWidget.isMoving) {
-      _bgController.repeat();
+      _parallaxController.repeat();
     } else if (!widget.isMoving && oldWidget.isMoving) {
-      _bgController.stop();
+      _parallaxController.stop();
     }
   }
 
   @override
   void dispose() {
-    _bgController.dispose();
+    _parallaxController.dispose();
     super.dispose();
   }
 
@@ -59,7 +88,6 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
     if (phase == 'ready' || phase == 'running' || phase == 'finished') {
       return false;
     }
-    // "5".."1" or "go"
     return true;
   }
 
@@ -67,159 +95,77 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
-    
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return Stack(
+      fit: StackFit.expand,
       children: [
-        Container(color: Colors.lightBlue.shade100),
         AnimatedBuilder(
-          animation: _bgController,
-          builder: (context, child) {
-            return Positioned(
-              left: -(_bgController.value * width),
-              top: 0,
-              width: width * 2,
-              child: Row(
-                children: [
-                  _buildCloudLayer(width),
-                  _buildCloudLayer(width),
-                ],
+          animation: _parallaxController,
+          builder: (context, _) {
+            final shift = widget.isMoving
+                ? -(_parallaxController.value * width * 0.35)
+                : 0.0;
+            return Transform.translate(
+              offset: Offset(shift, 0),
+              child: SizedBox(
+                width: width * 1.35,
+                height: double.infinity,
+                child: Image.asset(
+                  widget.mapAsset,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  filterQuality: FilterQuality.medium,
+                ),
               ),
             );
           },
         ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Container(color: Colors.green.shade600),
-        ),
-        AnimatedBuilder(
-          animation: _bgController,
-          builder: (context, child) {
-            return Positioned(
-              bottom: 0,
-              left: -(_bgController.value * width),
-              width: width * 2,
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Row(
-                children: [
-                  _buildTrackSegment(width),
-                  _buildTrackSegment(width),
-                ],
-              ),
-            );
-          },
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.15),
+                Colors.black.withOpacity(0.35),
+              ],
+            ),
+          ),
         ),
         Positioned(
-          bottom: MediaQuery.of(context).size.height * 0.1,
+          bottom: 110 + bottomInset,
           left: 0,
           right: 0,
-          height: MediaQuery.of(context).size.height * 0.4,
+          height: MediaQuery.of(context).size.height * 0.42,
           child: Column(
             children: [
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade600,
-                    border: Border(
-                      bottom: BorderSide(color: Colors.white.withOpacity(0.3), width: 2),
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      Positioned(
-                        top: 25,
-                        left: 0,
-                        right: 0,
-                        child: Container(height: 2, color: Colors.white.withOpacity(0.3)),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(seconds: 2),
-                        curve: Curves.easeIn,
-                        left: widget.isMoving || widget.myProgress > 0 || widget.opponentProgress > 0 ? -100.0 : 80.0,
-                        top: 25,
-                        bottom: 0,
-                        child: Container(width: 10, color: Colors.white),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(seconds: 1),
-                        curve: Curves.linear,
-                        right: (widget.myProgress > 95 || widget.opponentProgress > 95) ? 60.0 : -100.0,
-                        top: 25,
-                        bottom: 0,
-                        child: Container(width: 15, color: Colors.amber),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 100),
-                        left: 18 + (widget.opponentProgress / 100) * (width - 100),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: theme.dividerColor),
-                              ),
-                              child: Text(widget.opponentName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                            ),
-                            const SizedBox(height: 4),
-                            Icon(Icons.pets, size: 48, color: Colors.red.shade300),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _Lane(
+                  progress: widget.opponentProgress,
+                  width: width,
+                  label: widget.opponentName,
+                  labelColor: theme.colorScheme.surface,
+                  labelTextColor: theme.colorScheme.onSurface,
+                  affinityCode: widget.opponentAffinityCode,
+                  stageNo: widget.opponentStageNo,
+                  petSize: 72,
+                  activeEffects: widget.opponentActiveEffects,
+                  isMoving: widget.isMoving,
                 ),
               ),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.3), width: 2)),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      AnimatedPositioned(
-                        duration: const Duration(seconds: 2),
-                        curve: Curves.easeIn,
-                        left: widget.isMoving || widget.myProgress > 0 || widget.opponentProgress > 0 ? -100.0 : 80.0,
-                        top: 0,
-                        bottom: 0,
-                        child: Container(width: 10, color: Colors.white),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(seconds: 1),
-                        curve: Curves.linear,
-                        right: (widget.myProgress > 95 || widget.opponentProgress > 95) ? 60.0 : -100.0,
-                        top: 0,
-                        bottom: 0,
-                        child: Container(width: 15, color: Colors.amber),
-                      ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 100),
-                        left: 20 + (widget.myProgress / 100) * (width - 100),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text('Bạn', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: theme.colorScheme.onPrimary)),
-                            ),
-                            const SizedBox(height: 4),
-                            Icon(Icons.pets, size: 56, color: theme.colorScheme.primary),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _Lane(
+                  progress: widget.myProgress,
+                  width: width,
+                  label: 'Bạn',
+                  labelColor: theme.colorScheme.primary,
+                  labelTextColor: theme.colorScheme.onPrimary,
+                  affinityCode: widget.myAffinityCode,
+                  stageNo: widget.myStageNo,
+                  petSize: 84,
+                  activeEffects: widget.myActiveEffects,
+                  isMoving: widget.isMoving,
                 ),
               ),
             ],
@@ -240,7 +186,10 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black45,
                       borderRadius: BorderRadius.circular(20),
@@ -275,7 +224,9 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
                           ),
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 100),
-                            width: (widget.opponentProgress / 100) * (width - 160),
+                            width:
+                                (widget.opponentProgress / 100) *
+                                (width - 160),
                             decoration: BoxDecoration(
                               color: Colors.red.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(6),
@@ -289,6 +240,12 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
               ),
             ),
           ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 16 + bottomInset,
+          child: PvpTwoSlotHud(left: widget.leftSlot, right: widget.rightSlot),
         ),
         if (_shouldShowCountdown)
           Center(
@@ -311,52 +268,111 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> with Single
       ],
     );
   }
+}
 
-  Widget _buildCloudLayer(double width) {
-    return SizedBox(
-      width: width,
-      height: 200,
-      child: Stack(
-        children: const [
-          Positioned(top: 20, left: 40, child: Icon(Icons.cloud, size: 80, color: Colors.white70)),
-          Positioned(top: 60, left: 200, child: Icon(Icons.cloud, size: 120, color: Colors.white54)),
-          Positioned(top: 10, left: 300, child: Icon(Icons.cloud, size: 60, color: Colors.white60)),
-        ],
-      ),
-    );
-  }
+class _Lane extends StatelessWidget {
+  const _Lane({
+    required this.progress,
+    required this.width,
+    required this.label,
+    required this.labelColor,
+    required this.labelTextColor,
+    required this.affinityCode,
+    required this.stageNo,
+    required this.petSize,
+    required this.activeEffects,
+    required this.isMoving,
+  });
 
-  Widget _buildTrackSegment(double width) {
-    return SizedBox(
-      width: width,
-      child: Stack(
-        children: [
-          Positioned(
-            top: 8,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Icon(Icons.grass, color: Colors.white30, size: 24),
-                Icon(Icons.grass, color: Colors.white24, size: 18),
-                Icon(Icons.grass, color: Colors.white30, size: 28),
-                Icon(Icons.grass, color: Colors.white24, size: 20),
-                Icon(Icons.grass, color: Colors.white30, size: 24),
-                Icon(Icons.grass, color: Colors.white24, size: 18),
-                Icon(Icons.grass, color: Colors.white30, size: 22),
-              ],
-            ),
+  final double progress;
+  final double width;
+  final String label;
+  final Color labelColor;
+  final Color labelTextColor;
+  final String affinityCode;
+  final int stageNo;
+  final double petSize;
+  final List<String> activeEffects;
+  final bool isMoving;
+
+  @override
+  Widget build(BuildContext context) {
+    final effect = activeEffects.isNotEmpty ? activeEffects.first : null;
+
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Positioned(
+          left: 12,
+          right: 12,
+          child: Container(
+            height: 2,
+            color: Colors.white.withOpacity(0.28),
           ),
-          Positioned(top: 18, left: 40, child: Icon(Icons.eco, size: 28, color: Colors.green.shade700)),
-          Positioned(top: 20, left: 190, child: Icon(Icons.eco, size: 22, color: Colors.green.shade800)),
-          Positioned(top: 16, left: 390, child: Icon(Icons.eco, size: 30, color: Colors.green.shade700)),
-          Positioned(top: 20, left: 540, child: Icon(Icons.eco, size: 24, color: Colors.green.shade800)),
-          Positioned(top: 0, left: 70, child: Icon(Icons.park, size: 80, color: Colors.green.shade900)),
-          Positioned(top: 0, left: 280, child: Icon(Icons.park, size: 95, color: Colors.green.shade800)),
-          Positioned(top: 0, left: 490, child: Icon(Icons.park, size: 75, color: Colors.green.shade900)),
-        ],
-      ),
+        ),
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 100),
+          left: 16 + (progress / 100) * (width - 120),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: labelColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: labelTextColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: petSize + 24,
+                height: petSize + 24,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (effect != null)
+                      PvpFrameAnimation(
+                        effectCode: effect,
+                        width: petSize + 24,
+                        height: petSize + 24,
+                        playing: isMoving || progress > 0,
+                      ),
+                    PetRuntimePreview(
+                      affinityCode: affinityCode,
+                      stageNo: stageNo,
+                      animationType: isMoving ? 'excited' : 'idle',
+                      compact: true,
+                      height: petSize,
+                    ),
+                    if (effect != null) ...[
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Image.asset(
+                          PvpAssetResolver.statusIcon(effect) ??
+                              PvpAssetResolver.itemIcon(effect) ??
+                              AppAssets.pvpHasteStatus,
+                          width: 22,
+                          height: 22,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

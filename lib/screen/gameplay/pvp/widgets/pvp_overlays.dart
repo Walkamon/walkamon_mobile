@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../data/models/pvp_models.dart';
+import '../pvp_asset_resolver.dart';
+import 'pvp_frame_animation.dart';
 
 class PvPMatchingOverlay extends StatelessWidget {
   const PvPMatchingOverlay({super.key});
@@ -197,10 +200,10 @@ class PvPMatchSuccessOverlay extends StatelessWidget {
                   color: Colors.green.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_circle,
-                  size: 48,
-                  color: Colors.green,
+                child: Image.asset(
+                  AppAssets.pvpIconAutoBattle,
+                  width: 48,
+                  height: 48,
                 ),
               ),
               const SizedBox(height: 24),
@@ -413,9 +416,20 @@ class PvPFinishedOverlay extends StatelessWidget {
                             rank.displayName,
                             Icons.military_tech,
                             rankColor,
+                            leadingAsset: PvpAssetResolver.rankAssetFromTier(
+                              rank,
+                            ),
                           ),
                       ],
                     ),
+                    if (result!.tierChanged) ...[
+                      const SizedBox(height: 12),
+                      const PvpFrameAnimation(
+                        effectCode: 'rank_up',
+                        width: 120,
+                        height: 120,
+                      ),
+                    ],
                     if (result!.claimedAt != null) ...[
                       const SizedBox(height: 12),
                       Text(
@@ -567,8 +581,9 @@ class PvPFinishedOverlay extends StatelessWidget {
     String title,
     String value,
     IconData icon,
-    Color color,
-  ) {
+    Color color, {
+    String? leadingAsset,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
@@ -592,7 +607,10 @@ class PvPFinishedOverlay extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: color),
+              if (leadingAsset != null)
+                Image.asset(leadingAsset, width: 28, height: 28)
+              else
+                Icon(icon, size: 20, color: color),
               const SizedBox(width: 4),
               Text(
                 value,

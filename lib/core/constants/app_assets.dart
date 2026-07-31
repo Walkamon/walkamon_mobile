@@ -64,6 +64,90 @@ abstract final class AppAssets {
   static const homeMoonlight =
       '$root/HomeBackgrounds/home_anh_trang_portrait.png';
 
+  // Home chrome / navigation icons
+  static const iconHomeNav = '$root/icon/navigation/01_home.png';
+  static const iconStepsNav = '$root/icon/navigation/03_steps.png';
+  static const iconMissionNav = '$root/icon/navigation/04_mission.png';
+  static const iconInventoryNav = '$root/icon/navigation/05_inventory.png';
+  static const iconShopNav = '$root/icon/navigation/06_shop.png';
+  static const iconFriendsNav = '$root/icon/navigation/08_friends.png';
+  static const iconProfileNav = '$root/icon/navigation/09_profile.png';
+  static const iconSettingsNav = '$root/icon/navigation/10_settings.png';
+  static const iconSteps = '$root/icon/resources/11_step.png';
+  static const iconDewDrop = '$root/icon/resources/15_dew_drop.png';
+  static const iconDailyReward = '$root/icon/resources/20_daily_reward.png';
+  static const iconNotificationBell = '$root/icon/system/notification_bell.png';
+  static const iconInfo = '$root/icon/actions/53_info.png';
+  static const iconClose = '$root/icon/action_button/basic_actions/06_close.png';
+  static const iconPvpBattle =
+      '$root/icon/friend_battle_pvp/friend_battle_start/14_battle.png';
+
+  static List<String> get homeChromeAssets => [
+    iconHomeNav,
+    iconStepsNav,
+    iconMissionNav,
+    iconInventoryNav,
+    iconShopNav,
+    iconFriendsNav,
+    iconProfileNav,
+    iconSettingsNav,
+    iconSteps,
+    iconDewDrop,
+    iconDailyReward,
+    iconNotificationBell,
+    iconInfo,
+    iconClose,
+    iconPvpBattle,
+    homeSprout,
+    homeDawn,
+    homeWarmSun,
+    homeMoonlight,
+  ];
+
+  // Pet runtime assets (catalog + fallbacks only; master atlases stay offline)
+  static const petRuntimeRoot = '$root/flame/pet_runtime_v7_2';
+  static const petRuntimeCatalogV1 =
+      '$petRuntimeRoot/pet_runtime_catalog_v1.json';
+  static const petRuntimeAnimationsV4 =
+      '$petRuntimeRoot/pet_animations_v4.json';
+
+  static const petRuntimeManifestAssets = [
+    '$petRuntimeRoot/manifest_sprout_stage0_v4.json',
+    '$petRuntimeRoot/manifest_warm_sun_stage1_v4.json',
+    '$petRuntimeRoot/manifest_warm_sun_stage2_v4.json',
+    '$petRuntimeRoot/manifest_dawn_stage1_v4.json',
+    '$petRuntimeRoot/manifest_dawn_stage2_v4.json',
+    '$petRuntimeRoot/manifest_moonlight_stage1_v4.json',
+    '$petRuntimeRoot/manifest_moonlight_stage2_v4.json',
+  ];
+
+  static const petRuntimeFallbackAssets = [
+    '$petRuntimeRoot/fallback_sprout_stage0_eef089f06193e311.png',
+    '$petRuntimeRoot/fallback_warm_sun_stage1_e2992a6362d2f2f0.png',
+    '$petRuntimeRoot/fallback_warm_sun_stage2_854ad2fb82016339.png',
+    '$petRuntimeRoot/fallback_dawn_stage1_d1a28f0045a3211e.png',
+    '$petRuntimeRoot/fallback_dawn_stage2_83a65898a5d2f264.png',
+    '$petRuntimeRoot/fallback_moonlight_stage1_892833fec78f85bb.png',
+    '$petRuntimeRoot/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png',
+  ];
+
+  static List<String> get petRuntimeCatalogAssets => [
+    petRuntimeCatalogV1,
+    petRuntimeAnimationsV4,
+    ...petRuntimeManifestAssets,
+    ...petRuntimeFallbackAssets,
+  ];
+
+  // PvP lobby / friend-battle icons
+  static const pvpIconAutoBattle =
+      '$root/icon/friend_battle_pvp/battle_pvp/24_auto_battle.png';
+  static const pvpIconChallenge =
+      '$root/icon/friend_battle_pvp/friend_battle_start/15_challenge.png';
+  static const pvpIconBattleHistory =
+      '$root/icon/friend_battle_pvp/battle_pvp/21_battle_history.png';
+  static const pvpIconInviteFriend =
+      '$root/icon/friend_battle_pvp/friend_social_continued/09_invite_friend.png';
+
   // PvP maps
   static const pvpMapMorning = '$root/PVP/Maps/pvp_map_morning_portrait.png';
   static const pvpMapNight = '$root/PVP/Maps/pvp_map_night_portrait.png';
@@ -124,6 +208,12 @@ abstract final class AppAssets {
   );
 
   static List<String> get pvpCatalogAssets => [
+    pvpIconAutoBattle,
+    pvpIconChallenge,
+    pvpIconBattleHistory,
+    pvpIconInviteFriend,
+    pvpMapMorning,
+    pvpMapNight,
     pvpHasteItem,
     pvpSlowItem,
     pvpCleanseItem,

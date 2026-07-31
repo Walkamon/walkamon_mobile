@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
+import 'pvp_asset_resolver.dart';
 import 'pvp_waiting_room_screen.dart';
 import 'widgets/pvp_modals.dart';
 import 'widgets/pvp_racing_environment.dart';
 import 'widgets/pvp_overlays.dart';
+import 'widgets/pvp_two_slot_hud.dart';
 
 class PvPSprintScreen extends StatefulWidget {
   const PvPSprintScreen({super.key});
@@ -392,6 +394,14 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             racePhase: pvpProvider.racePhase,
             isFinished: pvpProvider.isRaceFinished,
             onClose: _onCloseRacePressed,
+            mapAsset: PvpAssetResolver.mapForNow(
+              pvpProvider.estimatedServerNow(),
+            ),
+            myAffinityCode: pvpProvider.mySpiritAffinityCode,
+            opponentAffinityCode: pvpProvider.opponentSpiritAffinityCode,
+            myStageNo: pvpProvider.petStageNo,
+            leftSlot: const PvpHudSlot(itemCode: 'haste'),
+            rightSlot: const PvpHudSlot(itemCode: 'shield'),
           ),
 
         if (isProviderConnecting) const PvPMatchingOverlay(),
