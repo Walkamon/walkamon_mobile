@@ -2666,6 +2666,54 @@ abstract class AppLocalizations {
   /// **'Current requirements: Lv {level} - Bond {bonding}'**
   String spiritCurrentRequirement(int level, int bonding);
 
+  /// No description provided for @spiritCurrentStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Current stage: {stage} • Lv {level}'**
+  String spiritCurrentStage(String stage, int level);
+
+  /// No description provided for @spiritHistoryNoEvolution.
+  ///
+  /// In en, this message translates to:
+  /// **'No evolution history yet.'**
+  String get spiritHistoryNoEvolution;
+
+  /// No description provided for @spiritHistoryDateLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • Lv {level}'**
+  String spiritHistoryDateLevel(String date, int level);
+
+  /// No description provided for @spiritHistoryLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv {level}'**
+  String spiritHistoryLevel(int level);
+
+  /// No description provided for @spiritConditionTargetLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Lv {level}'**
+  String spiritConditionTargetLevel(int level);
+
+  /// No description provided for @spiritEvolutionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution Preview'**
+  String get spiritEvolutionPreview;
+
+  /// No description provided for @spiritChooseEvolutionBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose evolution branch'**
+  String get spiritChooseEvolutionBranch;
+
+  /// No description provided for @spiritRequiredLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Required level: {level}'**
+  String spiritRequiredLevel(int level);
+
   /// No description provided for @spiritReady.
   ///
   /// In en, this message translates to:

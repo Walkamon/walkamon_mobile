@@ -687,6 +687,55 @@
       }
     }
   },
+  "spiritCurrentStage": "Giai đoạn hiện tại: {stage} • Cấp {level}",
+  "@spiritCurrentStage": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritHistoryNoEvolution": "Chưa có lịch sử tiến hóa.",
+  "spiritHistoryDateLevel": "{date} • Cấp {level}",
+  "@spiritHistoryDateLevel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritHistoryLevel": "Cấp {level}",
+  "@spiritHistoryLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritConditionTargetLevel": "Đạt Cấp {level}",
+  "@spiritConditionTargetLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritEvolutionPreview": "Xem trước tiến hóa",
+  "spiritChooseEvolutionBranch": "Chọn nhánh tiến hóa",
+  "spiritRequiredLevel": "Cấp độ yêu cầu: {level}",
+  "@spiritRequiredLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "spiritReady": "Sẵn sàng",
   "spiritEvolutionHistory": "Lịch Sử Tiến Hóa",
   "spiritHistoryHatched": "Ấp nở thành công",
