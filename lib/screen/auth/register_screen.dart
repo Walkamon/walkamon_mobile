@@ -4,6 +4,7 @@ import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/register_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -141,9 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       // Đăng ký thất bại, hiển thị thông báo lỗi từ API
       setState(() {
         _errorMessage = translateError(
-          response.message.isNotEmpty
-              ? response.message
-              : l10n.registerFailed,
+          response.message.isNotEmpty ? response.message : l10n.registerFailed,
         );
       });
     }
@@ -154,15 +153,13 @@ class _RegisterScreenState extends State<RegisterScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final cardColor = theme.colorScheme.surface;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    // This screen owns a white card, so its content colors must keep enough
+    // contrast regardless of the app brightness or the background artwork.
+    final mutedForeground = Colors.black.withValues(alpha: 0.62);
+    final accent = AppColors.lightAccent;
+    const registerButtonColor = Color(0xFFB7D53B);
 
     return FadeTransition(
       opacity: _opacity,
@@ -173,250 +170,202 @@ class _RegisterScreenState extends State<RegisterScreen>
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
+                  horizontal: 20,
                   vertical: 60,
                 ),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 384),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // H1 - Title
-                        Text(
-                          l10n.registerTitle,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: primary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Subtitle
-                        Text(
-                          l10n.registerSubtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: mutedForeground,
-                            fontWeight: FontWeight.w500,
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-
-                        // Error Banner
-                        if (_errorMessage != null) ...[
-                          ErrorMessageWidget(message: _errorMessage!),
-                          const SizedBox(height: 20),
-                        ],
-
-                        // ── Name field ──────────────────────────────
-                        _PillField(
-                          controller: _nameController,
-                          hint: l10n.registerNameHint,
-                          icon: Icons.spa_outlined, // Thay Sprout
-                          textInputAction: TextInputAction.next,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: (value) => _validateName(context, value),
-                          enabled: !_isLoading,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Email field ──────────────────────────────
-                        _PillField(
-                          controller: _emailController,
-                          hint: l10n.loginEmail,
-                          icon: Icons.directions_walk, // Thay Footprints
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: (value) => _validateEmail(context, value),
-                          enabled: !_isLoading,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Password field ───────────────────────────
-                        _PillField(
-                          controller: _passwordController,
-                          hint: l10n.loginPassword,
-                          icon: Icons.key_rounded, // Thay KeyRound
-                          obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.next,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: (value) => _validatePassword(context, value),
-                          enabled: !_isLoading,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Confirm Password field ───────────────────
-                        _PillField(
-                          controller: _confirmPasswordController,
-                          hint: l10n.registerConfirmPassword,
-                          icon: Icons.key_rounded,
-                          obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.done,
-                          cardColor: cardColor,
-                          primary: primary,
-                          validator: (value) => _validateConfirmPassword(context, value),
-                          enabled: !_isLoading,
-                          onFieldSubmitted: (_) => _handleRegister(),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // ── Checkbox Show/Hide Password ───────────────
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: !_obscurePassword,
-                                  onChanged: _isLoading
-                                      ? null
-                                      : (val) {
-                                          setState(() {
-                                            _obscurePassword = !val!;
-                                          });
-                                        },
-                                  activeColor: primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: _isLoading
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          _obscurePassword = !_obscurePassword;
-                                        });
-                                      },
-                                child: Text(
-                                  l10n.showPassword,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: mutedForeground,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Checkbox Agree to Privacy Policy & Terms ───────────
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: _acceptTerms,
-                                  onChanged: _isLoading
-                                      ? null
-                                      : (val) {
-                                          setState(() {
-                                            _acceptTerms = val ?? false;
-                                          });
-                                        },
-                                  activeColor: primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: _isLoading
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            _acceptTerms = !_acceptTerms;
-                                          });
-                                        },
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: mutedForeground,
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.3,
-                                      ),
-                                      children: [
-                                        TextSpan(text: l10n.registerAgreeTerms),
-                                        WidgetSpan(
-                                          alignment: PlaceholderAlignment.middle,
-                                          child: _HoverLinkText(
-                                            text: l10n.privacyPolicy,
-                                            onTap: () {
-                                              Navigator.pushNamed(context, '/auth/privacy');
-                                            },
-                                            normalColor: accent,
-                                            hoverColor: primary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // ── Submit button ─────────────────────────────
-                        _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : _TapScaleButton(
-                                onPressed: _handleRegister,
-                                backgroundColor: primary,
-                                foregroundColor: onPrimary,
-                                label: l10n.registerButton,
-                                enabled: _acceptTerms,
-                              ),
-                        const SizedBox(height: 30),
-
-                        // ── Login link ─────────────────────────────
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              l10n.registerAlreadyAccount,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: mutedForeground,
-                                fontWeight: FontWeight.w500,
-                              ),
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: _RegisterCard(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // H1 - Title
+                          Text(
+                            l10n.registerTitle,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black.withValues(alpha: 0.87),
                             ),
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () => _isLoading
-                                  ? null
-                                  : Navigator.pushReplacementNamed(
-                                      context,
-                                      '/auth/login',
-                                    ),
-                              child: Text(
-                                l10n.registerLoginHere,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: accent,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Subtitle
+                          Text(
+                            l10n.registerSubtitle,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: mutedForeground,
+                              fontWeight: FontWeight.w500,
+                              height: 1.6,
                             ),
+                          ),
+                          const SizedBox(height: 30),
+
+                          // Error Banner
+                          if (_errorMessage != null) ...[
+                            ErrorMessageWidget(message: _errorMessage!),
+                            const SizedBox(height: 20),
                           ],
-                        ),
-                      ],
+
+                          // ── Name field ──────────────────────────────
+                          _PillField(
+                            controller: _nameController,
+                            hint: l10n.registerNameHint,
+                            iconAsset:
+                                'assets/Mobile/icon/auth/register_seed.png',
+                            textInputAction: TextInputAction.next,
+                            cardColor: Colors.white,
+                            primary: primary,
+                            validator: (value) => _validateName(context, value),
+                            enabled: !_isLoading,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Email field ──────────────────────────────
+                          _PillField(
+                            controller: _emailController,
+                            hint: l10n.loginEmail,
+                            iconAsset: 'assets/Mobile/icon/auth/mail.png',
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            cardColor: Colors.white,
+                            primary: primary,
+                            validator: (value) =>
+                                _validateEmail(context, value),
+                            enabled: !_isLoading,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Password field ───────────────────────────
+                          _PillField(
+                            controller: _passwordController,
+                            hint: l10n.loginPassword,
+                            iconAsset: 'assets/Mobile/icon/auth/lock.png',
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.next,
+                            cardColor: Colors.white,
+                            primary: primary,
+                            validator: (value) =>
+                                _validatePassword(context, value),
+                            enabled: !_isLoading,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Confirm Password field ───────────────────
+                          _PillField(
+                            controller: _confirmPasswordController,
+                            hint: l10n.registerConfirmPassword,
+                            iconAsset: 'assets/Mobile/icon/auth/lock.png',
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            cardColor: Colors.white,
+                            primary: primary,
+                            validator: (value) =>
+                                _validateConfirmPassword(context, value),
+                            enabled: !_isLoading,
+                            onFieldSubmitted: (_) => _handleRegister(),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // ── Checkbox Show/Hide Password ───────────────
+                          _RegisterOptionTile(
+                            value: !_obscurePassword,
+                            primary: primary,
+                            enabled: !_isLoading,
+                            onChanged: (value) {
+                              setState(() => _obscurePassword = !value);
+                            },
+                            child: Text(
+                              l10n.showPassword,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.black.withValues(alpha: 0.82),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Checkbox Agree to Privacy Policy & Terms ───────────
+                          _RegisterOptionTile(
+                            value: _acceptTerms,
+                            primary: primary,
+                            enabled: !_isLoading,
+                            onChanged: (value) {
+                              setState(() => _acceptTerms = value);
+                            },
+                            child: RichText(
+                              text: TextSpan(
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.black.withValues(alpha: 0.82),
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.35,
+                                ),
+                                children: [
+                                  TextSpan(text: l10n.registerAgreeTerms),
+                                  WidgetSpan(
+                                    alignment: PlaceholderAlignment.middle,
+                                    child: _HoverLinkText(
+                                      text: l10n.privacyPolicy,
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          '/auth/privacy',
+                                        );
+                                      },
+                                      normalColor: accent,
+                                      hoverColor: primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // ── Submit button ─────────────────────────────
+                          _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : _TapScaleButton(
+                                  onPressed: _handleRegister,
+                                  backgroundColor: registerButtonColor,
+                                  foregroundColor: const Color(0xFF26310D),
+                                  label: l10n.registerButton,
+                                  enabled: _acceptTerms,
+                                ),
+                          const SizedBox(height: 30),
+
+                          // ── Login link ─────────────────────────────
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                l10n.registerAlreadyAccount,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: mutedForeground,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => _isLoading
+                                    ? null
+                                    : Navigator.pushReplacementNamed(
+                                        context,
+                                        '/auth/login',
+                                      ),
+                                child: Text(
+                                  l10n.registerLoginHere,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: accent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -463,13 +412,113 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 }
 
+// ── Standalone register card ─────────────────────────────────────────────────
+
+class _RegisterCard extends StatelessWidget {
+  const _RegisterCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 520;
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 22 : 56,
+            vertical: compact ? 32 : 40,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F1EF),
+            borderRadius: BorderRadius.circular(compact ? 28 : 34),
+            border: Border.all(
+              color: AppColors.lightBorder.withValues(alpha: 0.8),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.16),
+                offset: const Offset(0, 18),
+                blurRadius: 44,
+              ),
+              BoxShadow(
+                color: AppColors.lightPrimary.withValues(alpha: 0.08),
+                offset: const Offset(0, 4),
+                blurRadius: 12,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _RegisterOptionTile extends StatelessWidget {
+  const _RegisterOptionTile({
+    required this.value,
+    required this.primary,
+    required this.enabled,
+    required this.onChanged,
+    required this.child,
+  });
+
+  final bool value;
+  final Color primary;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? () => onChanged(!value) : null,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 26,
+                height: 26,
+                child: Checkbox(
+                  value: value,
+                  onChanged: enabled
+                      ? (nextValue) => onChanged(nextValue ?? false)
+                      : null,
+                  activeColor: primary,
+                  side: BorderSide(
+                    color: AppColors.lightForeground.withValues(alpha: 0.55),
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── Pill-shaped input field ─────────────────────────────────────────────────
 
 class _PillField extends StatelessWidget {
   const _PillField({
     required this.controller,
     required this.hint,
-    required this.icon,
+    required this.iconAsset,
     required this.cardColor,
     required this.primary,
     this.obscureText = false,
@@ -482,7 +531,7 @@ class _PillField extends StatelessWidget {
 
   final TextEditingController controller;
   final String hint;
-  final IconData icon;
+  final String iconAsset;
   final Color cardColor;
   final Color primary;
   final bool obscureText;
@@ -497,25 +546,22 @@ class _PillField extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: cardColor.withValues(alpha: enabled ? 0.95 : 0.6),
+        color: cardColor.withValues(alpha: enabled ? 0.98 : 0.9),
         borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: primary.withValues(alpha: 0.08), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 4),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 8),
+            blurRadius: 20,
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: primary.withValues(alpha: enabled ? 0.85 : 0.5),
-          ),
+          Image.asset(iconAsset, width: 28, height: 28, fit: BoxFit.contain),
           const SizedBox(width: 14),
           Expanded(
             child: TextFormField(
@@ -526,12 +572,12 @@ class _PillField extends StatelessWidget {
               enabled: enabled,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurface,
+                color: Colors.black.withValues(alpha: 0.87),
               ),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: Colors.black.withValues(alpha: 0.55),
                   fontWeight: FontWeight.w600,
                 ),
                 border: InputBorder.none,
@@ -576,8 +622,12 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final disabledBg = isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.08);
-    final disabledFg = isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.3);
+    final disabledBg = isDark
+        ? const Color(0xFF718029)
+        : const Color(0xFFDDE8A5);
+    final disabledFg = isDark
+        ? Colors.white.withValues(alpha: 0.55)
+        : const Color(0xFF66723A);
 
     final bgColor = widget.enabled ? widget.backgroundColor : disabledBg;
     final fgColor = widget.enabled ? widget.foregroundColor : disabledFg;
@@ -595,12 +645,12 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
             boxShadow: widget.enabled
                 ? [
                     BoxShadow(
-                      color: widget.backgroundColor.withValues(alpha: 0.15),
+                      color: widget.backgroundColor.withValues(alpha: 0.28),
                       offset: const Offset(0, 8),
                       blurRadius: 20,
                     ),
                     BoxShadow(
-                      color: widget.backgroundColor.withValues(alpha: 0.1),
+                      color: widget.backgroundColor.withValues(alpha: 0.18),
                       offset: const Offset(0, 2),
                       blurRadius: 4,
                     ),
@@ -668,7 +718,9 @@ class _HoverLinkTextState extends State<_HoverLinkText> {
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: _isHovered ? widget.hoverColor : widget.normalColor,
-            decoration: _isHovered ? TextDecoration.underline : TextDecoration.none,
+            decoration: _isHovered
+                ? TextDecoration.underline
+                : TextDecoration.none,
           ),
           child: Text(widget.text),
         ),

@@ -233,11 +233,16 @@ class _WalkamonAppState extends State<WalkamonApp> {
                       const AuthLayout(fullBleed: true, child: LoginScreen());
                   break;
                 case '/auth/register':
-                  builder = (_) => const AuthLayout(child: RegisterScreen());
+                  builder = (_) => const AuthLayout(
+                    fullBleed: true,
+                    child: RegisterScreen(),
+                  );
                   break;
                 case '/auth/forgot':
-                  builder = (_) =>
-                      const AuthLayout(fullBleed: true, child: ForgotPasswordScreen());
+                  builder = (_) => const AuthLayout(
+                    fullBleed: true,
+                    child: ForgotPasswordScreen(),
+                  );
                   break;
                 case '/auth/reset-password':
                   builder = (_) =>
@@ -247,8 +252,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const ChangePasswordScreen();
                   break;
                 case '/auth/otp_verification':
-                  builder = (_) =>
-                      const AuthLayout(fullBleed: true, child: OTP_Verification());
+                  builder = (_) => const AuthLayout(
+                    fullBleed: true,
+                    child: OTP_Verification(),
+                  );
                   break;
 
                 case '/auth/otp_register':
@@ -336,8 +343,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const SpiritDetailScreen();
                   break;
                 case '/spirit/friend':
-                  builder = (_) =>
-                      fs.FriendSpiritScreen(userId: settings.arguments?.toString() ?? '');
+                  builder = (_) => fs.FriendSpiritScreen(
+                    userId: settings.arguments?.toString() ?? '',
+                  );
                   break;
                 case '/story':
                   builder = (_) => const StoryScreen();
