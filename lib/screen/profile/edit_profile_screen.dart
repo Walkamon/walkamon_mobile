@@ -35,6 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   late final AnimationController _animController;
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
+  bool _formInitialized = false;
 
   @override
   void initState() {
@@ -50,37 +51,54 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
 
-    final user = context.read<GameStateProvider>().user;
-
-    final l10n = AppLocalizations.of(context);
-
-    _nameController.text = user?.name ?? l10n.profileEditDefaultName;
-    _emailController.text = user?.email ?? 'user@walkamon.vn';
-    _bioController.text = user?.bio ?? l10n.profileEditDefaultBio;
-
-    final rawGen = user?.gender.toLowerCase().trim() ?? '';
-    if (rawGen == 'male' || rawGen == 'nam') {
-      _selectedGender = 'male';
-    } else if (rawGen == 'female' || rawGen == 'nữ' || rawGen == 'nu') {
-      _selectedGender = 'female';
-    } else {
-      _selectedGender = 'other';
-    }
-
-    if (user?.dob != null && user?.dob != 'Chưa cập nhật') {
-      try {
-        final parts = user!.dob.split('/');
-        if (parts.length == 3) {
-          _selectedDate = DateTime(
-            int.parse(parts[2]),
-            int.parse(parts[1]),
-            int.parse(parts[0]),
-          );
-        }
-      } catch (_) {}
-    }
-
     _animController.forward();
+    _initializeFormAfterBuild();
+  }
+
+  // The form reads inherited widgets only after the first frame. This avoids
+  // accessing Localizations while the State is still being initialized.
+  void _initializeFormAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _formInitialized) return;
+
+      final user = context.read<GameStateProvider>().user;
+      final l10n = AppLocalizations.of(context);
+      final rawBio = user?.bio.trim() ?? '';
+      final hasBio = rawBio.isNotEmpty &&
+          rawBio.toLowerCase() != 'chưa cập nhật' &&
+          rawBio.toLowerCase() != 'chưa có tiểu sử' &&
+          rawBio.toLowerCase() != 'not updated' &&
+          rawBio.toLowerCase() != 'no bio';
+
+      _nameController.text = user?.name ?? l10n.profileEditDefaultName;
+      _emailController.text = user?.email ?? 'user@walkamon.vn';
+      _bioController.text = hasBio ? user!.bio : '';
+
+      final rawGen = user?.gender.toLowerCase().trim() ?? '';
+      if (rawGen == 'male' || rawGen == 'nam') {
+        _selectedGender = 'male';
+      } else if (rawGen == 'female' || rawGen == 'nữ' || rawGen == 'nu') {
+        _selectedGender = 'female';
+      } else {
+        _selectedGender = 'other';
+      }
+
+      if (user?.dob != null && user?.dob != 'Chưa cập nhật') {
+        try {
+          final parts = user!.dob.split('/');
+          if (parts.length == 3) {
+            _selectedDate = DateTime(
+              int.parse(parts[2]),
+              int.parse(parts[1]),
+              int.parse(parts[0]),
+            );
+          }
+        } catch (_) {}
+      }
+
+      _formInitialized = true;
+      setState(() {});
+    });
   }
 
   @override
