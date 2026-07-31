@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
+import '../../core/theme/app_colors.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
+import 'widgets/auth_style.dart';
+import '../../core/constants/app_assets.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -52,14 +54,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 420),
     );
     _opacityAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
     );
     _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero).animate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
         );
 
@@ -77,34 +79,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
   String? _validateOtp(String? value) {
     final trimmed = value?.trim() ?? '';
-    if (trimmed.isEmpty) {
-      return 'OTP không được để trống.';
-    }
-    if (!RegExp(r'^\d{6}$').hasMatch(trimmed)) {
+    if (trimmed.isEmpty) return 'OTP không được để trống.';
+    if (!RegExp(r'^\d{6}\$').hasMatch(trimmed))
       return 'OTP phải gồm đúng 6 chữ số.';
-    }
     return null;
   }
 
   String? _validatePassword(String? value) {
     final trimmed = value ?? '';
-    if (trimmed.isEmpty) {
-      return 'Mật khẩu không được để trống.';
-    }
-    if (trimmed.length < 6) {
-      return 'Mật khẩu phải có ít nhất 6 ký tự.';
-    }
+    if (trimmed.isEmpty) return 'Mật khẩu không được để trống.';
+    if (trimmed.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự.';
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
     final trimmed = value ?? '';
-    if (trimmed.isEmpty) {
-      return 'Vui lòng xác nhận mật khẩu.';
-    }
-    if (trimmed != _newPasswordController.text) {
+    if (trimmed.isEmpty) return 'Vui lòng xác nhận mật khẩu.';
+    if (trimmed != _newPasswordController.text)
       return 'Mật khẩu xác nhận không khớp.';
-    }
     return null;
   }
 
@@ -113,9 +105,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
       _errorMessage = null;
     });
 
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_requestCode == null) {
       setState(() {
@@ -144,11 +134,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
     if (response.success) {
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/auth/login',
-          (route) => false,
-        );
+        Navigator.pushNamedAndRemoveUntil(context, '/auth/login', (r) => false);
       }
       return;
     }
@@ -168,7 +154,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
-    final cardColor = theme.colorScheme.surface;
     final mutedForeground = isDark
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
@@ -179,204 +164,181 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
         position: _slideAnimation,
         child: Stack(
           children: [
+            // Centered brand + card
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
-                  vertical: 80,
+                  vertical: 44,
                 ),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Đặt Lại Mật Mã',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: primary,
-                          ),
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 6),
+                      const AuthBrand(tagline: 'Mỗi bước chân, một phép màu'),
+                      const SizedBox(height: 18),
+
+                      // big rounded white card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 26,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _otp == null
-                              ? (_email == null
-                                    ? 'Nhập mã OTP trong email và chọn mật khẩu mới.'
-                                    : 'Mã OTP đã được gửi đến $_email. Nhập mã và chọn mật khẩu mới.')
-                              : (_email == null
-                                    ? 'Mã OTP đã được xác thực. Nhập mật khẩu mới.'
-                                    : 'Mã OTP đã được xác thực cho $_email. Nhập mật khẩu mới.'),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: mutedForeground,
-                            fontWeight: FontWeight.w500,
-                            height: 1.6,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(250),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x332B472E),
+                              blurRadius: 28,
+                              offset: Offset(0, 14),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        if (_errorMessage != null) ...[
-                          ErrorMessageWidget(message: _errorMessage!),
-                          const SizedBox(height: 12),
-                        ],
-                        if (_otp == null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            child: TextFormField(
-                              controller: _otpController,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.next,
-                              maxLength: 6,
-                              validator: _validateOtp,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                              decoration: InputDecoration(
-                                counterText: '',
-                                hintText: 'Mã OTP 6 số',
-                                hintStyle: theme.textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: theme.colorScheme.onSurface
-                                          .withAlpha((0.6 * 255).round()),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                prefixIcon: Icon(
-                                  Icons.verified_rounded,
-                                  color: primary,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Đặt Lại Mật Mã',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: AuthStyle.forestDark,
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: TextFormField(
-                            controller: _newPasswordController,
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.next,
-                            validator: _validatePassword,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Mật khẩu mới',
-                              hintStyle: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withAlpha(
-                                  (0.6 * 255).round(),
-                                ),
-                                fontWeight: FontWeight.w600,
-                              ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              prefixIcon: Icon(
-                                Icons.key_rounded,
-                                color: primary,
-                              ),
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_rounded
-                                      : Icons.visibility_rounded,
+                              const SizedBox(height: 8),
+                              Text(
+                                _otp == null
+                                    ? (_email == null
+                                          ? 'Nhập mã OTP trong email và chọn mật khẩu mới.'
+                                          : 'Mã OTP đã được gửi đến $_email. Nhập mã và chọn mật khẩu mới.')
+                                    : (_email == null
+                                          ? 'Mã OTP đã được xác thực. Nhập mật khẩu mới.'
+                                          : 'Mã OTP đã được xác thực cho $_email. Nhập mật khẩu mới.'),
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AuthStyle.forest.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.5,
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: TextFormField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            validator: _validateConfirmPassword,
-                            onFieldSubmitted: (_) => _handleResetPassword(),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Xác nhận mật khẩu',
-                              hintStyle: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withAlpha(
-                                  (0.6 * 255).round(),
+                              const SizedBox(height: 18),
+
+                              if (_errorMessage != null) ...[
+                                ErrorMessageWidget(message: _errorMessage!),
+                                const SizedBox(height: 12),
+                              ],
+
+                              if (_otp == null) ...[
+                                OutlinedField(
+                                  controller: _otpController,
+                                  hint: 'Mã OTP 6 số',
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
+                                  maxLength: 6,
+                                  validator: _validateOtp,
+                                  prefix: Image.asset(
+                                    AppAssets.authVerified,
+                                    width: 22,
+                                    height: 22,
+                                  ),
                                 ),
-                                fontWeight: FontWeight.w600,
+                                const SizedBox(height: 14),
+                              ],
+
+                              OutlinedField(
+                                controller: _newPasswordController,
+                                hint: 'Mật khẩu mới',
+                                obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.next,
+                                validator: _validatePassword,
+                                prefix: Image.asset(
+                                  AppAssets.authKey,
+                                  width: 22,
+                                  height: 22,
+                                ),
+                                suffix: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                  icon: Image.asset(
+                                    _obscurePassword
+                                        ? AppAssets.authVisibilityOff
+                                        : AppAssets.authVisibility,
+                                    width: 22,
+                                    height: 22,
+                                  ),
+                                ),
                               ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              prefixIcon: Icon(
-                                Icons.lock_reset_rounded,
-                                color: primary,
+
+                              const SizedBox(height: 14),
+
+                              OutlinedField(
+                                controller: _confirmPasswordController,
+                                hint: 'Xác nhận mật khẩu',
+                                obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
+                                validator: _validateConfirmPassword,
+                                onFieldSubmitted: (_) => _handleResetPassword(),
+                                prefix: Image.asset(
+                                  AppAssets.authVerified,
+                                  width: 22,
+                                  height: 22,
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _handleResetPassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            textStyle: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+
+                              const SizedBox(height: 20),
+
+                              FilledButton.icon(
+                                onPressed: _isLoading
+                                    ? null
+                                    : _handleResetPassword,
+                                icon: Image.asset(
+                                  AppAssets.authSend,
+                                  width: 26,
+                                  height: 26,
+                                ),
+                                label: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                  ),
+                                  child: Text(
+                                    'Đặt Lại Mật Mã',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
-                                )
-                              : const Text('Đặt Lại Mật Mã'),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(56),
+                                  backgroundColor: AuthStyle.forest,
+                                  foregroundColor: AuthStyle.cream,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
+
+            // small back icon in top-left
             Positioned(
               top: 16,
               left: 24,
@@ -393,6 +355,89 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// small rounded box for icon prefixes
+// removed _IconSlot; prefixes now use left-aligned Image.asset icons
+
+class OutlinedField extends StatelessWidget {
+  const OutlinedField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.obscureText = false,
+    this.keyboardType,
+    this.textInputAction,
+    this.maxLength,
+    this.validator,
+    this.prefix,
+    this.suffix,
+    this.onFieldSubmitted,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final int? maxLength;
+  final String? Function(String?)? validator;
+  final Widget? prefix;
+  final Widget? suffix;
+  final ValueChanged<String>? onFieldSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      maxLength: maxLength,
+      validator: validator,
+      onFieldSubmitted: onFieldSubmitted,
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: AuthStyle.forestDark,
+      ),
+      cursorColor: AuthStyle.forestDark,
+      decoration: InputDecoration(
+        counterText: '',
+        hintText: hint,
+        hintStyle: theme.textTheme.titleMedium?.copyWith(
+          color: theme.colorScheme.onSurface.withAlpha((0.6 * 255).round()),
+          fontWeight: FontWeight.w600,
+        ),
+        isDense: true,
+        filled: true,
+        fillColor: Colors.white.withAlpha(250),
+        prefixIcon: prefix != null
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12, right: 8),
+                child: prefix,
+              )
+            : null,
+        suffixIcon: suffix,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: Color(0xFFE9B86A)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: Color(0xFFE9B86A)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: Color(0xFFE9B86A), width: 2),
         ),
       ),
     );

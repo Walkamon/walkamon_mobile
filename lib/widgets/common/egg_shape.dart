@@ -79,13 +79,14 @@ class _EggOtpFieldState extends State<EggOtpField> {
           width: widget.width,
           height: widget.height,
           color: Colors.white,
-          borderColor: focused ? widget.primary : null,
-          borderWidth: focused ? 2 : 0,
+          borderColor: widget.primary,
+          borderWidth: focused ? 2.2 : 1.4,
         ),
         child: Center(
           // Bọc KeyboardListener để bắt phím Backspace từ bàn phím hệ thống
           child: KeyboardListener(
-            focusNode: FocusNode(), // FocusNode nội bộ để lắng nghe sự kiện phím độc lập
+            focusNode:
+                FocusNode(), // FocusNode nội bộ để lắng nghe sự kiện phím độc lập
             onKeyEvent: (KeyEvent event) {
               if (event is KeyDownEvent) {
                 if (event.logicalKey == LogicalKeyboardKey.backspace) {
