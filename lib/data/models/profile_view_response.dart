@@ -29,7 +29,8 @@ class ProfileViewResponse {
     return ProfileViewResponse(
       email: json['email'] ?? 'Chưa cập nhật',
       username: json['username'] ?? 'Lữ Hành Giả',
-      bio: json['bio'] ?? 'Chưa có tiểu sử',
+      // Keep an empty bio empty so the UI can render the localized fallback.
+      bio: (json['bio'] as String?)?.trim() ?? '',
       gender: json['gender'] ?? 'Chưa rõ',
       dob: json['dob'] != null ? DateTime.parse(json['dob']) : null,
       avatarUrl: json['avatarUrl'] ?? '',

@@ -139,8 +139,14 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                   }
 
                   // Kiểm tra trạng thái trống của bio để hiển thị "Chưa cập nhật" hay chữ thường
+                  final normalizedBio = user.bio.trim().toLowerCase();
                   final bool isBioEmpty =
-                      user.bio.trim().isEmpty || user.bio == l10n.notUpdated;
+                      normalizedBio.isEmpty ||
+                      normalizedBio == l10n.notUpdated.toLowerCase() ||
+                      normalizedBio == 'chưa cập nhật' ||
+                      normalizedBio == 'chưa có tiểu sử' ||
+                      normalizedBio == 'no bio' ||
+                      normalizedBio == 'not updated';
 
                   // 4. HIỂN THỊ DỮ LIỆU TỪ DATABASE THÀNH CÔNG
                   return ListView(

@@ -433,7 +433,7 @@ class GameStateProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final cleanBio = bio.trim().isEmpty ? "Chưa cập nhật" : bio.trim();
+      final cleanBio = bio.trim();
       final dobStringForApi =
           "${dob.year}-${dob.month.toString().padLeft(2, '0')}-${dob.day.toString().padLeft(2, '0')}";
 
