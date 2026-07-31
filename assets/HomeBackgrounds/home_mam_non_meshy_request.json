@@ -1,8 +1,0 @@
-{
-  "ai_model": "nano-banana-pro",
-  "prompt": "Create ONE finished game background PNG for Walkamon.\nUse the provided Lumina/pet references for cozy fantasy style only. Do not place the referenced character as a large subject in the scene.\n\nScene:\nHome background for the baby sprout Lumina form: tiny seedling garden nook, soft cream and fresh green palette, baby plant nursery feeling, rounded leaves, small sprouts, warm cozy soil path, gentle sunlight.\n\nRequirements:\n- One single static background image, not a spritesheet.\n- Cozy mobile game style matching Walkamon icons and Lumina pets: soft chibi fantasy, warm friendly hand-painted shapes, gentle highlights, gentle shadows, polished game-ready look.\n- No text, letters, numbers, captions, UI, logos, watermarks, title signs, or labels.\n- No characters as the main subject; background/environment only.\n- Clean readable composition for game use, with enough open space for UI and pets.\n- No checkerboard, no contact sheet, no frame grid.\n- Avoid harsh neon, realism, scary mood, war imagery, clutter, and muddy colors.\n\nComposition notes:\nSoft central open space for UI/pet placement, environment only, no big character.\n",
-  "reference_image_urls": [
-    "C:\\Users\\tvhun\\Downloads\\Lumina\\Lumina\\Dạng mầm\\Screenshot 2026-07-02 152758.png"
-  ],
-  "aspect_ratio": "4:3"
-}
