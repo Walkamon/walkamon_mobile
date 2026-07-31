@@ -774,6 +774,55 @@
       }
     }
   },
+  "spiritCurrentStage": "Current stage: {stage} • Lv {level}",
+  "@spiritCurrentStage": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritHistoryNoEvolution": "No evolution history yet.",
+  "spiritHistoryDateLevel": "{date} • Lv {level}",
+  "@spiritHistoryDateLevel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritHistoryLevel": "Lv {level}",
+  "@spiritHistoryLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritConditionTargetLevel": "Reach Lv {level}",
+  "@spiritConditionTargetLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "spiritEvolutionPreview": "Evolution Preview",
+  "spiritChooseEvolutionBranch": "Choose evolution branch",
+  "spiritRequiredLevel": "Required level: {level}",
+  "@spiritRequiredLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "spiritReady": "Ready",
   "spiritEvolutionHistory": "Evolution History",
   "spiritHistoryHatched": "Hatched successfully",

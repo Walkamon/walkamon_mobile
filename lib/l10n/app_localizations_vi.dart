@@ -1414,6 +1414,40 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String spiritCurrentStage(String stage, int level) {
+    return 'Giai đoạn hiện tại: $stage • Cấp $level';
+  }
+
+  @override
+  String get spiritHistoryNoEvolution => 'Chưa có lịch sử tiến hóa.';
+
+  @override
+  String spiritHistoryDateLevel(String date, int level) {
+    return '$date • Cấp $level';
+  }
+
+  @override
+  String spiritHistoryLevel(int level) {
+    return 'Cấp $level';
+  }
+
+  @override
+  String spiritConditionTargetLevel(int level) {
+    return 'Đạt Cấp $level';
+  }
+
+  @override
+  String get spiritEvolutionPreview => 'Xem trước tiến hóa';
+
+  @override
+  String get spiritChooseEvolutionBranch => 'Chọn nhánh tiến hóa';
+
+  @override
+  String spiritRequiredLevel(int level) {
+    return 'Cấp độ yêu cầu: $level';
+  }
+
+  @override
   String get spiritReady => 'Sẵn sàng';
 
   @override

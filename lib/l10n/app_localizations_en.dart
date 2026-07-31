@@ -1417,6 +1417,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String spiritCurrentStage(String stage, int level) {
+    return 'Current stage: $stage • Lv $level';
+  }
+
+  @override
+  String get spiritHistoryNoEvolution => 'No evolution history yet.';
+
+  @override
+  String spiritHistoryDateLevel(String date, int level) {
+    return '$date • Lv $level';
+  }
+
+  @override
+  String spiritHistoryLevel(int level) {
+    return 'Lv $level';
+  }
+
+  @override
+  String spiritConditionTargetLevel(int level) {
+    return 'Reach Lv $level';
+  }
+
+  @override
+  String get spiritEvolutionPreview => 'Evolution Preview';
+
+  @override
+  String get spiritChooseEvolutionBranch => 'Choose evolution branch';
+
+  @override
+  String spiritRequiredLevel(int level) {
+    return 'Required level: $level';
+  }
+
+  @override
   String get spiritReady => 'Ready';
 
   @override

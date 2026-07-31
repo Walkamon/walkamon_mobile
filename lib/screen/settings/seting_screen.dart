@@ -144,6 +144,18 @@ class _SettingScreenState extends State<SettingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        onPressed: () => Navigator.pushNamed(context, '/home'),
+                        icon: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        splashRadius: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     // ================= KHỐI 1: THÊM MỚI HỆ THỐNG =================
                     Text(
                       l10n.system,

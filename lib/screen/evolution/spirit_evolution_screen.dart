@@ -116,9 +116,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return _EvolutionOptionsSheet(
-          options: widget.evolutionOptions,
-        );
+        return _EvolutionOptionsSheet(options: widget.evolutionOptions);
       },
     );
   }
@@ -158,14 +156,18 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                 (prev, lvl) => prev == null || lvl < prev ? lvl : prev,
               )
         : null;
-    
+
     // Ưu tiên dùng nextEvolutionLevel từ API /api/pet/me
-    final conditionLevelTarget = (widget.overview != null && widget.overview!.nextEvolutionLevel > 0)
+    final conditionLevelTarget =
+        (widget.overview != null && widget.overview!.nextEvolutionLevel > 0)
         ? widget.overview!.nextEvolutionLevel
         : nextRequiredLevel;
 
-    final canEvolve = canEvolveBE || (conditionLevelTarget != null && currentLvl >= conditionLevelTarget);
-    final bool actuallyHasNextStage = hasNextStage || conditionLevelTarget != null;
+    final canEvolve =
+        canEvolveBE ||
+        (conditionLevelTarget != null && currentLvl >= conditionLevelTarget);
+    final bool actuallyHasNextStage =
+        hasNextStage || conditionLevelTarget != null;
 
     return SingleChildScrollView(
       key: const ValueKey('evolution'),
@@ -201,12 +203,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                     ),
                   )
                 else
-                  Row(
-                    children: _buildTimelineItems(
-                      context,
-                      primary,
-                    ),
-                  ),
+                  Row(children: _buildTimelineItems(context, primary)),
                 const SizedBox(height: 12),
                 const Divider(height: 1, thickness: 0.5),
                 const SizedBox(height: 10),
@@ -222,7 +219,10 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                     Expanded(
                       child: Text(
                         widget.overview != null
-                            ? 'Stage hiện tại: $stageDisplayName • Cấp ${widget.overview!.level}'
+                            ? l10n.spiritCurrentStage(
+                                stageDisplayName,
+                                widget.overview!.level,
+                              )
                             : l10n.spiritCurrentRequirement(
                                 widget.level,
                                 widget.bonding,
@@ -242,17 +242,12 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                         decoration: BoxDecoration(
                           color: primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(999),
-                          border:
-                              Border.all(color: primary.withOpacity(0.3)),
+                          border: Border.all(color: primary.withOpacity(0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.bolt_rounded,
-                              size: 12,
-                              color: primary,
-                            ),
+                            Icon(Icons.bolt_rounded, size: 12, color: primary),
                             const SizedBox(width: 3),
                             Text(
                               l10n.spiritReady,
@@ -267,8 +262,6 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       ),
                   ],
                 ),
-                
-
               ],
             ),
           ),
@@ -303,7 +296,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Chưa có lịch sử tiến hóa.',
+                        l10n.spiritHistoryNoEvolution,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: mutedFg,
                         ),
@@ -314,10 +307,13 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                     children: widget.history.map((item) {
                       final dt = DateTime.tryParse(item.evolvedAt);
                       final subtitle = dt != null
-                          ? '${dt.day}/${dt.month}/${dt.year}  •  Cấp ${item.level}'
+                          ? l10n.spiritHistoryDateLevel(
+                              '${dt.day}/${dt.month}/${dt.year}',
+                              item.level,
+                            )
                           : item.evolvedAt.isNotEmpty
                           ? item.evolvedAt
-                          : 'Cấp ${item.level}';
+                          : l10n.spiritHistoryLevel(item.level);
                       return _HistoryRow(
                         icon: Icons.auto_awesome,
                         title: item.stageName,
@@ -335,7 +331,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             const SizedBox(height: 8),
             if (conditionLevelTarget != null) ...[
               _ConditionCard(
-                text: 'Đạt Cấp $conditionLevelTarget',
+                text: l10n.spiritConditionTargetLevel(conditionLevelTarget),
                 value: '$currentLvl/$conditionLevelTarget',
                 ok: currentLvl >= conditionLevelTarget,
               ),
@@ -394,11 +390,11 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
 
           if (widget.evolutionPreviews.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _SectionLabel(label: 'Xem trước các dạng tiến hóa'),
+            _SectionLabel(label: l10n.spiritEvolutionPreview),
             const SizedBox(height: 8),
             _PreviewSection(previews: widget.evolutionPreviews),
           ],
-          
+
           const SizedBox(height: 24),
         ],
       ),
@@ -456,7 +452,8 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     required bool hasNextStage,
   }) {
     final theme = Theme.of(context);
-    final isEnabled = !widget.isSubmitting &&
+    final isEnabled =
+        !widget.isSubmitting &&
         canEvolve &&
         hasNextStage &&
         widget.onEvolve != null;
@@ -625,16 +622,18 @@ class _StageNode extends StatelessWidget {
                     child: ClipOval(
                       child: imageUrl != null && imageUrl!.isNotEmpty
                           ? (isNetworkImage
-                              ? Image.network(
-                                  imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _buildFallbackIcon(theme, isDone),
-                                )
-                              : Image.asset(
-                                  imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _buildFallbackIcon(theme, isDone),
-                                ))
+                                ? Image.network(
+                                    imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _buildFallbackIcon(theme, isDone),
+                                  )
+                                : Image.asset(
+                                    imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _buildFallbackIcon(theme, isDone),
+                                  ))
                           : _buildFallbackIcon(theme, isDone),
                     ),
                   ),
@@ -660,6 +659,7 @@ class _StageNode extends StatelessWidget {
       ],
     );
   }
+
   Widget _buildFallbackIcon(ThemeData theme, bool isDone) {
     return Icon(
       isDone ? Icons.check_rounded : Icons.circle_outlined,
@@ -675,10 +675,7 @@ class _StageNode extends StatelessWidget {
 //  Dashed / solid connector between stage nodes
 // ─────────────────────────────────────────────────────────
 class _DashedLinePainter extends CustomPainter {
-  const _DashedLinePainter({
-    required this.color,
-    required this.isCompleted,
-  });
+  const _DashedLinePainter({required this.color, required this.isCompleted});
 
   final Color color;
   final bool isCompleted;
@@ -744,7 +741,11 @@ class _HistoryRow extends StatelessWidget {
               color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
+            child: Icon(
+              icon,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -877,9 +878,10 @@ class _EvolutionOverlayStatefulState extends State<_EvolutionOverlayStateful>
       duration: const Duration(milliseconds: 2400),
     )..forward();
 
-    _scaleAnim = Tween<double>(begin: 0.5, end: 1.3).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 0.5,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -915,10 +917,8 @@ class _EvolutionOverlayStatefulState extends State<_EvolutionOverlayStateful>
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          widget.primary
-                              .withOpacity(0.25 * _controller.value),
-                          widget.primary
-                              .withOpacity(0.08 * _controller.value),
+                          widget.primary.withOpacity(0.25 * _controller.value),
+                          widget.primary.withOpacity(0.08 * _controller.value),
                           Colors.transparent,
                         ],
                         stops: const [0.0, 0.45, 1.0],
@@ -1019,9 +1019,12 @@ class _PreviewSectionState extends State<_PreviewSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final isDark = theme.brightness == Brightness.dark;
-    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final mutedFg = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
 
     return Column(
       children: widget.previews.map((pet) {
@@ -1060,7 +1063,7 @@ class _PreviewSectionState extends State<_PreviewSection> {
               ...pet.stages.map((stage) {
                 final isNetworkImage = stage.stageImage.startsWith('http');
                 final scrollKey = '${pet.petId}_${stage.stageNo}';
-                
+
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -1074,21 +1077,31 @@ class _PreviewSectionState extends State<_PreviewSection> {
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surface,
                               shape: BoxShape.circle,
-                              border: Border.all(color: primary.withOpacity(0.3)),
+                              border: Border.all(
+                                color: primary.withOpacity(0.3),
+                              ),
                             ),
                             child: ClipOval(
                               child: stage.stageImage.isNotEmpty
                                   ? (isNetworkImage
-                                      ? Image.network(
-                                          stage.stageImage,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
-                                        )
-                                      : Image.asset(
-                                          stage.stageImage,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
-                                        ))
+                                        ? Image.network(
+                                            stage.stageImage,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => Icon(
+                                              Icons.broken_image,
+                                              size: 24,
+                                              color: mutedFg,
+                                            ),
+                                          )
+                                        : Image.asset(
+                                            stage.stageImage,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => Icon(
+                                              Icons.broken_image,
+                                              size: 24,
+                                              color: mutedFg,
+                                            ),
+                                          ))
                                   : Icon(Icons.help_outline, color: mutedFg),
                             ),
                           ),
@@ -1105,7 +1118,7 @@ class _PreviewSectionState extends State<_PreviewSection> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Cấp độ yêu cầu: ${stage.requiredLevel}',
+                                  l10n.spiritRequiredLevel(stage.requiredLevel),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: mutedFg,
                                   ),
@@ -1115,7 +1128,6 @@ class _PreviewSectionState extends State<_PreviewSection> {
                           ),
                         ],
                       ),
-
                     ],
                   ),
                 );
@@ -1130,15 +1142,18 @@ class _PreviewSectionState extends State<_PreviewSection> {
 
 class _EvolutionOptionsSheet extends StatelessWidget {
   const _EvolutionOptionsSheet({required this.options});
-  
+
   final List<PetEvolutionOptionResponse> options;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final isDark = theme.brightness == Brightness.dark;
-    final mutedFg = isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
+    final mutedFg = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.lightMutedForeground;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1152,7 +1167,7 @@ class _EvolutionOptionsSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Chọn nhánh tiến hóa',
+              l10n.spiritChooseEvolutionBranch,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -1184,16 +1199,24 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                         child: ClipOval(
                           child: option.stateUrl.isNotEmpty
                               ? (isNetworkImage
-                                  ? Image.network(
-                                      option.stateUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
-                                    )
-                                  : Image.asset(
-                                      option.stateUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 24, color: mutedFg),
-                                    ))
+                                    ? Image.network(
+                                        option.stateUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          Icons.broken_image,
+                                          size: 24,
+                                          color: mutedFg,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        option.stateUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          Icons.broken_image,
+                                          size: 24,
+                                          color: mutedFg,
+                                        ),
+                                      ))
                               : Icon(Icons.help_outline, color: mutedFg),
                         ),
                       ),
@@ -1210,7 +1233,7 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Cấp độ yêu cầu: ${option.requiredLevel}',
+                              l10n.spiritRequiredLevel(option.requiredLevel),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: mutedFg,
                               ),
