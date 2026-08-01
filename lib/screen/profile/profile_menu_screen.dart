@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
+import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
@@ -231,6 +234,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       children: [
                         _MenuItemRow(
                           icon: Icons.person_rounded,
+                          asset: AppAssets.iconAvatar,
                           iconColor: Colors.blue,
                           title: l10n.accountInfo,
                           onTap: () =>
@@ -238,6 +242,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                         ),
                         _MenuItemRow(
                           icon: Icons.track_changes_rounded,
+                          asset: AppAssets.iconDailyGoal,
                           iconColor: Colors.indigo,
                           title: l10n.setStepGoal,
                           onTap: () =>
@@ -245,6 +250,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                         ),
                         _MenuItemRow(
                           icon: Icons.local_fire_department_rounded,
+                          asset: AppAssets.iconStreak,
                           iconColor: Colors.orange,
                           title: l10n.streak,
                           onTap: () => Navigator.pushNamed(context, '/streak'),
@@ -324,7 +330,7 @@ class _HeaderButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
-          child: Icon(
+          child: AppIcon(
             icon,
             size: 20,
             // SỬA LỖI CHUYỂN MODE: Ăn màu trực tiếp từ token onSurface của hệ thống
@@ -338,6 +344,7 @@ class _HeaderButton extends StatelessWidget {
 
 class _MenuItemRow extends StatelessWidget {
   final IconData icon;
+  final String? asset;
   final Color iconColor;
   final String title;
   final String? subtitle;
@@ -345,6 +352,7 @@ class _MenuItemRow extends StatelessWidget {
 
   const _MenuItemRow({
     required this.icon,
+    this.asset,
     required this.iconColor,
     required this.title,
     this.subtitle,
@@ -375,7 +383,7 @@ class _MenuItemRow extends StatelessWidget {
                   shape: BoxShape.circle,
                   // ĐÃ XÓA BORDER TẠI ĐÂY
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: AppIcon(icon, asset: asset, color: iconColor, size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -404,7 +412,7 @@ class _MenuItemRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
+              AppIcon(
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: mutedColor.withValues(alpha: 0.5),

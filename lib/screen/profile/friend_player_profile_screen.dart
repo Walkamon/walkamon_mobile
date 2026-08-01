@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/friend_profile_datasource.dart';
 import '../../data/models/friend_profile_response.dart';
@@ -119,7 +121,7 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
                     color: theme.colorScheme.primary.withOpacity(0.25),
                   ),
                 ),
-                child: Icon(
+                child: AppIcon(
                   Icons.check_rounded,
                   color: theme.colorScheme.primary,
                   size: 30,
@@ -371,6 +373,7 @@ class _FriendSpiritScreenState extends State<FriendSpiritScreen> {
                         ),
                         _SpiritMetricBar(
                           icon: Icons.auto_awesome_rounded,
+                          asset: AppAssets.iconLifeForce,
                           label: l10n.friendProfileLifeForce,
                           color: Colors.teal,
                           current: spirit.currentLifeForce,
@@ -601,7 +604,7 @@ class _SpiritCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
+              AppIcon(
                 Icons.chevron_right_rounded,
                 color: theme.colorScheme.onSurfaceVariant.withOpacity(0.55),
               ),
@@ -631,12 +634,14 @@ class _StatsGrid extends StatelessWidget {
       children: [
         _StatCard(
           icon: Icons.directions_walk_rounded,
+          asset: AppAssets.iconProfileSteps,
           iconColor: Colors.indigo,
           label: l10n.friendProfileTotalSteps,
           value: l10n.friendProfileUnavailable,
         ),
         _StatCard(
           icon: Icons.local_fire_department_rounded,
+          asset: AppAssets.iconStreak,
           iconColor: Colors.orange,
           label: l10n.friendProfileStreak,
           value: l10n.friendProfileUnavailable,
@@ -660,12 +665,14 @@ class _StatsGrid extends StatelessWidget {
 
 class _StatCard extends StatelessWidget {
   final IconData icon;
+  final String? asset;
   final Color iconColor;
   final String label;
   final String value;
 
   const _StatCard({
     required this.icon,
+    this.asset,
     required this.iconColor,
     required this.label,
     required this.value,
@@ -692,7 +699,12 @@ class _StatCard extends StatelessWidget {
               color: iconColor.withOpacity(0.14),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 19),
+            child: AppIcon(
+              icon,
+              asset: asset,
+              color: iconColor,
+              size: 19,
+            ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,7 +761,7 @@ class _AchievementsCard extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.amber.withOpacity(0.2)),
             ),
-            child: const Icon(Icons.emoji_events_rounded, color: Colors.amber),
+            child: const AppIcon(Icons.emoji_events_rounded, color: Colors.amber),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -809,6 +821,7 @@ class _SpiritHero extends StatelessWidget {
 
 class _SpiritMetricBar extends StatelessWidget {
   final IconData icon;
+  final String? asset;
   final String label;
   final Color color;
   final int current;
@@ -816,6 +829,7 @@ class _SpiritMetricBar extends StatelessWidget {
 
   const _SpiritMetricBar({
     required this.icon,
+    this.asset,
     required this.label,
     required this.color,
     required this.current,
@@ -839,7 +853,7 @@ class _SpiritMetricBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 20),
+              AppIcon(icon, asset: asset, color: color, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -895,8 +909,9 @@ class _SpiritThumb extends StatelessWidget {
             : null,
       ),
       child: url.isEmpty
-          ? Icon(
+          ? AppIcon(
               Icons.auto_awesome_rounded,
+              asset: AppAssets.iconSpiritNav,
               color: theme.colorScheme.primary,
               size: size * 0.45,
             )
@@ -949,7 +964,7 @@ class _CircleIconButton extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                   )
-                : Icon(
+                : AppIcon(
                     icon,
                     size: 20,
                     color: isActive
@@ -993,7 +1008,7 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          AppIcon(
             Icons.warning_amber_rounded,
             color: theme.colorScheme.error,
             size: 42,
@@ -1010,7 +1025,7 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 14),
           OutlinedButton.icon(
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
+            icon: const AppIcon(Icons.refresh_rounded, size: 18),
             label: Text(l10n.retry),
           ),
         ],

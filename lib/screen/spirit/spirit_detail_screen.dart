@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
@@ -295,7 +297,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                   ),
                                 ],
                               ),
-                              child: Icon(
+                              child: AppIcon(
                                 Icons.arrow_back,
                                 size: 20,
                                 color: primary,
@@ -346,7 +348,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(
+                                              AppIcon(
                                                 Icons.spa_rounded,
                                                 size: 90,
                                                 color: primary,
@@ -688,7 +690,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                             color: item.bgColor,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(
+                          child: AppIcon(
                             item.icon,
                             color: item.iconColor,
                             size: 20,
@@ -917,7 +919,12 @@ class _ActionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      icon: Icon(icon, size: 18),
+      icon: AppIcon(
+        icon,
+        size: 18,
+        color: onPressed == null ? theme.disabledColor : null,
+        tintAsset: onPressed == null,
+      ),
       label: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
     );
   }

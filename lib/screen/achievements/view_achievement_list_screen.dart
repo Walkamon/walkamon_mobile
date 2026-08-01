@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
@@ -130,7 +131,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back_rounded),
+                        icon: const AppIcon(Icons.arrow_back_rounded),
                         style: IconButton.styleFrom(
                           backgroundColor: theme.colorScheme.surface,
                           shape: const CircleBorder(),
@@ -224,7 +225,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       onPressed: () => setState(
                                         () => _selectedAchievement = null,
                                       ),
-                                      icon: const Icon(Icons.close_rounded),
+                                      icon: const AppIcon(Icons.close_rounded),
                                     ),
                                   ),
                                   if (_selectedAchievement!['isLocked']
@@ -232,7 +233,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                     CircleAvatar(
                                       radius: 28,
                                       backgroundColor: Colors.grey.shade200,
-                                      child: const Icon(
+                                      child: const AppIcon(
                                         Icons.lock_rounded,
                                         size: 34,
                                         color: Colors.grey,
@@ -315,13 +316,13 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                       context,
                                                       error,
                                                       stackTrace,
-                                                    ) => const Icon(
+                                                    ) => const AppIcon(
                                                       Icons
                                                           .emoji_events_rounded,
                                                     ),
                                               ),
                                             )
-                                          : const Icon(
+                                          : const AppIcon(
                                               Icons.emoji_events_rounded,
                                               size: 34,
                                             ),
@@ -484,7 +485,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               CircleAvatar(
                 radius: 30,
                 backgroundColor: const Color(0xFFFFF8E1),
-                child: const Icon(
+                child: const AppIcon(
                   Icons.emoji_events_rounded,
                   size: 34,
                   color: Colors.amber,
@@ -559,10 +560,10 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                 height: 36,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.emoji_events_rounded),
+                                    const AppIcon(Icons.emoji_events_rounded),
                               ),
                             )
-                          : const Icon(Icons.emoji_events_rounded, size: 18),
+                          : const AppIcon(Icons.emoji_events_rounded, size: 18),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -607,7 +608,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                 backgroundColor: isDark
                     ? Colors.grey.shade700
                     : Colors.grey.shade200,
-                child: const Icon(
+                child: const AppIcon(
                   Icons.lock_rounded,
                   size: 34,
                   color: Colors.grey,
@@ -669,11 +670,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                           ? Colors.grey.shade800
                           : Colors.grey.shade100,
                       child: item.isUnlocked
-                          ? const Icon(
+                          ? const AppIcon(
                               Icons.emoji_events_rounded,
                               color: Colors.amber,
                             )
-                          : const Icon(Icons.lock_rounded, color: Colors.grey),
+                          : const AppIcon(
+                              Icons.lock_rounded,
+                              color: Colors.grey,
+                            ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

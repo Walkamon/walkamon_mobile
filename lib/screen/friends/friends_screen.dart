@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
 import '../../l10n/app_localizations.dart';
@@ -163,7 +166,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  AppIcon(
                     isSuccess
                         ? Icons.check_circle_outline
                         : Icons.warning_amber_rounded,
@@ -216,7 +219,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 children: [
                   OutlinedButton.icon(
                     onPressed: () => _showFriendRequestsPopup(context),
-                    icon: const Icon(Icons.notifications_none, size: 18),
+                    icon: const AppIcon(Icons.notifications_none, size: 18),
                     label: Text(
                       l10n.friendsRequest,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -230,7 +233,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
                   ElevatedButton.icon(
                     onPressed: () => _showAddFriendPopup(context),
-                    icon: const Icon(Icons.person_add_alt_1, size: 18),
+                    icon: const AppIcon(Icons.person_add_alt_1, size: 18),
                     label: Text(
                       l10n.friendsAdd,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -259,7 +262,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               onChanged: (val) => setState(() => searchQuery = val),
               decoration: InputDecoration(
                 hintText: l10n.friendsSearchHint,
-                prefixIcon: const Icon(Icons.search, size: 20),
+                prefixIcon: const AppIcon(Icons.search, size: 20),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
@@ -282,7 +285,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        AppIcon(
                           Icons.group_add_rounded,
                           size: 64,
                           color: colorScheme.primary.withOpacity(0.5),
@@ -344,76 +347,84 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Row(
-                          children: [
-                            Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 25, // Kích thước avatar lớn, rõ ràng
-                                  backgroundColor: colorScheme.primaryContainer,
-                                  backgroundImage:
-                                      (friend.avatarUrl != null &&
-                                          friend.avatarUrl!.isNotEmpty)
-                                      ? NetworkImage(friend.avatarUrl!)
-                                      : null,
-                                  child: Text(
-                                    friend.username.isNotEmpty
-                                        ? friend.username[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(
-                                      color: Colors.white, // Chữ trắng nổi bật
-                                      fontWeight:
-                                          FontWeight.w900, // Chữ siêu đậm
-                                      fontSize: 25, // Kích thước chữ cái lớn
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    friend.username,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                  Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius:
+                                            25, // Kích thước avatar lớn, rõ ràng
+                                        backgroundColor:
+                                            colorScheme.primaryContainer,
+                                        backgroundImage:
+                                            (friend.avatarUrl != null &&
+                                                friend.avatarUrl!.isNotEmpty)
+                                            ? NetworkImage(friend.avatarUrl!)
+                                            : null,
+                                        child: Text(
+                                          friend.username.isNotEmpty
+                                              ? friend.username[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            color: Colors
+                                                .white, // Chữ trắng nổi bật
+                                            fontWeight:
+                                                FontWeight.w900, // Chữ siêu đậm
+                                            fontSize:
+                                                25, // Kích thước chữ cái lớn
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          friend.username,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+
+                                        if (friend.bio != null &&
+                                            friend.bio!.trim().isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            friend.bio!,
+                                            maxLines:
+                                                1, // Giới hạn 1 dòng để tránh vỡ giao diện
+                                            overflow: TextOverflow
+                                                .ellipsis, // Hiện dấu ... nếu quá dài
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: colorScheme
+                                                  .onSurfaceVariant
+                                                  .withOpacity(0.8),
+                                              fontStyle: FontStyle
+                                                  .italic, // Để chữ nghiêng cho đẹp mắt
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-
-                                  if (friend.bio != null &&
-                                      friend.bio!.trim().isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      friend.bio!,
-                                      maxLines:
-                                          1, // Giới hạn 1 dòng để tránh vỡ giao diện
-                                      overflow: TextOverflow
-                                          .ellipsis, // Hiện dấu ... nếu quá dài
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: colorScheme.onSurfaceVariant
-                                            .withOpacity(0.8),
-                                        fontStyle: FontStyle
-                                            .italic, // Để chữ nghiêng cho đẹp mắt
+                                  IconButton(
+                                    icon: AppIcon(
+                                      Icons.person_remove,
+                                      size: 20,
+                                      color: colorScheme.secondary.withOpacity(
+                                        0.8,
                                       ),
                                     ),
-                                  ],
+                                    onPressed: () => _removeFriend(friend),
+                                  ),
                                 ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.person_remove,
-                                size: 20,
-                                color: colorScheme.secondary.withOpacity(0.8),
-                              ),
-                              onPressed: () => _removeFriend(friend),
-                            ),
-                          ],
                               ),
                             ),
                           ),
@@ -628,7 +639,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                     .min, // Tự co giãn chiều cao khít theo nội dung chữ
                 children: [
                   // Icon đặt ở trên cùng
-                  Icon(
+                  AppIcon(
                     isSuccess
                         ? Icons.check_circle_outline
                         : Icons.warning_amber_rounded,
@@ -732,7 +743,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
+                icon: const AppIcon(Icons.close),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -784,7 +795,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Icon(
+                      : AppIcon(
                           Icons.search,
                           color: colorScheme.onPrimary,
                           size: 20,
@@ -876,14 +887,16 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                                       ? Image.network(
                                           player.avatarUrl!,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
+                                          errorBuilder: (_, __, ___) => AppIcon(
                                             Icons.pets,
+                                            asset: AppAssets.iconFriendProfile,
                                             color: colorScheme.primary,
                                           ),
                                         )
-                                      : Icon(
+                                      : AppIcon(
                                           Icons
                                               .pets, // Có thể đổi thành Icons.sports_esports hoặc Icons.directions_walk
+                                          asset: AppAssets.iconFriendProfile,
                                           color: colorScheme.primary,
                                           size: 26,
                                         ),
@@ -1117,7 +1130,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  AppIcon(
                     isSuccess
                         ? Icons.check_circle_outline
                         : Icons.warning_amber_rounded,
@@ -1172,7 +1185,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
+                icon: const AppIcon(Icons.close),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -1311,13 +1324,15 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                     ? Image.network(
                                         targetUser.avatarUrl!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Icon(
+                                        errorBuilder: (_, __, ___) => AppIcon(
                                           Icons.pets,
+                                          asset: AppAssets.iconFriendProfile,
                                           color: colorScheme.primary,
                                         ),
                                       )
-                                    : Icon(
+                                    : AppIcon(
                                         Icons.pets,
+                                        asset: AppAssets.iconFriendProfile,
                                         color: colorScheme.primary,
                                         size: 26,
                                       ),
@@ -1396,7 +1411,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                       padding: const EdgeInsets.all(8),
                                       minimumSize: const Size(36, 36),
                                     ),
-                                    icon: const Icon(
+                                    icon: const AppIcon(
                                       Icons.check_rounded,
                                       color: Colors.white,
                                       size: 20,
@@ -1420,7 +1435,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                       padding: const EdgeInsets.all(8),
                                       minimumSize: const Size(36, 36),
                                     ),
-                                    icon: Icon(
+                                    icon: AppIcon(
                                       Icons.close_rounded,
                                       color: colorScheme.secondary,
                                       size: 20,

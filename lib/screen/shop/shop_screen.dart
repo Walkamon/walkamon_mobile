@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/shop_screen_repository.dart';
 import '../../data/repositories/wallet_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/error_message_widget.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
@@ -320,13 +322,13 @@ class _ShopScreenState extends State<ShopScreen> {
                                                   item.image!,
                                                   fit: BoxFit.cover,
                                                   errorBuilder: (_, __, ___) =>
-                                                      Icon(
+                                                      AppIcon(
                                                         Icons
                                                             .image_not_supported,
                                                         color: accent,
                                                       ),
                                                 )
-                                              : Icon(
+                                              : AppIcon(
                                                   Icons.shopping_bag_outlined,
                                                   color: accent,
                                                 ),
@@ -450,7 +452,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                 ),
                                 IconButton(
                                   onPressed: _closeDetail,
-                                  icon: Icon(
+                                  icon: AppIcon(
                                     Icons.close,
                                     color: mutedForeground,
                                   ),
@@ -565,8 +567,9 @@ class _ShopScreenState extends State<ShopScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.bolt_rounded,
+                  asset: AppAssets.iconFriendsNav,
                   size: 22,
                   color: inactiveColor,
                 ),
@@ -582,7 +585,7 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
               const SizedBox(width: 64),
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.backpack_outlined,
                   size: 22,
                   color: inactiveColor,
@@ -592,7 +595,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.storefront_outlined,
                   size: 22,
                   color: inactiveColor,
@@ -629,7 +632,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       ],
                     ),
                     child: Center(
-                      child: Icon(
+                      child: AppIcon(
                         Icons.home_rounded,
                         size: 28,
                         color: activeIconColor,

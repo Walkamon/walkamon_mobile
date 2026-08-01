@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_icon.dart';
+
 class ErrorMessageWidget extends StatelessWidget {
   final String message;
 
@@ -37,7 +39,11 @@ class ErrorMessageWidget extends StatelessWidget {
               color: warningColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.warning_rounded, color: warningColor, size: 16),
+            child: AppIcon(
+              Icons.warning_rounded,
+              color: warningColor,
+              size: 16,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

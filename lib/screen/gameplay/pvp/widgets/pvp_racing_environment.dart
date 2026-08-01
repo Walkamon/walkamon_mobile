@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_assets.dart';
+import '../../../../widgets/common/app_icon.dart';
 import '../../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import '../pvp_asset_resolver.dart';
 import 'pvp_frame_animation.dart';
@@ -182,7 +183,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                 children: [
                   IconButton.filledTonal(
                     onPressed: widget.onClose,
-                    icon: const Icon(Icons.close),
+                    icon: const AppIcon(Icons.close),
                   ),
                   const SizedBox(width: 8),
                   Container(
@@ -225,8 +226,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 100),
                             width:
-                                (widget.opponentProgress / 100) *
-                                (width - 160),
+                                (widget.opponentProgress / 100) * (width - 160),
                             decoration: BoxDecoration(
                               color: Colors.red.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(6),
@@ -305,10 +305,7 @@ class _Lane extends StatelessWidget {
         Positioned(
           left: 12,
           right: 12,
-          child: Container(
-            height: 2,
-            color: Colors.white.withOpacity(0.28),
-          ),
+          child: Container(height: 2, color: Colors.white.withOpacity(0.28)),
         ),
         AnimatedPositioned(
           duration: const Duration(milliseconds: 100),

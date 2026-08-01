@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
@@ -18,7 +20,8 @@ Widget _assetIcon(String path, {double size = 20, Color? color}) {
     fit: BoxFit.contain,
     color: color,
     colorBlendMode: color == null ? null : BlendMode.srcIn,
-    errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, size: size),
+    errorBuilder: (_, __, ___) =>
+        AppIcon(Icons.image_not_supported, size: size),
   );
 }
 
@@ -489,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           Row(
                                             children: [
                                               _assetIcon(
-                                                AppAssets.iconSteps,
+                                                AppAssets.iconStep,
                                                 size: 14,
                                                 color: mutedFg,
                                               ),
@@ -579,7 +582,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   _assetIcon(
-                                    AppAssets.iconSteps,
+                                    AppAssets.iconStep,
                                     size: 14,
                                     color: mutedFg,
                                   ),
@@ -1031,7 +1034,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   // Daily Reward
                   _buildFloatingIconBtn(
                     context: context,
-                    assetPath: AppAssets.iconDailyReward,
+                    assetPath: AppAssets.iconDailyRewardRes,
                     hasBadge: true,
                     onTap: () =>
                         Navigator.pushNamed(context, '/daily-login-calendar'),

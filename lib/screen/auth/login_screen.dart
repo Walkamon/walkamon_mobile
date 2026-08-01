@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
@@ -510,7 +511,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          const AppIcon(
             Icons.error_outline_rounded,
             color: Color(0xFF9B3F32),
             size: 20,
@@ -553,7 +554,7 @@ class _RoundIconButton extends StatelessWidget {
         tooltip: semanticLabel,
         onPressed: onPressed,
         color: _LoginScreenState._forestDark,
-        icon: Icon(icon),
+        icon: AppIcon(icon),
       ),
     );
   }

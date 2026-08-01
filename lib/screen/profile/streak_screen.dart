@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
+import '../../core/constants/app_assets.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -125,8 +128,9 @@ class _StreakScreenState extends State<StreakScreen> {
               shape: BoxShape.circle,
               border: Border.all(color: colorScheme.primary.withOpacity(0.25)),
             ),
-            child: Icon(
+            child: AppIcon(
               Icons.local_fire_department_rounded,
+              asset: AppAssets.iconStreak,
               size: 42,
               color: colorScheme.primary,
             ),
@@ -182,8 +186,9 @@ class _StreakScreenState extends State<StreakScreen> {
               color: colorScheme.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
+            child: AppIcon(
               Icons.card_giftcard_rounded,
+              asset: AppAssets.iconRewardChest,
               color: colorScheme.primary,
             ),
           ),
@@ -278,7 +283,7 @@ class _StreakScreenState extends State<StreakScreen> {
               color: accent.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: accent, size: 18),
+            child: AppIcon(icon, color: accent, size: 18),
           ),
           const SizedBox(height: 10),
           Text(

@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/friend_spirit_datasource.dart';
@@ -88,7 +90,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -103,7 +105,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -128,7 +130,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -215,7 +217,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
               color: mutedColor.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.arrow_back, size: 20, color: fgColor),
+            child: AppIcon(Icons.arrow_back, size: 20, color: fgColor),
           ),
         ),
         Text(
@@ -278,7 +280,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star, size: 14, color: expColor),
+                    AppIcon(Icons.star, size: 14, color: expColor),
                     const SizedBox(width: 4),
                     Text(
                       AppLocalizations.of(
@@ -444,6 +446,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             Icons.favorite_border_rounded,
             expColor,
             {'current': spiritData.currentExp, 'max': spiritData.maxExp},
+            asset: AppAssets.iconLevelUp,
           ),
           const SizedBox(height: 16),
           _buildStatRow(
@@ -451,6 +454,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             Icons.auto_awesome,
             lifeColor, // Figma dùng màu xanh lá cho Gắn kết
             {'current': spiritData.currentBond, 'max': spiritData.maxBond},
+            asset: AppAssets.iconBond,
           ),
           const SizedBox(height: 16),
           _buildStatRow(
@@ -458,6 +462,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             Icons.bolt,
             energyColor,
             {'current': spiritData.currentEnergy, 'max': spiritData.maxEnergy},
+            asset: AppAssets.iconEnergy,
           ),
           const SizedBox(height: 16),
           _buildStatRow(
@@ -468,6 +473,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
               'current': spiritData.currentLifeForce,
               'max': spiritData.maxLifeForce,
             },
+            asset: AppAssets.iconLifeForce,
           ),
 
           const SizedBox(height: 28),
@@ -498,7 +504,12 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                     color: expColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(Icons.star_rounded, color: expColor, size: 28),
+                  child: AppIcon(
+                    Icons.star_rounded,
+                    asset: AppAssets.iconLevelUp,
+                    color: expColor,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -537,8 +548,9 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
     String label,
     IconData icon,
     Color color,
-    Map<String, dynamic> statData,
-  ) {
+    Map<String, dynamic> statData, {
+    String? asset,
+  }) {
     double percent = (statData['max'] > 0)
         ? (statData['current'] / statData['max'])
         : 0;
@@ -551,7 +563,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
           children: [
             Row(
               children: [
-                Icon(icon, size: 18, color: mutedFgColor),
+                AppIcon(icon, asset: asset, size: 18, color: mutedFgColor),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -638,6 +650,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             AppLocalizations.of(context).friendSpiritRecently,
             Icons.security,
             0.6,
+            asset: AppAssets.iconLevelUp,
           ),
           const SizedBox(height: 16),
           _buildHistoryTimelineRow(
@@ -645,6 +658,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             AppLocalizations.of(context).friendSpiritInit,
             Icons.emoji_events,
             0.3,
+            asset: AppAssets.iconAchievement,
             isLast: true,
           ),
         ],
@@ -720,10 +734,11 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                     color: color,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: AppIcon(
                     Icons.check,
                     size: 8,
                     color: Theme.of(context).colorScheme.onPrimary,
+                    useAsset: false,
                   ),
                 ),
               ),
@@ -765,6 +780,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
     String date,
     IconData icon,
     double opacity, {
+    String? asset,
     bool isLast = false,
   }) {
     return IntrinsicHeight(
@@ -790,8 +806,9 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                     shape: BoxShape.circle,
                     border: Border.all(color: cardColor, width: 3),
                   ),
-                  child: Icon(
+                  child: AppIcon(
                     icon,
+                    asset: asset,
                     size: 10,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -902,17 +919,36 @@ class LuminaSprite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color iconColor = isDark ? AppColors.darkLife : AppColors.lightLife;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark ? AppColors.darkLife : AppColors.lightLife;
+    final imagePath = stageImage.trim();
+    final imageScheme = Uri.tryParse(imagePath)?.scheme.toLowerCase();
+    final isNetworkImage = imageScheme == 'http' || imageScheme == 'https';
+    final fallback = AppIcon(
+      Icons.emoji_nature_rounded,
+      asset: AppAssets.iconSpiritNav,
+      size: 100,
+      color: iconColor,
+    );
 
     return SizedBox(
       width: 200,
       height: 200,
       // Không còn background thẻ, ảnh đứng tự do
       child: Center(
-        child: stageImage.isNotEmpty
-            ? Image.asset(stageImage, fit: BoxFit.contain)
-            : Icon(Icons.emoji_nature_rounded, size: 100, color: iconColor),
+        child: imagePath.isNotEmpty
+            ? (isNetworkImage
+                  ? Image.network(
+                      imagePath,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => fallback,
+                    )
+                  : Image.asset(
+                      imagePath,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => fallback,
+                    ))
+            : fallback,
       ),
     );
   }

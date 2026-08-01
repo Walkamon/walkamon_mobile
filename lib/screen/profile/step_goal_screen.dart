@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
@@ -214,7 +216,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.tune_rounded, color: primary, size: 20),
+                      AppIcon(Icons.tune_rounded, color: primary, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -226,7 +228,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const AppIcon(Icons.close_rounded, size: 18),
                       ),
                     ],
                   ),
@@ -489,7 +491,7 @@ class _Header extends StatelessWidget {
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(
+                child: AppIcon(
                   Icons.arrow_back_rounded,
                   size: 20,
                   color: mutedForeground,
@@ -560,7 +562,7 @@ class _ProgressCard extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: borderColor.withValues(alpha: 0.4)),
             ),
-            child: Icon(
+            child: AppIcon(
               Icons.directions_walk_rounded,
               color: primary,
               size: 30,
@@ -812,7 +814,7 @@ class _StreakRewardCard extends StatelessWidget {
                   color: primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: AppIcon(
                   Icons.local_fire_department_rounded,
                   color: primary,
                   size: 24,
@@ -909,7 +911,11 @@ class _StreakRewardCard extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       )
-                    : const Icon(Icons.wallet_giftcard_rounded, size: 18),
+                    : const AppIcon(
+                        Icons.wallet_giftcard_rounded,
+                        asset: AppAssets.iconClaimReward,
+                        size: 18,
+                      ),
                 label: Text(
                   isClaiming ? l10n.stepGoalClaiming : l10n.missionsClaim,
                 ),
@@ -1004,7 +1010,7 @@ class _CustomGoalButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.tune_rounded, color: mutedForeground, size: 20),
+            AppIcon(Icons.tune_rounded, color: mutedForeground, size: 20),
             const SizedBox(height: 6),
             Text(
               AppLocalizations.of(context).stepGoalCustomShort,
@@ -1038,7 +1044,7 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.flag_outlined, size: 42),
+          const AppIcon(Icons.flag_outlined, size: 42),
           const SizedBox(height: 12),
           Text(
             message,

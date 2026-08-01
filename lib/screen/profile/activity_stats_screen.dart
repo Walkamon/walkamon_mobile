@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/activity_stats_datasource.dart';
 import '../../data/models/daily_step_statistic_response.dart';
@@ -468,7 +470,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       onPressed: _selectedWeekIndex > 0
                           ? () => setState(() => _selectedWeekIndex--)
                           : null,
-                      icon: const Icon(Icons.chevron_left_rounded),
+                      icon: const AppIcon(Icons.chevron_left_rounded),
                     ),
                     Text(
                       '${l10n.activityStatsWeekBucket(_selectedWeekIndex + 1)}'
@@ -483,7 +485,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       onPressed: _selectedWeekIndex < weekPages.length - 1
                           ? () => setState(() => _selectedWeekIndex++)
                           : null,
-                      icon: const Icon(Icons.chevron_right_rounded),
+                      icon: const AppIcon(Icons.chevron_right_rounded),
                     ),
                   ],
                 ),
@@ -498,12 +500,15 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       color: primary.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: AppIcon(
                       _timeRange == ActivityTimeRange.daily
                           ? Icons.schedule_outlined
                           : _timeRange == ActivityTimeRange.monthly
                           ? Icons.directions_walk_outlined
                           : Icons.trending_up_outlined,
+                      asset: _timeRange == ActivityTimeRange.monthly
+                          ? AppAssets.iconProfileSteps
+                          : null,
                       color: primary,
                       size: 20,
                     ),
@@ -692,7 +697,7 @@ class _Header extends StatelessWidget {
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(
+                child: AppIcon(
                   Icons.arrow_back_rounded,
                   size: 20,
                   color: mutedForeground,
@@ -809,7 +814,7 @@ class _MainTabButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              AppIcon(
                 icon,
                 size: 18,
                 color: isActive ? onPrimary : mutedForeground,

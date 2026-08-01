@@ -12,6 +12,7 @@ import '../../data/services/fcm_service.dart';
 import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
+import '../../widgets/common/app_icon.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -148,7 +149,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       alignment: Alignment.centerLeft,
                       child: IconButton(
                         onPressed: () => Navigator.pushNamed(context, '/home'),
-                        icon: Icon(
+                        icon: AppIcon(
                           Icons.arrow_back_ios_new_rounded,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -335,7 +336,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 8),
-                          Icon(
+                          AppIcon(
                             Icons.check_circle_outline,
                             size: 64,
                             color: Theme.of(context).colorScheme.primary,
@@ -375,7 +376,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                     onPressed: () => setState(
                                       () => _showFeedbackPopup = false,
                                     ),
-                                    icon: Icon(
+                                    icon: AppIcon(
                                       Icons.close_rounded,
                                       color: Theme.of(
                                         context,
@@ -478,7 +479,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 onPressed: _isSendingFeedback
                                     ? null
                                     : _handleSendFeedback,
-                                icon: const Icon(Icons.send_rounded),
+                                icon: const AppIcon(Icons.send_rounded),
                                 label: Text(
                                   _isSendingFeedback
                                       ? l10n.feedbackSending
@@ -539,7 +540,7 @@ class _FeedbackTypeButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            AppIcon(
               icon,
               size: 18,
               color: selected
@@ -606,7 +607,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
           color: Colors.transparent,
           child: Row(
             children: [
-              Icon(
+              AppIcon(
                 widget.icon,
                 size: 20,
                 color: widget.isWarning
@@ -639,7 +640,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
                   ),
                 )
               else
-                Icon(
+                AppIcon(
                   Icons.chevron_right_rounded,
                   color: Theme.of(
                     context,
@@ -674,7 +675,11 @@ class _SettingsSwitch extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface),
+          AppIcon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

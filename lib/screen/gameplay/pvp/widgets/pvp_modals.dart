@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../data/models/friends_response.dart';
 import '../../../../data/models/pvp_models.dart';
 import '../../../../providers/pvp_provider.dart';
+import '../../../../widgets/common/app_icon.dart';
 
 void showIncomingChallengesModal(
   BuildContext context,
@@ -120,8 +122,9 @@ class _IncomingChallengesContent extends StatelessWidget {
                             CircleAvatar(
                               backgroundColor:
                                   theme.colorScheme.primaryContainer,
-                              child: Icon(
+                              child: AppIcon(
                                 Icons.flash_on,
+                                asset: AppAssets.iconOpponent,
                                 color: theme.colorScheme.primary,
                               ),
                             ),
@@ -170,7 +173,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 8),
                             child: Row(
                               children: [
-                                Icon(
+                                AppIcon(
                                   Icons.info_outline,
                                   size: 14,
                                   color: Colors.orange.shade700,
@@ -191,7 +194,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 8),
                             child: Row(
                               children: [
-                                Icon(
+                                AppIcon(
                                   Icons.wifi_off,
                                   size: 14,
                                   color: Colors.grey.shade600,
@@ -221,7 +224,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                         );
                                       }
                                     : null,
-                                icon: const Icon(Icons.check, size: 16),
+                                icon: const AppIcon(Icons.check, size: 16),
                                 label: const Text('Chấp nhận'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: theme.colorScheme.primary,
@@ -236,7 +239,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                   Navigator.pop(context);
                                   onReject(challenge.inviteId);
                                 },
-                                icon: const Icon(Icons.close, size: 16),
+                                icon: const AppIcon(Icons.close, size: 16),
                                 label: const Text('Từ chối'),
                               ),
                             ),
@@ -373,7 +376,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                 onPressed: provider.historyLoading
                     ? null
                     : () => provider.loadMatchHistory(page: 1),
-                icon: const Icon(Icons.refresh),
+                icon: const AppIcon(Icons.refresh),
               ),
             ],
           ),
@@ -566,7 +569,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                                     ? null
                                     : Border.all(color: theme.dividerColor),
                               ),
-                              child: Icon(
+                              child: AppIcon(
                                 isWin
                                     ? Icons.emoji_events
                                     : isCancelled
@@ -574,6 +577,13 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                                     : isDraw
                                     ? Icons.handshake
                                     : Icons.close,
+                                asset: isWin
+                                    ? AppAssets.iconWin
+                                    : isCancelled
+                                    ? AppAssets.iconCancel
+                                    : isDraw
+                                    ? AppAssets.iconDraw
+                                    : AppAssets.iconLose,
                                 color: isWin
                                     ? Colors.amber
                                     : theme.colorScheme.onSurfaceVariant,
@@ -625,7 +635,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
+                  icon: const AppIcon(Icons.chevron_left),
                   tooltip: 'Trang trước',
                   onPressed:
                       (provider.historyLoading || provider.historyPage <= 1)
@@ -649,7 +659,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right),
+                  icon: const AppIcon(Icons.chevron_right),
                   tooltip: 'Trang sau',
                   onPressed:
                       (provider.historyLoading ||
@@ -903,8 +913,9 @@ class _FriendsModalContent extends StatelessWidget {
                         onInvite(uid, friend.username);
                       }
                     : null,
-                icon: Icon(
+                icon: AppIcon(
                   isBusy ? Icons.hourglass_top : Icons.sports_kabaddi,
+                  asset: isBusy ? AppAssets.iconTired : AppAssets.iconChallenge,
                   size: 16,
                   color: canChallenge
                       ? theme.colorScheme.onPrimaryContainer

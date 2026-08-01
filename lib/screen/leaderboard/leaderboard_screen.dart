@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/common/app_icon.dart';
 import '../profile/friend_player_profile_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -151,7 +152,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(
+                    icon: const AppIcon(
                       Icons.arrow_back_ios_new_rounded,
                       size: 18,
                     ),
@@ -198,7 +199,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  const AppIcon(
                     Icons.emoji_events_rounded,
                     color: Colors.white,
                     size: 18,
@@ -369,7 +370,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               )
               .toList(),
           onChanged: onChanged,
-          icon: const Icon(Icons.expand_more_rounded, size: 18),
+          icon: const AppIcon(Icons.expand_more_rounded, size: 18),
           borderRadius: BorderRadius.circular(12),
           hint: Text(
             label,
@@ -519,104 +520,106 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         onTap: user.isMe || user.id.isEmpty
             ? null
             : () => Navigator.pushNamed(
-                  context,
-                  '/profile/friend',
-                  arguments: FriendPlayerProfileArguments(
-                    userId: user.id,
-                    initialName: user.name,
-                  ),
+                context,
+                '/profile/friend',
+                arguments: FriendPlayerProfileArguments(
+                  userId: user.id,
+                  initialName: user.name,
                 ),
+              ),
         child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isMe ? Colors.amber.shade50 : colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isMe ? Colors.amber.shade400 : colorScheme.outlineVariant,
-        ),
-        boxShadow: isMe
-            ? [
-                BoxShadow(
-                  color: Colors.amber.withOpacity(0.12),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 24,
-            child: Text(
-              '$rank',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                color: isMe
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isMe ? Colors.amber.shade50 : colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isMe ? Colors.amber.shade400 : colorScheme.outlineVariant,
             ),
+            boxShadow: isMe
+                ? [
+                    BoxShadow(
+                      color: Colors.amber.withOpacity(0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: isMe
-                ? colorScheme.primary
-                : colorScheme.surfaceContainerHighest,
-            child: Text(
-              displayName.substring(0, 1),
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                color: isMe ? Colors.white : colorScheme.onSurface,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                child: Text(
+                  '$rank',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: isMe ? Colors.amber.shade800 : colorScheme.onSurface,
+                    color: isMe
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  l10n.levelShort(user.level),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
                 ),
               ),
-              Text(
-                _metric == 'level' ? l10n.leaderboardLevel : l10n.step,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: isMe
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest,
+                child: Text(
+                  displayName.substring(0, 1),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: isMe ? Colors.white : colorScheme.onSurface,
+                  ),
                 ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: isMe
+                            ? Colors.amber.shade800
+                            : colorScheme.onSurface,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      l10n.levelShort(user.level),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    _metric == 'level' ? l10n.leaderboardLevel : l10n.step,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
         ),
       ),
     );

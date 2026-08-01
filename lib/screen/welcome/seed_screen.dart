@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../providers/game_state_provider.dart';
 import '../auth/widgets/auth_style.dart';
@@ -181,11 +182,15 @@ class _SeedScreenState extends State<SeedScreen>
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.72),
               border: Border.all(
-              color: AuthStyle.gold.withValues(alpha: 0.42),
+                color: AuthStyle.gold.withValues(alpha: 0.42),
                 width: 1.5,
               ),
             ),
-            child: Icon(Icons.local_florist_rounded, size: 46, color: accent),
+            child: AppIcon(
+              Icons.local_florist_rounded,
+              size: 46,
+              color: accent,
+            ),
           ),
           const SizedBox(height: 18),
           Text(
@@ -282,7 +287,11 @@ class _SeedScreenState extends State<SeedScreen>
                         color: path.accentColor.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(path.icon, color: path.accentColor, size: 24),
+                      child: AppIcon(
+                        path.icon,
+                        color: path.accentColor,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(

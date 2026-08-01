@@ -29,12 +29,35 @@ void main() {
   });
 
   test('Notification and feedback catalog assets are bundled', () async {
-    expect(AppAssets.notificationCatalogAssets, hasLength(13));
+    expect(AppAssets.notificationCatalogAssets, hasLength(15));
 
     for (final path in AppAssets.notificationCatalogAssets) {
       final data = await rootBundle.load(path);
       expect(data.lengthInBytes, greaterThan(0), reason: path);
     }
+  });
+
+  test('Mission frame assets are bundled', () async {
+    for (final path in AppAssets.missionCatalogAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Canonical icon catalog is complete, unique and bundled', () async {
+    expect(AppAssets.iconCatalogAssets, hasLength(136));
+    expect(AppAssets.iconCatalogAssets.toSet(), hasLength(136));
+
+    for (final path in AppAssets.iconCatalogAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Ambiguous legacy aliases retain their original semantics', () {
+    expect(AppAssets.iconSteps, AppAssets.iconStep);
+    expect(AppAssets.iconStepsNav, isNot(AppAssets.iconStep));
+    expect(AppAssets.iconDailyReward, AppAssets.iconDailyRewardRes);
   });
 
   test('Pet runtime assets are bundled', () async {

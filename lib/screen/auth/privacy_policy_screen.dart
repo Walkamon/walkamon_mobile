@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
 import '../../core/theme/app_colors.dart';
 
 class PrivacyPolicyScreen extends StatefulWidget {
@@ -99,7 +101,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
                                       color: primary.withOpacity(0.1),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(
+                                    child: AppIcon(
                                       Icons.gavel_rounded,
                                       color: primary,
                                       size: 24,

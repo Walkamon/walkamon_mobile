@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
@@ -64,7 +66,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       final user = context.read<GameStateProvider>().user;
       final l10n = AppLocalizations.of(context);
       final rawBio = user?.bio.trim() ?? '';
-      final hasBio = rawBio.isNotEmpty &&
+      final hasBio =
+          rawBio.isNotEmpty &&
           rawBio.toLowerCase() != 'chưa cập nhật' &&
           rawBio.toLowerCase() != 'chưa có tiểu sử' &&
           rawBio.toLowerCase() != 'not updated' &&
@@ -196,7 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         .withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: AppIcon(
                     isSuccess
                         ? Icons.check_circle_rounded
                         : Icons.error_rounded,
@@ -491,7 +494,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       ),
                                       child: IconButton(
                                         padding: EdgeInsets.zero,
-                                        icon: Icon(
+                                        icon: AppIcon(
                                           Icons.camera_alt_rounded,
                                           size: 18,
                                           color: theme.colorScheme.onSurface,
@@ -511,6 +514,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               child: _PillInput(
                                 controller: _nameController,
                                 icon: Icons.person_rounded,
+                                asset: AppAssets.iconAvatar,
                                 hint: l10n.profileEditDisplayNameHint,
                                 enabled: !isProfileLoading,
                                 onChanged: (val) => setState(() {}),
@@ -636,7 +640,7 @@ class _HeaderButton extends StatelessWidget {
         ],
       ),
       child: IconButton(
-        icon: Icon(
+        icon: AppIcon(
           icon,
           color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
         ),
@@ -678,6 +682,7 @@ class _PillInput extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final IconData icon;
+  final String? asset;
   final TextInputType? keyboardType;
   final int maxLines;
   final bool isTextArea;
@@ -689,6 +694,7 @@ class _PillInput extends StatelessWidget {
     required this.controller,
     required this.hint,
     required this.icon,
+    this.asset,
     this.keyboardType,
     this.maxLines = 1,
     this.isTextArea = false,
@@ -720,8 +726,9 @@ class _PillInput extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(top: isTextArea ? 4 : 0),
-            child: Icon(
+            child: AppIcon(
               icon,
+              asset: asset,
               size: 20,
               color: theme.colorScheme.onSurface.withValues(
                 alpha: enabled ? 0.5 : 0.25,
@@ -800,7 +807,7 @@ class _PillDropdown extends StatelessWidget {
           isDense: true,
           isExpanded: true,
           dropdownColor: theme.cardColor,
-          icon: Icon(
+          icon: AppIcon(
             Icons.keyboard_arrow_down_rounded,
             color: theme.colorScheme.onSurface.withValues(
               alpha: enabled ? 0.5 : 0.2,
@@ -851,7 +858,7 @@ class _PillDatePicker extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
+              AppIcon(
                 Icons.calendar_month_rounded,
                 size: 20,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),

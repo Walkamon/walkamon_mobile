@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../providers/pvp_provider.dart';
+import '../../../widgets/common/app_icon.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import 'pvp_asset_resolver.dart';
 import 'widgets/pvp_modals.dart';
@@ -27,7 +28,9 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mapAsset = PvpAssetResolver.mapForNow(pvpProvider.estimatedServerNow());
+    final mapAsset = PvpAssetResolver.mapForNow(
+      pvpProvider.estimatedServerNow(),
+    );
     final affinityCode = pvpProvider.spiritAffinityCode;
     final passiveAsset = PvpAssetResolver.passiveForAffinity(affinityCode);
     final rawAffinity = pvpProvider.spiritAffinity.trim();
@@ -63,7 +66,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         Navigator.pushNamed(context, '/home');
                       }
                     },
-                    icon: const Icon(Icons.arrow_back),
+                    icon: const AppIcon(Icons.arrow_back),
                   ),
                   Row(
                     children: [
