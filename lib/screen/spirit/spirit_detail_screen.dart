@@ -53,7 +53,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       final gameState = context.read<GameStateProvider>();
       final petRepository = gameState.petRepository;
 
-      await gameState.fetchPetStatus();
       final overview = await petRepository.getPetOverview();
       final stages = await petRepository.getEvolutionStages();
       final history = await petRepository.getEvolutionHistory();
@@ -200,21 +199,34 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
 
     return Consumer<GameStateProvider>(
       builder: (context, gameState, _) {
+        final maxBond = (_petOverview?.maxBond ?? 100) > 0
+            ? (_petOverview?.maxBond ?? 100)
+            : 100;
         final bonding = (_petOverview?.currentBond ?? gameState.bondingLevel)
-            .clamp(0, 100);
+            .clamp(0, maxBond);
+        final maxEnergy = (_petOverview?.maxEnergy ?? 100) > 0
+            ? (_petOverview?.maxEnergy ?? 100)
+            : 100;
         final energy = (_petOverview?.currentEnergy ?? gameState.spiritEnergy)
-            .clamp(0, 100);
+            .clamp(0, maxEnergy);
+        final maxLifeForce = (_petOverview?.maxLifeForce ?? 100) > 0
+            ? (_petOverview?.maxLifeForce ?? 100)
+            : 100;
         final health =
             (_petOverview?.currentLifeForce ?? gameState.spiritHealth).clamp(
               0,
-              100,
+              maxLifeForce,
             );
         final level = _petOverview?.level ?? gameState.spiritLevel;
-        final exp = _petOverview?.currentExp ?? gameState.spiritExp;
-        final maxExp = _petOverview?.maxExp ?? 100;
+        final maxExp = (_petOverview?.maxExp ?? 100) > 0
+            ? (_petOverview?.maxExp ?? 100)
+            : 100;
+        final exp = (_petOverview?.currentExp ?? gameState.spiritExp).clamp(
+          0,
+          maxExp,
+        );
         final spiritName = _petOverview?.nickname ?? gameState.spiritName;
         final isEvolved = _isEvolved || level >= 15;
-        final safeMaxExp = maxExp > 0 ? maxExp : 100;
 
         final usableItems = <_SupportItemData>[
           _SupportItemData(
@@ -551,9 +563,13 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       mutedFg: mutedFg,
                                                       bonding: bonding,
                                                       energy: energy,
+                                                      maxEnergy: maxEnergy,
                                                       health: health,
+                                                      maxLifeForce:
+                                                          maxLifeForce,
+                                                      maxBond: maxBond,
                                                       exp: exp,
-                                                      maxExp: safeMaxExp,
+                                                      maxExp: maxExp,
                                                       usableItems: usableItems,
                                                       isDark: isDark,
                                                     )
@@ -616,7 +632,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     required Color mutedFg,
     required int bonding,
     required int energy,
+    required int maxEnergy,
     required int health,
+    required int maxLifeForce,
+    required int maxBond,
     required int exp,
     required int maxExp,
     required List<_SupportItemData> usableItems,
@@ -629,37 +648,28 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_petOverview != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: PetRuntimePreview(
-                affinityCode: _petOverview!.affinityCode,
-                stageNo: _petOverview!.stageNo,
-                animationType: _petOverview!.animationType.isEmpty
-                    ? 'idle'
-                    : _petOverview!.animationType,
-                height: 200,
-              ),
-            ),
           _StatRow(
-            title: l10n.spiritLifeForceExp,
-            value: '$exp/$maxExp',
-            progress: (exp / maxExp).clamp(0.0, 1.0),
-            color: AppColors.lightLife,
+            title: 'EXP',
+            progress: exp / maxExp,
+            color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+          ),
+          const SizedBox(height: 10),
+          _StatRow(
+            title: l10n.lifeForce,
+            progress: health / maxLifeForce,
+            color: isDark ? AppColors.darkLife : AppColors.lightLife,
           ),
           const SizedBox(height: 10),
           _StatRow(
             title: l10n.bonding,
-            value: '$bonding/100',
-            progress: bonding / 100,
-            color: AppColors.lightBond,
+            progress: bonding / maxBond,
+            color: isDark ? AppColors.darkBond : AppColors.lightBond,
           ),
           const SizedBox(height: 10),
           _StatRow(
             title: l10n.energy,
-            value: '$energy/100',
-            progress: energy / 100,
-            color: AppColors.lightDew,
+            progress: energy / maxEnergy,
+            color: isDark ? AppColors.darkDew : AppColors.lightDew,
           ),
           const SizedBox(height: 12),
           Container(
@@ -848,49 +858,69 @@ class _TagChip extends StatelessWidget {
 class _StatRow extends StatelessWidget {
   const _StatRow({
     required this.title,
-    required this.value,
     required this.progress,
     required this.color,
     super.key,
   });
 
   final String title;
-  final String value;
   final double progress;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final isDark = theme.brightness == Brightness.dark;
+    final progressPercent = (progress.clamp(0.0, 1.0) * 100).round();
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+        SizedBox(
+          width: 90,
+          child: Text(
+            title,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            height: 11,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: 0,
+                end: progress.clamp(0.0, 1.0),
+              ),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              builder: (context, animatedProgress, _) => Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: animatedProgress,
+                  child: SizedBox.expand(
+                    child: ColoredBox(color: color),
+                  ),
                 ),
               ),
             ),
-            Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0),
-            minHeight: 8,
-            backgroundColor: theme.colorScheme.surfaceVariant,
-            color: color,
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 42,
+          child: Text(
+            '$progressPercent%',
+            textAlign: TextAlign.right,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
       ],

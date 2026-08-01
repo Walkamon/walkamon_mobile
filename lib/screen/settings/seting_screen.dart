@@ -177,16 +177,49 @@ class _SettingScreenState extends State<SettingScreen> {
                           ).colorScheme.outline.withOpacity(0.25),
                         ),
                       ),
-                      child: _SettingsSwitch(
-                        label: l10n.notificationsRemind,
-                        subtitle: l10n.notificationsSubtitle,
-                        icon: Icons.notifications_none_rounded,
-                        value: gameState.settings.notifications,
-                        onChanged: (newValue) {
-                          context
-                              .read<GameStateProvider>()
-                              .setNotificationsEnabled(newValue);
-                        },
+                      child: Column(
+                        children: [
+                          _SettingsSwitch(
+                            label: l10n.darkMode,
+                            icon: gameState.settings.darkMode
+                                ? Icons.dark_mode_rounded
+                                : Icons.light_mode_rounded,
+                            value: gameState.settings.darkMode,
+                            onChanged: (value) => context
+                                .read<GameStateProvider>()
+                                .updateSettings(darkMode: value),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsSwitch(
+                            label: l10n.bgm,
+                            icon: Icons.music_note_rounded,
+                            value: gameState.settings.backgroundMusicEnabled,
+                            onChanged: (value) => context
+                                .read<GameStateProvider>()
+                                .updateSettings(backgroundMusicEnabled: value),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsSwitch(
+                            label: l10n.sfx,
+                            icon: Icons.volume_up_rounded,
+                            value: gameState.settings.soundEnabled,
+                            onChanged: (value) => context
+                                .read<GameStateProvider>()
+                                .updateSettings(soundEnabled: value),
+                          ),
+                          const Divider(height: 1),
+                          _SettingsSwitch(
+                            label: l10n.notificationsRemind,
+                            subtitle: l10n.notificationsSubtitle,
+                            icon: Icons.notifications_none_rounded,
+                            value: gameState.settings.notifications,
+                            onChanged: (newValue) {
+                              context
+                                  .read<GameStateProvider>()
+                                  .setNotificationsEnabled(newValue);
+                            },
+                          ),
+                        ],
                       ),
                     ),
 
@@ -658,7 +691,7 @@ class _SettingsSwitch extends StatelessWidget {
   const _SettingsSwitch({
     required this.icon,
     required this.label,
-    required this.subtitle,
+    this.subtitle = '',
     required this.value,
     required this.onChanged,
   });
@@ -692,16 +725,18 @@ class _SettingsSwitch extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.55),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.55),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

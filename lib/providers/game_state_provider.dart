@@ -68,7 +68,7 @@ class GameUser {
 
 class GameSettings {
   const GameSettings({
-    this.darkMode = true,
+    this.darkMode = false,
     this.soundEnabled = true,
     this.backgroundMusicEnabled = true,
     this.notifications = true, // Đã có sẵn thuộc tính notifications[cite: 5]

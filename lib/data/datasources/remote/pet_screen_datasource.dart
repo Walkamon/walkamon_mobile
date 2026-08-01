@@ -54,7 +54,7 @@ class PetScreenDatasource {
 
   Future<ApiResponse<PetOverviewResponse>> getPetOverview() async {
     return _apiClient.get<PetOverviewResponse>(
-      '/api/pet/me',
+      ApiConstants.petMe,
       fromJsonT: (json) =>
           PetOverviewResponse.fromJson(Map<String, dynamic>.from(json as Map)),
     );

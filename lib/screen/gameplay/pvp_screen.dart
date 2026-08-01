@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/presence_provider.dart';
 import '../../providers/pvp_provider.dart';
+import '../../widgets/common/bottom_navigation.dart';
 import 'pvp/pvp_screen.dart';
 
 class PvPScreen extends StatelessWidget {
@@ -15,7 +16,11 @@ class PvPScreen extends StatelessWidget {
       create: (_) =>
           PvpProvider(presenceProvider: presenceProvider)
             ..fetchWaitingRoomData(),
-      child: const Scaffold(body: SafeArea(child: PvPMainScreen())),
+      child: const Scaffold(
+        extendBody: true,
+        body: SafeArea(child: PvPMainScreen()),
+        bottomNavigationBar: BottomNavigation(),
+      ),
     );
   }
 }

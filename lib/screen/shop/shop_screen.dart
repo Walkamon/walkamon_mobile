@@ -11,6 +11,8 @@ import '../../data/repositories/wallet_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/bottom_navigation.dart';
+import '../../widgets/common/home_page_backdrop.dart';
 import '../../widgets/common/error_message_widget.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
@@ -194,16 +196,17 @@ class _ShopScreenState extends State<ShopScreen> {
         ? AppColors.darkForeground
         : AppColors.lightForeground;
     final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
+        ? AppColors.darkForeground.withValues(alpha: 0.82)
+        : AppColors.lightForeground.withValues(alpha: 0.84);
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      bottomNavigationBar: _buildBottomNavigation(context),
-      body: SafeArea(
-        child: Stack(
+      bottomNavigationBar: const BottomNavigation(),
+      body: HomePageBackdrop(
+        child: SafeArea(
+          child: Stack(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
@@ -235,7 +238,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           l10n.shopCurrency,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: foreground,
                           ),
                         ),
@@ -265,9 +268,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? AppColors.darkDew
-                                      : AppColors.lightDew,
+                                  color: foreground,
                                 ),
                               ),
                             ],
@@ -286,7 +287,10 @@ class _ShopScreenState extends State<ShopScreen> {
                                 ? ErrorMessageWidget(message: _errorMessage!)
                                 : Text(
                                     l10n.shopNoItems,
-                                    style: TextStyle(color: mutedForeground),
+                                    style: TextStyle(
+                                      color: mutedForeground,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                           )
                         : ListView.separated(
@@ -349,7 +353,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                               item.name,
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                fontWeight: FontWeight.w700,
+                                                fontWeight: FontWeight.w800,
                                                 color: foreground,
                                               ),
                                             ),
@@ -359,6 +363,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                                 item.itemTypeName!,
                                                 style: TextStyle(
                                                   fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
                                                   color: mutedForeground,
                                                 ),
                                               ),
@@ -406,7 +411,13 @@ class _ShopScreenState extends State<ShopScreen> {
                                                             ),
                                                       ),
                                                     ),
-                                                    child: Text(l10n.shopBuy),
+                                                    child: Text(
+                                                      l10n.shopBuy,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                      ),
+                                                    ),
                                                   ),
                                           ),
                                         ],
@@ -495,6 +506,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
               ),
           ],
+          ),
         ),
       ),
     );
@@ -516,7 +528,7 @@ class _ShopScreenState extends State<ShopScreen> {
             style: TextStyle(
               fontSize: 13,
               color: mutedForeground,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -526,7 +538,7 @@ class _ShopScreenState extends State<ShopScreen> {
             style: TextStyle(
               fontSize: 13,
               color: foreground,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -538,12 +550,6 @@ class _ShopScreenState extends State<ShopScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final barBgColor = isDark
-        ? const Color(0xFF25332A)
-        : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark
-        ? AppColors.darkPrimary
-        : AppColors.lightPrimary;
     final activeIconColor = isDark
         ? const Color(0xFF1E2E24)
         : const Color(0xFFFFF8F0);
@@ -554,15 +560,7 @@ class _ShopScreenState extends State<ShopScreen> {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: barBgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: Colors.transparent,
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -612,7 +610,7 @@ class _ShopScreenState extends State<ShopScreen> {
             ],
           ),
           Positioned(
-            top: -18,
+            top: 0,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushNamedAndRemoveUntil(
@@ -625,14 +623,18 @@ class _ShopScreenState extends State<ShopScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: activeBgColor,
+                      color: const Color(0xFFD89A70),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF895B3D),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: activeBgColor.withValues(alpha: 0.35),
+                          color: const Color(0xFFD89A70).withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -641,20 +643,9 @@ class _ShopScreenState extends State<ShopScreen> {
                     child: Center(
                       child: AppIcon(
                         Icons.home_rounded,
-                        size: 28,
+                        size: 36,
                         color: activeIconColor,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.inventoryHome,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.darkForeground
-                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -680,15 +671,22 @@ class _ShopScreenState extends State<ShopScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          iconWidget,
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD89A70),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF895B3D), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 3,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            child: Center(child: Transform.scale(scale: 1.65, child: iconWidget)),
           ),
         ],
       ),
