@@ -1,6 +1,23 @@
 {
-  "version": 1,
+  "version": 2,
   "style": "Walkamon cozy mobile PvP",
+  "maps": {
+    "morning": {
+      "start": "Maps/pvp_map_morning_start_portrait.png",
+      "loop": "Maps/pvp_map_morning_loop_portrait.png",
+      "finish": "Maps/pvp_map_morning_finish_portrait.png"
+    },
+    "night": {
+      "start": "Maps/pvp_map_night_start_portrait.png",
+      "loop": "Maps/pvp_map_night_loop_portrait.png",
+      "finish": "Maps/pvp_map_night_finish_portrait.png"
+    },
+    "phaseTimingSeconds": {
+      "startEnd": 5,
+      "finishStart": 25,
+      "matchEnd": 30
+    }
+  },
   "items": {
     "haste": {
       "path": "items/01_haste_nectar.png",

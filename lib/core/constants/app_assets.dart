@@ -468,8 +468,22 @@ abstract final class AppAssets {
       '$root/icon/friend_battle_pvp/friend_social_continued/09_invite_friend.png';
 
   // PvP maps
-  static const pvpMapMorning = '$root/PVP/Maps/pvp_map_morning_portrait.png';
-  static const pvpMapNight = '$root/PVP/Maps/pvp_map_night_portrait.png';
+  static const pvpMapMorningStart =
+      '$root/PVP/Maps/pvp_map_morning_start_portrait.png';
+  static const pvpMapMorningLoop =
+      '$root/PVP/Maps/pvp_map_morning_loop_portrait.png';
+  static const pvpMapMorningFinish =
+      '$root/PVP/Maps/pvp_map_morning_finish_portrait.png';
+  static const pvpMapNightStart =
+      '$root/PVP/Maps/pvp_map_night_start_portrait.png';
+  static const pvpMapNightLoop =
+      '$root/PVP/Maps/pvp_map_night_loop_portrait.png';
+  static const pvpMapNightFinish =
+      '$root/PVP/Maps/pvp_map_night_finish_portrait.png';
+
+  // Backward-compatible defaults while the PvP scene adopts phase switching.
+  static const pvpMapMorning = pvpMapMorningStart;
+  static const pvpMapNight = pvpMapNightStart;
 
   // PvP realtime items
   static const pvpHasteItem = '$root/PVP/items/01_haste_nectar.png';

@@ -69,8 +69,12 @@
     "HomeBackgrounds/home_binh_minh_portrait.png",
     "HomeBackgrounds/home_anh_trang_portrait.png",
     "HomeBackgrounds/home_nang_am_portrait.png",
-    "PVP/Maps/pvp_map_morning_portrait.png",
-    "PVP/Maps/pvp_map_night_portrait.png"
+    "PVP/Maps/pvp_map_morning_start_portrait.png",
+    "PVP/Maps/pvp_map_morning_loop_portrait.png",
+    "PVP/Maps/pvp_map_morning_finish_portrait.png",
+    "PVP/Maps/pvp_map_night_start_portrait.png",
+    "PVP/Maps/pvp_map_night_loop_portrait.png",
+    "PVP/Maps/pvp_map_night_finish_portrait.png"
   ],
   "frameSize": "512x512",
   "backgroundSize": "1440x2560"
