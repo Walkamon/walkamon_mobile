@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/register_screen_repository.dart';
@@ -212,8 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _PillField(
                             controller: _nameController,
                             hint: l10n.registerNameHint,
-                            iconAsset:
-                                'assets/Mobile/icon/auth/register_seed.png',
+                            iconAsset: AppAssets.authRegisterSeed,
                             textInputAction: TextInputAction.next,
                             cardColor: Colors.white,
                             primary: primary,
@@ -226,7 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _PillField(
                             controller: _emailController,
                             hint: l10n.loginEmail,
-                            iconAsset: 'assets/Mobile/icon/auth/mail.png',
+                            iconAsset: AppAssets.authMail,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             cardColor: Colors.white,
@@ -241,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _PillField(
                             controller: _passwordController,
                             hint: l10n.loginPassword,
-                            iconAsset: 'assets/Mobile/icon/auth/lock.png',
+                            iconAsset: AppAssets.authLock,
                             obscureText: _obscurePassword,
                             textInputAction: TextInputAction.next,
                             cardColor: Colors.white,
@@ -256,7 +258,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           _PillField(
                             controller: _confirmPasswordController,
                             hint: l10n.registerConfirmPassword,
-                            iconAsset: 'assets/Mobile/icon/auth/lock.png',
+                            iconAsset: AppAssets.authLock,
                             obscureText: _obscurePassword,
                             textInputAction: TextInputAction.done,
                             cardColor: Colors.white,
@@ -389,7 +391,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                             '/', // Quay lại Welcome
                             (route) => false,
                           ),
-                    icon: Icon(
+                    icon: AppIcon(
                       Icons.arrow_back,
                       color: primary.withValues(alpha: 0.9),
                       size: 24,

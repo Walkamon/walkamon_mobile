@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/error_message_widget.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
@@ -347,8 +349,9 @@ extension on _InventoryScreenState {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.bolt_rounded,
+                  asset: AppAssets.iconFriendsNav,
                   size: 22,
                   color: inactiveColor,
                 ),
@@ -364,7 +367,7 @@ extension on _InventoryScreenState {
               ),
               const SizedBox(width: 64),
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.backpack_outlined,
                   size: 22,
                   color: inactiveColor,
@@ -374,7 +377,7 @@ extension on _InventoryScreenState {
                 onTap: () => Navigator.pushNamed(context, '/inventory'),
               ),
               _buildNavItem(
-                iconWidget: Icon(
+                iconWidget: AppIcon(
                   Icons.storefront_outlined,
                   size: 22,
                   color: inactiveColor,
@@ -411,7 +414,7 @@ extension on _InventoryScreenState {
                       ],
                     ),
                     child: Center(
-                      child: Icon(
+                      child: AppIcon(
                         Icons.home_rounded,
                         size: 28,
                         color: activeIconColor,
@@ -556,7 +559,7 @@ class _InventoryHeader extends StatelessWidget {
                 child: SizedBox(
                   width: 40,
                   height: 40,
-                  child: Icon(
+                  child: AppIcon(
                     Icons.arrow_back,
                     size: 20,
                     color: mutedForeground,
@@ -637,7 +640,7 @@ class _CategoryTabs extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      AppIcon(
                         cat.icon,
                         size: 16,
                         color: isActive ? primary : mutedForeground,
@@ -816,11 +819,11 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                         height: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
-                            Icon(widget.icon, size: 36, color: Colors.white),
+                            AppIcon(widget.icon, size: 36, color: Colors.white),
                       ),
                     )
                   else
-                    Icon(
+                    AppIcon(
                       widget.icon,
                       size: 36,
                       color: Colors.white,
@@ -951,7 +954,7 @@ class _ItemDetailPopup extends StatelessWidget {
                               child: SizedBox(
                                 width: 32,
                                 height: 32,
-                                child: Icon(
+                                child: AppIcon(
                                   Icons.close,
                                   size: 18,
                                   color: mutedForeground,
@@ -973,13 +976,17 @@ class _ItemDetailPopup extends StatelessWidget {
                               ? Image.network(
                                   item.image!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
+                                  errorBuilder: (_, __, ___) => AppIcon(
                                     itemIcon,
                                     size: 40,
                                     color: Colors.white,
                                   ),
                                 )
-                              : Icon(itemIcon, size: 40, color: Colors.white),
+                              : AppIcon(
+                                  itemIcon,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
                         ),
                         const SizedBox(height: 16),
                         Text(

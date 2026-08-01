@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../providers/game_state_provider.dart';
@@ -146,11 +147,13 @@ class _NamePetScreenState extends State<NamePetScreen>
                                   shape: BoxShape.circle,
                                   color: Colors.white.withValues(alpha: 0.72),
                                   border: Border.all(
-                                    color: AuthStyle.gold.withValues(alpha: 0.42),
+                                    color: AuthStyle.gold.withValues(
+                                      alpha: 0.42,
+                                    ),
                                     width: 1.5,
                                   ),
                                 ),
-                                child: Icon(
+                                child: AppIcon(
                                   Icons.local_florist_rounded,
                                   size: 46,
                                   color: accent,
@@ -197,7 +200,9 @@ class _NamePetScreenState extends State<NamePetScreen>
                                     ),
                                   ),
                                   filled: true,
-                                  fillColor: Colors.white.withValues(alpha: 0.78),
+                                  fillColor: Colors.white.withValues(
+                                    alpha: 0.78,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(18),
                                     borderSide: const BorderSide(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_icon.dart';
+
 void showGameNotificationDialog(
   BuildContext context, {
   required String message,
@@ -46,7 +48,7 @@ void showGameNotificationDialog(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                AppIcon(
                   isSuccess
                       ? Icons.check_circle_outline
                       : Icons.warning_amber_rounded,

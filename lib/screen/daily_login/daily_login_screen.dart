@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../providers/daily_login_provider.dart';
 import 'widgets/daily_login_calendar_widget.dart';
@@ -76,7 +77,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: const AppIcon(
                             Icons.arrow_back,
                             size: 20,
                             color: Colors.grey,
@@ -112,7 +113,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                       ),
                     ),
                     child: const Center(
-                      child: Icon(
+                      child: AppIcon(
                         Icons.card_giftcard,
                         size: 44,
                         color: Color(0xFFF59E0B),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/constants/app_assets.dart';
@@ -150,6 +151,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     padding: const EdgeInsets.all(24),
                     child: _TopIconButton(
                       icon: Icons.explore_outlined,
+                      asset: AppAssets.iconSettingsSystem,
                       color: primary,
                       onPressed: () => setState(() => _showSettings = true),
                     ),
@@ -378,11 +380,13 @@ class _AnimatedFadeSlideState extends State<_AnimatedFadeSlide>
 class _TopIconButton extends StatelessWidget {
   const _TopIconButton({
     required this.icon,
+    this.asset,
     required this.color,
     required this.onPressed,
   });
 
   final IconData icon;
+  final String? asset;
   final Color color;
   final VoidCallback onPressed;
 
@@ -396,7 +400,7 @@ class _TopIconButton extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, size: 28, color: color),
+          child: AppIcon(icon, asset: asset, size: 28, color: color),
         ),
       ),
     );
@@ -599,7 +603,9 @@ class _SettingsOverlay extends StatelessWidget {
                 child: Consumer<GameStateProvider>(
                   builder: (context, gameState, _) {
                     final settings = gameState.settings;
-                    final isVi = LocaleHelper.isVietnamese(settings.languageCode);
+                    final isVi = LocaleHelper.isVietnamese(
+                      settings.languageCode,
+                    );
 
                     return Column(
                       mainAxisSize: MainAxisSize.min,
@@ -617,7 +623,10 @@ class _SettingsOverlay extends StatelessWidget {
                             ),
                             IconButton(
                               onPressed: onClose,
-                              icon: Icon(Icons.close, color: mutedForeground),
+                              icon: AppIcon(
+                                Icons.close,
+                                color: mutedForeground,
+                              ),
                             ),
                           ],
                         ),
@@ -628,7 +637,9 @@ class _SettingsOverlay extends StatelessWidget {
                           isVi: isVi,
                           onChanged: (value) {
                             final code = value == 'vi' ? 'vi-VN' : 'en-US';
-                            context.read<GameStateProvider>().setLanguageCode(code);
+                            context.read<GameStateProvider>().setLanguageCode(
+                              code,
+                            );
                           },
                         ),
                         const SizedBox(height: 20),
@@ -660,6 +671,7 @@ class _SettingsOverlay extends StatelessWidget {
                         const SizedBox(height: 20),
                         _SettingsRow(
                           icon: Icons.bolt,
+                          asset: AppAssets.iconPerformance,
                           label: l10n.fps60,
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
@@ -715,7 +727,7 @@ class _SettingsLanguageRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.language, size: 20, color: mutedForeground),
+            AppIcon(Icons.language, size: 20, color: mutedForeground),
             const SizedBox(width: 12),
             Text(
               l10n.language,
@@ -829,6 +841,7 @@ class _LabeledToggle extends StatelessWidget {
 class _SettingsRow extends StatelessWidget {
   const _SettingsRow({
     required this.icon,
+    this.asset,
     required this.label,
     required this.foregroundColor,
     required this.mutedForeground,
@@ -836,6 +849,7 @@ class _SettingsRow extends StatelessWidget {
   });
 
   final IconData icon;
+  final String? asset;
   final String label;
   final Color foregroundColor;
   final Color mutedForeground;
@@ -848,7 +862,12 @@ class _SettingsRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 20, color: mutedForeground),
+            AppIcon(
+              icon,
+              asset: asset,
+              size: 20,
+              color: mutedForeground,
+            ),
             const SizedBox(width: 12),
             Text(
               label,

@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
+import 'app_icon.dart';
+
 class BottomNavigation extends StatelessWidget {
   const BottomNavigation({super.key});
 
@@ -106,12 +108,16 @@ class BottomNavigation extends StatelessWidget {
                               AnimatedScale(
                                 scale: isActive ? 1.1 : 1.0,
                                 duration: const Duration(milliseconds: 300),
-                                child: Icon(
-                                  icon,
-                                  size: 22,
-                                  color: isActive
-                                      ? colorScheme.onPrimary
-                                      : colorScheme.onSurfaceVariant,
+                                child: AnimatedOpacity(
+                                  opacity: isActive ? 1 : 0.62,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: AppIcon(
+                                    icon,
+                                    size: 22,
+                                    color: isActive
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 2),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../../core/constants/app_assets.dart';
 
@@ -274,7 +275,7 @@ class AuthRoundIconButton extends StatelessWidget {
         tooltip: semanticLabel,
         onPressed: onPressed,
         color: AuthStyle.forestDark,
-        icon: Icon(icon),
+        icon: AppIcon(icon),
       ),
     );
   }
@@ -311,7 +312,7 @@ class AuthMessageBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: text, size: 20),
+          AppIcon(icon, color: text, size: 20),
           const SizedBox(width: 9),
           Expanded(
             child: Text(

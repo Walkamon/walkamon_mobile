@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/player_challenge_response.dart';
 import '../../data/models/player_mission_response.dart';
 import '../../data/repositories/missions_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
 enum MissionTab { mission, challenge }
@@ -511,8 +513,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            Icon(
+                                            AppIcon(
                                               Icons.shuffle,
+                                              asset: AppAssets.iconChallenge,
                                               size: 16,
                                               color: energyColor,
                                             ),
@@ -614,7 +617,7 @@ class _MissionsHeader extends StatelessWidget {
               child: const SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(Icons.chevron_left, size: 20),
+                child: AppIcon(Icons.chevron_left, size: 20),
               ),
             ),
           ),
@@ -835,7 +838,7 @@ class _QuestItemCard extends StatelessWidget {
                     ),
                   ),
                   child: isCompleted
-                      ? Icon(Icons.check, size: 14, color: cardColor)
+                      ? AppIcon(Icons.check, size: 14, color: cardColor)
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -889,7 +892,7 @@ class _QuestItemCard extends StatelessWidget {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Icon(
+                            : AppIcon(
                                 Icons.delete_outline,
                                 size: 14,
                                 color: cancelRemaining <= 0

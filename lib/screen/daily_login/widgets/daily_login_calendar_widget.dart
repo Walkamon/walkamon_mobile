@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import '../../../data/models/daily_login_model.dart';
 
 class DailyLoginCalendarWidget extends StatelessWidget {
@@ -90,7 +91,7 @@ class _RewardCard extends StatelessWidget {
           color: Color(0xFF8A9A8D),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.check, size: 18, color: Colors.white),
+        child: const AppIcon(Icons.check, size: 18, color: Colors.white),
       );
     } else if (isCurrent) {
       bgColor = Theme.of(context).cardColor;
@@ -98,7 +99,7 @@ class _RewardCard extends StatelessWidget {
       textDayColor = const Color(0xFF7A9D84);
       textAmountColor =
           Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
-      iconWidget = const Icon(
+      iconWidget = const AppIcon(
         Icons.water_drop,
         size: 28,
         color: Color(0xFF7A9D84),
@@ -108,7 +109,7 @@ class _RewardCard extends StatelessWidget {
       borderColor = const Color(0xFFFFE885);
       textDayColor = const Color(0xFF8A9A8D);
       textAmountColor = const Color(0xFFD97706);
-      iconWidget = const Icon(
+      iconWidget = const AppIcon(
         Icons.card_giftcard,
         size: 28,
         color: Color(0xFFF59E0B),
@@ -119,7 +120,7 @@ class _RewardCard extends StatelessWidget {
       textDayColor = Colors.grey.shade500;
       textAmountColor =
           Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
-      iconWidget = const Icon(
+      iconWidget = const AppIcon(
         Icons.water_drop,
         size: 28,
         color: Color(0xFFA2B2A6),

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../core/network/api_client.dart';
+
+import '../../core/constants/app_assets.dart';
+import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/common/app_icon.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -58,7 +61,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         duration: const Duration(seconds: 2),
         content: Row(
           children: [
-            Icon(
+            AppIcon(
               isError ? Icons.error_outline : Icons.check_circle_outline,
               color: isError ? Colors.redAccent : theme.colorScheme.primary,
             ),
@@ -194,34 +197,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                       child: Row(
                                         children: [
-                                          if (snapshot.data!.icon != null &&
-                                              snapshot.data!.icon!.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 8.0,
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 8.0,
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withOpacity(0.1),
+                                                shape: BoxShape.circle,
                                               ),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(
-                                                  4,
+                                              child: AppIcon(
+                                                _getNotificationIcon(
+                                                  snapshot.data!.icon,
+                                                  snapshot.data!.typeCode,
                                                 ),
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                      .withOpacity(0.1),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Icon(
-                                                  _getNotificationIcon(
-                                                    snapshot.data!.icon,
-                                                  ),
-                                                  size: 20,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
+                                                asset:
+                                                    _getNotificationIconAsset(
+                                                      snapshot.data!.icon,
+                                                      snapshot.data!.typeCode,
+                                                    ),
+                                                size: 20,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
                                               ),
                                             ),
+                                          ),
 
                                           if (snapshot.data!.typeCode != null &&
                                               snapshot
@@ -281,7 +286,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     top: 12,
                     right: 12,
                     child: IconButton(
-                      icon: const Icon(Icons.close, size: 20),
+                      icon: const AppIcon(Icons.close, size: 20),
                       style: IconButton.styleFrom(
                         backgroundColor: Theme.of(
                           context,
@@ -310,10 +315,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return l10n.notificationsTimeAgoJustNow;
   }
 
-  IconData _getNotificationIcon(String? iconName) {
-    if (iconName == null || iconName.isEmpty) return Icons.notifications;
+  String _notificationIconKey(String? iconName, String? typeCode) {
+    final normalizedIcon = iconName?.trim().toLowerCase() ?? '';
+    final normalizedType = typeCode?.trim().toLowerCase() ?? '';
+    if (_isKnownNotificationIconKey(normalizedIcon) ||
+        normalizedType.isEmpty) {
+      return normalizedIcon;
+    }
+    return normalizedType;
+  }
 
-    switch (iconName.toLowerCase()) {
+  bool _isKnownNotificationIconKey(String key) {
+    return key.contains('maintenance') ||
+        key.contains('patch') ||
+        key.contains('news') ||
+        key.contains('megaphone') ||
+        key.contains('announcement') ||
+        key.contains('gift') ||
+        key.contains('reward') ||
+        key.contains('claim') ||
+        key.contains('sword') ||
+        key.contains('battle') ||
+        key.contains('pvp') ||
+        key.contains('success') ||
+        key.contains('confirmed') ||
+        key.contains('error') ||
+        key.contains('failed') ||
+        key.contains('warning') ||
+        key.contains('info') ||
+        key.contains('calendar') ||
+        key.contains('event');
+  }
+
+  IconData _getNotificationIcon(String? iconName, [String? typeCode]) {
+    switch (_notificationIconKey(iconName, typeCode)) {
       case 'megaphone':
         return Icons.campaign;
       case 'gift':
@@ -328,6 +363,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       default:
         return Icons.notifications;
     }
+  }
+
+  String _getNotificationIconAsset(String? iconName, [String? typeCode]) {
+    final key = _notificationIconKey(iconName, typeCode);
+    if (key.contains('maintenance')) return AppAssets.notificationMaintenance;
+    if (key.contains('patch')) return AppAssets.notificationPatchNotes;
+    if (key.contains('news')) return AppAssets.notificationNews;
+    if (key.contains('megaphone') || key.contains('announcement')) {
+      return AppAssets.notificationAnnouncement;
+    }
+    if (key.contains('gift') ||
+        key.contains('reward') ||
+        key.contains('claim')) {
+      return AppAssets.notificationRewardClaim;
+    }
+    if (key.contains('sword') ||
+        key.contains('battle') ||
+        key.contains('pvp')) {
+      return AppAssets.iconAttack;
+    }
+    if (key.contains('success') || key.contains('confirmed')) {
+      return AppAssets.notificationSuccess;
+    }
+    if (key.contains('error') || key.contains('failed')) {
+      return AppAssets.notificationError;
+    }
+    if (key.contains('warning')) return AppAssets.notificationWarning;
+    if (key.contains('info')) return AppAssets.notificationInfo;
+    if (key.contains('calendar') || key.contains('event')) {
+      return AppAssets.notificationEvent;
+    }
+    return AppAssets.iconNotificationBell;
   }
 
   String _translateTypeCode(String? typeCode) {
@@ -399,7 +466,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const AppIcon(Icons.arrow_back),
             style: IconButton.styleFrom(
               backgroundColor: theme.cardColor,
               shape: RoundedRectangleBorder(
@@ -472,6 +539,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   ),
                                 ),
                               ],
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Opacity(
+                                  opacity: item.isRead ? 0.65 : 1,
+                                  child: AppIcon(
+                                    _getNotificationIcon(item.typeCode),
+                                    asset: _getNotificationIconAsset(
+                                      item.typeCode,
+                                    ),
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
                               Expanded(
                                 child: Text(
                                   item.title,
@@ -498,7 +578,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Icon(
+                                    child: AppIcon(
                                       Icons.delete_outline,
                                       size: 20,
                                       color: theme.colorScheme.onSurface

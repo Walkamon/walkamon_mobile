@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
@@ -206,8 +208,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              AppIcon(
                                 Icons.directions_walk,
+                                asset: AppAssets.authMail,
                                 size: 22,
                                 color: primary,
                               ),
@@ -217,7 +220,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.send,
-                                  validator: (value) => _validateEmail(context, value),
+                                  validator: (value) =>
+                                      _validateEmail(context, value),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: theme.colorScheme.onSurface,
@@ -282,7 +286,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
+                    icon: AppIcon(Icons.arrow_back, color: primary, size: 24),
                   ),
                 ),
               ),

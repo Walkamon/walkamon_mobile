@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../core/theme/app_colors.dart';
@@ -349,7 +350,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.arrow_back, color: primary, size: 24),
+                    icon: AppIcon(Icons.arrow_back, color: primary, size: 24),
                   ),
                 ),
               ),

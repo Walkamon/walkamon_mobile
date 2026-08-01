@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../data/models/pvp_models.dart';
+import '../../../../widgets/common/app_icon.dart';
 import '../pvp_asset_resolver.dart';
 import 'pvp_frame_animation.dart';
 
@@ -123,7 +124,7 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
                   color: Colors.green.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: const AppIcon(
                   Icons.sports_kabaddi,
                   size: 48,
                   color: Colors.green,
@@ -352,7 +353,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ] else if (result == null) ...[
-                  Icon(
+                  AppIcon(
                     Icons.error_outline,
                     size: 64,
                     color: theme.colorScheme.error,
@@ -371,7 +372,6 @@ class PvPFinishedOverlay extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ] else ...[
-
                   const SizedBox(height: 24),
                   Text(
                     _titleForResult(resultCode),
@@ -471,7 +471,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                               if (claimResponse!.walletReward > 0)
                                 Row(
                                   children: [
-                                    const Icon(
+                                    const AppIcon(
                                       Icons.monetization_on,
                                       size: 20,
                                       color: Colors.amber,
@@ -494,8 +494,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                                     padding: const EdgeInsets.only(top: 4),
                                     child: Row(
                                       children: [
-                                        const Icon(
+                                        const AppIcon(
                                           Icons.card_giftcard,
+                                          asset: AppAssets.iconRewardChest,
                                           size: 18,
                                           color: Colors.green,
                                         ),
@@ -525,7 +526,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: isClaiming ? null : () => onClaimReward?.call(),
+                      onPressed: isClaiming
+                          ? null
+                          : () => onClaimReward?.call(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade700,
                         foregroundColor: Colors.white,
@@ -564,7 +567,10 @@ class PvPFinishedOverlay extends StatelessWidget {
                     ),
                     child: const Text(
                       'Tiếp tục',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -610,7 +616,7 @@ class PvPFinishedOverlay extends StatelessWidget {
               if (leadingAsset != null)
                 Image.asset(leadingAsset, width: 28, height: 28)
               else
-                Icon(icon, size: 20, color: color),
+                AppIcon(icon, size: 20, color: color),
               const SizedBox(width: 4),
               Text(
                 value,

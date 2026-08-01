@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+
+import '../../core/constants/app_assets.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
@@ -77,6 +80,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                   ),
                   _HeaderIconButton(
                     icon: Icons.edit_rounded,
+                    asset: AppAssets.iconEditProfile,
                     iconColor: theme.colorScheme.primary,
                     onTap: () {
                       Navigator.pushNamed(context, '/profile/edit');
@@ -107,7 +111,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            AppIcon(
                               Icons.wifi_off_rounded,
                               size: 64,
                               color: theme.colorScheme.error,
@@ -124,7 +128,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             const SizedBox(height: 16),
                             TextButton.icon(
                               onPressed: () => provider.fetchProfileDetail(),
-                              icon: const Icon(Icons.refresh_rounded),
+                              icon: const AppIcon(Icons.refresh_rounded),
                               label: Text(l10n.retry),
                             ),
                           ],
@@ -256,6 +260,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.person_rounded,
+                              asset: AppAssets.iconAvatar,
                               label: l10n.gender,
                               value: switch (user.gender.toLowerCase()) {
                                 'male' => l10n.genderMale,
@@ -325,11 +330,13 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
 
 class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
+  final String? asset;
   final VoidCallback onTap;
   final Color? iconColor;
 
   const _HeaderIconButton({
     required this.icon,
+    this.asset,
     required this.onTap,
     this.iconColor,
   });
@@ -350,8 +357,9 @@ class _HeaderIconButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
-          child: Icon(
+          child: AppIcon(
             icon,
+            asset: asset,
             size: 18,
             color:
                 iconColor ??
@@ -367,12 +375,14 @@ class _HeaderIconButton extends StatelessWidget {
 
 class _DetailRow extends StatelessWidget {
   final IconData icon;
+  final String? asset;
   final String label;
   final String value;
   final String fallback;
 
   const _DetailRow({
     required this.icon,
+    this.asset,
     required this.label,
     required this.value,
     this.fallback = '',
@@ -391,7 +401,7 @@ class _DetailRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: mutedColor),
+              AppIcon(icon, asset: asset, size: 18, color: mutedColor),
               const SizedBox(width: 12),
               Text(
                 label,

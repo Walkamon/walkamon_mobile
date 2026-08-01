@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../common/app_icon.dart';
 
 /// Lightweight pet visual backed by the V7.2 runtime catalog.
 ///
@@ -153,7 +154,7 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
       return SizedBox(
         height: widget.height,
         child: Center(
-          child: Icon(
+          child: AppIcon(
             Icons.spa_outlined,
             size: widget.compact ? 64 : 56,
             color: Theme.of(context).colorScheme.primary.withOpacity(0.75),
@@ -166,7 +167,7 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
       _fallbackAsset!,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
-      errorBuilder: (_, __, ___) => Icon(
+      errorBuilder: (_, __, ___) => AppIcon(
         Icons.spa_outlined,
         size: widget.compact ? 64 : 56,
         color: Theme.of(context).colorScheme.primary.withOpacity(0.75),

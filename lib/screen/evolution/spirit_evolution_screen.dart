@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/pet_evolution_models.dart';
@@ -210,7 +212,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                 // Bottom: info + ready badge
                 Row(
                   children: [
-                    Icon(
+                    AppIcon(
                       Icons.eco_rounded,
                       size: 14,
                       color: primary.withOpacity(0.7),
@@ -247,7 +249,11 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.bolt_rounded, size: 12, color: primary),
+                            AppIcon(
+                              Icons.bolt_rounded,
+                              size: 12,
+                              color: primary,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               l10n.spiritReady,
@@ -289,8 +295,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                 : widget.history.isEmpty
                 ? Row(
                     children: [
-                      Icon(
+                      AppIcon(
                         Icons.history_rounded,
+                        asset: AppAssets.iconSchedule,
                         size: 16,
                         color: mutedFg.withOpacity(0.6),
                       ),
@@ -316,6 +323,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                           : l10n.spiritHistoryLevel(item.level);
                       return _HistoryRow(
                         icon: Icons.auto_awesome,
+                        asset: AppAssets.iconReadyToEvolve,
                         title: item.stageName,
                         subtitle: subtitle,
                       );
@@ -371,7 +379,11 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       color: primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.stars_rounded, color: primary, size: 20),
+                    child: AppIcon(
+                      Icons.stars_rounded,
+                      color: primary,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -502,12 +514,14 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       ),
                     )
                   else
-                    Icon(
+                    AppIcon(
                       Icons.auto_awesome_rounded,
+                      asset: AppAssets.iconUpgrade,
                       size: 18,
                       color: isEnabled
                           ? theme.colorScheme.onPrimary
                           : theme.colorScheme.onSurface.withOpacity(0.4),
+                      tintAsset: !isEnabled,
                     ),
                   const SizedBox(width: 8),
                   Text(
@@ -661,7 +675,7 @@ class _StageNode extends StatelessWidget {
   }
 
   Widget _buildFallbackIcon(ThemeData theme, bool isDone) {
-    return Icon(
+    return AppIcon(
       isDone ? Icons.check_rounded : Icons.circle_outlined,
       size: 18,
       color: isDone
@@ -719,11 +733,13 @@ class _DashedLinePainter extends CustomPainter {
 class _HistoryRow extends StatelessWidget {
   const _HistoryRow({
     required this.icon,
+    required this.asset,
     required this.title,
     required this.subtitle,
   });
 
   final IconData icon;
+  final String asset;
   final String title;
   final String subtitle;
 
@@ -741,8 +757,9 @@ class _HistoryRow extends StatelessWidget {
               color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
+            child: AppIcon(
               icon,
+              asset: asset,
               size: 16,
               color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
@@ -809,7 +826,7 @@ class _ConditionCard extends StatelessWidget {
         children: [
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: Icon(
+            child: AppIcon(
               ok ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
               key: ValueKey(ok),
               color: ok
@@ -955,7 +972,7 @@ class _EvolutionOverlayStatefulState extends State<_EvolutionOverlayStateful>
                             ],
                           ),
                           child: Center(
-                            child: Icon(
+                            child: AppIcon(
                               Icons.spa_rounded,
                               size: 80,
                               color: widget.primary,
@@ -1044,7 +1061,7 @@ class _PreviewSectionState extends State<_PreviewSection> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   children: [
-                    Icon(Icons.pets, size: 16, color: primary),
+                    AppIcon(Icons.pets, size: 16, color: primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1087,22 +1104,24 @@ class _PreviewSectionState extends State<_PreviewSection> {
                                         ? Image.network(
                                             stage.stageImage,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => Icon(
-                                              Icons.broken_image,
-                                              size: 24,
-                                              color: mutedFg,
-                                            ),
+                                            errorBuilder: (_, __, ___) =>
+                                                AppIcon(
+                                                  Icons.broken_image,
+                                                  size: 24,
+                                                  color: mutedFg,
+                                                ),
                                           )
                                         : Image.asset(
                                             stage.stageImage,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => Icon(
-                                              Icons.broken_image,
-                                              size: 24,
-                                              color: mutedFg,
-                                            ),
+                                            errorBuilder: (_, __, ___) =>
+                                                AppIcon(
+                                                  Icons.broken_image,
+                                                  size: 24,
+                                                  color: mutedFg,
+                                                ),
                                           ))
-                                  : Icon(Icons.help_outline, color: mutedFg),
+                                  : AppIcon(Icons.help_outline, color: mutedFg),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -1202,7 +1221,7 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                                     ? Image.network(
                                         option.stateUrl,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Icon(
+                                        errorBuilder: (_, __, ___) => AppIcon(
                                           Icons.broken_image,
                                           size: 24,
                                           color: mutedFg,
@@ -1211,13 +1230,13 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                                     : Image.asset(
                                         option.stateUrl,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Icon(
+                                        errorBuilder: (_, __, ___) => AppIcon(
                                           Icons.broken_image,
                                           size: 24,
                                           color: mutedFg,
                                         ),
                                       ))
-                              : Icon(Icons.help_outline, color: mutedFg),
+                              : AppIcon(Icons.help_outline, color: mutedFg),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -1241,7 +1260,7 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: primary),
+                      AppIcon(Icons.chevron_right, color: primary),
                     ],
                   ),
                 ),
