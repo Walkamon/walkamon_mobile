@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -199,10 +202,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _handleUse(_InventoryDisplayItem item) async {
+    AppAudioService.instance.suppressNextTabSound();
     setState(() => _usingItemId = item.itemId);
     try {
       final resp = await _repository.useItem(item.itemId);
       if (resp.success) {
+        unawaited(AppAudioService.instance.playUseItem());
         if (mounted) {
           _showSuccess(AppLocalizations.of(context).inventoryUsed(item.name));
         }
@@ -391,11 +396,13 @@ extension on _InventoryScreenState {
           Positioned(
             top: -18,
             child: GestureDetector(
-              onTap: () => Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/home',
-                (route) => false,
-              ),
+              onTap: () {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -448,7 +455,9 @@ extension on _InventoryScreenState {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        onTap();
+      },
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,

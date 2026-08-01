@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/core/constants/app_audio_assets.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,21 @@ void main() {
 
     for (final path in AppAssets.homeChromeAssets) {
       final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('App audio assets are bundled', () async {
+    for (final path in [
+      AppAudioAssets.homeMusic,
+      AppAudioAssets.homeFeed,
+      AppAudioAssets.homeLevelUp,
+      AppAudioAssets.battleMusic,
+      AppAudioAssets.reward,
+      AppAudioAssets.tab,
+      AppAudioAssets.useItem,
+    ]) {
+      final data = await rootBundle.load('assets/$path');
       expect(data.lengthInBytes, greaterThan(0), reason: path);
     }
   });

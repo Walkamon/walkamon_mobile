@@ -40,9 +40,21 @@ class BottomNavigation extends StatelessWidget {
     final navItems = [
       {'to': '/home', 'icon': Icons.home_rounded, 'label': l10n.navHome},
       {'to': '/shop', 'icon': Icons.storefront_rounded, 'label': l10n.navShop},
-      {'to': '/inventory', 'icon': Icons.backpack_rounded, 'label': l10n.navBag},
-      {'to': '/social', 'icon': Icons.track_changes_rounded, 'label': l10n.navQuest},
-      {'to': '/profile', 'icon': Icons.person_rounded, 'label': l10n.navProfile},
+      {
+        'to': '/inventory',
+        'icon': Icons.backpack_rounded,
+        'label': l10n.navBag,
+      },
+      {
+        'to': '/social',
+        'icon': Icons.track_changes_rounded,
+        'label': l10n.navQuest,
+      },
+      {
+        'to': '/profile',
+        'icon': Icons.person_rounded,
+        'label': l10n.navProfile,
+      },
     ];
 
     return SafeArea(

@@ -86,12 +86,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sfx => 'Hiệu ứng (SFX)';
 
   @override
-  String get fps60 => 'Chế độ 60 FPS';
-
-  @override
-  String get fps60Hint => 'Mượt mà hơn, tốn pin hơn';
-
-  @override
   String get darkMode => 'Chế độ tối';
 
   @override

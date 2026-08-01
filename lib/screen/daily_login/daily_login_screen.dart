@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
@@ -5,6 +7,7 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../providers/daily_login_provider.dart';
 import 'widgets/daily_login_calendar_widget.dart';
 import 'package:walkamon_mobile/data/models/daily_login_model.dart';
+import '../../core/audio/app_audio_service.dart';
 
 class DailyLoginScreen extends StatefulWidget {
   const DailyLoginScreen({super.key});
@@ -177,10 +180,14 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                 }
 
                                 // Xác định rõ kiểu dữ liệu trả về để compiler không nhận nhầm thành bool
+                                AppAudioService.instance.suppressNextTabSound();
                                 final ClaimDailyRewardData? result =
                                     await provider.claimReward();
 
                                 if (result != null && mounted) {
+                                  unawaited(
+                                    AppAudioService.instance.playReward(),
+                                  );
                                   showDialog(
                                     context: context,
                                     barrierDismissible: false,

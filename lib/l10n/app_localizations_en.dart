@@ -88,12 +88,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sfx => 'Sound effects (SFX)';
 
   @override
-  String get fps60 => '60 FPS mode';
-
-  @override
-  String get fps60Hint => 'Smoother, uses more battery';
-
-  @override
   String get darkMode => 'Dark mode';
 
   @override
