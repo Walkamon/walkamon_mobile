@@ -25,8 +25,6 @@
   "gameSettings": "Thiết Lập Game",
   "bgm": "Nhạc nền (BGM)",
   "sfx": "Hiệu ứng (SFX)",
-  "fps60": "Chế độ 60 FPS",
-  "fps60Hint": "Mượt mà hơn, tốn pin hơn",
   "darkMode": "Chế độ tối",
   "navHome": "Trang chủ",
   "navShop": "Cửa hàng",

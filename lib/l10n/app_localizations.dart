@@ -248,18 +248,6 @@ abstract class AppLocalizations {
   /// **'Sound effects (SFX)'**
   String get sfx;
 
-  /// No description provided for @fps60.
-  ///
-  /// In en, this message translates to:
-  /// **'60 FPS mode'**
-  String get fps60;
-
-  /// No description provided for @fps60Hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Smoother, uses more battery'**
-  String get fps60Hint;
-
   /// No description provided for @darkMode.
   ///
   /// In en, this message translates to:

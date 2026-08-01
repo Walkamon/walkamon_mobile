@@ -70,24 +70,29 @@ class GameSettings {
   const GameSettings({
     this.darkMode = true,
     this.soundEnabled = true,
+    this.backgroundMusicEnabled = true,
     this.notifications = true, // Đã có sẵn thuộc tính notifications[cite: 5]
     this.languageCode = 'vi-VN',
   });
 
   final bool darkMode;
   final bool soundEnabled;
+  final bool backgroundMusicEnabled;
   final bool notifications;
   final String languageCode;
 
   GameSettings copyWith({
     bool? darkMode,
     bool? soundEnabled,
+    bool? backgroundMusicEnabled,
     bool? notifications,
     String? languageCode,
   }) {
     return GameSettings(
       darkMode: darkMode ?? this.darkMode,
       soundEnabled: soundEnabled ?? this.soundEnabled,
+      backgroundMusicEnabled:
+          backgroundMusicEnabled ?? this.backgroundMusicEnabled,
       notifications: notifications ?? this.notifications,
       languageCode: languageCode ?? this.languageCode,
     );
@@ -534,11 +539,13 @@ class GameStateProvider extends ChangeNotifier {
   void updateSettings({
     bool? darkMode,
     bool? soundEnabled,
+    bool? backgroundMusicEnabled,
     bool? notifications,
   }) {
     _settings = _settings.copyWith(
       darkMode: darkMode,
       soundEnabled: soundEnabled,
+      backgroundMusicEnabled: backgroundMusicEnabled,
       notifications: notifications,
     );
     notifyListeners();

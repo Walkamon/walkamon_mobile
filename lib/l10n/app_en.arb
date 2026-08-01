@@ -32,8 +32,6 @@
   "gameSettings": "Game Settings",
   "bgm": "Background music (BGM)",
   "sfx": "Sound effects (SFX)",
-  "fps60": "60 FPS mode",
-  "fps60Hint": "Smoother, uses more battery",
   "darkMode": "Dark mode",
   "navHome": "Home",
   "navShop": "Shop",

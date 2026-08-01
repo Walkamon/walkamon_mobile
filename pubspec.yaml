@@ -48,6 +48,7 @@ dependencies:
   firebase_messaging: ^16.4.1
   flutter_local_notifications: ^22.0.1
   signalr_netcore: ^1.4.4
+  audioplayers: 6.5.1
 
 dev_dependencies:
   flutter_test:
@@ -212,6 +213,13 @@ flutter:
     - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png
     - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png
     - assets/Mobile/ui_frames/
+    - assets/audio/Home/feed/
+    - assets/audio/Home/level-up/
+    - assets/audio/Home/music/
+    - assets/audio/Pvp/battle_music/
+    - assets/audio/Reward/
+    - assets/audio/Tab/
+    - assets/audio/UseItem/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/player_challenge_response.dart';
 import '../../data/models/player_mission_response.dart';
@@ -212,6 +215,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
   Future<void> _handleClaim(_QuestDisplayItem quest) async {
     if (!quest.canClaim || quest.isChallenge) return;
 
+    AppAudioService.instance.suppressNextTabSound();
     setState(() => _claimingMissionId = quest.missionId);
     final provider = context.read<GameStateProvider>();
     try {
@@ -220,6 +224,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
       if (user != null) {
         provider.setUser(user.copyWith(coins: result.walletBalance));
       }
+
+      unawaited(AppAudioService.instance.playReward());
 
       if (mounted) {
         _showSuccess(
@@ -354,7 +360,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
                   borderColor: borderColor,
                   foreground: foreground,
                   mutedForeground: mutedForeground,
-                  onChanged: (tab) => setState(() => _activeTab = tab),
+                  onChanged: (tab) {
+                    if (tab == _activeTab) return;
+                    setState(() => _activeTab = tab);
+                  },
                 ),
               ],
             ),

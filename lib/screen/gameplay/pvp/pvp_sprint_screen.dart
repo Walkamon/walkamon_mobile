@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import '../../../core/audio/app_audio_service.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
 import 'pvp_asset_resolver.dart';
@@ -29,10 +30,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   bool _isClaimingReward = false;
   bool _isLoadingResult = false;
   String? _resultRequestedForMatchId;
+  bool _battleMusicActive = false;
 
   @override
   void dispose() {
     _successPopupTimer?.cancel();
+    AppAudioService.instance.playHomeMusic();
     super.dispose();
   }
 
@@ -154,6 +157,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
   void _resetGame() {
     _successPopupTimer?.cancel();
+    AppAudioService.instance.playHomeMusic();
     context.read<PvpProvider>().clearMatchState();
     setState(() {
       _showMatchSuccessPopup = false;
@@ -245,9 +249,27 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     setState(() => _isClaimingReward = false);
   }
 
+  void _syncMatchMusic(PvpProvider provider) {
+    final matchId = provider.activeMatchId;
+    final hasAssignedMatch =
+        matchId != null &&
+        matchId.isNotEmpty &&
+        provider.matchmakingState != PvpMatchmakingState.idle &&
+        provider.matchmakingState != PvpMatchmakingState.cancelled;
+
+    if (_battleMusicActive == hasAssignedMatch) return;
+    _battleMusicActive = hasAssignedMatch;
+    if (hasAssignedMatch) {
+      AppAudioService.instance.playBattleMusic();
+    } else {
+      AppAudioService.instance.playHomeMusic();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
+    _syncMatchMusic(pvpProvider);
     final currentUserId = context.watch<GameStateProvider>().user?.id ?? '';
     if (currentUserId.isNotEmpty &&
         pvpProvider.currentUserId != currentUserId) {
@@ -341,9 +363,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         pvpProvider.matchResult == null;
 
     final effectiveGameState =
-        (isProviderFinished ||
-            _gameState == 'finished' ||
-            awaitingServerResult)
+        (isProviderFinished || _gameState == 'finished' || awaitingServerResult)
         ? 'finished'
         : (isProviderRunning || _gameState == 'racing')
         ? 'racing'
@@ -380,10 +400,8 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
               _acceptChallenge,
               _rejectChallenge,
             ),
-            onShowMatchHistory: () => showMatchHistoryModal(
-              context,
-              currentUserId: currentUserId,
-            ),
+            onShowMatchHistory: () =>
+                showMatchHistoryModal(context, currentUserId: currentUserId),
           )
         else
           PvPRacingEnvironment(

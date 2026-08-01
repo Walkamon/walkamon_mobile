@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/shop_screen_repository.dart';
 import '../../data/repositories/wallet_repository.dart';
@@ -129,10 +132,12 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Future<void> _handleBuy(_ShopDisplayItem item) async {
+    AppAudioService.instance.suppressNextTabSound();
     setState(() => _buyingItemId = item.shopItemId);
     try {
       final resp = await _repository.buyShopItem(item.shopItemId);
       if (resp.success) {
+        unawaited(AppAudioService.instance.playReward());
         final data = resp.data;
         int? newCoins;
         if (data is Map) {
@@ -609,11 +614,13 @@ class _ShopScreenState extends State<ShopScreen> {
           Positioned(
             top: -18,
             child: GestureDetector(
-              onTap: () => Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/home',
-                (route) => false,
-              ),
+              onTap: () {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -666,7 +673,9 @@ class _ShopScreenState extends State<ShopScreen> {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        onTap();
+      },
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,

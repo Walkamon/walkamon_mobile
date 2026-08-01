@@ -7,6 +7,9 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/screen/home/home_screen.dart';
 
 import 'core/l10n/locale_helper.dart';
+import 'core/audio/app_audio_service.dart';
+import 'core/audio/app_tap_sound_region.dart';
+import 'core/navigation/app_route_observer.dart';
 
 import 'core/network/api_client.dart';
 import 'core/permissions/startup_permission_service.dart';
@@ -70,6 +73,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppAudioService.instance.initialize();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WalkamonApp());
 }
@@ -139,9 +143,16 @@ class _WalkamonAppState extends State<WalkamonApp> {
       ],
       child: Consumer<GameStateProvider>(
         builder: (context, gameState, _) {
+          AppAudioService.instance.setEffectsEnabled(
+            gameState.settings.soundEnabled,
+          );
+          AppAudioService.instance.setBackgroundEnabled(
+            gameState.settings.backgroundMusicEnabled,
+          );
           return MaterialApp(
             title: 'Walkamon',
             debugShowCheckedModeBanner: false,
+            navigatorObservers: [appRouteObserver],
             locale: gameState.locale,
             supportedLocales: LocaleHelper.supportedLocales,
             localizationsDelegates: const [
@@ -159,7 +170,8 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 : ThemeMode.light,
 
             scaffoldMessengerKey: RootLayout.messengerKey,
-            builder: (context, child) => RootLayout(child: child!),
+            builder: (context, child) =>
+                AppTapSoundRegion(child: RootLayout(child: child!)),
 
             // ── CẤU HÌNH ĐIỀU HƯỚNG AN TOÀN (ROUTE GUARD) ──────────────────
             initialRoute: '/',

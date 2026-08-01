@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
@@ -88,11 +91,14 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
   Future<void> _claimReward() async {
     if (_isClaiming) return;
 
+    AppAudioService.instance.suppressNextTabSound();
     setState(() => _isClaiming = true);
 
     try {
       final reward = await _repository.claimReward();
       if (!mounted) return;
+
+      unawaited(AppAudioService.instance.playReward());
 
       final gameState = context.read<GameStateProvider>();
       final user = gameState.user;

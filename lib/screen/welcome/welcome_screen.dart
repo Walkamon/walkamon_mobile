@@ -23,9 +23,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _showSettings = false;
-  bool _bgmEnabled = true;
   bool _sfxEnabled = true;
-  bool _fps60 = false;
 
   @override
   void initState() {
@@ -299,17 +297,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               borderColor: borderColor,
               foregroundColor: foreground,
               mutedForeground: mutedForeground,
-              bgmEnabled: _bgmEnabled,
               sfxEnabled: _sfxEnabled,
-              fps60: _fps60,
-              onBgmChanged: (value) => setState(() => _bgmEnabled = value),
               onSfxChanged: (value) {
                 setState(() => _sfxEnabled = value);
                 context.read<GameStateProvider>().updateSettings(
                   soundEnabled: value,
                 );
               },
-              onFps60Changed: (value) => setState(() => _fps60 = value),
               onDarkModeChanged: (value) {
                 context.read<GameStateProvider>().updateSettings(
                   darkMode: value,
@@ -544,12 +538,8 @@ class _SettingsOverlay extends StatelessWidget {
     required this.borderColor,
     required this.foregroundColor,
     required this.mutedForeground,
-    required this.bgmEnabled,
     required this.sfxEnabled,
-    required this.fps60,
-    required this.onBgmChanged,
     required this.onSfxChanged,
-    required this.onFps60Changed,
     required this.onDarkModeChanged,
   });
 
@@ -558,12 +548,8 @@ class _SettingsOverlay extends StatelessWidget {
   final Color borderColor;
   final Color foregroundColor;
   final Color mutedForeground;
-  final bool bgmEnabled;
   final bool sfxEnabled;
-  final bool fps60;
-  final ValueChanged<bool> onBgmChanged;
   final ValueChanged<bool> onSfxChanged;
-  final ValueChanged<bool> onFps60Changed;
   final ValueChanged<bool> onDarkModeChanged;
 
   @override
@@ -651,8 +637,13 @@ class _SettingsOverlay extends StatelessWidget {
                           foregroundColor: foregroundColor,
                           mutedForeground: mutedForeground,
                           toggle: _Toggle(
-                            active: bgmEnabled,
-                            onTap: () => onBgmChanged(!bgmEnabled),
+                            active: settings.backgroundMusicEnabled,
+                            onTap: () {
+                              context.read<GameStateProvider>().updateSettings(
+                                backgroundMusicEnabled:
+                                    !settings.backgroundMusicEnabled,
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -664,21 +655,6 @@ class _SettingsOverlay extends StatelessWidget {
                           toggle: _Toggle(
                             active: sfxEnabled,
                             onTap: () => onSfxChanged(!sfxEnabled),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Divider(height: 1),
-                        const SizedBox(height: 20),
-                        _SettingsRow(
-                          icon: Icons.bolt,
-                          asset: AppAssets.iconPerformance,
-                          label: l10n.fps60,
-                          foregroundColor: foregroundColor,
-                          mutedForeground: mutedForeground,
-                          toggle: _LabeledToggle(
-                            active: fps60,
-                            onTap: () => onFps60Changed(!fps60),
-                            label: l10n.fps60Hint,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -805,43 +781,9 @@ class _LanguagePill extends StatelessWidget {
   }
 }
 
-class _LabeledToggle extends StatelessWidget {
-  const _LabeledToggle({
-    required this.active,
-    required this.onTap,
-    required this.label,
-  });
-
-  final bool active;
-  final VoidCallback onTap;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          _Toggle(active: active, onTap: onTap),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SettingsRow extends StatelessWidget {
   const _SettingsRow({
     required this.icon,
-    this.asset,
     required this.label,
     required this.foregroundColor,
     required this.mutedForeground,
@@ -849,7 +791,6 @@ class _SettingsRow extends StatelessWidget {
   });
 
   final IconData icon;
-  final String? asset;
   final String label;
   final Color foregroundColor;
   final Color mutedForeground;
@@ -862,12 +803,7 @@ class _SettingsRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            AppIcon(
-              icon,
-              asset: asset,
-              size: 20,
-              color: mutedForeground,
-            ),
+            AppIcon(icon, size: 20, color: mutedForeground),
             const SizedBox(width: 12),
             Text(
               label,
