@@ -8,9 +8,55 @@ abstract final class PvpAssetResolver {
   static const hudCenterSlice = Rect.fromLTWH(352, 128, 64, 128);
 
   static String mapForNow(DateTime now) {
+    return mapsForNow(now).first;
+  }
+
+  static List<String> mapsForNow(DateTime now) {
     final hour = now.hour;
     final isNight = hour >= 18 || hour < 6;
-    return isNight ? AppAssets.pvpMapNight : AppAssets.pvpMapMorning;
+    return isNight
+        ? const [
+            AppAssets.pvpMapNightStart,
+            AppAssets.pvpMapNightLoop,
+            AppAssets.pvpMapNightFinish,
+          ]
+        : const [
+            AppAssets.pvpMapMorningStart,
+            AppAssets.pvpMapMorningLoop,
+            AppAssets.pvpMapMorningFinish,
+          ];
+  }
+
+  static List<String> petAnimationFrames({
+    required String affinityCode,
+    required int stageNo,
+    String state = 'race',
+  }) {
+    final normalizedAffinity = affinityCode.trim().toLowerCase();
+    final requestedState = state.trim().toLowerCase();
+    final normalizedState =
+        const {'race', 'win', 'lose'}.contains(requestedState)
+        ? requestedState
+        : 'race';
+    final frameCount = normalizedState == 'race' ? 12 : 8;
+
+    final root = switch (normalizedAffinity) {
+      'dawn' =>
+        'assets/Mobile/Tinh Linh Bình Minh/stage${stageNo.clamp(1, 2)}/pvp',
+      'moonlight' =>
+        'assets/Mobile/TInh Linh Ánh Trăng/stage${stageNo.clamp(1, 2)}/pvp',
+      'warm_sun' when stageNo.clamp(1, 2) == 1 =>
+        'assets/Mobile/TinhLinhNangAm/Stage1/pvp',
+      'warm_sun' => 'assets/Mobile/TinhLinhNangAm/stage2/pvp',
+      _ => 'assets/Mobile/Mầm Non/pvp',
+    };
+
+    return List<String>.generate(
+      frameCount,
+      (index) =>
+          '$root/$normalizedState/${normalizedState}_F${(index + 1).toString().padLeft(2, '0')}.png',
+      growable: false,
+    );
   }
 
   static String affinityDisplayName(String? affinityCode) {
@@ -43,10 +89,7 @@ abstract final class PvpAssetResolver {
     }
   }
 
-  static String rankAsset({
-    String? tierCode,
-    String? flutterAssetPath,
-  }) {
+  static String rankAsset({String? tierCode, String? flutterAssetPath}) {
     final fromApi = flutterAssetPath?.trim();
     if (fromApi != null && fromApi.isNotEmpty) {
       return fromApi;

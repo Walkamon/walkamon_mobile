@@ -17,6 +17,7 @@ class PetRuntimePreview extends StatefulWidget {
     this.affinityCode = 'sprout',
     this.stageNo = 0,
     this.animationType = 'idle',
+    this.assetReference,
     this.compact = false,
     this.height = 180,
   });
@@ -24,6 +25,11 @@ class PetRuntimePreview extends StatefulWidget {
   final String affinityCode;
   final int stageNo;
   final String animationType;
+
+  /// Logical backend reference such as
+  /// `asset://pet-runtime-v7.2/dawn/stage1/idle_front`.
+  /// When valid, it takes precedence over affinity/stage/animation fallbacks.
+  final String? assetReference;
   final bool compact;
   final double height;
 
@@ -49,7 +55,8 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.affinityCode != widget.affinityCode ||
         oldWidget.stageNo != widget.stageNo ||
-        oldWidget.animationType != widget.animationType) {
+        oldWidget.animationType != widget.animationType ||
+        oldWidget.assetReference != widget.assetReference) {
       _load();
     }
   }
@@ -66,10 +73,11 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
     });
 
     try {
-      final formKey = resolvePetRuntimeFormKey(
-        widget.affinityCode,
-        widget.stageNo,
-      );
+      final reference = parsePetRuntimeAssetReference(widget.assetReference);
+      final affinityCode = reference?.affinityCode ?? widget.affinityCode;
+      final stageNo = reference?.stageNo ?? widget.stageNo;
+      final animationType = reference?.animationType ?? widget.animationType;
+      final formKey = resolvePetRuntimeFormKey(affinityCode, stageNo);
 
       final catalogJson = await rootBundle.loadString(
         AppAssets.petRuntimeCatalogV1,
@@ -104,8 +112,8 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
           clipKey = resolvePetRuntimeClipKey(
             animations: animations,
             formKey: formKey,
-            affinityCode: widget.affinityCode,
-            animationType: widget.animationType,
+            affinityCode: affinityCode,
+            animationType: animationType,
           );
           final clip = animations[clipKey] as Map<String, dynamic>?;
           final clipFallback = clip?['fallbackAsset']?.toString();
@@ -213,6 +221,51 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
       ),
     );
   }
+}
+
+class PetRuntimeAssetReference {
+  const PetRuntimeAssetReference({
+    required this.affinityCode,
+    required this.stageNo,
+    required this.animationType,
+  });
+
+  final String affinityCode;
+  final int stageNo;
+  final String animationType;
+}
+
+/// Parses backend logical pet-runtime keys without treating them as Flutter
+/// bundle paths. Returns null for regular HTTP URLs and legacy asset paths.
+PetRuntimeAssetReference? parsePetRuntimeAssetReference(String? value) {
+  final raw = value?.trim() ?? '';
+  if (raw.isEmpty) return null;
+
+  final uri = Uri.tryParse(raw);
+  if (uri == null || uri.scheme.toLowerCase() != 'asset') return null;
+  if (uri.host.toLowerCase() != 'pet-runtime-v7.2') return null;
+
+  final segments = uri.pathSegments
+      .where((segment) => segment.trim().isNotEmpty)
+      .toList(growable: false);
+  if (segments.length < 3) return null;
+
+  final affinityCode = segments[0].trim().toLowerCase();
+  const supportedAffinities = {'sprout', 'warm_sun', 'dawn', 'moonlight'};
+  if (!supportedAffinities.contains(affinityCode)) return null;
+
+  final stageMatch = RegExp(
+    r'^stage(\d+)$',
+    caseSensitive: false,
+  ).firstMatch(segments[1]);
+  final stageNo = int.tryParse(stageMatch?.group(1) ?? '');
+  if (stageNo == null) return null;
+
+  return PetRuntimeAssetReference(
+    affinityCode: affinityCode,
+    stageNo: stageNo,
+    animationType: segments.sublist(2).join('_').toLowerCase(),
+  );
 }
 
 /// Maps API affinity/stage onto a catalog form key.

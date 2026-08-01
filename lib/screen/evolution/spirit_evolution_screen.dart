@@ -8,6 +8,7 @@ import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/pet_runtime/pet_runtime_preview.dart';
 
 class SpiritEvolutionScreen extends StatefulWidget {
   const SpiritEvolutionScreen({
@@ -198,7 +199,12 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                       title: stageDisplayName.isNotEmpty
                           ? stageDisplayName
                           : l10n.spiritStageSeed,
-                      imageUrl: currentStage?.stateUrl,
+                      assetReference: currentStage?.stateUrl,
+                      affinityCode: widget.overview?.affinityCode ?? 'sprout',
+                      stageNo:
+                          currentStage?.stageNo ??
+                          widget.overview?.stageNo ??
+                          0,
                       isDone: true,
                       isActive: true,
                       pulseAnimation: _pulseAnimation,
@@ -427,7 +433,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
         Expanded(
           child: _StageNode(
             title: stage.stageName,
-            imageUrl: stage.stateUrl,
+            assetReference: stage.stateUrl,
+            affinityCode: widget.overview?.affinityCode ?? 'sprout',
+            stageNo: stage.stageNo,
             isDone: isDone,
             isActive: isActive,
             pulseAnimation: _pulseAnimation,
@@ -570,14 +578,18 @@ class _SectionLabel extends StatelessWidget {
 class _StageNode extends StatelessWidget {
   const _StageNode({
     required this.title,
-    this.imageUrl,
+    this.assetReference,
+    required this.affinityCode,
+    required this.stageNo,
     required this.isDone,
     required this.isActive,
     required this.pulseAnimation,
   });
 
   final String title;
-  final String? imageUrl;
+  final String? assetReference;
+  final String affinityCode;
+  final int stageNo;
   final bool isDone;
   final bool isActive;
   final Animation<double> pulseAnimation;
@@ -593,8 +605,6 @@ class _StageNode extends StatelessWidget {
         AnimatedBuilder(
           animation: pulseAnimation,
           builder: (context, child) {
-            final isNetworkImage = imageUrl?.startsWith('http') ?? false;
-
             return Transform.scale(
               scale: isActive ? pulseAnimation.value : 1.0,
               child: Stack(
@@ -634,21 +644,17 @@ class _StageNode extends StatelessWidget {
                           : null,
                     ),
                     child: ClipOval(
-                      child: imageUrl != null && imageUrl!.isNotEmpty
-                          ? (isNetworkImage
-                                ? Image.network(
-                                    imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        _buildFallbackIcon(theme, isDone),
-                                  )
-                                : Image.asset(
-                                    imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        _buildFallbackIcon(theme, isDone),
-                                  ))
-                          : _buildFallbackIcon(theme, isDone),
+                      child: Opacity(
+                        opacity: isDone || isActive ? 1 : 0.62,
+                        child: PetRuntimePreview(
+                          assetReference: assetReference,
+                          affinityCode: affinityCode,
+                          stageNo: stageNo,
+                          animationType: 'idle',
+                          compact: true,
+                          height: 40,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -674,15 +680,6 @@ class _StageNode extends StatelessWidget {
     );
   }
 
-  Widget _buildFallbackIcon(ThemeData theme, bool isDone) {
-    return AppIcon(
-      isDone ? Icons.check_rounded : Icons.circle_outlined,
-      size: 18,
-      color: isDone
-          ? theme.colorScheme.onPrimary
-          : theme.colorScheme.onSurface.withOpacity(0.4),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -1006,32 +1003,10 @@ class _EvolutionOverlay extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 //  Preview Section
 // ─────────────────────────────────────────────────────────
-class _PreviewSection extends StatefulWidget {
+class _PreviewSection extends StatelessWidget {
   const _PreviewSection({required this.previews});
 
   final List<PetEvolutionPreviewResponse> previews;
-
-  @override
-  State<_PreviewSection> createState() => _PreviewSectionState();
-}
-
-class _PreviewSectionState extends State<_PreviewSection> {
-  final Map<String, ScrollController> _scrollControllers = {};
-
-  @override
-  void dispose() {
-    for (var controller in _scrollControllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  ScrollController _getController(String key) {
-    if (!_scrollControllers.containsKey(key)) {
-      _scrollControllers[key] = ScrollController();
-    }
-    return _scrollControllers[key]!;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1044,7 +1019,7 @@ class _PreviewSectionState extends State<_PreviewSection> {
         : AppColors.lightMutedForeground;
 
     return Column(
-      children: widget.previews.map((pet) {
+      children: previews.map((pet) {
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
@@ -1078,9 +1053,6 @@ class _PreviewSectionState extends State<_PreviewSection> {
               const Divider(height: 1, thickness: 0.5),
               // Stages
               ...pet.stages.map((stage) {
-                final isNetworkImage = stage.stageImage.startsWith('http');
-                final scrollKey = '${pet.petId}_${stage.stageNo}';
-
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -1099,29 +1071,13 @@ class _PreviewSectionState extends State<_PreviewSection> {
                               ),
                             ),
                             child: ClipOval(
-                              child: stage.stageImage.isNotEmpty
-                                  ? (isNetworkImage
-                                        ? Image.network(
-                                            stage.stageImage,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                AppIcon(
-                                                  Icons.broken_image,
-                                                  size: 24,
-                                                  color: mutedFg,
-                                                ),
-                                          )
-                                        : Image.asset(
-                                            stage.stageImage,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                AppIcon(
-                                                  Icons.broken_image,
-                                                  size: 24,
-                                                  color: mutedFg,
-                                                ),
-                                          ))
-                                  : AppIcon(Icons.help_outline, color: mutedFg),
+                              child: PetRuntimePreview(
+                                assetReference: stage.stageImage,
+                                stageNo: stage.stageNo,
+                                animationType: 'idle',
+                                compact: true,
+                                height: 50,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -1193,7 +1149,6 @@ class _EvolutionOptionsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ...options.map((option) {
-              final isNetworkImage = option.stateUrl.startsWith('http');
               return InkWell(
                 onTap: () => Navigator.of(context).pop(option.petId),
                 borderRadius: BorderRadius.circular(16),
@@ -1216,27 +1171,11 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                           border: Border.all(color: primary.withOpacity(0.5)),
                         ),
                         child: ClipOval(
-                          child: option.stateUrl.isNotEmpty
-                              ? (isNetworkImage
-                                    ? Image.network(
-                                        option.stateUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => AppIcon(
-                                          Icons.broken_image,
-                                          size: 24,
-                                          color: mutedFg,
-                                        ),
-                                      )
-                                    : Image.asset(
-                                        option.stateUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => AppIcon(
-                                          Icons.broken_image,
-                                          size: 24,
-                                          color: mutedFg,
-                                        ),
-                                      ))
-                              : AppIcon(Icons.help_outline, color: mutedFg),
+                          child: PetRuntimePreview(
+                            assetReference: option.stateUrl,
+                            compact: true,
+                            height: 60,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
