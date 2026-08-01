@@ -20,7 +20,7 @@ void main() {
   });
 
   test('PvP catalog has icons, maps, HUD and VFX frames', () async {
-    expect(AppAssets.pvpCatalogAssets, hasLength(64));
+    expect(AppAssets.pvpCatalogAssets, hasLength(68));
 
     for (final path in AppAssets.pvpCatalogAssets) {
       final data = await rootBundle.load(path);

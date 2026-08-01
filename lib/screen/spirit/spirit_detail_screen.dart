@@ -348,12 +348,27 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              AppIcon(
-                                                Icons.spa_rounded,
-                                                size: 90,
-                                                color: primary,
+                                              PetRuntimePreview(
+                                                assetReference:
+                                                    _currentAnimation
+                                                        ?.animationUrl,
+                                                affinityCode:
+                                                    _petOverview
+                                                        ?.affinityCode ??
+                                                    gameState.affinityCode,
+                                                stageNo:
+                                                    _petOverview?.stageNo ??
+                                                    gameState.petStageNo,
+                                                animationType:
+                                                    _currentAnimation
+                                                        ?.animationType ??
+                                                    _petOverview
+                                                        ?.animationType ??
+                                                    gameState.animationType,
+                                                compact: true,
+                                                height: 112,
                                               ),
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 6),
                                               Text(
                                                 spiritName,
                                                 style: theme
@@ -365,17 +380,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       color: primary,
                                                     ),
                                               ),
-                                              if (_currentAnimation != null)
-                                                Text(
-                                                  'Animation: ${_currentAnimation!.animationType}',
-                                                  style: theme
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: primary
-                                                            .withOpacity(0.8),
-                                                      ),
-                                                ),
                                             ],
                                           ),
                                         ),

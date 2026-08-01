@@ -388,13 +388,14 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         else
           PvPRacingEnvironment(
             isMoving: pvpProvider.isRaceRunning,
+            trackProgress: pvpProvider.raceTimeProgress,
             myProgress: pvpProvider.myProgress,
             opponentProgress: pvpProvider.opponentProgress,
             opponentName: pvpProvider.currentOpponentName,
             racePhase: pvpProvider.racePhase,
             isFinished: pvpProvider.isRaceFinished,
             onClose: _onCloseRacePressed,
-            mapAsset: PvpAssetResolver.mapForNow(
+            mapAssets: PvpAssetResolver.mapsForNow(
               pvpProvider.estimatedServerNow(),
             ),
             myAffinityCode: pvpProvider.mySpiritAffinityCode,
