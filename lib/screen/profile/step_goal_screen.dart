@@ -12,6 +12,7 @@ import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 import 'activity_stats_screen.dart' show formatStepCount;
 
 class StepGoalScreen extends StatefulWidget {
@@ -110,6 +111,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
         AppLocalizations.of(
           context,
         ).stepGoalClaimSuccess(formatStepCount(reward.reward)),
+        isSuccess: true,
       );
       await _loadProgress();
     } catch (e) {
@@ -147,6 +149,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
         AppLocalizations.of(
           context,
         ).stepGoalSaved(formatStepCount(targetSteps)),
+        isSuccess: true,
       );
     } catch (e) {
       if (!mounted) return;
@@ -175,23 +178,30 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
     return message;
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+  void _showMessage(String message, {bool isSuccess = false}) {
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: isSuccess,
     );
   }
 
   Future<void> _showCustomGoalSheet() async {
+    if (_isSaving || !mounted) return;
+
     final controller = TextEditingController();
+    final focusNode = FocusNode();
     final formKey = GlobalKey<FormState>();
+    var isClosing = false;
 
     final value = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        final theme = Theme.of(context);
-        final l10n = AppLocalizations.of(context);
+      useSafeArea: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        final l10n = AppLocalizations.of(sheetContext);
         final isDark = theme.brightness == Brightness.dark;
         final cardColor = theme.colorScheme.surface;
         final primary = theme.colorScheme.primary;
@@ -206,7 +216,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
           ),
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -233,7 +243,17 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () async {
+                          if (isClosing) return;
+                          isClosing = true;
+                          focusNode.unfocus();
+                          await Future<void>.delayed(
+                            const Duration(milliseconds: 100),
+                          );
+                          if (sheetContext.mounted) {
+                            Navigator.of(sheetContext).pop();
+                          }
+                        },
                         icon: const AppIcon(Icons.close_rounded, size: 18),
                       ),
                     ],
@@ -241,7 +261,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: controller,
-                    autofocus: true,
+                    focusNode: focusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
@@ -270,11 +290,20 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                     children: [
                       Expanded(
                         child: FilledButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            if (isClosing) return;
                             if (formKey.currentState?.validate() != true) {
                               return;
                             }
-                            Navigator.pop(context, int.parse(controller.text));
+                            isClosing = true;
+                            final target = int.parse(controller.text);
+                            focusNode.unfocus();
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 100),
+                            );
+                            if (sheetContext.mounted) {
+                              Navigator.of(sheetContext).pop(target);
+                            }
                           },
                           child: Text(l10n.profileEditConfirm),
                         ),
@@ -282,7 +311,17 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () async {
+                            if (isClosing) return;
+                            isClosing = true;
+                            focusNode.unfocus();
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 100),
+                            );
+                            if (sheetContext.mounted) {
+                              Navigator.of(sheetContext).pop();
+                            }
+                          },
                           child: Text(
                             l10n.friendsCancel,
                             style: TextStyle(color: mutedForeground),
@@ -299,8 +338,10 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       },
     );
 
+    await WidgetsBinding.instance.endOfFrame;
     controller.dispose();
-    if (value != null) await _saveGoal(value);
+    focusNode.dispose();
+    if (value != null && mounted) await _saveGoal(value);
   }
 
   @override

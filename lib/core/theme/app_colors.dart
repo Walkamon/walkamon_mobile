@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  // Light mode — Cozy Forest Theme
-  static const lightBackground = Color(0xFFDBDED0);
-  static const lightForeground = Color(0xFF4A5D23);
-  static const lightCard = Color(0xFFFFFFFF);
-  static const lightPrimary = Color(0xFF76A084);
-  static const lightPrimaryForeground = Color(0xFFFFF8F0);
-  static const lightAccent = Color(0xFFE59A73);
-  static const lightMuted = Color(0xFFF0E6D9);
-  static const lightMutedForeground = Color(0xFF9A8F82);
-  static const lightBorder = Color(0xFFE5DCCF);
-  static const lightLuminaGlow = Color(0xFFA7F3D0);
-  static const lightLife = Color(0xFF4ADE80);
-  static const lightBond = Color(0xFFF472B6);
-  static const lightDew = Color(0xFF38BDF8);
+  // Light mode — warm garden palette
+  static const lightBackground = Color(0xFFF6E8C9);
+  static const lightForeground = Color(0xFF594838);
+  static const lightCard = Color(0xFFFFF8E9);
+  static const lightPrimary = Color(0xFFAFCB6E);
+  static const lightPrimaryForeground = Color(0xFF46542D);
+  static const lightAccent = Color(0xFFF4C45E);
+  static const lightMuted = Color(0xFFE2D3BA);
+  static const lightMutedForeground = Color(0xFF8B7762);
+  static const lightBorder = Color(0xFF98765A);
+  static const lightLuminaGlow = Color(0xFFC8DC8B);
+  static const lightLife = Color(0xFFFF9800);
+  static const lightBond = Color(0xFF4CAF63);
+  static const lightDew = Color(0xFF70C6D4);
+  static const lightNavigation = Color(0xFFEFE6D4);
+  static const lightNavigationActive = Color(0xFFFFF9ED);
+  static const lightNavigationIcon = Color(0xFF70452F);
+  static const lightIconButtonBackground = Color(0xFFE9DDC5);
 
-  // Dark mode — Deep Cozy Forest
-  static const darkBackground = Color(0xFF1E2E24);
-  static const darkForeground = Color(0xFFFFF8F0);
-  static const darkCard = Color(0xFF4A5A4E);
-  static const darkPrimary = Color(0xFF8DB59C);
-  static const darkPrimaryForeground = Color(0xFF2C3A30);
-  static const darkAccent = Color(0xFFF0A884);
-  static const darkMuted = Color(0xFF3A4A3E);
-  static const darkMutedForeground = Color(0xFFC2CCCD);
-  static const darkBorder = Color(0xFF5A6A5E);
-  static const darkLuminaGlow = Color(0xFF8DB59C);
-  static const darkLife = Color(0xFF34D399);
-  static const darkBond = Color(0xFFEC4899);
-  static const darkDew = Color(0xFF7DD3FC);
+  // Dark mode — muted version of the same garden palette
+  static const darkBackground = Color(0xFF302A22);
+  static const darkForeground = Color(0xFFF8EBCF);
+  static const darkCard = Color(0xFF4A4034);
+  static const darkPrimary = Color(0xFFB8CF7D);
+  static const darkPrimaryForeground = Color(0xFF29331F);
+  static const darkAccent = Color(0xFFE9B95B);
+  static const darkMuted = Color(0xFF574A3C);
+  static const darkMutedForeground = Color(0xFFD6C3A5);
+  static const darkBorder = Color(0xFF8E745C);
+  static const darkLuminaGlow = Color(0xFFB8CF7D);
+  static const darkLife = Color(0xFFFFAD33);
+  static const darkBond = Color(0xFF69C47A);
+  static const darkDew = Color(0xFF85D1DD);
+  static const darkNavigation = Color(0xFF4C4336);
+  static const darkNavigationActive = Color(0xFF6A5C49);
+  static const darkNavigationIcon = Color(0xFFE4D4BB);
+  static const darkIconButtonBackground = Color(0xFF594C3D);
 }

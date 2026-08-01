@@ -8,6 +8,8 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/bottom_navigation.dart';
+import '../../widgets/common/home_page_backdrop.dart';
 import '../../widgets/common/error_message_widget.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
@@ -251,9 +253,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      bottomNavigationBar: _buildBottomNavigation(context),
-      body: Stack(
-        children: [
+      bottomNavigationBar: const BottomNavigation(),
+      body: HomePageBackdrop(
+        child: Stack(
+          children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 110),
             child: Column(
@@ -309,7 +312,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
               onClose: _closeItemPopup,
               onUse: () => _handleUse(selectedItem),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -320,12 +324,6 @@ extension on _InventoryScreenState {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final barBgColor = isDark
-        ? const Color(0xFF25332A)
-        : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark
-        ? AppColors.darkPrimary
-        : AppColors.lightPrimary;
     final activeIconColor = isDark
         ? const Color(0xFF1E2E24)
         : const Color(0xFFFFF8F0);
@@ -336,15 +334,7 @@ extension on _InventoryScreenState {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: barBgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: Colors.transparent,
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -394,7 +384,7 @@ extension on _InventoryScreenState {
             ],
           ),
           Positioned(
-            top: -18,
+            top: 0,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushNamedAndRemoveUntil(
@@ -407,14 +397,18 @@ extension on _InventoryScreenState {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: activeBgColor,
+                      color: const Color(0xFFD89A70),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF895B3D),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: activeBgColor.withValues(alpha: 0.35),
+                          color: const Color(0xFFD89A70).withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -423,20 +417,9 @@ extension on _InventoryScreenState {
                     child: Center(
                       child: AppIcon(
                         Icons.home_rounded,
-                        size: 28,
+                        size: 36,
                         color: activeIconColor,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.inventoryHome,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.darkForeground
-                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -462,15 +445,22 @@ extension on _InventoryScreenState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          iconWidget,
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD89A70),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF895B3D), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 3,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            child: Center(child: Transform.scale(scale: 1.65, child: iconWidget)),
           ),
         ],
       ),
@@ -930,7 +920,10 @@ class _ItemDetailPopup extends StatelessWidget {
                   builder: (context, value, child) {
                     return Transform.translate(
                       offset: Offset(0, value * 80),
-                      child: Opacity(opacity: 1 - (value * 0.3), child: child),
+                      child: Opacity(
+                        opacity: (1 - (value * 0.3)).clamp(0.0, 1.0),
+                        child: child,
+                      ),
                     );
                   },
                   child: Container(

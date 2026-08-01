@@ -7,11 +7,17 @@ import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
+import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/datasources/remote/notification_datasource.dart';
+import '../../data/repositories/missions_screen_repository.dart';
+import '../../data/repositories/wallet_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/daily_login_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 import '../../widgets/pet_runtime/pet_runtime_preview.dart';
+import '../../widgets/common/bottom_navigation.dart';
 
 Widget _assetIcon(String path, {double size = 20, Color? color}) {
   return Image.asset(
@@ -147,6 +153,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _feedAnim = false;
   bool _stepExpanded = false;
   bool _isRefreshingMetrics = false;
+  int? _dewBalance;
+  final WalletRepository _walletRepository = WalletRepository();
+  final MissionsScreenRepository _missionsRepository =
+      MissionsScreenRepository();
+  final NotificationDatasource _notificationDatasource =
+      NotificationDatasourceImpl(ApiClient());
+  bool _showDailyLoginBadge = false;
+  bool _showMissionBadge = false;
+  bool _showNotificationBadge = false;
   Timer? _refreshTimer;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
@@ -222,9 +237,71 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       await Future.wait([
         gameState.fetchPetStatus(),
         gameState.fetchPetVisual(),
+        _refreshDewBalance(gameState),
+        _refreshHomeBadges(),
       ]);
     } finally {
       _isRefreshingMetrics = false;
+    }
+  }
+
+  Future<void> _refreshHomeBadges() async {
+    var dailyLoginBadge = _showDailyLoginBadge;
+    var missionBadge = _showMissionBadge;
+    var notificationBadge = _showNotificationBadge;
+
+    await Future.wait([
+      () async {
+        final provider = context.read<DailyLoginProvider>();
+        await provider.loadDailyLoginStatus();
+        final data = provider.calendarData;
+        if (data != null) dailyLoginBadge = data.canClaimToday;
+      }(),
+      () async {
+        try {
+          final missions = await _missionsRepository.getAllMissions();
+          missionBadge = [
+            ...missions.dailyMissions,
+            ...missions.overallMissions,
+          ].any((mission) => mission.canClaim);
+        } catch (error) {
+          debugPrint('Không thể tải badge nhiệm vụ: $error');
+        }
+      }(),
+      () async {
+        try {
+          final notifications = await _notificationDatasource.getNotifications(
+            1,
+            20,
+          );
+          notificationBadge = notifications.any(
+            (notification) => !notification.isRead,
+          );
+        } catch (error) {
+          debugPrint('Không thể tải badge thông báo: $error');
+        }
+      }(),
+    ]);
+
+    if (!mounted) return;
+    setState(() {
+      _showDailyLoginBadge = dailyLoginBadge;
+      _showMissionBadge = missionBadge;
+      _showNotificationBadge = notificationBadge;
+    });
+  }
+
+  Future<void> _refreshDewBalance(GameStateProvider gameState) async {
+    try {
+      final wallet = await _walletRepository.getBalance();
+      if (!mounted) return;
+      setState(() => _dewBalance = wallet.balance);
+      final user = gameState.user;
+      if (user != null && user.coins != wallet.balance) {
+        gameState.setUser(user.copyWith(coins: wallet.balance));
+      }
+    } catch (error) {
+      debugPrint('Không thể tải số dư giọt sương: $error');
     }
   }
 
@@ -243,10 +320,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final success = await gameState.tapSpirit();
 
     if (!success) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chạm thú cưng thất bại. Thử lại nhé.')),
-      );
       return;
     }
 
@@ -282,10 +355,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final previousLevel = gameState.spiritLevel;
     final success = await gameState.feedSpirit();
     if (!success) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cho ăn thất bại. Thử lại nhé.')),
-      );
       return;
     }
 
@@ -301,6 +370,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
+    unawaited(_refreshDewBalance(gameState));
 
     Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) setState(() => _feedAnim = false);
@@ -345,13 +415,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final int spiritHealth = gameState.spiritHealth;
     final String spiritName = gameState.spiritName;
     final String spiritInfo = gameState.spiritInfo;
-    final bool isLoggedIn = gameState.isAuthenticated;
     final homeBg = _homeBackgroundForAffinity(gameState.affinityCode);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      bottomNavigationBar: _buildBottomNavigation(context),
+      bottomNavigationBar: const BottomNavigation(),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -364,7 +433,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               color: isDark ? const Color(0xFF1E2E24) : const Color(0xFFE8F0E4),
             ),
           ),
-          Container(color: Colors.black.withOpacity(isDark ? 0.28 : 0.12)),
           SafeArea(
             child: Stack(
               children: [
@@ -657,7 +725,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     _assetIcon(AppAssets.iconDewDrop, size: 16),
                                     const SizedBox(width: 6),
                                     Text(
-                                      '1,240',
+                                      (_dewBalance ?? user?.coins ?? 0)
+                                          .toString()
+                                          .replaceAllMapped(
+                                            RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                            (_) => ',',
+                                          ),
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w900,
@@ -673,67 +746,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               GestureDetector(
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/profile'),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(18),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 8,
-                                      sigmaY: 8,
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.darkBorder
+                                          : AppColors.lightBorder,
+                                      width: 2,
                                     ),
-                                    child: Container(
-                                      height: 36,
-                                      padding: const EdgeInsets.only(
-                                        left: 8,
-                                        right: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface
-                                            .withOpacity(0.7),
-                                        borderRadius: BorderRadius.circular(18),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? AppColors.darkBorder
-                                              : AppColors.lightBorder,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.12,
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.05,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 10,
-                                            backgroundColor: primary
-                                                .withOpacity(0.2),
-                                            child: _assetIcon(
-                                              AppAssets.iconProfileNav,
-                                              size: 12,
-                                              color: primary,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            isLoggedIn
-                                                ? l10n.levelShort(
-                                                    user?.level ?? 1,
-                                                  )
-                                                : l10n.levelShort(1),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w900,
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                    ],
+                                  ),
+                                  child: const CircleAvatar(
+                                    backgroundImage: AssetImage(
+                                      AppAssets.iconAvatar,
                                     ),
                                   ),
                                 ),
@@ -997,6 +1033,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         ],
                                       ),
                                       const SizedBox(height: 8),
+                                      Container(
+                                        height: 12,
+                                        clipBehavior: Clip.antiAlias,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? AppColors.darkCard
+                                              : AppColors.lightForeground
+                                                    .withValues(alpha: 0.78),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? AppColors.darkBorder
+                                                : AppColors.lightBorder,
+                                          ),
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: FractionallySizedBox(
+                                            widthFactor: (spiritExp / 100)
+                                                .clamp(0.0, 1.0),
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? AppColors.darkDew
+                                                    : AppColors.lightDew,
+                                                borderRadius:
+                                                    BorderRadius.circular(999),
+                                              ),
+                                              child: const SizedBox.expand(),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
                                       Text(
                                         spiritInfo,
                                         style: TextStyle(
@@ -1077,19 +1149,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       _buildFloatingIconBtn(
                         context: context,
                         assetPath: AppAssets.iconDailyRewardRes,
-                        hasBadge: true,
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/daily-login-calendar',
-                        ),
+                        hasBadge: _showDailyLoginBadge,
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            '/daily-login-calendar',
+                          );
+                          if (mounted) unawaited(_refreshHomeBadges());
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Missions / Quests
                       _buildFloatingIconBtn(
                         context: context,
                         assetPath: AppAssets.iconMissionNav,
-                        hasBadge: true,
-                        onTap: () => Navigator.pushNamed(context, '/missions'),
+                        hasBadge: _showMissionBadge,
+                        onTap: () async {
+                          await Navigator.pushNamed(context, '/missions');
+                          if (mounted) unawaited(_refreshHomeBadges());
+                        },
                       ),
                     ],
                   ),
@@ -1102,8 +1180,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: _buildFloatingIconBtn(
                     context: context,
                     assetPath: AppAssets.iconNotificationBell,
-                    hasBadge: true,
-                    onTap: () => Navigator.pushNamed(context, '/notifications'),
+                    hasBadge: _showNotificationBadge,
+                    onTap: () async {
+                      await Navigator.pushNamed(context, '/notifications');
+                      if (mounted) unawaited(_refreshHomeBadges());
+                    },
                   ),
                 ),
               ],
@@ -1135,31 +1216,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        width: 64,
+        height: 64,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            _assetIcon(assetPath, size: 20),
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.darkIconButtonBackground
+                    : AppColors.lightIconButtonBackground,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.lightBorder,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 3,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(child: _assetIcon(assetPath, size: 40)),
+            ),
             if (hasBadge)
               Positioned(
-                top: -2,
-                right: -2,
+                top: 4,
+                right: 4,
                 child: Container(
-                  width: 9,
-                  height: 9,
+                  width: 13,
+                  height: 13,
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkAccent
@@ -1184,12 +1277,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final barBgColor = isDark
-        ? const Color(0xFF25332A)
-        : const Color(0xFFE5DCCF);
-    final activeBgColor = isDark
-        ? AppColors.darkPrimary
-        : AppColors.lightPrimary;
     final activeIconColor = isDark
         ? const Color(0xFF1E2E24)
         : const Color(0xFFFFF8F0);
@@ -1200,15 +1287,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: barBgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: Colors.transparent,
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -1248,7 +1327,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
           // Floating Center Button
           Positioned(
-            top: -18,
+            top: 0,
             child: GestureDetector(
               onTap: () {
                 // Đang ở Trang Chủ
@@ -1257,14 +1336,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: activeBgColor,
+                      color: isDark
+                          ? const Color(0xFFF1E5D2)
+                          : const Color(0xFFFFF8EA),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF895B3D),
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: activeBgColor.withOpacity(0.35),
+                          color: const Color(0xFFD89A70).withOpacity(0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -1276,19 +1361,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           activeIconColor,
                           BlendMode.srcIn,
                         ),
-                        child: _assetIcon(AppAssets.iconHomeNav, size: 28),
+                        child: _assetIcon(AppAssets.iconHomeNav, size: 36),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.navHome,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.darkForeground
-                          : AppColors.lightForeground,
                     ),
                   ),
                 ],
@@ -1314,15 +1388,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          iconWidget,
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD89A70),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF895B3D), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.16),
+                  blurRadius: 3,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            child: Center(child: Transform.scale(scale: 1.65, child: iconWidget)),
           ),
         ],
       ),

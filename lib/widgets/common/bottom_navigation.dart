@@ -1,163 +1,112 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
+import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 import 'app_icon.dart';
 
 class BottomNavigation extends StatelessWidget {
   const BottomNavigation({super.key});
 
-  bool _isTabActive(String itemRoute, String? currentRoute) {
-    if (currentRoute == null) return false;
-
-    if (itemRoute == '/social' &&
-        (currentRoute == '/social' ||
-            currentRoute == '/friends' ||
-            currentRoute == '/home/quests')) {
-      return true;
+  bool _isActive(String route, String? currentRoute) {
+    if (route == '/social') {
+      return currentRoute == '/social' || currentRoute == '/friends';
     }
+    return currentRoute == route;
+  }
 
-    if (itemRoute == '/home' && currentRoute == '/home') return true;
-    if (itemRoute == '/shop' &&
-        (currentRoute == '/shop' || currentRoute == '/home/shop'))
-      return true;
-    if (itemRoute == '/inventory' &&
-        (currentRoute == '/inventory' || currentRoute == '/home/inventory'))
-      return true;
-    if (itemRoute == '/profile' &&
-        (currentRoute == '/profile' || currentRoute == '/home/profile'))
-      return true;
-
-    return currentRoute == itemRoute;
+  void _open(BuildContext context, String route, bool isActive) {
+    if (isActive) return;
+    Navigator.pushNamedAndRemoveUntil(context, route, (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
     final currentRoute = ModalRoute.of(context)?.settings.name;
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark
+        ? AppColors.darkNavigationIcon
+        : AppColors.lightNavigationIcon;
+    final itemColor = isDark
+        ? AppColors.darkNavigation
+        : AppColors.lightNavigation;
+    final activeColor = isDark
+        ? AppColors.darkNavigationActive
+        : AppColors.lightNavigationActive;
+    final borderColor = isDark
+        ? AppColors.darkBorder
+        : AppColors.lightBorder;
 
-    final navItems = [
-      {'to': '/home', 'icon': Icons.home_rounded, 'label': l10n.navHome},
-      {'to': '/shop', 'icon': Icons.storefront_rounded, 'label': l10n.navShop},
-      {
-        'to': '/inventory',
-        'icon': Icons.backpack_rounded,
-        'label': l10n.navBag,
-      },
-      {
-        'to': '/social',
-        'icon': Icons.track_changes_rounded,
-        'label': l10n.navQuest,
-      },
-      {
-        'to': '/profile',
-        'icon': Icons.person_rounded,
-        'label': l10n.navProfile,
-      },
+    final items = <({String route, String asset, IconData fallback})>[
+      (
+        route: '/social',
+        asset: AppAssets.iconFriendsNav,
+        fallback: Icons.groups_rounded,
+      ),
+      (
+        route: '/pvp',
+        asset: AppAssets.iconPvpBattle,
+        fallback: Icons.sports_martial_arts_rounded,
+      ),
+      (
+        route: '/home',
+        asset: AppAssets.iconHomeNav,
+        fallback: Icons.home_rounded,
+      ),
+      (
+        route: '/inventory',
+        asset: AppAssets.iconInventoryNav,
+        fallback: Icons.backpack_rounded,
+      ),
+      (
+        route: '/shop',
+        asset: AppAssets.iconShopNav,
+        fallback: Icons.storefront_rounded,
+      ),
     ];
 
     return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
-        height:
-            72, // Đặt cố định chiều cao để không bao giờ bị giãn tràn màn hình
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: colorScheme.outline.withOpacity(0.2),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 40,
-                    offset: const Offset(0, 20),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: navItems.map((item) {
-                  final route = item['to'] as String;
-                  final label = item['label'] as String;
-                  final icon = item['icon'] as IconData;
-
-                  final isActive = _isTabActive(route, currentRoute);
-
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (!isActive) {
-                          Navigator.pushReplacementNamed(context, route);
-                        }
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: Center(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          width: 54,
-                          height: 54, // Chiều cao ôm vừa icon và text
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? colorScheme.primary
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize
-                                .min, // Cực kỳ quan trọng để không bị giãn
-                            children: [
-                              AnimatedScale(
-                                scale: isActive ? 1.1 : 1.0,
-                                duration: const Duration(milliseconds: 300),
-                                child: AnimatedOpacity(
-                                  opacity: isActive ? 1 : 0.62,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: AppIcon(
-                                    icon,
-                                    size: 22,
-                                    color: isActive
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                label,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  height: 1.1,
-                                  fontWeight: isActive
-                                      ? FontWeight.bold
-                                      : FontWeight.w600,
-                                  color: isActive
-                                      ? colorScheme.onPrimary
-                                      : colorScheme.onSurfaceVariant,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.visible,
-                              ),
-                            ],
-                          ),
-                        ),
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(8, 4, 8, 10),
+      child: SizedBox(
+        height: 66,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: items.map((item) {
+            final active = _isActive(item.route, currentRoute);
+            return Semantics(
+              button: true,
+              selected: active,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _open(context, item.route, active),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: active ? activeColor : itemColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.14),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                  ),
+                  child: Center(
+                    child: AppIcon(
+                      item.fallback,
+                      asset: item.asset,
+                      size: 36,
+                      color: iconColor,
                     ),
-                  );
-                }).toList(),
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          }).toList(),
         ),
       ),
     );
