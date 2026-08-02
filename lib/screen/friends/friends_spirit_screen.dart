@@ -1,10 +1,10 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
 
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/friend_spirit_datasource.dart';
@@ -44,9 +44,8 @@ class _FriendSpiritScreenContent extends StatefulWidget {
       _FriendSpiritScreenContentState();
 }
 
-class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _glowController;
+class _FriendSpiritScreenContentState
+    extends State<_FriendSpiritScreenContent> {
   String activeTab = "stats";
 
   // Sử dụng getter để tự động thay đổi màu theo Light/Dark Theme
@@ -56,29 +55,12 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
   Color get energyColor => isDark ? AppColors.darkDew : AppColors.lightDew;
   Color get expColor => isDark ? AppColors.darkAccent : AppColors.lightAccent;
   Color get primaryColor => Theme.of(context).colorScheme.primary;
-  Color get glowColor =>
-      isDark ? AppColors.darkLuminaGlow : AppColors.lightLuminaGlow;
   Color get mutedColor => isDark ? AppColors.darkMuted : AppColors.lightMuted;
   Color get mutedFgColor =>
       isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
   Color get borderColor => Theme.of(context).colorScheme.outline;
   Color get cardColor => Theme.of(context).colorScheme.surface;
   Color get fgColor => Theme.of(context).colorScheme.onSurface;
-
-  @override
-  void initState() {
-    super.initState();
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _glowController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,43 +160,16 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
               child: _buildHeader(context, spiritData),
             ),
 
-            // Khu vực Tinh linh (Sprite) với hiệu ứng glow bám sát Figma
+            // Pet đứng tự do, đồng bộ với màn chi tiết Spirit của người dùng.
             Expanded(
-              flex: 4,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Glow Effect ngay sau lưng pet
-                  AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: glowColor.withOpacity(
-                                0.3 + (_glowController.value * 0.1),
-                              ),
-                              blurRadius: 80,
-                              spreadRadius: 20,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  // Pet Image (Không có background card)
-                  LuminaSprite(stageImage: spiritData.stageImage),
-                ],
+              flex: 3,
+              child: Center(
+                child: LuminaSprite(stageImage: spiritData.stageImage),
               ),
             ),
-
             // Khung chứa thông tin chi tiết (Dạng Bottom Card to)
             Expanded(
-              flex: 6,
+              flex: 5,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: _buildDetailsCard(context, spiritData),
@@ -250,197 +205,185 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
     BuildContext context,
     FriendSpiritResponse spiritData,
   ) {
-    String displayName = spiritData.petNickName.isNotEmpty
+    final l10n = AppLocalizations.of(context);
+    final displayName = spiritData.petNickName.isNotEmpty
         ? spiritData.petNickName
         : spiritData.petName;
 
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(32),
+        color: isDark
+            ? AppColors.darkCard.withValues(alpha: 0.96)
+            : AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.wood,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.woodDeep.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tên & Badge Level
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
-                child: Text(
-                  displayName,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: fgColor,
-                    letterSpacing: -0.5,
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: GameButtonLabel(
+                    displayName,
+                    fontSize: 19,
+                    color: AppColors.woodDeep,
+                    outlineColor: AppColors.creamLight,
+                    outlineWidth: 3,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 4,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: expColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.leafLight.withValues(alpha: 0.62),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppColors.wood.withValues(alpha: 0.65),
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppIcon(Icons.star, size: 14, color: expColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      ).friendSpiritLevel(spiritData.level),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: expColor,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  l10n.friendSpiritLevel(spiritData.level),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.oliveDeep,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Danh sách Tags
+          const SizedBox(height: 6),
           Wrap(
             spacing: 8,
-            runSpacing: 8,
-            children:
-                [
-                      _localizedStageName(
-                        spiritData.stageName,
-                        AppLocalizations.of(context),
-                      ),
-                    ]
-                    .map(
-                      (tag) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: mutedColor.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: mutedFgColor,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
+            runSpacing: 6,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.creamLight.withValues(alpha: 0.78),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppColors.wood.withValues(alpha: 0.65),
+                    width: 1.2,
+                  ),
+                ),
+                child: Text(
+                  _localizedStageName(spiritData.stageName, l10n),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.inkBrown,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-
-          // Thanh chuyển đổi Tab
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: mutedColor.withOpacity(0.5),
+              color: isDark
+                  ? AppColors.darkMuted
+                  : AppColors.authCard.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.wood,
+                width: 1.5,
+              ),
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => activeTab = "stats"),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: activeTab == "stats"
-                            ? isDark
-                                  ? const Color(0xFF5A6A5E)
-                                  : cardColor
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: activeTab == "stats" && !isDark
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        AppLocalizations.of(context).friendSpiritStatsTitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: activeTab == "stats" ? fgColor : mutedFgColor,
-                        ),
-                      ),
-                    ),
+                  child: _buildFriendTab(
+                    label: l10n.friendSpiritStatsTitle,
+                    active: activeTab == 'stats',
+                    onTap: () => setState(() => activeTab = 'stats'),
                   ),
                 ),
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => activeTab = "evolution"),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: activeTab == "evolution"
-                            ? isDark
-                                  ? const Color(0xFF5A6A5E)
-                                  : cardColor
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: activeTab == "evolution" && !isDark
-                            ? [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        AppLocalizations.of(context).friendSpiritEvolutionTitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: activeTab == "evolution"
-                              ? fgColor
-                              : mutedFgColor,
-                        ),
-                      ),
-                    ),
+                  child: _buildFriendTab(
+                    label: l10n.friendSpiritEvolutionTitle,
+                    active: activeTab == 'evolution',
+                    onTap: () => setState(() => activeTab = 'evolution'),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Nội dung Tab
+          const SizedBox(height: 8),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: activeTab == "stats"
+              child: activeTab == 'stats'
                   ? _buildStatsTab(spiritData)
                   : _buildEvolutionTab(spiritData),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFriendTab({
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: active ? AppColors.buttonGreen : Colors.transparent,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: active ? AppColors.woodDeep : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: active
+              ? GameButtonLabel(
+                  label,
+                  fontSize: 13,
+                  color: AppColors.buttonText,
+                  outlineColor: AppColors.woodDeep,
+                  outlineWidth: 2.5,
+                )
+              : Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.woodDeep,
+                  ),
+                ),
+        ),
       ),
     );
   }
@@ -461,7 +404,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             {'current': spiritData.currentExp, 'max': spiritData.maxExp},
             asset: AppAssets.iconLevelUp,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 7),
           _buildStatRow(
             AppLocalizations.of(context).friendSpiritBonding,
             Icons.auto_awesome,
@@ -469,7 +412,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             {'current': spiritData.currentBond, 'max': spiritData.maxBond},
             asset: AppAssets.iconBond,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 7),
           _buildStatRow(
             AppLocalizations.of(context).friendSpiritEnergy,
             Icons.bolt,
@@ -477,7 +420,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             {'current': spiritData.currentEnergy, 'max': spiritData.maxEnergy},
             asset: AppAssets.iconEnergy,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 7),
           _buildStatRow(
             AppLocalizations.of(context).friendSpiritLifeForce,
             Icons.spa_outlined,
@@ -489,7 +432,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             asset: AppAssets.iconLifeForce,
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 12),
 
           // THÀNH TÍCH NỔI BẬT UI
           Text(
@@ -497,7 +440,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: mutedFgColor,
+              color: AppColors.inkBrown,
               letterSpacing: 1.2,
             ),
           ),
@@ -505,23 +448,31 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: mutedColor.withOpacity(0.5),
+              color: AppColors.authCard.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.wood.withValues(alpha: 0.7),
+                width: 1.4,
+              ),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 64,
+                  height: 64,
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: expColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.creamLight.withValues(alpha: 0.78),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.wood.withValues(alpha: 0.65),
+                      width: 1.2,
+                    ),
                   ),
-                  child: AppIcon(
-                    Icons.star_rounded,
-                    asset: AppAssets.iconLevelUp,
-                    color: expColor,
-                    size: 28,
+                  child: PetRuntimePreview(
+                    assetReference: spiritData.stageImage,
+                    compact: true,
+                    height: 56,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -534,7 +485,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: fgColor,
+                          color: AppColors.inkDark,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -543,7 +494,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: mutedFgColor,
+                          color: AppColors.inkBrown,
                         ),
                       ),
                     ],
@@ -564,56 +515,87 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
     Map<String, dynamic> statData, {
     String? asset,
   }) {
-    double percent = (statData['max'] > 0)
-        ? (statData['current'] / statData['max'])
-        : 0;
-    percent = percent.clamp(0.0, 1.0);
+    final current = (statData['current'] as num?)?.toInt() ?? 0;
+    final maximum = (statData['max'] as num?)?.toInt() ?? 0;
+    final safeMaximum = maximum <= 0 ? 1 : maximum;
+    final progress = (current / safeMaximum).clamp(0.0, 1.0);
 
-    return Column(
+    return Row(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+        SizedBox(
+          width: 96,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.inkBrown,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SizedBox(
+            height: 28,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
-                AppIcon(icon, asset: asset, size: 18, color: mutedFgColor),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: mutedFgColor,
+                Positioned(
+                  left: 0,
+                  right: 12,
+                  child: Container(
+                    height: 17,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: AppColors.creamLight,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.woodDeep, width: 1.5),
+                    ),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: progress),
+                      duration: const Duration(milliseconds: 700),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, _) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: value,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  right: 12,
+                  child: Center(
+                    child: Text(
+                      '$current/$maximum',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.inkDark,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  right: -2,
+                  child: CustomPaint(
+                    size: Size(29, 29),
+                    painter: _FriendProgressLeafPainter(),
                   ),
                 ),
               ],
-            ),
-            Text(
-              "${statData['current']}/${statData['max']}",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: fgColor,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 6, // Thanh mỏng nhẹ bám sát thiết kế Figma
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: mutedColor,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          alignment: Alignment.centerLeft,
-          child: FractionallySizedBox(
-            widthFactor: percent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
             ),
           ),
         ),
@@ -622,167 +604,64 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
   }
 
   Widget _buildEvolutionTab(FriendSpiritResponse spiritData) {
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
-      key: const ValueKey("evolution"),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(
-              context,
-            ).friendSpiritEvolutionStages.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: mutedFgColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: _buildDynamicEvolutionStages(spiritData),
-          ),
-          const SizedBox(height: 32),
-
-          // Lịch sử tiến hóa
-          Text(
-            AppLocalizations.of(context).friendSpiritMilestones.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: mutedFgColor,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildHistoryTimelineRow(
-            AppLocalizations.of(
-              context,
-            ).friendSpiritReachLevel(spiritData.level),
-            AppLocalizations.of(context).friendSpiritRecently,
-            Icons.security,
-            0.6,
-            asset: AppAssets.iconLevelUp,
-          ),
-          const SizedBox(height: 16),
-          _buildHistoryTimelineRow(
-            AppLocalizations.of(context).friendSpiritBeginJourney,
-            AppLocalizations.of(context).friendSpiritInit,
-            Icons.emoji_events,
-            0.3,
-            asset: AppAssets.iconAchievement,
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEvolutionNode(
-    String label,
-    bool isCompleted,
-    Color color, {
-    bool isActive = false,
-  }) {
-    return Column(
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? (isActive ? color : color.withOpacity(0.15))
-                    : mutedColor,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isCompleted
-                      ? (isActive ? color.withOpacity(0.2) : color)
-                      : borderColor,
-                  width: isActive ? 4 : 2,
-                  style: isCompleted ? BorderStyle.solid : BorderStyle.none,
-                ),
-                boxShadow: isActive
-                    ? [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)]
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: isCompleted && !isActive
-                  ? Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: color,
-                      ),
-                    )
-                  : (isActive
-                        ? Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            ),
-                          )
-                        : Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: mutedFgColor,
-                            ),
-                          )),
-            ),
-            if (isCompleted && !isActive)
-              Positioned(
-                bottom: -2,
-                right: -2,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: AppIcon(
-                    Icons.check,
-                    size: 8,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    useAsset: false,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConnectingLine(
-    bool isCompleted,
-    Color color, {
-    double progress = 1.0,
-  }) {
-    return Expanded(
+      key: const ValueKey('evolution'),
       child: Container(
-        margin: const EdgeInsets.only(top: 18, left: 8, right: 8),
-        height: 4,
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isCompleted ? color.withOpacity(0.3) : mutedColor,
-          borderRadius: BorderRadius.circular(2),
+          color: AppColors.authCard.withValues(alpha: 0.88),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.wood, width: 1.5),
         ),
-        alignment: Alignment.centerLeft,
-        child: FractionallySizedBox(
-          widthFactor: progress,
-          child: Container(
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.friendSpiritEvolutionStages.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: AppColors.inkBrown,
+                letterSpacing: 1.1,
+              ),
             ),
-          ),
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _buildDynamicEvolutionStages(spiritData),
+            ),
+            const SizedBox(height: 22),
+            const Divider(color: AppColors.wood, height: 1),
+            const SizedBox(height: 16),
+            Text(
+              l10n.friendSpiritMilestones.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: AppColors.inkBrown,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildHistoryTimelineRow(
+              l10n.friendSpiritReachLevel(spiritData.level),
+              l10n.friendSpiritRecently,
+              Icons.security,
+              0.6,
+              asset: AppAssets.iconLevelUp,
+            ),
+            const SizedBox(height: 7),
+            _buildHistoryTimelineRow(
+              l10n.friendSpiritBeginJourney,
+              l10n.friendSpiritInit,
+              Icons.emoji_events,
+              0.3,
+              asset: AppAssets.iconAchievement,
+              isLast: true,
+            ),
+          ],
         ),
       ),
     );
@@ -841,7 +720,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: fgColor,
+                      color: AppColors.inkDark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -850,7 +729,7 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: mutedFgColor,
+                      color: AppColors.inkBrown,
                     ),
                   ),
                 ],
@@ -873,57 +752,181 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
   }
 
   List<Widget> _buildDynamicEvolutionStages(FriendSpiritResponse spiritData) {
-    // Walkamon defined stages
-    final stages = [
-      {'name': 'Mầm', 'keyWord': 'Mầm'},
-      {'name': 'Chồi', 'keyWord': 'Chồi'},
-      {'name': 'Lá', 'keyWord': 'Lá'},
+    final l10n = AppLocalizations.of(context);
+    final reference = parsePetRuntimeAssetReference(spiritData.stageImage);
+    final affinity =
+        reference?.affinityCode ?? _inferAffinity(spiritData.stageName);
+    final currentIndex = affinity == 'sprout'
+        ? 0
+        : (reference?.stageNo ?? 1) >= 2
+        ? 2
+        : 1;
+    final nodes = [
+      (label: l10n.friendSpiritStageSeedling, affinity: 'sprout', stage: 0),
+      (
+        label: l10n.friendSpiritStageSprout,
+        affinity: affinity == 'sprout' ? 'warm_sun' : affinity,
+        stage: 1,
+      ),
+      (
+        label: l10n.friendSpiritStageLeaf,
+        affinity: affinity == 'sprout' ? 'warm_sun' : affinity,
+        stage: 2,
+      ),
     ];
 
-    int currentIndex = stages.indexWhere(
-      (s) => spiritData.stageName.toLowerCase().contains(
-        s['keyWord']!.toLowerCase(),
-      ),
-    );
-
-    if (currentIndex == -1) currentIndex = 0;
-
-    List<Widget> children = [];
-    for (int i = 0; i < stages.length; i++) {
-      bool isPastOrActive = i <= currentIndex;
-      bool isActive = i == currentIndex;
-      Color nodeColor = isPastOrActive ? primaryColor : mutedFgColor;
-
+    final children = <Widget>[];
+    for (var index = 0; index < nodes.length; index++) {
+      final node = nodes[index];
       children.add(
-        _buildEvolutionNode(
-          stages[i]['name']!,
-          isPastOrActive,
-          nodeColor,
-          isActive: isActive,
+        Expanded(
+          child: _buildEvolutionPetNode(
+            label: node.label,
+            affinity: node.affinity,
+            stageNo: node.stage,
+            completed: index <= currentIndex,
+            active: index == currentIndex,
+          ),
         ),
       );
-
-      if (i < stages.length - 1) {
-        bool lineCompleted = i < currentIndex;
-        double progress = 0.0;
-        if (isActive && spiritData.maxExp > 0) {
-          progress = (spiritData.currentExp / spiritData.maxExp).clamp(
-            0.0,
-            1.0,
-          );
-        }
-
-        Color lineColor = (lineCompleted || isActive)
-            ? primaryColor
-            : mutedFgColor;
+      if (index < nodes.length - 1) {
         children.add(
-          _buildConnectingLine(lineCompleted, lineColor, progress: progress),
+          Container(
+            width: 22,
+            height: 3,
+            margin: const EdgeInsets.only(top: 32),
+            decoration: BoxDecoration(
+              color: index < currentIndex
+                  ? AppColors.buttonGreen
+                  : AppColors.wood.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
         );
       }
     }
-
     return children;
   }
+
+  Widget _buildEvolutionPetNode({
+    required String label,
+    required String affinity,
+    required int stageNo,
+    required bool completed,
+    required bool active,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 66,
+          height: 66,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: active
+                ? AppColors.leafLight.withValues(alpha: 0.72)
+                : AppColors.creamLight.withValues(alpha: 0.86),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: active ? AppColors.woodDeep : AppColors.wood,
+              width: active ? 2.2 : 1.2,
+            ),
+            boxShadow: active
+                ? [
+                    BoxShadow(
+                      color: AppColors.woodDeep.withValues(alpha: 0.16),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Opacity(
+            opacity: completed ? 1 : 0.5,
+            child: PetRuntimePreview(
+              affinityCode: affinity,
+              stageNo: stageNo,
+              animationType: 'idle',
+              compact: true,
+              height: 58,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: active ? FontWeight.w900 : FontWeight.w700,
+            color: active ? AppColors.oliveDeep : AppColors.inkBrown,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _inferAffinity(String stageName) {
+    final normalized = stageName.toLowerCase();
+    if (normalized.contains('bình minh') || normalized.contains('dawn')) {
+      return 'dawn';
+    }
+    if (normalized.contains('ánh trăng') || normalized.contains('moon')) {
+      return 'moonlight';
+    }
+    if (normalized.contains('nắng') || normalized.contains('warm')) {
+      return 'warm_sun';
+    }
+    return 'sprout';
+  }
+}
+
+class _FriendProgressLeafPainter extends CustomPainter {
+  const _FriendProgressLeafPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final leaf = Path()
+      ..moveTo(size.width * 0.13, size.height * 0.76)
+      ..cubicTo(
+        size.width * 0.18,
+        size.height * 0.20,
+        size.width * 0.68,
+        size.height * 0.04,
+        size.width * 0.90,
+        size.height * 0.10,
+      )
+      ..cubicTo(
+        size.width * 0.95,
+        size.height * 0.46,
+        size.width * 0.76,
+        size.height * 0.85,
+        size.width * 0.13,
+        size.height * 0.76,
+      )
+      ..close();
+    canvas.drawPath(leaf, Paint()..color = AppColors.leafBright);
+    canvas.drawPath(
+      leaf,
+      Paint()
+        ..color = AppColors.oliveDeep
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.13, size.height * 0.76),
+      Offset(size.width * 0.78, size.height * 0.23),
+      Paint()
+        ..color = AppColors.oliveDeep
+        ..strokeWidth = 1.2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class LuminaSprite extends StatelessWidget {
@@ -932,24 +935,28 @@ class LuminaSprite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconColor = isDark ? AppColors.darkLife : AppColors.lightLife;
     final imagePath = stageImage.trim();
     final imageScheme = Uri.tryParse(imagePath)?.scheme.toLowerCase();
+    final isRuntimeReference = imageScheme == 'asset';
     final isNetworkImage = imageScheme == 'http' || imageScheme == 'https';
-    final fallback = AppIcon(
+    final fallback = const AppIcon(
       Icons.emoji_nature_rounded,
       asset: AppAssets.iconSpiritNav,
-      size: 100,
-      color: iconColor,
+      size: 112,
+      color: AppColors.leafShadow,
     );
 
     return SizedBox(
-      width: 200,
-      height: 200,
-      // Không còn background thẻ, ảnh đứng tự do
+      width: 230,
+      height: 210,
       child: Center(
-        child: imagePath.isNotEmpty
+        child: isRuntimeReference
+            ? PetRuntimePreview(
+                assetReference: imagePath,
+                compact: true,
+                height: 178,
+              )
+            : imagePath.isNotEmpty
             ? (isNetworkImage
                   ? Image.network(
                       imagePath,

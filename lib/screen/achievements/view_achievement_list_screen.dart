@@ -499,293 +499,326 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
   }
 
   Widget _buildUnlockedView(ThemeData theme) {
+    final l10n = AppLocalizations.of(context);
+    final slotCount = _claimedAchievements.length < 20
+        ? 20
+        : _claimedAchievements.length;
+
     return ListView(
+      padding: const EdgeInsets.only(bottom: 12),
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
             color: AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppColors.wood, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.woodDeep.withValues(alpha: 0.18),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Column(
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: const Color(0xFFFFF8E1),
-                child: const AppIcon(
-                  Icons.emoji_events_rounded,
-                  size: 34,
-                  color: AppColors.gold,
-                ),
+              const AppIcon(
+                Icons.emoji_events_rounded,
+                asset: null,
+                size: 42,
+                color: AppColors.gold,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
+              GameButtonLabel(
+                l10n.achievementsCollection,
+                fontSize: 19,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.authCard,
+                outlineWidth: 3,
+              ),
+              const SizedBox(height: 3),
               Text(
-                AppLocalizations.of(context).achievementsCollection,
+                l10n.achievementsCollected(_claimedAchievements.length),
                 style: const TextStyle(
-                  color: AppColors.woodDeep,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(
-                  context,
-                ).achievementsCollected(_claimedAchievements.length),
-                style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.outlineBrown,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _claimedAchievements.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.9,
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.leafLight.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.oliveDeep, width: 2),
           ),
-          itemBuilder: (context, index) {
-            final item = _claimedAchievements[index];
-            return InkWell(
-              onTap: () => setState(
-                () => _selectedAchievement = {
-                  'achievementId': item.achievementId,
-                  'title': item.title,
-                  'desc': item.description,
-                  'iconUrl': item.iconUrl,
-                  'isLocked': false,
-                  'canClaim': item.canClaim,
-                  'date': item.unlockedAt ?? '',
-                  'claimedAt': item.claimedAt ?? '',
-                },
-              ),
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.authCard.withValues(alpha: 0.97),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.wood, width: 1.5),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: slotCount,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, index) {
+              final hasItem = index < _claimedAchievements.length;
+              final item = hasItem ? _claimedAchievements[index] : null;
+              return Material(
+                color: AppColors.authCard.withValues(
+                  alpha: hasItem ? 0.97 : 0.55,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppColors.creamLight,
-                      child: item.iconUrl != null && item.iconUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
-                              child: Image.network(
-                                item.iconUrl!,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const AppIcon(Icons.emoji_events_rounded),
-                              ),
-                            )
-                          : const AppIcon(Icons.emoji_events_rounded, size: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      item.title,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.woodDeep,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  onTap: item == null
+                      ? null
+                      : () => setState(
+                          () => _selectedAchievement = {
+                            'achievementId': item.achievementId,
+                            'title': item.title,
+                            'desc': item.description,
+                            'iconUrl': item.iconUrl,
+                            'isLocked': false,
+                            'canClaim': item.canClaim,
+                            'date': item.unlockedAt ?? '',
+                            'claimedAt': item.claimedAt ?? '',
+                          },
+                        ),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: hasItem
+                            ? AppColors.wood
+                            : AppColors.wood.withValues(alpha: 0.38),
+                        width: hasItem ? 1.5 : 1,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                    child: item == null
+                        ? const SizedBox.expand()
+                        : (item.iconUrl?.isNotEmpty == true
+                              ? Image.network(
+                                  item.iconUrl!,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => const AppIcon(
+                                    Icons.emoji_events_rounded,
+                                    size: 38,
+                                    color: AppColors.gold,
+                                  ),
+                                )
+                              : const AppIcon(
+                                  Icons.emoji_events_rounded,
+                                  size: 38,
+                                  color: AppColors.gold,
+                                )),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
   Widget _buildLockedView(ThemeData theme, bool isDark) {
-    return ListView(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.97),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.wood, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.woodDeep.withValues(alpha: 0.18),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppColors.parchment,
-                child: const AppIcon(
-                  Icons.lock_rounded,
-                  size: 34,
-                  color: AppColors.outlineBrown,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                AppLocalizations.of(context).achievementsGoals,
-                style: const TextStyle(
-                  color: AppColors.woodDeep,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(
-                  context,
-                ).achievementsLockedCount(_unclaimedAchievements.length),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.outlineBrown,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        ..._unclaimedAchievements.map((item) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: InkWell(
-              onTap: () => setState(
-                () => _selectedAchievement = {
-                  'achievementId': item.achievementId,
-                  'title': item.title,
-                  'desc': item.description,
-                  'iconUrl': item.iconUrl,
-                  'isLocked': !item.isUnlocked,
-                  'date': item.unlockedAt ?? '',
-                  'claimedAt': item.claimedAt ?? '',
-                  'progress': item.progressValue,
-                  'target': item.targetValue,
-                  'reward': item.walletAmount,
-                  'canClaim': item.canClaim,
-                },
-              ),
-              borderRadius: BorderRadius.circular(22),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.authCard.withValues(alpha: 0.97),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.wood, width: 1.6),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: AppColors.creamLight,
-                      child: item.isUnlocked
-                          ? const AppIcon(
-                              Icons.emoji_events_rounded,
-                              color: AppColors.gold,
-                            )
-                          : const AppIcon(
-                              Icons.lock_rounded,
-                              color: AppColors.outlineBrown,
-                            ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.title,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.woodDeep,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.description,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.outlineBrown,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(999),
-                                  child: Builder(
-                                    builder: (context) {
-                                      final completed =
-                                          item.targetValue > 0 &&
-                                          item.progressValue >=
-                                              item.targetValue;
-                                      final progressValue = item.targetValue > 0
-                                          ? item.progressValue /
-                                                item.targetValue
-                                          : 0.0;
-                                      final activeColor = completed
-                                          ? AppColors.buttonGreen
-                                          : AppColors.creamDeep;
+    final l10n = AppLocalizations.of(context);
+    final list = _unclaimedAchievements;
 
-                                      return LinearProgressIndicator(
-                                        value: progressValue.clamp(0.0, 1.0),
-                                        minHeight: 8,
-                                        backgroundColor: AppColors.parchment,
-                                        color: activeColor,
-                                      );
-                                    },
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 22, bottom: 4),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.leafLight.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 40, 12, 10),
+              decoration: BoxDecoration(
+                color: AppColors.authCard.withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.wood, width: 1.5),
+              ),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                physics: const BouncingScrollPhysics(),
+                itemCount: list.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final item = list[index];
+                  final completed =
+                      item.targetValue > 0 &&
+                      item.progressValue >= item.targetValue;
+                  final progressValue = item.targetValue > 0
+                      ? item.progressValue / item.targetValue
+                      : 0.0;
+                  return InkWell(
+                    onTap: () => setState(
+                      () => _selectedAchievement = {
+                        'achievementId': item.achievementId,
+                        'title': item.title,
+                        'desc': item.description,
+                        'iconUrl': item.iconUrl,
+                        'isLocked': !item.isUnlocked,
+                        'date': item.unlockedAt ?? '',
+                        'claimedAt': item.claimedAt ?? '',
+                        'progress': item.progressValue,
+                        'target': item.targetValue,
+                        'reward': item.walletAmount,
+                        'canClaim': item.canClaim,
+                      },
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: completed
+                            ? AppColors.leafLight.withValues(alpha: 0.72)
+                            : AppColors.authCard,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: completed
+                              ? AppColors.oliveDeep
+                              : AppColors.wood,
+                          width: 1.8,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.creamLight,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.wood,
+                                width: 1.3,
+                              ),
+                            ),
+                            child:
+                                item.isUnlocked &&
+                                    item.iconUrl?.isNotEmpty == true
+                                ? Image.network(
+                                    item.iconUrl!,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, _, _) => const AppIcon(
+                                      Icons.emoji_events_rounded,
+                                      color: AppColors.gold,
+                                    ),
+                                  )
+                                : AppIcon(
+                                    item.isUnlocked
+                                        ? Icons.emoji_events_rounded
+                                        : Icons.star_border_rounded,
+                                    color: item.isUnlocked
+                                        ? AppColors.gold
+                                        : AppColors.woodLight,
+                                    size: 28,
+                                  ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.inkDark,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${_formatCompact(item.progressValue)}/${_formatCompact(item.targetValue)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.outlineBrown,
+                                const SizedBox(height: 3),
+                                Text(
+                                  item.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.outlineBrown,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 7),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        child: LinearProgressIndicator(
+                                          value: progressValue.clamp(0.0, 1.0),
+                                          minHeight: 8,
+                                          backgroundColor: AppColors.parchment,
+                                          color: completed
+                                              ? AppColors.buttonGreen
+                                              : AppColors.goldLight,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${_formatCompact(item.progressValue)}/${_formatCompact(item.targetValue)}',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.outlineBrown,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-          );
-        }).toList(),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 44,
+          right: 44,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.woodLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.woodDeep, width: 2),
+            ),
+            child: GameButtonLabel(
+              l10n.achievementsGoals,
+              fontSize: 15,
+              color: AppColors.buttonText,
+              outlineColor: AppColors.woodDeep,
+              outlineWidth: 2.5,
+            ),
+          ),
+        ),
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/pet_evolution_models.dart';
@@ -185,9 +186,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+              color: AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: primary.withOpacity(0.18)),
+              border: Border.all(color: AppColors.wood, width: 1.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,9 +288,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+              color: AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: primary.withOpacity(0.16)),
+              border: Border.all(color: AppColors.wood, width: 1.5),
             ),
             child: widget.isLoading
                 ? const Center(
@@ -471,81 +472,59 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     required bool canEvolve,
     required bool hasNextStage,
   }) {
-    final theme = Theme.of(context);
     final isEnabled =
         !widget.isSubmitting &&
         canEvolve &&
         hasNextStage &&
         widget.onEvolve != null;
 
-    return SizedBox(
-      width: double.infinity,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: isEnabled
-              ? LinearGradient(
-                  colors: [primary, primary.withOpacity(0.8)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+    return Material(
+      color: isEnabled ? AppColors.buttonGreen : AppColors.buttonSecondary,
+      shape: const StadiumBorder(
+        side: BorderSide(color: AppColors.woodDeep, width: 2),
+      ),
+      child: InkWell(
+        onTap: isEnabled ? _handleEvolveClick : null,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.isSubmitting)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.buttonText,
+                  ),
                 )
-              : null,
-          color: isEnabled ? null : theme.colorScheme.surfaceVariant,
-          boxShadow: isEnabled
-              ? [
-                  BoxShadow(
-                    color: primary.withOpacity(0.35),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: isEnabled ? _handleEvolveClick : null,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.isSubmitting)
-                    const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  else
-                    AppIcon(
-                      Icons.auto_awesome_rounded,
-                      asset: AppAssets.iconUpgrade,
-                      size: 18,
-                      color: isEnabled
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface.withOpacity(0.4),
-                      tintAsset: !isEnabled,
-                    ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.isSubmitting
-                        ? l10n.spiritEvolving
-                        : l10n.spiritEvolveNow,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: isEnabled
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface.withOpacity(0.4),
-                    ),
-                  ),
-                ],
+              else
+                AppIcon(
+                  Icons.auto_awesome_rounded,
+                  asset: AppAssets.iconUpgrade,
+                  size: 21,
+                  color: isEnabled
+                      ? AppColors.buttonText
+                      : AppColors.outlineBrown,
+                  tintAsset: !isEnabled,
+                ),
+              const SizedBox(width: 8),
+              GameButtonLabel(
+                widget.isSubmitting
+                    ? l10n.spiritEvolving
+                    : l10n.spiritEvolveNow,
+                fontSize: 14,
+                color: isEnabled
+                    ? AppColors.buttonText
+                    : AppColors.outlineBrown,
+                outlineColor: isEnabled
+                    ? AppColors.woodDeep
+                    : AppColors.authCard,
+                outlineWidth: 2.5,
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -562,11 +541,14 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.2,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GameButtonLabel(
+        label,
+        fontSize: 15,
+        color: AppColors.woodDeep,
+        outlineColor: AppColors.authCard,
+        outlineWidth: 3,
       ),
     );
   }
@@ -663,23 +645,17 @@ class _StageNode extends StatelessWidget {
           },
         ),
         const SizedBox(height: 6),
-        Text(
+        GameButtonLabel(
           title,
-          textAlign: TextAlign.center,
+          fontSize: 10,
+          color: isActive ? AppColors.woodDeep : AppColors.outlineBrown,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 2,
           maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
-            color: isActive
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurface.withOpacity(0.55),
-            height: 1.3,
-          ),
         ),
       ],
     );
   }
-
 }
 
 // ─────────────────────────────────────────────────────────
@@ -805,57 +781,49 @@ class _ConditionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: ok ? primary.withOpacity(0.06) : theme.colorScheme.surface,
+        color: ok
+            ? AppColors.leafLight.withValues(alpha: 0.65)
+            : AppColors.authCard.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ok
-              ? primary.withOpacity(0.3)
-              : theme.colorScheme.outlineVariant,
+          color: ok ? AppColors.oliveDeep : AppColors.wood,
+          width: 1.5,
         ),
       ),
       child: Row(
         children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: AppIcon(
-              ok ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-              key: ValueKey(ok),
-              color: ok
-                  ? primary
-                  : theme.colorScheme.onSurface.withOpacity(0.45),
-              size: 22,
-            ),
+          Icon(
+            ok ? Icons.check_circle_rounded : Icons.star_border_rounded,
+            color: ok ? AppColors.success : AppColors.woodLight,
+            size: 25,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.inkBrown,
               ),
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: ok
-                  ? primary.withOpacity(0.12)
-                  : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+              color: AppColors.creamLight,
               borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppColors.wood.withValues(alpha: 0.65)),
             ),
             child: Text(
               value,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: ok
-                    ? primary
-                    : theme.colorScheme.onSurface.withOpacity(0.6),
-                fontWeight: FontWeight.w800,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: AppColors.oliveDeep,
               ),
             ),
           ),
@@ -1024,9 +992,9 @@ class _PreviewSection extends StatelessWidget {
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+            color: AppColors.authCard.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: primary.withOpacity(0.1)),
+            border: Border.all(color: AppColors.wood, width: 1.5),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1061,14 +1029,24 @@ class _PreviewSection extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            width: 50,
-                            height: 50,
+                            width: 54,
+                            height: 54,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
+                              color: AppColors.creamLight,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: primary.withOpacity(0.3),
+                                color: AppColors.wood,
+                                width: 1.6,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.woodDeep.withValues(
+                                    alpha: 0.14,
+                                  ),
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: ClipOval(
                               child: PetRuntimePreview(
@@ -1076,7 +1054,7 @@ class _PreviewSection extends StatelessWidget {
                                 stageNo: stage.stageNo,
                                 animationType: 'idle',
                                 compact: true,
-                                height: 50,
+                                height: 54,
                               ),
                             ),
                           ),
@@ -1156,7 +1134,7 @@ class _EvolutionOptionsSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: AppColors.authCard.withValues(alpha: 0.94),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: primary.withOpacity(0.2)),
                   ),

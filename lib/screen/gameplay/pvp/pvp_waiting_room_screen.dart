@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../providers/pvp_provider.dart';
 import '../../../widgets/common/game_back_button.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
@@ -28,6 +29,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isEnglish = Localizations.localeOf(context).languageCode == 'en';
+    String localized(String vi, String en) => isEnglish ? en : vi;
     final mapAsset = PvpAssetResolver.mapForNow(
       pvpProvider.estimatedServerNow(),
     );
@@ -39,6 +42,15 @@ class PvPWaitingRoomScreen extends StatelessWidget {
             rawAffinity.toLowerCase() != affinityCode.toLowerCase()
         ? rawAffinity
         : PvpAssetResolver.affinityDisplayName(affinityCode);
+    final displayAffinityLabel = isEnglish
+        ? <String, String>{
+                'warm_sun': 'Warm Sun',
+                'dawn': 'Dawn',
+                'moonlight': 'Moonlight',
+                'sprout': 'Sprout',
+              }[affinityCode.toLowerCase()] ??
+              affinityLabel
+        : affinityLabel;
 
     return Stack(
       fit: StackFit.expand,
@@ -51,7 +63,12 @@ class PvPWaitingRoomScreen extends StatelessWidget {
         ),
         Container(color: Colors.black.withOpacity(0.28)),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            MediaQuery.paddingOf(context).top + 8,
+            20,
+            16,
+          ),
           child: Column(
             children: [
               Row(
@@ -75,12 +92,21 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         clipBehavior: Clip.none,
                         children: [
                           IconButton.filledTonal(
-                            tooltip: 'Lời mời',
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.authCard,
+                              side: const BorderSide(
+                                color: AppColors.woodDeep,
+                                width: 2,
+                              ),
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(8),
+                            ),
+                            tooltip: localized('Lời mời', 'Invites'),
                             onPressed: onShowIncomingChallenges,
                             icon: Image.asset(
                               AppAssets.pvpIconInviteFriend,
-                              width: 22,
-                              height: 22,
+                              width: 32,
+                              height: 32,
                             ),
                           ),
                           if (pvpProvider.incomingInvites.isNotEmpty)
@@ -107,12 +133,21 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       IconButton.filledTonal(
-                        tooltip: 'Lịch sử',
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.authCard,
+                          side: const BorderSide(
+                            color: AppColors.woodDeep,
+                            width: 2,
+                          ),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                        tooltip: localized('Lịch sử', 'History'),
                         onPressed: onShowMatchHistory,
                         icon: Image.asset(
                           AppAssets.pvpIconBattleHistory,
-                          width: 22,
-                          height: 22,
+                          width: 32,
+                          height: 32,
                         ),
                       ),
                     ],
@@ -207,25 +242,25 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                               ),
                               const Divider(height: 24),
                               _buildStatRow(
-                                'Bước đi hôm nay:',
+                                localized('Bước đi hôm nay:', 'Today steps:'),
                                 '${pvpProvider.todaySteps}',
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                'Hệ tinh linh:',
-                                affinityLabel,
+                                localized('Hệ tinh linh:', 'Spirit affinity:'),
+                                displayAffinityLabel,
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                'Năng lượng:',
+                                localized('Năng lượng:', 'Energy:'),
                                 '${pvpProvider.currentEnergy}/${pvpProvider.maxEnergy}',
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                'Độ gắn kết:',
+                                localized('Độ gắn kết:', 'Bond:'),
                                 '${pvpProvider.currentBond}',
                                 theme,
                               ),
@@ -242,7 +277,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
-                    'Đang tìm đối thủ...',
+                    localized(
+                      'Đang tìm đối thủ...',
+                      'Searching for an opponent...',
+                    ),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
@@ -252,7 +290,15 @@ class PvPWaitingRoomScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF6C95D),
+                    foregroundColor: AppColors.woodDeep,
+                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
                   onPressed:
                       pvpProvider.matchmakingState ==
                           PvpMatchmakingState.waiting
@@ -265,21 +311,19 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                                 PvpMatchmakingState.cancelled
                       ? onStartMatchmaking
                       : null,
-                  icon: Image.asset(
-                    AppAssets.pvpIconAutoBattle,
-                    width: 24,
-                    height: 24,
-                  ),
-                  label: Text(
+                  child: Text(
                     pvpProvider.matchmakingState == PvpMatchmakingState.waiting
-                        ? 'Hủy tìm trận'
+                        ? localized('Hủy tìm trận', 'Cancel search')
                         : pvpProvider.matchmakingState ==
                               PvpMatchmakingState.connecting
-                        ? 'Đang kết nối...'
+                        ? localized('Đang kết nối...', 'Connecting...')
                         : pvpProvider.matchmakingState ==
                               PvpMatchmakingState.countdown
-                        ? 'Đang chuẩn bị...'
-                        : 'Ghép trận ngẫu nhiên',
+                        ? localized('Đang chuẩn bị...', 'Preparing...')
+                        : localized(
+                            'Ghép trận ngẫu nhiên',
+                            'Find random match',
+                          ),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -291,7 +335,15 @@ class PvPWaitingRoomScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppColors.authCard,
+                    foregroundColor: AppColors.woodDeep,
+                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
                   onPressed: onInviteFriend == null
                       ? null
                       : () {
@@ -309,13 +361,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                                 onInviteFriend!(userId, username),
                           );
                         },
-                  icon: Image.asset(
-                    AppAssets.pvpIconChallenge,
-                    width: 24,
-                    height: 24,
-                  ),
-                  label: const Text(
-                    'Thách đấu với bạn bè',
+                  child: Text(
+                    localized('Thách đấu với bạn bè', 'Challenge a friend'),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),

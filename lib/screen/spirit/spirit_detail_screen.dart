@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
@@ -264,23 +262,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                   ),
                 ),
               ),
-              Positioned(
-                top: -40,
-                left: -60,
-                child: ClipRRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-                    child: Container(
-                      width: 280,
-                      height: 280,
-                      decoration: BoxDecoration(
-                        color: primary.withOpacity(0.16),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+
               SafeArea(
                 child: Column(
                   children: [
@@ -317,11 +299,11 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                               child: Column(
                                 children: [
                                   Expanded(
-                                    flex: 2,
+                                    flex: 3,
                                     child: Center(
                                       child: Container(
-                                        width: 220,
-                                        height: 220,
+                                        width: 250,
+                                        height: 250,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           gradient: RadialGradient(
@@ -355,19 +337,16 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                         ?.animationType ??
                                                     gameState.animationType,
                                                 compact: true,
-                                                height: 112,
+                                                height: 148,
                                               ),
                                               const SizedBox(height: 6),
-                                              Text(
+                                              GameButtonLabel(
                                                 spiritName,
-                                                style: theme
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: primary,
-                                                    ),
+                                                fontSize: 16,
+                                                color: AppColors.woodDeep,
+                                                outlineColor:
+                                                    AppColors.authCard,
+                                                outlineWidth: 3.5,
                                               ),
                                             ],
                                           ),
@@ -375,28 +354,38 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 7),
                                   Expanded(
                                     flex: 4,
                                     child: Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.all(14),
+                                      padding: const EdgeInsets.fromLTRB(
+                                        18,
+                                        10,
+                                        18,
+                                        10,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface
-                                            .withOpacity(0.92),
-                                        borderRadius: BorderRadius.circular(28),
+                                        color: isDark
+                                            ? AppColors.darkCard.withValues(
+                                                alpha: 0.96,
+                                              )
+                                            : AppColors.authCard.withValues(
+                                                alpha: 0.96,
+                                              ),
+                                        borderRadius: BorderRadius.circular(24),
                                         border: Border.all(
                                           color: isDark
                                               ? AppColors.darkBorder
-                                              : AppColors.lightBorder,
+                                              : AppColors.wood,
+                                          width: 2,
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.06,
-                                            ),
-                                            blurRadius: 18,
-                                            offset: const Offset(0, 8),
+                                            color: AppColors.woodDeep
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 5),
                                           ),
                                         ],
                                       ),
@@ -412,19 +401,19 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                     Row(
                                                       children: [
                                                         Expanded(
-                                                          child: Text(
-                                                            spiritName,
-                                                            style: theme
-                                                                .textTheme
-                                                                .titleLarge
-                                                                ?.copyWith(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w900,
-                                                                ),
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
+                                                          child: Align(
+                                                            alignment: Alignment
+                                                                .centerLeft,
+                                                            child: GameButtonLabel(
+                                                              spiritName,
+                                                              fontSize: 19,
+                                                              color: AppColors
+                                                                  .woodDeep,
+                                                              outlineColor:
+                                                                  AppColors
+                                                                      .creamLight,
+                                                              outlineWidth: 3,
+                                                            ),
                                                           ),
                                                         ),
                                                         Container(
@@ -434,14 +423,22 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                                 vertical: 6,
                                                               ),
                                                           decoration: BoxDecoration(
-                                                            color: primary
-                                                                .withOpacity(
-                                                                  0.10,
+                                                            color: AppColors
+                                                                .leafLight
+                                                                .withValues(
+                                                                  alpha: 0.62,
                                                                 ),
                                                             borderRadius:
                                                                 BorderRadius.circular(
                                                                   999,
                                                                 ),
+                                                            border: Border.all(
+                                                              color: AppColors
+                                                                  .wood
+                                                                  .withValues(
+                                                                    alpha: 0.65,
+                                                                  ),
+                                                            ),
                                                           ),
                                                           child: Text(
                                                             l10n.spiritLevel(
@@ -488,15 +485,22 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 12),
+                                          const SizedBox(height: 8),
                                           Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
                                               color: isDark
                                                   ? AppColors.darkMuted
-                                                  : AppColors.lightMuted,
+                                                  : AppColors.authCard
+                                                        .withValues(alpha: 0.9),
                                               borderRadius:
                                                   BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.wood,
+                                                width: 1.5,
+                                              ),
                                             ),
                                             child: Row(
                                               children: [
@@ -527,62 +531,85 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                               ],
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
+                                          const SizedBox(height: 8),
                                           Expanded(
-                                            child: AnimatedSwitcher(
-                                              duration: const Duration(
-                                                milliseconds: 220,
-                                              ),
-                                              child: _activeTab == 'stats'
-                                                  ? _buildStatsContent(
-                                                      theme: theme,
-                                                      primary: primary,
-                                                      mutedFg: mutedFg,
-                                                      bonding: bonding,
-                                                      energy: energy,
-                                                      maxEnergy: maxEnergy,
-                                                      health: health,
-                                                      maxLifeForce:
-                                                          maxLifeForce,
-                                                      maxBond: maxBond,
-                                                      exp: exp,
-                                                      maxExp: maxExp,
-                                                      usableItems: usableItems,
-                                                      isDark: isDark,
-                                                    )
-                                                  : SpiritEvolutionScreen(
-                                                      key: ValueKey(
-                                                        'evolution',
-                                                      ),
-                                                      level: level,
-                                                      bonding: bonding,
-                                                      initialIsEvolved:
-                                                          isEvolved,
-                                                      overview: _petOverview,
-                                                      stages: _evolutionStages,
-                                                      history:
-                                                          _evolutionHistory,
-                                                      evolutionOptions:
-                                                          _evolutionOptions,
-                                                      evolutionPreviews:
-                                                          _evolutionPreviews,
-                                                      isLoading: _isLoading,
-                                                      isSubmitting:
-                                                          _isSubmitting,
-                                                      onEvolve:
-                                                          _handleEvolutionSubmit,
-                                                      onRefresh: () =>
-                                                          _loadPetData(
-                                                            showLoading: false,
-                                                          ),
-                                                      onEvolved: () {
-                                                        if (!mounted) return;
-                                                        setState(
-                                                          () =>
-                                                              _isEvolved = true,
-                                                        );
-                                                      },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 0,
+                                                  ),
+                                              child: AnimatedSwitcher(
+                                                duration: const Duration(
+                                                  milliseconds: 220,
+                                                ),
+                                                layoutBuilder:
+                                                    (
+                                                      currentChild,
+                                                      previousChildren,
+                                                    ) => Stack(
+                                                      alignment:
+                                                          Alignment.topCenter,
+                                                      children: [
+                                                        ...previousChildren,
+                                                        if (currentChild !=
+                                                            null)
+                                                          currentChild,
+                                                      ],
                                                     ),
+                                                child: _activeTab == 'stats'
+                                                    ? _buildStatsContent(
+                                                        theme: theme,
+                                                        primary: primary,
+                                                        mutedFg: mutedFg,
+                                                        bonding: bonding,
+                                                        energy: energy,
+                                                        maxEnergy: maxEnergy,
+                                                        health: health,
+                                                        maxLifeForce:
+                                                            maxLifeForce,
+                                                        maxBond: maxBond,
+                                                        exp: exp,
+                                                        maxExp: maxExp,
+                                                        usableItems:
+                                                            usableItems,
+                                                        isDark: isDark,
+                                                      )
+                                                    : SpiritEvolutionScreen(
+                                                        key: ValueKey(
+                                                          'evolution',
+                                                        ),
+                                                        level: level,
+                                                        bonding: bonding,
+                                                        initialIsEvolved:
+                                                            isEvolved,
+                                                        overview: _petOverview,
+                                                        stages:
+                                                            _evolutionStages,
+                                                        history:
+                                                            _evolutionHistory,
+                                                        evolutionOptions:
+                                                            _evolutionOptions,
+                                                        evolutionPreviews:
+                                                            _evolutionPreviews,
+                                                        isLoading: _isLoading,
+                                                        isSubmitting:
+                                                            _isSubmitting,
+                                                        onEvolve:
+                                                            _handleEvolutionSubmit,
+                                                        onRefresh: () =>
+                                                            _loadPetData(
+                                                              showLoading:
+                                                                  false,
+                                                            ),
+                                                        onEvolved: () {
+                                                          if (!mounted) return;
+                                                          setState(
+                                                            () => _isEvolved =
+                                                                true,
+                                                          );
+                                                        },
+                                                      ),
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -627,46 +654,52 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         children: [
           _StatRow(
             title: 'EXP',
-            progress: exp / maxExp,
+            current: exp,
+            maximum: maxExp,
             color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           _StatRow(
             title: l10n.lifeForce,
-            progress: health / maxLifeForce,
+            current: health,
+            maximum: maxLifeForce,
             color: isDark ? AppColors.darkLife : AppColors.lightLife,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           _StatRow(
             title: l10n.bonding,
-            progress: bonding / maxBond,
+            current: bonding,
+            maximum: maxBond,
             color: isDark ? AppColors.darkBond : AppColors.lightBond,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           _StatRow(
             title: l10n.energy,
-            progress: energy / maxEnergy,
+            current: energy,
+            maximum: maxEnergy,
             color: isDark ? AppColors.darkDew : AppColors.lightDew,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+              color: AppColors.authCard.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                color: isDark ? AppColors.darkBorder : AppColors.wood,
+                width: 1.5,
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                GameButtonLabel(
                   l10n.spiritSupportItems,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  fontSize: 15,
+                  color: AppColors.woodDeep,
+                  outlineColor: AppColors.authCard,
+                  outlineWidth: 2.5,
                 ),
                 const SizedBox(height: 8),
                 ...usableItems.map((item) {
@@ -675,11 +708,14 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                     child: Row(
                       children: [
                         Container(
-                          width: 42,
-                          height: 42,
+                          width: 38,
+                          height: 38,
                           decoration: BoxDecoration(
-                            color: item.bgColor,
+                            color: item.bgColor.withValues(alpha: 0.65),
                             borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppColors.wood.withValues(alpha: 0.55),
+                            ),
                           ),
                           child: AppIcon(
                             item.icon,
@@ -694,14 +730,18 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                             children: [
                               Text(
                                 item.name,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.inkDark,
                                 ),
                               ),
                               Text(
                                 item.description,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: mutedFg,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.outlineBrown,
                                 ),
                               ),
                             ],
@@ -711,15 +751,19 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                           height: 28,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                            color: primary.withOpacity(0.12),
+                            color: AppColors.leafLight.withValues(alpha: 0.62),
                             borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: AppColors.wood.withValues(alpha: 0.55),
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               'x${item.count}',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: primary,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.oliveDeep,
                               ),
                             ),
                           ),
@@ -731,7 +775,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -781,26 +825,39 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.all(2),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: active ? theme.colorScheme.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: active
-                  ? theme.colorScheme.onSurface
-                  : theme.colorScheme.onSurface.withOpacity(0.65),
+    return Material(
+      color: active ? AppColors.buttonGreen : Colors.transparent,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: active ? AppColors.woodDeep : Colors.transparent,
+              width: 1.5,
             ),
+          ),
+          child: Center(
+            child: active
+                ? GameButtonLabel(
+                    label,
+                    fontSize: 13,
+                    color: AppColors.buttonText,
+                    outlineColor: AppColors.woodDeep,
+                    outlineWidth: 2.5,
+                  )
+                : Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.woodDeep,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -818,14 +875,19 @@ class _TagChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.55),
+        color: AppColors.creamLight.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: AppColors.wood.withValues(alpha: 0.65),
+          width: 1.2,
+        ),
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppColors.inkBrown,
         ),
       ),
     );
@@ -835,69 +897,164 @@ class _TagChip extends StatelessWidget {
 class _StatRow extends StatelessWidget {
   const _StatRow({
     required this.title,
-    required this.progress,
+    required this.current,
+    required this.maximum,
     required this.color,
     super.key,
   });
 
   final String title;
-  final double progress;
+  final int current;
+  final int maximum;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final progressPercent = (progress.clamp(0.0, 1.0) * 100).round();
+    final safeMaximum = maximum <= 0 ? 1 : maximum;
+    final progress = (current / safeMaximum).clamp(0.0, 1.0);
+
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
-          width: 90,
+          width: 104,
           child: Text(
             title,
-            style: theme.textTheme.bodySmall?.copyWith(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w800,
+              color: AppColors.inkBrown,
             ),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Container(
-            height: 11,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeOutCubic,
-              builder: (context, animatedProgress, _) => Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: animatedProgress,
-                  child: SizedBox.expand(child: ColoredBox(color: color)),
+          child: SizedBox(
+            height: 28,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 12,
+                  child: Container(
+                    height: 17,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: AppColors.creamLight,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.woodDeep, width: 1.5),
+                    ),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: progress),
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animatedProgress, _) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: animatedProgress,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 42,
-          child: Text(
-            '$progressPercent%',
-            textAlign: TextAlign.right,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w900,
+                Positioned.fill(
+                  right: 12,
+                  child: Center(
+                    child: Text(
+                      '$current/$maximum',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.inkDark,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  right: -2,
+                  child: CustomPaint(
+                    size: Size(29, 29),
+                    painter: _ProgressLeafPainter(),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ],
     );
   }
+}
+
+class _ProgressLeafPainter extends CustomPainter {
+  const _ProgressLeafPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final leaf = Path()
+      ..moveTo(size.width * 0.13, size.height * 0.76)
+      ..cubicTo(
+        size.width * 0.18,
+        size.height * 0.20,
+        size.width * 0.68,
+        size.height * 0.02,
+        size.width * 0.88,
+        size.height * 0.10,
+      )
+      ..cubicTo(
+        size.width * 0.98,
+        size.height * 0.48,
+        size.width * 0.70,
+        size.height * 0.91,
+        size.width * 0.13,
+        size.height * 0.76,
+      )
+      ..close();
+
+    canvas.drawPath(leaf, Paint()..color = AppColors.leafBright);
+    canvas.drawPath(
+      leaf,
+      Paint()
+        ..color = AppColors.oliveDeep
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6,
+    );
+
+    final vein = Paint()
+      ..color = AppColors.oliveDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(size.width * 0.10, size.height * 0.86),
+      Offset(size.width * 0.78, size.height * 0.20),
+      vein,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.44, size.height * 0.54),
+      Offset(size.width * 0.42, size.height * 0.27),
+      vein,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.57, size.height * 0.43),
+      Offset(size.width * 0.76, size.height * 0.48),
+      vein,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _ActionButton extends StatelessWidget {
@@ -914,24 +1071,46 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final enabled = onPressed != null;
 
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Material(
+      color: enabled
+          ? AppColors.buttonGreen
+          : AppColors.buttonSecondary.withValues(alpha: 0.75),
+      shape: const StadiumBorder(
+        side: BorderSide(color: AppColors.woodDeep, width: 2),
       ),
-      icon: AppIcon(
-        icon,
-        size: 18,
-        color: onPressed == null ? theme.disabledColor : null,
-        tintAsset: onPressed == null,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppIcon(
+                icon,
+                size: 19,
+                color: enabled ? AppColors.buttonText : AppColors.outlineBrown,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: GameButtonLabel(
+                  label,
+                  fontSize: 12,
+                  color: enabled
+                      ? AppColors.buttonText
+                      : AppColors.outlineBrown,
+                  outlineColor: enabled
+                      ? AppColors.woodDeep
+                      : AppColors.authCard,
+                  outlineWidth: 2.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      label: Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
     );
   }
 }

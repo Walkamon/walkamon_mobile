@@ -25,7 +25,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _showSettings = false;
-  bool _sfxEnabled = true;
 
   @override
   void initState() {
@@ -119,11 +118,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final mutedForeground = isDark
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
-    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark
-        ? AppColors.darkForeground
-        : AppColors.lightForeground;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -262,22 +256,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           if (_showSettings)
             _SettingsOverlay(
               onClose: () => setState(() => _showSettings = false),
-              cardColor: cardColor,
-              borderColor: borderColor,
-              foregroundColor: foreground,
-              mutedForeground: mutedForeground,
-              sfxEnabled: _sfxEnabled,
-              onSfxChanged: (value) {
-                setState(() => _sfxEnabled = value);
-                context.read<GameStateProvider>().updateSettings(
-                  soundEnabled: value,
-                );
-              },
-              onDarkModeChanged: (value) {
-                context.read<GameStateProvider>().updateSettings(
-                  darkMode: value,
-                );
-              },
             ),
         ],
       ),
@@ -356,17 +334,17 @@ class _TopIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.authCard.withValues(alpha: 0.92),
+      color: AppColors.authCard,
       shape: const CircleBorder(
-        side: BorderSide(color: AppColors.wood, width: 2),
+        side: BorderSide(color: AppColors.woodDeep, width: 2),
       ),
       child: InkWell(
         onTap: onPressed,
         customBorder: const CircleBorder(),
         child: SizedBox(
-          width: 40,
-          height: 40,
-          child: AppIcon(icon, asset: asset, size: 28, color: color),
+          width: 48,
+          height: 48,
+          child: AppIcon(icon, asset: asset, size: 32, color: color),
         ),
       ),
     );
@@ -487,7 +465,7 @@ class _OutlineButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(32),
           ),
         ),
-        child: GameButtonLabel(label, fontSize: 16, color: foregroundColor),
+        child: GameButtonLabel(label, fontSize: 18, color: foregroundColor),
       ),
     );
   }
@@ -549,146 +527,144 @@ class _GoogleButton extends StatelessWidget {
 }
 
 class _SettingsOverlay extends StatelessWidget {
-  const _SettingsOverlay({
-    required this.onClose,
-    required this.cardColor,
-    required this.borderColor,
-    required this.foregroundColor,
-    required this.mutedForeground,
-    required this.sfxEnabled,
-    required this.onSfxChanged,
-    required this.onDarkModeChanged,
-  });
+  const _SettingsOverlay({required this.onClose});
 
   final VoidCallback onClose;
-  final Color cardColor;
-  final Color borderColor;
-  final Color foregroundColor;
-  final Color mutedForeground;
-  final bool sfxEnabled;
-  final ValueChanged<bool> onSfxChanged;
-  final ValueChanged<bool> onDarkModeChanged;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: onClose,
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.4),
-        child: Center(
-          child: GestureDetector(
-            onTap: () {},
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.9, end: 1),
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutBack,
-              builder: (context, scale, child) {
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: Container(
-                width: 320,
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: borderColor),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Consumer<GameStateProvider>(
-                  builder: (context, gameState, _) {
-                    final settings = gameState.settings;
-                    final isVi = LocaleHelper.isVietnamese(
-                      settings.languageCode,
-                    );
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              l10n.gameSettings,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: foregroundColor,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: onClose,
-                              icon: AppIcon(
-                                Icons.close,
-                                size: 28,
-                                color: mutedForeground,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-                        _SettingsLanguageRow(
-                          foregroundColor: foregroundColor,
-                          mutedForeground: mutedForeground,
-                          isVi: isVi,
-                          onChanged: (value) {
-                            final code = value == 'vi' ? 'vi-VN' : 'en-US';
-                            context.read<GameStateProvider>().setLanguageCode(
-                              code,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        const Divider(height: 1),
-                        const SizedBox(height: 20),
-                        _SettingsRow(
-                          icon: Icons.music_note,
-                          label: l10n.bgm,
-                          foregroundColor: foregroundColor,
-                          mutedForeground: mutedForeground,
-                          toggle: _Toggle(
-                            active: settings.backgroundMusicEnabled,
-                            onTap: () {
-                              context.read<GameStateProvider>().updateSettings(
-                                backgroundMusicEnabled:
-                                    !settings.backgroundMusicEnabled,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _SettingsRow(
-                          icon: Icons.volume_up_outlined,
-                          label: l10n.sfx,
-                          foregroundColor: foregroundColor,
-                          mutedForeground: mutedForeground,
-                          toggle: _Toggle(
-                            active: sfxEnabled,
-                            onTap: () => onSfxChanged(!sfxEnabled),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _SettingsRow(
-                          icon: Icons.dark_mode_outlined,
-                          label: l10n.darkMode,
-                          foregroundColor: foregroundColor,
-                          mutedForeground: mutedForeground,
-                          toggle: _Toggle(
-                            active: settings.darkMode,
-                            onTap: () => onDarkModeChanged(!settings.darkMode),
-                          ),
+      child: ColoredBox(
+        color: Colors.black.withValues(alpha: 0.42),
+        child: SafeArea(
+          child: Center(
+            child: GestureDetector(
+              onTap: () {},
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.92, end: 1),
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutBack,
+                builder: (context, scale, child) =>
+                    Transform.scale(scale: scale, child: child),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: 410,
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.84,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 22),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                    decoration: BoxDecoration(
+                      color: AppColors.authCard.withValues(alpha: 0.98),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.wood, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.woodDeep.withValues(alpha: 0.24),
+                          blurRadius: 16,
+                          offset: const Offset(0, 7),
                         ),
                       ],
-                    );
-                  },
+                    ),
+                    child: Consumer<GameStateProvider>(
+                      builder: (context, gameState, _) {
+                        final settings = gameState.settings;
+                        final isVi = LocaleHelper.isVietnamese(
+                          settings.languageCode,
+                        );
+                        final languageLabel = isVi
+                            ? l10n.languageVi
+                            : l10n.languageEn;
+
+                        return SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: GameButtonLabel(
+                                        l10n.gameSettings,
+                                        fontSize: 20,
+                                        color: AppColors.woodDeep,
+                                        outlineColor: AppColors.authCard,
+                                        outlineWidth: 3.5,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: onClose,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints.tightFor(
+                                      width: 42,
+                                      height: 42,
+                                    ),
+                                    icon: const AppIcon(
+                                      Icons.close_rounded,
+                                      size: 30,
+                                      color: AppColors.woodDeep,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _WelcomeSettingsPanel(
+                                child: Column(
+                                  children: [
+                                    _WelcomeLanguageRow(
+                                      label: l10n.language,
+                                      value: languageLabel,
+                                      onTap: () {
+                                        final code = isVi ? 'en-US' : 'vi-VN';
+                                        context
+                                            .read<GameStateProvider>()
+                                            .setLanguageCode(code);
+                                      },
+                                    ),
+                                    _WelcomeSettingsSwitch(
+                                      label: l10n.darkMode,
+                                      icon: Icons.light_mode_rounded,
+                                      asset: AppAssets.iconSun,
+                                      value: settings.darkMode,
+                                      onChanged: (value) => context
+                                          .read<GameStateProvider>()
+                                          .updateSettings(darkMode: value),
+                                    ),
+                                    _WelcomeSettingsSwitch(
+                                      label: l10n.bgm,
+                                      icon: Icons.music_note_rounded,
+                                      asset: AppAssets.iconMusic,
+                                      value: settings.backgroundMusicEnabled,
+                                      onChanged: (value) => context
+                                          .read<GameStateProvider>()
+                                          .updateSettings(
+                                            backgroundMusicEnabled: value,
+                                          ),
+                                    ),
+                                    _WelcomeSettingsSwitch(
+                                      label: l10n.sfx,
+                                      icon: Icons.volume_up_rounded,
+                                      asset: AppAssets.iconVolume,
+                                      value: settings.soundEnabled,
+                                      onChanged: (value) => context
+                                          .read<GameStateProvider>()
+                                          .updateSettings(soundEnabled: value),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -699,99 +675,91 @@ class _SettingsOverlay extends StatelessWidget {
   }
 }
 
-class _SettingsLanguageRow extends StatelessWidget {
-  const _SettingsLanguageRow({
-    required this.foregroundColor,
-    required this.mutedForeground,
-    required this.isVi,
-    required this.onChanged,
-  });
+class _WelcomeSettingsPanel extends StatelessWidget {
+  const _WelcomeSettingsPanel({required this.child});
 
-  final Color foregroundColor;
-  final Color mutedForeground;
-  final bool isVi;
-  final ValueChanged<String> onChanged;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            AppIcon(Icons.language, size: 20, color: mutedForeground),
-            const SizedBox(width: 12),
-            Text(
-              l10n.language,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: foregroundColor,
-              ),
-            ),
-          ],
-        ),
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(14),
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppColors.leafLight.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.oliveDeep, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.woodDeep.withValues(alpha: 0.16),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
-          child: Row(
-            children: [
-              _LanguagePill(
-                label: 'VI',
-                active: isVi,
-                onTap: () => onChanged('vi'),
-              ),
-              const SizedBox(width: 4),
-              _LanguagePill(
-                label: 'EN',
-                active: !isVi,
-                onTap: () => onChanged('en'),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
+      child: child,
     );
   }
 }
 
-class _LanguagePill extends StatelessWidget {
-  const _LanguagePill({
+class _WelcomeLanguageRow extends StatelessWidget {
+  const _WelcomeLanguageRow({
     required this.label,
-    required this.active,
+    required this.value,
     required this.onTap,
   });
 
   final String label;
-  final bool active;
+  final String value;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    final foreground = Theme.of(context).colorScheme.onPrimary;
-    final mutedForeground = Theme.of(context).colorScheme.onSurfaceVariant;
-
     return Material(
-      color: active ? primary : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: active ? foreground : mutedForeground,
-            ),
+        borderRadius: BorderRadius.circular(17),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.authCard.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(17),
+            border: Border.all(color: AppColors.wood, width: 1.35),
+          ),
+          child: Row(
+            children: [
+              const _WelcomeSettingIcon(
+                icon: Icons.language_rounded,
+                asset: AppAssets.iconLanguageSystem,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.woodDeep,
+                  ),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.oliveDeep,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const AppIcon(
+                Icons.chevron_right_rounded,
+                size: 24,
+                color: AppColors.woodDeep,
+                useAsset: false,
+              ),
+            ],
           ),
         ),
       ),
@@ -799,87 +767,80 @@ class _LanguagePill extends StatelessWidget {
   }
 }
 
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({
-    required this.icon,
+class _WelcomeSettingsSwitch extends StatelessWidget {
+  const _WelcomeSettingsSwitch({
     required this.label,
-    required this.foregroundColor,
-    required this.mutedForeground,
-    required this.toggle,
+    required this.icon,
+    this.asset,
+    required this.value,
+    required this.onChanged,
   });
 
-  final IconData icon;
   final String label;
-  final Color foregroundColor;
-  final Color mutedForeground;
-  final Widget toggle;
+  final IconData icon;
+  final String? asset;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            AppIcon(icon, size: 20, color: mutedForeground),
-            const SizedBox(width: 12),
-            Text(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: AppColors.wood, width: 1.35),
+      ),
+      child: Row(
+        children: [
+          _WelcomeSettingIcon(icon: icon, asset: asset),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
               label,
-              style: TextStyle(
-                fontSize: 14,
+              style: const TextStyle(
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: foregroundColor,
+                color: AppColors.woodDeep,
               ),
             ),
-          ],
-        ),
-        toggle,
-      ],
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.authCard,
+            activeTrackColor: AppColors.buttonGreen,
+            inactiveThumbColor: AppColors.authCard,
+            inactiveTrackColor: AppColors.creamDeep,
+            trackOutlineColor: const WidgetStatePropertyAll(AppColors.woodDeep),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _Toggle extends StatelessWidget {
-  const _Toggle({required this.active, required this.onTap});
+class _WelcomeSettingIcon extends StatelessWidget {
+  const _WelcomeSettingIcon({required this.icon, this.asset});
 
-  final bool active;
-  final VoidCallback onTap;
+  final IconData icon;
+  final String? asset;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        width: 48,
-        height: 24,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: active
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 220),
-          alignment: active ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-          ),
-        ),
+    return Container(
+      width: 46,
+      height: 46,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.creamLight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.wood, width: 1.3),
       ),
+      child: asset != null
+          ? Image.asset(asset!, width: 30, height: 30)
+          : AppIcon(icon, size: 25, color: AppColors.woodDeep),
     );
   }
 }

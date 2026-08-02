@@ -615,62 +615,128 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     required Color foreground,
     required AppLocalizations l10n,
   }) {
-    if (_isHistoryLoading) {
-      return Center(
-        key: key,
-        child: CircularProgressIndicator(color: primary),
-      );
-    }
+    Widget content;
 
-    if (_historyError != null) {
-      return _ErrorState(
-        key: key,
+    if (_isHistoryLoading) {
+      content = Center(child: CircularProgressIndicator(color: primary));
+    } else if (_historyError != null) {
+      content = _ErrorState(
         message: _historyError!,
         onRetry: _loadHistory,
         primary: primary,
       );
-    }
-
-    if (_history.isEmpty) {
-      return Center(
-        key: key,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.97),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.wood, width: 2),
-          ),
-          child: Text(
-            l10n.activityStatsNoHistory,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.woodDeep,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+    } else if (_history.isEmpty) {
+      content = Center(
+        child: GameButtonLabel(
+          l10n.activityStatsNoHistory,
+          fontSize: 14,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 3,
+          maxLines: 2,
         ),
+      );
+    } else {
+      content = ListView.separated(
+        padding: EdgeInsets.zero,
+        physics: const BouncingScrollPhysics(),
+        itemCount: _history.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          final item = _history[index];
+          return _HistoryCard(
+            item: item,
+            cardColor: cardColor,
+            borderColor: borderColor,
+            primary: primary,
+            muted: muted,
+            mutedForeground: mutedForeground,
+            foreground: foreground,
+            l10n: l10n,
+          );
+        },
       );
     }
 
-    return ListView.separated(
+    return _ActivityHistoryPanel(
       key: key,
-      physics: const BouncingScrollPhysics(),
-      itemCount: _history.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = _history[index];
-        return _HistoryCard(
-          item: item,
-          cardColor: cardColor,
-          borderColor: borderColor,
-          primary: primary,
-          muted: muted,
-          mutedForeground: mutedForeground,
-          foreground: foreground,
-          l10n: l10n,
-        );
-      },
+      title: l10n.activityStatsHistory,
+      child: content,
+    );
+  }
+}
+
+class _ActivityHistoryPanel extends StatelessWidget {
+  const _ActivityHistoryPanel({
+    required this.title,
+    required this.child,
+    super.key,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 22, bottom: 4),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.leafLight.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 38, 12, 10),
+              decoration: BoxDecoration(
+                color: AppColors.authCard.withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.wood, width: 1.5),
+              ),
+              child: child,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 44,
+          right: 44,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.woodLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.woodDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.18),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: GameButtonLabel(
+              title,
+              fontSize: 15,
+              color: AppColors.buttonText,
+              outlineColor: AppColors.woodDeep,
+              outlineWidth: 2.5,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
