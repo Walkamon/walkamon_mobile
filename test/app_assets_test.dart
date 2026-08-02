@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/core/constants/app_audio_assets.dart';
+import 'package:walkamon_mobile/widgets/pet_runtime/pet_frame_animation.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +66,54 @@ void main() {
     expect(AppAssets.petRuntimeCatalogAssets, hasLength(16));
 
     for (final path in AppAssets.petRuntimeCatalogAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Sprout default atlas is bundled', () async {
+    for (final path in [AppAssets.sproutDefaultAtlas]) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Selected evolved default atlases are bundled', () async {
+    expect(AppAssets.evolvedDefaultAtlasAssets, hasLength(4));
+    for (final path in AppAssets.evolvedDefaultAtlasAssets) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('Selected evolved default excited frames are bundled', () async {
+    final frames = <String>{
+      ...petEvolvedExcitedAnimationFrames(
+        affinityCode: 'moonlight',
+        stageNo: 2,
+      ),
+      ...petEvolvedExcitedAnimationFrames(affinityCode: 'dawn', stageNo: 1),
+    };
+    expect(frames, hasLength(13));
+    for (final path in frames) {
+      final data = await rootBundle.load(path);
+      expect(data.lengthInBytes, greaterThan(0), reason: path);
+    }
+  });
+
+  test('All pet feed-success happy frames are bundled', () async {
+    final frames = <String>{
+      ...petFeedSuccessAnimationFrames(affinityCode: 'sprout', stageNo: 0),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'dawn', stageNo: 1),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'dawn', stageNo: 2),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'moonlight', stageNo: 1),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'moonlight', stageNo: 2),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'warm_sun', stageNo: 1),
+      ...petFeedSuccessAnimationFrames(affinityCode: 'warm_sun', stageNo: 2),
+    };
+
+    expect(frames, hasLength(44));
+    for (final path in frames) {
       final data = await rootBundle.load(path);
       expect(data.lengthInBytes, greaterThan(0), reason: path);
     }

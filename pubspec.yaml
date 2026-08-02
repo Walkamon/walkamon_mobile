@@ -125,6 +125,7 @@ flutter:
     - assets/Mobile/PVP/vfx/slow_mist/
     - assets/Mobile/PVP/vfx/speed_trail/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/excited/
+    - assets/Mobile/TInh Linh Ánh Trăng/stage1/base/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/feed_eat/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/happy/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/hunggry/
@@ -160,6 +161,7 @@ flutter:
     - assets/Mobile/Tinh Linh Bình Minh/stage1/sleep/
     - assets/Mobile/Tinh Linh Bình Minh/stage1/tap_hello/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/excited/
+    - assets/Mobile/Tinh Linh Bình Minh/stage2/base/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/feed_eat/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/happy/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/hunggry/
@@ -171,6 +173,7 @@ flutter:
     - assets/Mobile/Tinh Linh Bình Minh/stage2/sleep/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/tap_hello/
     - assets/Mobile/TinhLinhNangAm/Stage1/excited/
+    - assets/Mobile/TinhLinhNangAm/Stage1/base/
     - assets/Mobile/TinhLinhNangAm/Stage1/feed_eat/
     - assets/Mobile/TinhLinhNangAm/Stage1/happy/
     - assets/Mobile/TinhLinhNangAm/Stage1/hunggry/
@@ -183,6 +186,7 @@ flutter:
     - assets/Mobile/TinhLinhNangAm/Stage1/sleep/
     - assets/Mobile/TinhLinhNangAm/Stage1/tap_hello/
     - assets/Mobile/TinhLinhNangAm/stage2/excited/
+    - assets/Mobile/TinhLinhNangAm/stage2/base/
     - assets/Mobile/TinhLinhNangAm/stage2/feed_eat/
     - assets/Mobile/TinhLinhNangAm/stage2/happy/
     - assets/Mobile/TinhLinhNangAm/stage2/hunggry/
@@ -212,6 +216,8 @@ flutter:
     - assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png
     - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png
     - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png
+    # Default atlas previews: only these reviewed master pages are bundled.
+    - assets/Mobile/flame/pet_runtime_v7_2/atlas_dd7071c64cc0f0ba6ecc554d.png
     - assets/Mobile/ui_frames/
     - assets/audio/Home/feed/
     - assets/audio/Home/level-up/

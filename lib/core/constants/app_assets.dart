@@ -401,6 +401,24 @@ abstract final class AppAssets {
   static const homeMoonlight =
       '$root/HomeBackgrounds/home_anh_trang_portrait.png';
 
+  static const sproutDefaultAtlas =
+      '$root/flame/pet_runtime_v7_2/atlas_dd7071c64cc0f0ba6ecc554d.png';
+  static const moonlightStage1DefaultAtlas =
+      '$root/TInh Linh Ánh Trăng/stage1/base/atlas_e78e207b4fb6783144a0a55e.png';
+  static const dawnStage2DefaultAtlas =
+      '$root/Tinh Linh Bình Minh/stage2/base/atlas_fa372753875fe8d5d0bd080e.png';
+  static const warmSunStage1DefaultAtlas =
+      '$root/TinhLinhNangAm/Stage1/base/atlas_ff327504644d8c1f0717b891.png';
+  static const warmSunStage2DefaultAtlas =
+      '$root/TinhLinhNangAm/stage2/base/atlas_f540b13296415a1387269766.png';
+
+  static const evolvedDefaultAtlasAssets = [
+    moonlightStage1DefaultAtlas,
+    dawnStage2DefaultAtlas,
+    warmSunStage1DefaultAtlas,
+    warmSunStage2DefaultAtlas,
+  ];
+
   static List<String> get homeChromeAssets => [
     iconHomeNav,
     iconStepsNav,
@@ -429,15 +447,29 @@ abstract final class AppAssets {
       '$petRuntimeRoot/pet_runtime_catalog_v1.json';
   static const petRuntimeAnimationsV4 =
       '$petRuntimeRoot/pet_animations_v4.json';
+  static const petRuntimeManifestSproutStage0 =
+      '$petRuntimeRoot/manifest_sprout_stage0_v4.json';
+  static const petRuntimeManifestWarmSunStage1 =
+      '$petRuntimeRoot/manifest_warm_sun_stage1_v4.json';
+  static const petRuntimeManifestWarmSunStage2 =
+      '$petRuntimeRoot/manifest_warm_sun_stage2_v4.json';
+  static const petRuntimeManifestDawnStage1 =
+      '$petRuntimeRoot/manifest_dawn_stage1_v4.json';
+  static const petRuntimeManifestDawnStage2 =
+      '$petRuntimeRoot/manifest_dawn_stage2_v4.json';
+  static const petRuntimeManifestMoonlightStage1 =
+      '$petRuntimeRoot/manifest_moonlight_stage1_v4.json';
+  static const petRuntimeManifestMoonlightStage2 =
+      '$petRuntimeRoot/manifest_moonlight_stage2_v4.json';
 
   static const petRuntimeManifestAssets = [
-    '$petRuntimeRoot/manifest_sprout_stage0_v4.json',
-    '$petRuntimeRoot/manifest_warm_sun_stage1_v4.json',
-    '$petRuntimeRoot/manifest_warm_sun_stage2_v4.json',
-    '$petRuntimeRoot/manifest_dawn_stage1_v4.json',
-    '$petRuntimeRoot/manifest_dawn_stage2_v4.json',
-    '$petRuntimeRoot/manifest_moonlight_stage1_v4.json',
-    '$petRuntimeRoot/manifest_moonlight_stage2_v4.json',
+    petRuntimeManifestSproutStage0,
+    petRuntimeManifestWarmSunStage1,
+    petRuntimeManifestWarmSunStage2,
+    petRuntimeManifestDawnStage1,
+    petRuntimeManifestDawnStage2,
+    petRuntimeManifestMoonlightStage1,
+    petRuntimeManifestMoonlightStage2,
   ];
 
   static const petRuntimeFallbackAssets = [
