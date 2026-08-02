@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../providers/daily_login_provider.dart';
 import 'widgets/daily_login_calendar_widget.dart';
 import 'package:walkamon_mobile/data/models/daily_login_model.dart';
 import '../../core/audio/app_audio_service.dart';
+import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
+import '../../widgets/common/game_button_label.dart';
 
 class DailyLoginScreen extends StatefulWidget {
   const DailyLoginScreen({super.key});
@@ -54,105 +57,82 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
             }
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
                   // Custom Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey.shade300),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const AppIcon(
-                            Icons.arrow_back,
-                            size: 20,
-                            color: Colors.grey,
-                          ),
-                        ),
+                      GameBackButton(
+                        semanticLabel: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                      Text(
+                      GameButtonLabel(
                         l10n.dailyLoginTitle,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF4A5D4E),
-                        ),
+                        fontSize: 20,
+                        color: AppColors.woodDeep,
+                        outlineColor: AppColors.authCard,
+                        outlineWidth: 4,
                       ),
-                      const SizedBox(
-                        width: 40,
-                      ), // Cân bằng không gian với nút back
+                      const SizedBox(width: GameBackButton.buttonSize),
                     ],
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 18),
 
                   // Main Gift Icon & Text
                   Container(
-                    width: 88,
-                    height: 88,
+                    width: 78,
+                    height: 78,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF4C2),
+                      color: AppColors.authCard.withValues(alpha: 0.92),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFFFE885),
-                        width: 4,
-                      ),
+                      border: Border.all(color: AppColors.wood, width: 2),
                     ),
-                    child: const Center(
-                      child: AppIcon(
-                        Icons.card_giftcard,
-                        size: 44,
-                        color: Color(0xFFF59E0B),
+                    child: Center(
+                      child: Image.asset(
+                        AppAssets.iconDailyRewardRes,
+                        width: 62,
+                        height: 62,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
+                  const SizedBox(height: 10),
+                  GameButtonLabel(
                     l10n.dailyLoginRewardTitle,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF4A5D4E),
-                    ),
+                    fontSize: 22,
+                    color: AppColors.woodDeep,
+                    outlineColor: AppColors.authCard,
+                    outlineWidth: 4,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
+                  const SizedBox(height: 12),
+                  GameButtonLabel(
                     l10n.dailyLoginRewardSubtitle,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
+                    fontSize: 14,
+                    color: AppColors.oliveDeep,
+                    outlineColor: AppColors.authCard,
+                    outlineWidth: 3.5,
+                    maxLines: 2,
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 26),
 
                   // Lưới Lịch điểm danh (Calendar)
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      child: DailyLoginCalendarWidget(
-                        rewards: data.rewards,
-                        currentDay: data.currentDay,
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: DailyLoginCalendarWidget(
+                            rewards: data.rewards,
+                            currentDay: data.currentDay,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -162,7 +142,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     padding: const EdgeInsets.only(bottom: 24.0, top: 12.0),
                     child: SizedBox(
                       width: double.infinity,
-                      height: 64,
+                      height: 56,
                       child: ElevatedButton(
                         onPressed: provider.isLoading
                             ? null
@@ -250,11 +230,15 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: !data.canClaimToday
-                              ? const Color(0xFFB0C0B4)
-                              : const Color(0xFF7A9D84),
-                          disabledBackgroundColor: const Color(0xFFB0C0B4),
+                              ? AppColors.panelMuted
+                              : AppColors.buttonGreen,
+                          disabledBackgroundColor: AppColors.panelMuted,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(32),
+                            side: const BorderSide(
+                              color: AppColors.buttonBorder,
+                              width: 2,
+                            ),
                           ),
                           elevation: !data.canClaimToday ? 0 : 2,
                         ),
@@ -262,15 +246,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
                               )
-                            : Text(
+                            : GameButtonLabel(
                                 !data.canClaimToday
                                     ? l10n.dailyLoginClaimedToday
                                     : l10n.dailyLoginClaimNow,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
+                                fontSize: 17,
+                                color: AppColors.buttonText,
                               ),
                       ),
                     ),

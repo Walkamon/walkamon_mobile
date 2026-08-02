@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+
+import '../../core/theme/app_colors.dart';
+import 'game_button_label.dart';
+
+class GameDualBottomTabs extends StatelessWidget {
+  const GameDualBottomTabs({
+    super.key,
+    required this.firstLabel,
+    required this.secondLabel,
+    required this.firstSelected,
+    required this.onFirstTap,
+    required this.onSecondTap,
+  });
+
+  final String firstLabel;
+  final String secondLabel;
+  final bool firstSelected;
+  final VoidCallback onFirstTap;
+  final VoidCallback onSecondTap;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget tab(String label, bool selected, VoidCallback onTap) {
+      return Expanded(
+        child: Material(
+          color: selected ? AppColors.buttonGreen : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected ? AppColors.woodDeep : Colors.transparent,
+                  width: 1.7,
+                ),
+              ),
+              child: selected
+                  ? GameButtonLabel(
+                      label,
+                      fontSize: 13,
+                      color: AppColors.buttonText,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 2.5,
+                    )
+                  : Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: AppColors.authCard.withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(19),
+          border: Border.all(color: AppColors.wood, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.woodDeep.withValues(alpha: 0.2),
+              blurRadius: 7,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            tab(firstLabel, firstSelected, onFirstTap),
+            const SizedBox(width: 5),
+            tab(secondLabel, !firstSelected, onSecondTap),
+          ],
+        ),
+      ),
+    );
+  }
+}

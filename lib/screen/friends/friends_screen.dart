@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/core/theme/app_colors.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
@@ -195,246 +197,470 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     final presence = context.watch<PresenceProvider>();
     final effectiveFriends = friends.map(presence.applyPresence).toList();
-
     final filteredFriends = effectiveFriends
         .where(
-          (f) => f.username.toLowerCase().contains(searchQuery.toLowerCase()),
+          (friend) => friend.username.toLowerCase().contains(
+            searchQuery.trim().toLowerCase(),
+          ),
         )
         .toList();
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(24, widget.isEmbedded ? 8 : 24, 24, 0),
+      padding: EdgeInsets.fromLTRB(18, widget.isEmbedded ? 2 : 18, 18, 4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.isEmbedded)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _showFriendRequestsPopup(context),
-                    icon: const AppIcon(Icons.notifications_none, size: 18),
-                    label: Text(
-                      l10n.friendsRequest,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.onSurface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddFriendPopup(context),
-                    icon: const AppIcon(Icons.person_add_alt_1, size: 18),
-                    label: Text(
-                      l10n.friendsAdd,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          Container(
-            margin: const EdgeInsets.only(bottom: 24),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
-            ),
-            child: TextField(
-              onChanged: (val) => setState(() => searchQuery = val),
-              decoration: InputDecoration(
-                hintText: l10n.friendsSearchHint,
-                prefixIcon: const AppIcon(Icons.search, size: 20),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ),
-
-          Text(
-            l10n.friendsListCount(filteredFriends.length),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-
+          if (widget.isEmbedded) ...[
+            _buildHeaderActions(l10n),
+            const SizedBox(height: 8),
+          ],
           Expanded(
-            child: effectiveFriends.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // MainLayout uses extendBody, so its navigation overlays the
+                // bottom of this screen. Reserve that area for embedded tabs.
+                final systemBottom = MediaQuery.viewPaddingOf(context).bottom;
+                final bottomClearance = widget.isEmbedded
+                    ? 80.0 + systemBottom.clamp(10.0, 40.0).toDouble()
+                    : 0.0;
+                final maxPanelHeight = (constraints.maxHeight - bottomClearance)
+                    .clamp(0.0, constraints.maxHeight);
+                final contentHeight = filteredFriends.isEmpty
+                    ? 220.0
+                    : 116.0 + (filteredFriends.length * 69.0);
+                final panelHeight = contentHeight.clamp(0.0, maxPanelHeight);
+
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    height: panelHeight,
+                    child: Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        AppIcon(
-                          Icons.group_add_rounded,
-                          size: 64,
-                          color: colorScheme.primary.withOpacity(0.5),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.friendsEmptyTitle,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: colorScheme.primary,
+                        Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.leafLight.withValues(alpha: 0.96),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: AppColors.woodDeep,
+                              width: 2.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.woodDeep.withValues(
+                                  alpha: 0.18,
+                                ),
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: _buildFriendsList(
+                                  effectiveFriends,
+                                  filteredFriends,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildSearchBar(l10n),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.friendsEmptySubtitle,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurfaceVariant,
+                        Positioned(
+                          top: 0,
+                          left: 42,
+                          right: 42,
+                          child: Center(
+                            child: Container(
+                              constraints: const BoxConstraints(minWidth: 132),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.woodLight,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: AppColors.woodDeep,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.woodDeep.withValues(
+                                      alpha: 0.18,
+                                    ),
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: GameButtonLabel(
+                                l10n.socialFriends,
+                                fontSize: 16,
+                                outlineWidth: 2.8,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                : filteredFriends.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.friendsNoResult,
-                      style: TextStyle(color: colorScheme.onSurfaceVariant),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 110),
-                    itemCount: filteredFriends.length,
-                    itemBuilder: (context, index) {
-                      final friend = filteredFriends[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              '/profile/friend',
-                              arguments: FriendPlayerProfileArguments(
-                                userId: friend.userId,
-                                initialName: friend.username,
-                                initialAvatarUrl: friend.avatarUrl,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Stack(
-                                    children: [
-                                      CircleAvatar(
-                                        radius:
-                                            25, // Kích thước avatar lớn, rõ ràng
-                                        backgroundColor:
-                                            colorScheme.primaryContainer,
-                                        backgroundImage:
-                                            (friend.avatarUrl != null &&
-                                                friend.avatarUrl!.isNotEmpty)
-                                            ? NetworkImage(friend.avatarUrl!)
-                                            : null,
-                                        child: Text(
-                                          friend.username.isNotEmpty
-                                              ? friend.username[0].toUpperCase()
-                                              : '?',
-                                          style: const TextStyle(
-                                            color: Colors
-                                                .white, // Chữ trắng nổi bật
-                                            fontWeight:
-                                                FontWeight.w900, // Chữ siêu đậm
-                                            fontSize:
-                                                25, // Kích thước chữ cái lớn
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          friend.username,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-
-                                        if (friend.bio != null &&
-                                            friend.bio!.trim().isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            friend.bio!,
-                                            maxLines:
-                                                1, // Giới hạn 1 dòng để tránh vỡ giao diện
-                                            overflow: TextOverflow
-                                                .ellipsis, // Hiện dấu ... nếu quá dài
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: colorScheme
-                                                  .onSurfaceVariant
-                                                  .withOpacity(0.8),
-                                              fontStyle: FontStyle
-                                                  .italic, // Để chữ nghiêng cho đẹp mắt
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: AppIcon(
-                                      Icons.person_remove,
-                                      size: 20,
-                                      color: colorScheme.secondary.withOpacity(
-                                        0.8,
-                                      ),
-                                    ),
-                                    onPressed: () => _removeFriend(friend),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeaderActions(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _showFriendRequestsPopup(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.woodDeep,
+                backgroundColor: AppColors.authCard.withValues(alpha: 0.94),
+                side: const BorderSide(color: AppColors.wood, width: 2),
+                minimumSize: const Size(0, 42),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                shape: const StadiumBorder(),
+              ),
+              child: Text(
+                l10n.friendsRequest,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton(
+              onPressed: () => _showAddFriendPopup(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.buttonGreen,
+                foregroundColor: AppColors.buttonText,
+                elevation: 0,
+                side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                minimumSize: const Size(0, 42),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                shape: const StadiumBorder(),
+              ),
+              child: GameButtonLabel(
+                l10n.friendsAdd,
+                fontSize: 14,
+                outlineWidth: 2.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFriendsList(
+    List<FriendsResponse> effectiveFriends,
+    List<FriendsResponse> filteredFriends,
+  ) {
+    final l10n = AppLocalizations.of(context);
+
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.oliveDeep),
+      );
+    }
+
+    if (effectiveFriends.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const AppIcon(
+                Icons.group_add_rounded,
+                size: 52,
+                color: AppColors.olive,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.friendsEmptyTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.inkDark,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                l10n.friendsEmptySubtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.inkBrown,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (filteredFriends.isEmpty) {
+      return Center(
+        child: Text(
+          l10n.friendsNoResult,
+          style: const TextStyle(
+            color: AppColors.inkBrown,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      physics: const BouncingScrollPhysics(),
+      itemCount: filteredFriends.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 7),
+      itemBuilder: (_, index) => _buildFriendRow(filteredFriends[index]),
+    );
+  }
+
+  Widget _buildFriendRow(FriendsResponse friend) {
+    final l10n = AppLocalizations.of(context);
+    final hasAvatar = friend.avatarUrl?.trim().isNotEmpty == true;
+    final isVietnamese =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
+
+    void openProfile() {
+      Navigator.pushNamed(
+        context,
+        '/profile/friend',
+        arguments: FriendPlayerProfileArguments(
+          userId: friend.userId,
+          initialName: friend.username,
+          initialAvatarUrl: friend.avatarUrl,
+        ),
+      );
+    }
+
+    return Material(
+      color: AppColors.authCard.withValues(alpha: 0.98),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(13),
+        side: const BorderSide(color: AppColors.wood, width: 1.6),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: openProfile,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 62),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 6, 5, 6),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: AppColors.creamDeep,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.wood, width: 1.5),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: hasAvatar
+                      ? Image.network(
+                          friend.avatarUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _avatarInitial(friend),
+                        )
+                      : _avatarInitial(friend),
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        friend.username,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.inkDark,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          height: 1.05,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: friend.isOnline
+                                  ? AppColors.success
+                                  : AppColors.outlineBrown,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              friend.isOnline
+                                  ? (isVietnamese ? 'Đang online' : 'Online')
+                                  : (isVietnamese ? 'Ngoại tuyến' : 'Offline'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: friend.isOnline
+                                    ? AppColors.oliveDeep
+                                    : AppColors.inkBrown,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                _friendAction(
+                  tooltip: l10n.friendProfileTitle,
+                  asset: AppAssets.iconFriendProfile,
+                  onTap: openProfile,
+                ),
+                const SizedBox(width: 3),
+                _friendAction(
+                  tooltip: l10n.friendsRemove,
+                  asset: AppAssets.iconRemoveFriend,
+                  onTap: () => _removeFriend(friend),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _avatarInitial(FriendsResponse friend) {
+    return Center(
+      child: Text(
+        friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
+        style: const TextStyle(
+          color: AppColors.woodDeep,
+          fontWeight: FontWeight.w900,
+          fontSize: 21,
+        ),
+      ),
+    );
+  }
+
+  Widget _friendAction({
+    required String tooltip,
+    required String asset,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkResponse(
+        onTap: onTap,
+        radius: 23,
+        child: SizedBox(
+          width: 41,
+          height: 41,
+          child: Padding(
+            padding: const EdgeInsets.all(3),
+            child: Image.asset(asset, fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(AppLocalizations l10n) {
+    final isVietnamese =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 42,
+            child: TextField(
+              onChanged: (value) => setState(() => searchQuery = value),
+              onSubmitted: (_) => FocusScope.of(context).unfocus(),
+              style: const TextStyle(
+                color: AppColors.inkDark,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+              decoration: InputDecoration(
+                hintText: l10n.friendsSearchHint,
+                hintStyle: const TextStyle(color: AppColors.outlineBrown),
+                filled: true,
+                fillColor: AppColors.authCard,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 13,
+                  vertical: 12,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.wood,
+                    width: 1.6,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.woodDeep,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 7),
+        SizedBox(
+          height: 42,
+          child: FilledButton(
+            onPressed: () => FocusScope.of(context).unfocus(),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(66, 42),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              backgroundColor: AppColors.buttonGreen,
+              foregroundColor: AppColors.buttonText,
+              side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
+              shape: const StadiumBorder(),
+            ),
+            child: GameButtonLabel(
+              isVietnamese ? 'Tìm' : 'Find',
+              fontSize: 13,
+              outlineWidth: 2.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -725,8 +951,9 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
     return Container(
       padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(top: BorderSide(color: AppColors.wood, width: 2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -735,15 +962,20 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              GameButtonLabel(
                 l10n.friendsAddNew,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
+                fontSize: 18,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.creamLight,
+                outlineWidth: 3,
               ),
               IconButton(
-                icon: const AppIcon(Icons.close),
+                icon: const AppIcon(Icons.close, size: 28),
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+                padding: EdgeInsets.zero,
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -764,10 +996,27 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                   decoration: InputDecoration(
                     hintText: l10n.friendsPlayerNameHint,
                     filled: true,
-                    fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                    fillColor: AppColors.creamLight.withOpacity(0.85),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                      borderSide: const BorderSide(
+                        color: AppColors.wood,
+                        width: 1.5,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: AppColors.wood,
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: AppColors.woodDeep,
+                        width: 2,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -779,12 +1028,15 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
               const SizedBox(width: 8),
               InkWell(
                 onTap: _handleSearch,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 child: Container(
-                  padding: const EdgeInsets.all(14),
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.buttonGreen,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.woodDeep, width: 1.5),
                   ),
                   child: _isLoading
                       ? SizedBox(
@@ -797,8 +1049,8 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                         )
                       : AppIcon(
                           Icons.search,
-                          color: colorScheme.onPrimary,
-                          size: 20,
+                          color: AppColors.buttonText,
+                          size: 17,
                         ),
                 ),
               ),
@@ -852,16 +1104,11 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer.withOpacity(
-                              0.3,
-                            ),
+                            color: AppColors.authCard,
                             borderRadius: BorderRadius.circular(
                               16,
                             ), // Thẻ bo tròn
-                            border: Border.all(
-                              color: colorScheme.primary.withOpacity(0.1),
-                              width: 1.5,
-                            ),
+                            border: Border.all(color: AppColors.wood, width: 2),
                           ),
                           child: Row(
                             children: [
@@ -938,26 +1185,26 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                               ),
 
                               // 3. NÚT THÊM BẠN (Giữ nguyên logic của bạn)
-                              ElevatedButton(
+                              FilledButton(
                                 onPressed: () => _sendRequest(player),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.primary,
-                                  foregroundColor: colorScheme.onPrimary,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.buttonGreen,
+                                  foregroundColor: AppColors.buttonText,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                     vertical: 0,
                                   ),
                                   minimumSize: const Size(0, 36), // Thu gọn nút
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                  shape: const StadiumBorder(),
+                                  side: const BorderSide(
+                                    color: AppColors.woodDeep,
+                                    width: 1.5,
                                   ),
                                 ),
-                                child: Text(
+                                child: GameButtonLabel(
                                   l10n.friendsAddShort,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
+                                  fontSize: 13,
+                                  outlineWidth: 2.2,
                                 ),
                               ),
                             ],
@@ -1167,8 +1414,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(top: BorderSide(color: AppColors.wood, width: 2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1177,15 +1425,20 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              GameButtonLabel(
                 l10n.friendsInbox,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
+                fontSize: 18,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.creamLight,
+                outlineWidth: 3,
               ),
               IconButton(
-                icon: const AppIcon(Icons.close),
+                icon: const AppIcon(Icons.close, size: 28),
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+                padding: EdgeInsets.zero,
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -1204,7 +1457,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: !_isSentTab,
-                  selectedColor: colorScheme.primary,
+                  selectedColor: AppColors.buttonGreen,
+                  backgroundColor: AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: !_isSentTab
                         ? colorScheme.onPrimary
@@ -1213,6 +1467,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.wood, width: 1.5),
                   ),
                   onSelected: (val) {
                     if (_isSentTab) {
@@ -1233,7 +1488,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: _isSentTab,
-                  selectedColor: colorScheme.primary,
+                  selectedColor: AppColors.buttonGreen,
+                  backgroundColor: AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: _isSentTab
                         ? colorScheme.onPrimary
@@ -1242,6 +1498,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.wood, width: 1.5),
                   ),
                   onSelected: (val) {
                     if (!_isSentTab) {
@@ -1295,12 +1552,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           // Đồng bộ màu nền thẻ giống Thêm Bạn
-                          color: colorScheme.primaryContainer.withOpacity(0.3),
+                          color: AppColors.authCard,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: colorScheme.primary.withOpacity(0.1),
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: AppColors.wood, width: 2),
                         ),
                         child: Row(
                           children: [
@@ -1374,25 +1628,28 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                               ),
                             ),
                             if (_isSentTab)
-                              ElevatedButton(
+                              OutlinedButton(
                                 onPressed: () => _cancelRequest(req),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.secondary,
-                                  foregroundColor: colorScheme.onSecondary,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: AppColors.buttonSecondary,
+                                  foregroundColor: AppColors.woodDeep,
+                                  side: const BorderSide(
+                                    color: AppColors.woodDeep,
+                                    width: 1.8,
+                                  ),
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 0,
+                                    horizontal: 16,
                                   ),
-                                  minimumSize: const Size(0, 36),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                  minimumSize: const Size(0, 40),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: const StadiumBorder(),
                                 ),
                                 child: Text(
                                   l10n.friendsCancel,
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w900,
                                   ),
                                 ),
                               )
@@ -1409,12 +1666,12 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       padding: const EdgeInsets.all(8),
-                                      minimumSize: const Size(36, 36),
+                                      minimumSize: const Size(40, 40),
                                     ),
                                     icon: const AppIcon(
                                       Icons.check_rounded,
                                       color: Colors.white,
-                                      size: 20,
+                                      size: 28,
                                     ),
                                   ),
 
@@ -1424,21 +1681,13 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                     onPressed: () =>
                                         _respondToRequest(req, false),
                                     style: IconButton.styleFrom(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-
-                                        side: BorderSide(
-                                          color: colorScheme.secondary,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(8),
-                                      minimumSize: const Size(36, 36),
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: const Size(40, 40),
                                     ),
                                     icon: AppIcon(
                                       Icons.close_rounded,
                                       color: colorScheme.secondary,
-                                      size: 20,
+                                      size: 28,
                                     ),
                                   ),
                                   const SizedBox(width: 8),

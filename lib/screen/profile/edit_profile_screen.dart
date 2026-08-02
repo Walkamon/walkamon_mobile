@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
@@ -174,18 +176,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, anim1, anim2) => const SizedBox(),
       transitionBuilder: (dialogContext, anim, anim2, child) {
-        final theme = Theme.of(dialogContext);
         final l10n = AppLocalizations.of(dialogContext);
 
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: theme.cardColor,
+            backgroundColor: AppColors.authCard,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(28),
-              side: BorderSide(
-                color: theme.dividerColor.withValues(alpha: 0.15),
-              ),
+              side: const BorderSide(color: AppColors.wood, width: 2),
             ),
             contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             content: Column(
@@ -195,16 +194,21 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: (isSuccess ? Colors.green : theme.colorScheme.error)
-                        .withValues(alpha: 0.12),
+                    color: (isSuccess
+                        ? AppColors.leafLight
+                        : AppColors.blossom),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSuccess ? AppColors.oliveDeep : AppColors.danger,
+                      width: 2,
+                    ),
                   ),
                   child: AppIcon(
                     isSuccess
                         ? Icons.check_circle_rounded
                         : Icons.error_rounded,
                     size: 36,
-                    color: isSuccess ? Colors.green : theme.colorScheme.error,
+                    color: isSuccess ? AppColors.oliveDeep : AppColors.danger,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -212,18 +216,20 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   isSuccess
                       ? l10n.dailyLoginSuccessTitle
                       : l10n.profileEditFailureTitle,
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: theme.colorScheme.onSurface,
+                    color: AppColors.woodDeep,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: AppColors.outlineBrown,
                     height: 1.4,
                   ),
                 ),
@@ -233,13 +239,13 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isSuccess
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.error,
-                      foregroundColor: theme.colorScheme.onPrimary,
+                          ? AppColors.buttonGreen
+                          : AppColors.buttonYellow,
+                      foregroundColor: AppColors.buttonText,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
+                      shape: const StadiumBorder(
+                        side: BorderSide(color: AppColors.woodDeep, width: 2),
                       ),
                     ),
                     onPressed: () {
@@ -256,12 +262,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         }
                       }
                     },
-                    child: Text(
+                    child: GameButtonLabel(
                       l10n.profileEditConfirm,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+                      fontSize: 15,
+                      color: AppColors.buttonText,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 2.5,
                     ),
                   ),
                 ),
@@ -318,11 +324,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final primary = theme.colorScheme.primary;
-    final cardColor = theme.cardColor;
-    final backgroundColor = theme.scaffoldBackgroundColor;
+    const backgroundColor = Colors.transparent;
 
     final isProfileLoading = context
         .watch<GameStateProvider>()
@@ -342,10 +345,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -355,12 +355,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                             if (!isProfileLoading) Navigator.pop(context);
                           },
                         ),
-                        Text(
+                        GameButtonLabel(
                           l10n.profileEditTitle,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: theme.colorScheme.onSurface,
-                          ),
+                          fontSize: 20,
+                          color: AppColors.woodDeep,
+                          outlineColor: AppColors.authCard,
+                          outlineWidth: 4,
                         ),
                         const SizedBox(width: 48),
                       ],
@@ -370,237 +370,270 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                        horizontal: 20,
                         vertical: 16,
                       ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Center(
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Container(
-                                    width: 110,
-                                    height: 110,
-                                    decoration: BoxDecoration(
-                                      color: primary,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: backgroundColor,
-                                        width: 4,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(55),
-                                        // CƠ CHẾ HIỂN THỊ THÔNG MINH 3 TẦNG:
-                                        child: _localImagePath != null
-                                            ? ( // ── KIỂM TRA NẾU CHẠY TRÊN WEB THÌ DÙNG IMAGE.NETWORK CHO ĐƯỜNG DẪN TẠM ──
-                                              _localImagePath!.startsWith(
-                                                        'http',
-                                                      ) ||
-                                                      _localImagePath!
-                                                          .startsWith('blob:')
-                                                  ? Image.network(
-                                                      _localImagePath!,
-                                                      width: 110,
-                                                      height: 110,
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                  : Image.file(
-                                                      File(
-                                                        _localImagePath!,
-                                                      ), // Chạy trên Android/iOS thật thì vẫn dùng file bình thường
-                                                      width: 110,
-                                                      height: 110,
-                                                      fit: BoxFit.cover,
-                                                    ))
-                                            : userAvatarUrl.isNotEmpty
-                                            ? Image.network(
-                                                userAvatarUrl, // Ảnh cũ kéo từ Server về
-                                                width: 110,
-                                                height: 110,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) =>
-                                                    Text(
-                                                      _nameController
-                                                              .text
-                                                              .isNotEmpty
-                                                          ? _nameController
-                                                                .text[0]
-                                                                .toUpperCase()
-                                                          : 'U',
-                                                      style: TextStyle(
-                                                        fontSize: 48,
-                                                        fontWeight:
-                                                            FontWeight.w800,
-                                                        color: theme
-                                                            .colorScheme
-                                                            .onPrimary,
-                                                      ),
-                                                    ),
-                                              )
-                                            : Text(
-                                                _nameController.text.isNotEmpty
-                                                    ? _nameController.text[0]
-                                                          .toUpperCase()
-                                                    : 'U', // Trống hết thì hiện chữ cái đầu
-                                                style: TextStyle(
-                                                  fontSize: 48,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .onPrimary,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      width: 36,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        color: cardColor,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: theme.dividerColor.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: AppIcon(
-                                          Icons.camera_alt_rounded,
-                                          size: 18,
-                                          color: theme.colorScheme.onSurface,
-                                        ),
-                                        onPressed: isProfileLoading
-                                            ? null
-                                            : _pickAvatar, // Kích hoạt gọi hàm chọn ảnh từ điện thoại
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.leafLight.withValues(alpha: 0.96),
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: AppColors.oliveDeep,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.woodDeep.withValues(alpha: 0.2),
+                              blurRadius: 9,
+                              offset: const Offset(0, 4),
                             ),
-                            const SizedBox(height: 32),
-                            _FieldWrapper(
-                              label: l10n.profileEditDisplayName,
-                              child: _PillInput(
-                                controller: _nameController,
-                                icon: Icons.person_rounded,
-                                asset: AppAssets.iconAvatar,
-                                hint: l10n.profileEditDisplayNameHint,
-                                enabled: !isProfileLoading,
-                                onChanged: (val) => setState(() {}),
-                                validator: (val) => val!.trim().isEmpty
-                                    ? l10n.profileEditRequiredName
-                                    : null,
-                              ),
+                          ],
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.authCard.withValues(alpha: 0.97),
+                            borderRadius: BorderRadius.circular(19),
+                            border: Border.all(
+                              color: AppColors.wood,
+                              width: 1.5,
                             ),
-                            const SizedBox(height: 20),
-                            _FieldWrapper(
-                              label: l10n.profileEditEmailLabel,
-                              child: _PillInput(
-                                controller: _emailController,
-                                icon: Icons.email_rounded,
-                                hint: l10n.profileEditEmailHint,
-                                enabled: false,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Expanded(
-                                  child: _FieldWrapper(
-                                    label: l10n.profileEditGenderLabel,
-                                    child: _PillDropdown(
-                                      value: _selectedGender,
-                                      items: [
-                                        DropdownOption(
-                                          value: 'male',
-                                          label: l10n.profileEditGenderMale,
+                                Center(
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 110,
+                                        height: 110,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.leafLight,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: AppColors.woodDeep,
+                                            width: 3,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.woodDeep
+                                                  .withValues(alpha: 0.2),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
                                         ),
-                                        DropdownOption(
-                                          value: 'female',
-                                          label: l10n.profileEditGenderFemale,
+                                        child: Center(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              55,
+                                            ),
+                                            // CƠ CHẾ HIỂN THỊ THÔNG MINH 3 TẦNG:
+                                            child: _localImagePath != null
+                                                ? ( // ── KIỂM TRA NẾU CHẠY TRÊN WEB THÌ DÙNG IMAGE.NETWORK CHO ĐƯỜNG DẪN TẠM ──
+                                                  _localImagePath!.startsWith(
+                                                            'http',
+                                                          ) ||
+                                                          _localImagePath!
+                                                              .startsWith(
+                                                                'blob:',
+                                                              )
+                                                      ? Image.network(
+                                                          _localImagePath!,
+                                                          width: 110,
+                                                          height: 110,
+                                                          fit: BoxFit.cover,
+                                                        )
+                                                      : Image.file(
+                                                          File(
+                                                            _localImagePath!,
+                                                          ), // Chạy trên Android/iOS thật thì vẫn dùng file bình thường
+                                                          width: 110,
+                                                          height: 110,
+                                                          fit: BoxFit.cover,
+                                                        ))
+                                                : userAvatarUrl.isNotEmpty
+                                                ? Image.network(
+                                                    userAvatarUrl, // Ảnh cũ kéo từ Server về
+                                                    width: 110,
+                                                    height: 110,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder:
+                                                        (_, __, ___) => Text(
+                                                          _nameController
+                                                                  .text
+                                                                  .isNotEmpty
+                                                              ? _nameController
+                                                                    .text[0]
+                                                                    .toUpperCase()
+                                                              : 'U',
+                                                          style: TextStyle(
+                                                            fontSize: 48,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: AppColors
+                                                                .woodDeep,
+                                                          ),
+                                                        ),
+                                                  )
+                                                : Text(
+                                                    _nameController
+                                                            .text
+                                                            .isNotEmpty
+                                                        ? _nameController
+                                                              .text[0]
+                                                              .toUpperCase()
+                                                        : 'U', // Trống hết thì hiện chữ cái đầu
+                                                    style: TextStyle(
+                                                      fontSize: 48,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: AppColors.woodDeep,
+                                                    ),
+                                                  ),
+                                          ),
                                         ),
-                                        DropdownOption(
-                                          value: 'other',
-                                          label: l10n.profileEditGenderOther,
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.authCard,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: AppColors.woodDeep,
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.woodDeep
+                                                    .withValues(alpha: 0.18),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            icon: AppIcon(
+                                              Icons.camera_alt_rounded,
+                                              size: 21,
+                                              color: AppColors.woodDeep,
+                                            ),
+                                            onPressed: isProfileLoading
+                                                ? null
+                                                : _pickAvatar, // Kích hoạt gọi hàm chọn ảnh từ điện thoại
+                                          ),
                                         ),
-                                      ],
-                                      enabled: !isProfileLoading,
-                                      onChanged: (val) => setState(
-                                        () => _selectedGender = val!,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                _FieldWrapper(
+                                  label: l10n.profileEditDisplayName,
+                                  child: _PillInput(
+                                    controller: _nameController,
+                                    icon: Icons.person_rounded,
+                                    asset: AppAssets.iconAvatar,
+                                    hint: l10n.profileEditDisplayNameHint,
+                                    enabled: !isProfileLoading,
+                                    onChanged: (val) => setState(() {}),
+                                    validator: (val) => val!.trim().isEmpty
+                                        ? l10n.profileEditRequiredName
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                _FieldWrapper(
+                                  label: l10n.profileEditEmailLabel,
+                                  child: _PillInput(
+                                    controller: _emailController,
+                                    icon: Icons.email_rounded,
+                                    hint: l10n.profileEditEmailHint,
+                                    enabled: false,
+                                    keyboardType: TextInputType.emailAddress,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _FieldWrapper(
+                                        label: l10n.profileEditGenderLabel,
+                                        child: _PillDropdown(
+                                          value: _selectedGender,
+                                          items: [
+                                            DropdownOption(
+                                              value: 'male',
+                                              label: l10n.profileEditGenderMale,
+                                            ),
+                                            DropdownOption(
+                                              value: 'female',
+                                              label:
+                                                  l10n.profileEditGenderFemale,
+                                            ),
+                                            DropdownOption(
+                                              value: 'other',
+                                              label:
+                                                  l10n.profileEditGenderOther,
+                                            ),
+                                          ],
+                                          enabled: !isProfileLoading,
+                                          onChanged: (val) => setState(
+                                            () => _selectedGender = val!,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _FieldWrapper(
-                                    label: l10n.profileEditBirthLabel,
-                                    child: _PillDatePicker(
-                                      dateText: _formattedDate,
-                                      onTap: () => _selectDate(context),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _FieldWrapper(
+                                        label: l10n.profileEditBirthLabel,
+                                        child: _PillDatePicker(
+                                          dateText: _formattedDate,
+                                          onTap: () => _selectDate(context),
+                                        ),
+                                      ),
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                _FieldWrapper(
+                                  label: l10n.profileEditBioLabel,
+                                  child: _PillInput(
+                                    controller: _bioController,
+                                    icon: Icons.info_outline_rounded,
+                                    hint: l10n.profileEditBioHint,
+                                    enabled: !isProfileLoading,
+                                    maxLines: 3,
+                                    isTextArea: true,
                                   ),
                                 ),
+                                const SizedBox(height: 40),
+                                _TapScaleButton(
+                                  onPressed: _handleSave,
+                                  backgroundColor: isProfileLoading
+                                      ? AppColors.panelMuted
+                                      : AppColors.buttonGreen,
+                                  foregroundColor: AppColors.buttonText,
+                                  label: isProfileLoading
+                                      ? l10n.profileEditSaveLoading
+                                      : l10n.profileEditSave,
+                                  isLoading: isProfileLoading,
+                                ),
+                                const SizedBox(height: 40),
                               ],
                             ),
-                            const SizedBox(height: 20),
-                            _FieldWrapper(
-                              label: l10n.profileEditBioLabel,
-                              child: _PillInput(
-                                controller: _bioController,
-                                icon: Icons.info_outline_rounded,
-                                hint: l10n.profileEditBioHint,
-                                enabled: !isProfileLoading,
-                                maxLines: 3,
-                                isTextArea: true,
-                              ),
-                            ),
-                            const SizedBox(height: 40),
-                            _TapScaleButton(
-                              onPressed: _handleSave,
-                              backgroundColor: isProfileLoading
-                                  ? theme.disabledColor
-                                  : primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              label: isProfileLoading
-                                  ? l10n.profileEditSaveLoading
-                                  : l10n.profileEditSave,
-                              isLoading: isProfileLoading,
-                            ),
-                            const SizedBox(height: 40),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -623,29 +656,10 @@ class _HeaderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: AppIcon(
-          icon,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-        ),
-        onPressed: onTap,
-      ),
+    return GameBackButton(
+      key: ValueKey(icon),
+      semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+      onPressed: onTap,
     );
   }
 }
@@ -658,7 +672,6 @@ class _FieldWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -666,9 +679,10 @@ class _FieldWrapper extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8, bottom: 8),
           child: Text(
             label,
-            style: theme.textTheme.titleSmall?.copyWith(
+            style: const TextStyle(
+              fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              color: AppColors.woodDeep,
             ),
           ),
         ),
@@ -705,19 +719,17 @@ class _PillInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: isTextArea ? 12 : 4,
+        horizontal: 14,
+        vertical: isTextArea ? 10 : 4,
       ),
       decoration: BoxDecoration(
         color: enabled
-            ? theme.cardColor
-            : theme.disabledColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(isTextArea ? 24 : 32),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
+            ? AppColors.creamLight
+            : AppColors.panelMuted.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.wood, width: 1.8),
       ),
       child: Row(
         crossAxisAlignment: isTextArea
@@ -729,10 +741,10 @@ class _PillInput extends StatelessWidget {
             child: AppIcon(
               icon,
               asset: asset,
-              size: 20,
-              color: theme.colorScheme.onSurface.withValues(
-                alpha: enabled ? 0.5 : 0.25,
-              ),
+              size: 22,
+              color: enabled
+                  ? AppColors.woodDeep
+                  : AppColors.outlineBrown.withValues(alpha: 0.55),
             ),
           ),
           const SizedBox(width: 12),
@@ -743,17 +755,17 @@ class _PillInput extends StatelessWidget {
               maxLines: maxLines,
               onChanged: onChanged,
               enabled: enabled,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
                 color: enabled
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ? AppColors.inkBrown
+                    : AppColors.outlineBrown.withValues(alpha: 0.65),
               ),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                hintStyle: TextStyle(
+                  color: AppColors.outlineBrown.withValues(alpha: 0.68),
                   fontWeight: FontWeight.w500,
                   fontSize: 15,
                 ),
@@ -761,6 +773,17 @@ class _PillInput extends StatelessWidget {
                 isDense: true,
               ),
               validator: validator,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Padding(
+            padding: EdgeInsets.only(top: isTextArea ? 4 : 0),
+            child: AppIcon(
+              enabled ? Icons.edit_rounded : Icons.lock_rounded,
+              size: enabled ? 23 : 19,
+              color: enabled
+                  ? AppColors.woodLight
+                  : AppColors.outlineBrown.withValues(alpha: 0.55),
             ),
           ),
         ],
@@ -791,44 +814,106 @@ class _PillDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: enabled
-            ? theme.cardColor
-            : theme.disabledColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.15)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isDense: true,
-          isExpanded: true,
-          dropdownColor: theme.cardColor,
-          icon: AppIcon(
-            Icons.keyboard_arrow_down_rounded,
-            color: theme.colorScheme.onSurface.withValues(
-              alpha: enabled ? 0.5 : 0.2,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final selectedOption = items.firstWhere(
+          (option) => option.value == value,
+          orElse: () => items.first,
+        );
+        return PopupMenuButton<String>(
+          enabled: enabled,
+          initialValue: value,
+          position: PopupMenuPosition.under,
+          offset: const Offset(0, 6),
+          color: AppColors.authCard,
+          surfaceTintColor: Colors.transparent,
+          elevation: 7,
+          constraints: BoxConstraints.tightFor(width: constraints.maxWidth),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppColors.wood, width: 2),
           ),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: enabled
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-            fontSize: 15,
-          ),
-          onChanged: enabled ? onChanged : null,
-          items: items.map<DropdownMenuItem<String>>((option) {
-            return DropdownMenuItem<String>(
+          onSelected: (selected) => onChanged(selected),
+          itemBuilder: (context) => items.map((option) {
+            final selected = option.value == value;
+            return PopupMenuItem<String>(
               value: option.value,
-              child: Text(option.label),
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 11),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.leafLight
+                      : AppColors.creamLight.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: selected ? AppColors.oliveDeep : AppColors.creamDeep,
+                    width: selected ? 1.6 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        option.label,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.woodDeep,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (selected)
+                      const AppIcon(
+                        Icons.check_rounded,
+                        size: 22,
+                        color: AppColors.oliveDeep,
+                      ),
+                  ],
+                ),
+              ),
             );
           }).toList(),
-        ),
-      ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? AppColors.creamLight
+                  : AppColors.panelMuted.withValues(alpha: 0.58),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.wood, width: 1.8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedOption.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: enabled
+                          ? AppColors.inkBrown
+                          : AppColors.outlineBrown.withValues(alpha: 0.65),
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                AppIcon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 23,
+                  color: enabled
+                      ? AppColors.woodDeep
+                      : AppColors.outlineBrown.withValues(alpha: 0.55),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -841,38 +926,40 @@ class _PillDatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.15),
-            ),
+            color: AppColors.creamLight,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.wood, width: 1.8),
           ),
           child: Row(
             children: [
               AppIcon(
                 Icons.calendar_month_rounded,
                 size: 20,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: AppColors.woodDeep,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   dateText,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                    color: AppColors.inkBrown,
                     fontSize: 15,
                   ),
                 ),
+              ),
+              const AppIcon(
+                Icons.edit_rounded,
+                size: 23,
+                color: AppColors.woodLight,
               ),
             ],
           ),
@@ -916,6 +1003,7 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: AppColors.woodDeep, width: 2),
             boxShadow: [
               BoxShadow(
                 color: widget.backgroundColor.withValues(alpha: 0.25),
@@ -948,15 +1036,12 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
                       ),
                       const SizedBox(width: 12),
                     ],
-                    Text(
+                    GameButtonLabel(
                       widget.label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: widget.foregroundColor,
-                        letterSpacing: 0.5,
-                      ),
+                      fontSize: 16,
+                      color: widget.foregroundColor,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 2.5,
                     ),
                   ],
                 ),

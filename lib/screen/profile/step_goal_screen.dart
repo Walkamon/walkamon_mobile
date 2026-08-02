@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
@@ -179,11 +181,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
   }
 
   void _showMessage(String message, {bool isSuccess = false}) {
-    showGameNotificationDialog(
-      context,
-      message: message,
-      isSuccess: isSuccess,
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: isSuccess);
   }
 
   Future<void> _showCustomGoalSheet() async {
@@ -200,17 +198,11 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       builder: (sheetContext) {
-        final theme = Theme.of(sheetContext);
         final l10n = AppLocalizations.of(sheetContext);
-        final isDark = theme.brightness == Brightness.dark;
-        final cardColor = theme.colorScheme.surface;
-        final primary = theme.colorScheme.primary;
-        final borderColor = isDark
-            ? AppColors.darkBorder
-            : AppColors.lightBorder;
-        final mutedForeground = isDark
-            ? AppColors.darkMutedForeground
-            : AppColors.lightMutedForeground;
+        final cardColor = AppColors.authCard.withValues(alpha: 0.98);
+        const primary = AppColors.buttonGreen;
+        const borderColor = AppColors.wood;
+        const mutedForeground = AppColors.outlineBrown;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -223,7 +215,14 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: borderColor),
+              border: Border.all(color: borderColor, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.22),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Form(
               key: formKey,
@@ -237,8 +236,10 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                       Expanded(
                         child: Text(
                           l10n.stepGoalCustomTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: const TextStyle(
+                            fontSize: 17,
                             fontWeight: FontWeight.w800,
+                            color: AppColors.woodDeep,
                           ),
                         ),
                       ),
@@ -254,7 +255,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                             Navigator.of(sheetContext).pop();
                           }
                         },
-                        icon: const AppIcon(Icons.close_rounded, size: 18),
+                        icon: const AppIcon(Icons.close_rounded, size: 28),
                       ),
                     ],
                   ),
@@ -267,8 +268,33 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                     decoration: InputDecoration(
                       hintText: l10n.stepGoalInputHint,
                       suffixText: l10n.activityStatsStepsPerDay,
+                      filled: true,
+                      fillColor: AppColors.creamLight,
+                      suffixIcon: const AppIcon(
+                        Icons.edit_rounded,
+                        size: 23,
+                        color: AppColors.woodLight,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.wood,
+                          width: 1.8,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.wood,
+                          width: 1.8,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.oliveDeep,
+                          width: 2,
+                        ),
                       ),
                     ),
                     validator: (value) {
@@ -346,24 +372,18 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.colorScheme.surface;
-    final primary = theme.colorScheme.primary;
-    final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark
-        ? AppColors.darkForeground
-        : AppColors.lightForeground;
+    final cardColor = AppColors.authCard.withValues(alpha: 0.97);
+    const primary = AppColors.buttonGreen;
+    const muted = AppColors.parchment;
+    const mutedForeground = AppColors.outlineBrown;
+    const borderColor = AppColors.wood;
+    const foreground = AppColors.woodDeep;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: Column(
             children: [
               _Header(onBack: () => Navigator.pop(context)),
@@ -514,44 +534,22 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.colorScheme.surface;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-
     return Stack(
       alignment: Alignment.center,
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: Material(
-            color: cardColor,
-            shape: CircleBorder(side: BorderSide(color: borderColor)),
-            elevation: 1,
-            shadowColor: Colors.black.withValues(alpha: 0.05),
-            child: InkWell(
-              onTap: onBack,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: AppIcon(
-                  Icons.arrow_back_rounded,
-                  size: 20,
-                  color: mutedForeground,
-                ),
-              ),
-            ),
+          child: GameBackButton(
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: onBack,
           ),
         ),
-        Text(
+        GameButtonLabel(
           AppLocalizations.of(context).stepGoalTitle,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          fontSize: 18,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
       ],
     );
@@ -771,9 +769,12 @@ class _PresetGoalButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selected ? primary.withValues(alpha: 0.1) : cardColor,
+          color: selected ? AppColors.buttonGreen : cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? primary : borderColor),
+          border: Border.all(
+            color: selected ? AppColors.woodDeep : borderColor,
+            width: selected ? 2 : 1.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -783,7 +784,12 @@ class _PresetGoalButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
-                color: selected ? primary : foreground.withValues(alpha: 0.85),
+                color: selected
+                    ? AppColors.buttonText
+                    : foreground.withValues(alpha: 0.85),
+                shadows: selected
+                    ? const [Shadow(color: AppColors.woodDeep, blurRadius: 1.5)]
+                    : null,
               ),
             ),
             const SizedBox(height: 2),
@@ -792,9 +798,7 @@ class _PresetGoalButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: selected
-                    ? primary.withValues(alpha: 0.8)
-                    : mutedForeground,
+                color: selected ? AppColors.buttonText : mutedForeground,
               ),
             ),
           ],
@@ -1052,7 +1056,11 @@ class _CustomGoalButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, style: BorderStyle.solid),
+          border: Border.all(
+            color: borderColor,
+            width: 1.5,
+            style: BorderStyle.solid,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/constants/app_assets.dart';
@@ -104,8 +106,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = AuthStyle.forest;
-    final onPrimary = AuthStyle.cream;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final loginButtonColor = isDark
+        ? AppColors.darkPrimary
+        : AppColors.buttonGreen;
+    const loginButtonForeground = AppColors.buttonText;
+    final registerButtonColor = isDark
+        ? AppColors.darkAccent
+        : AppColors.buttonYellow;
+    const registerButtonForeground = AppColors.buttonText;
+    const registerButtonBorder = AppColors.buttonBorder;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final mutedForeground = isDark
         ? AppColors.darkMutedForeground
@@ -163,36 +172,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         const Spacer(),
                         _AnimatedFadeSlide(
                           delay: Duration.zero,
-                          child: Column(
-                            children: [
-                              const _HeroLogo(size: 144),
-                              const SizedBox(height: 24),
-                              Text(
-                                l10n.appTitle,
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w900,
-                                  color: AuthStyle.forestDark,
-                                  letterSpacing: 3.2,
-                                  shadows: const [
-                                    Shadow(
-                                      color: Colors.white70,
-                                      blurRadius: 10,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.welcomeTagline,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: accent,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
+                          child: GameWordmark(
+                            title: l10n.appTitle,
+                            tagline: l10n.welcomeTagline,
                           ),
                         ),
                         const Spacer(flex: 2),
@@ -204,37 +186,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               child: Column(
                                 children: [
                                   _PrimaryButton(
-                                    label: l10n.welcomeExplore,
-                                    backgroundColor: primary,
-                                    foregroundColor: onPrimary,
-                                    onPressed: () =>
-                                        Navigator.pushNamed(context, '/story'),
+                                    label: l10n.welcomeLogin,
+                                    backgroundColor: loginButtonColor,
+                                    foregroundColor: loginButtonForeground,
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      '/auth/login',
+                                    ),
                                   ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _OutlineButton(
-                                          label: l10n.welcomeLogin,
-                                          color: primary,
-                                          onPressed: () => Navigator.pushNamed(
-                                            context,
-                                            '/auth/login',
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: _OutlineButton(
-                                          label: l10n.welcomeRegister,
-                                          color: primary,
-                                          onPressed: () => Navigator.pushNamed(
-                                            context,
-                                            '/auth/register',
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  const SizedBox(height: 12),
+                                  _OutlineButton(
+                                    label: l10n.welcomeRegister,
+                                    backgroundColor: registerButtonColor,
+                                    foregroundColor: registerButtonForeground,
+                                    borderColor: registerButtonBorder,
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      '/auth/register',
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   Row(
@@ -272,7 +241,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     cardColor: Colors.white.withValues(
                                       alpha: 0.78,
                                     ),
-                                    borderColor: const Color(0xFFD8CDAE),
+                                    borderColor: registerButtonBorder,
                                     foregroundColor: AuthStyle.forestDark,
                                     mutedColor: muted,
                                     onPressed: _handleGoogleLogin,
@@ -387,7 +356,10 @@ class _TopIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.authCard.withValues(alpha: 0.92),
+      shape: const CircleBorder(
+        side: BorderSide(color: AppColors.wood, width: 2),
+      ),
       child: InkWell(
         onTap: onPressed,
         customBorder: const CircleBorder(),
@@ -420,21 +392,30 @@ class _PrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: Material(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(32),
+          side: const BorderSide(color: AppColors.woodDeep, width: 2),
+        ),
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(32),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: foregroundColor,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(painter: _WelcomeButtonLeafPainter()),
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: GameButtonLabel(
+                  label,
+                  fontSize: 18,
+                  color: foregroundColor,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -442,15 +423,52 @@ class _PrimaryButton extends StatelessWidget {
   }
 }
 
+class _WelcomeButtonLeafPainter extends CustomPainter {
+  const _WelcomeButtonLeafPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width < 104) return;
+    final fill = Paint()..color = AppColors.oliveDeep;
+    final edge = Paint()
+      ..color = AppColors.woodDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    void leaf(Offset center, double angle) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      final rect = Rect.fromCenter(center: Offset.zero, width: 16, height: 8);
+      canvas.drawOval(rect, fill);
+      canvas.drawOval(rect, edge);
+      canvas.restore();
+    }
+
+    final y = size.height / 2;
+    leaf(Offset(9, y - 5), -0.55);
+    leaf(Offset(9, y + 5), 0.55);
+    leaf(Offset(size.width - 9, y - 5), 0.55);
+    leaf(Offset(size.width - 9, y + 5), -0.55);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WelcomeButtonLeafPainter oldDelegate) => false;
+}
+
 class _OutlineButton extends StatelessWidget {
   const _OutlineButton({
     required this.label,
-    required this.color,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
     required this.onPressed,
   });
 
   final String label;
-  final Color color;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
   final VoidCallback onPressed;
 
   @override
@@ -460,17 +478,16 @@ class _OutlineButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color, width: 2),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          side: BorderSide(color: borderColor, width: 2),
+          minimumSize: const Size.fromHeight(54),
+          padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-        ),
+        child: GameButtonLabel(label, fontSize: 16, color: foregroundColor),
       ),
     );
   }
@@ -611,6 +628,7 @@ class _SettingsOverlay extends StatelessWidget {
                               onPressed: onClose,
                               icon: AppIcon(
                                 Icons.close,
+                                size: 28,
                                 color: mutedForeground,
                               ),
                             ),
@@ -886,10 +904,10 @@ class _HeroLogoState extends State<_HeroLogo>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    );
     _bounce = Tween<double>(
       begin: 0,
-      end: -5,
+      end: 0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -902,17 +920,16 @@ class _HeroLogoState extends State<_HeroLogo>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final glowColor = isDark
-        ? const Color(0xFF7DB9A1)
-        : const Color(0xFF10B981);
-    final innerColor = isDark ? Colors.white : Colors.white;
-    final strokeColor = isDark
-        ? const Color(0xFF7DB9A1)
-        : const Color(0xFF10B981);
+    final l10n = AppLocalizations.of(context);
+    final glowColor = isDark ? AppColors.darkPrimary : AppColors.leafBright;
+    final outerStroke = isDark ? AppColors.darkForeground : AppColors.ivory;
+    final innerStroke = isDark ? AppColors.olive : AppColors.oliveDeep;
+    const titleFill = AppColors.goldLight;
+    const taglineFill = AppColors.leafLight;
 
     return SizedBox(
       width: widget.size,
-      height: widget.size,
+      height: widget.size * 0.52,
       child: AnimatedBuilder(
         animation: _bounce,
         builder: (context, child) {
@@ -924,32 +941,114 @@ class _HeroLogoState extends State<_HeroLogo>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Container(
-              width: widget.size * 0.82,
-              height: widget.size * 0.82,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: glowColor.withValues(alpha: isDark ? 0.18 : 0.15),
-                boxShadow: [
-                  BoxShadow(
-                    color: glowColor.withValues(alpha: isDark ? 0.35 : 0.22),
-                    blurRadius: 34,
-                    spreadRadius: 8,
-                  ),
-                ],
-              ),
-            ),
             CustomPaint(
               size: Size(widget.size, widget.size),
               painter: _HeroLogoPainter(
                 primaryColor: glowColor,
-                innerColor: innerColor,
-                strokeColor: strokeColor,
+                innerColor: outerStroke,
+                strokeColor: innerStroke,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _outlinedLogoText(
+                    text: l10n.appTitle,
+                    fontSize: 43,
+                    fillColor: titleFill,
+                    innerStroke: innerStroke,
+                    outerStroke: outerStroke,
+                    outerWidth: 10,
+                    innerWidth: 5.5,
+                    letterSpacing: -1.4,
+                  ),
+                  const SizedBox(height: 2),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: widget.size * 0.84),
+                    child: _outlinedLogoText(
+                      text: l10n.welcomeTagline,
+                      fontSize: 19,
+                      fillColor: taglineFill,
+                      innerStroke: innerStroke,
+                      outerStroke: outerStroke,
+                      outerWidth: 7,
+                      innerWidth: 3.8,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _outlinedLogoText({
+    required String text,
+    required double fontSize,
+    required Color fillColor,
+    required Color innerStroke,
+    required Color outerStroke,
+    required double outerWidth,
+    required double innerWidth,
+    required double letterSpacing,
+  }) {
+    TextStyle style({Color? color, Paint? foreground}) {
+      return TextStyle(
+        color: color,
+        foreground: foreground,
+        fontSize: fontSize,
+        fontWeight: FontWeight.w900,
+        height: 0.96,
+        letterSpacing: letterSpacing,
+      );
+    }
+
+    Text layer(TextStyle textStyle) => Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: 2,
+      overflow: TextOverflow.visible,
+      style: textStyle,
+    );
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        layer(
+          style(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = outerWidth
+              ..color = outerStroke,
+          ),
+        ),
+        layer(
+          style(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = innerWidth
+              ..color = innerStroke,
+          ),
+        ),
+        layer(
+          style(color: fillColor).copyWith(
+            shadows: const [
+              Shadow(
+                color: Color(0x55352318),
+                blurRadius: 1,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -976,108 +1075,36 @@ class _HeroLogoPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final strokePaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.4)
+      ..color = strokeColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
 
-    final shieldPaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.82)
-      ..style = PaintingStyle.fill;
+    // The sprout grows directly from the tail of the Walkamon wordmark.
+    final stem = Path()
+      ..moveTo(84, 22)
+      ..quadraticBezierTo(84, 17, 81, 14);
+    canvas.drawPath(stem, strokePaint);
 
-    final innerPaint = Paint()
-      ..color = innerColor
-      ..style = PaintingStyle.fill;
-
-    // left shield
-    final leftShield = Path()
-      ..moveTo(50, 84)
-      ..cubicTo(16, 80, 8, 48, 21, 26)
-      ..cubicTo(31, 40, 44, 62, 50, 84)
-      ..close();
-    canvas.drawPath(leftShield, shieldPaint);
-
-    // right shield
-    final rightShield = Path()
-      ..moveTo(50, 84)
-      ..cubicTo(84, 80, 92, 48, 79, 26)
-      ..cubicTo(69, 40, 56, 62, 50, 84)
-      ..close();
-    canvas.drawPath(rightShield, shieldPaint);
-
-    // connection curves
-    final leftCurve = Path()
-      ..moveTo(22, 45)
-      ..quadraticBezierTo(35, 31, 50, 45);
-    canvas.drawPath(leftCurve, strokePaint);
-
-    final rightCurve = Path()
-      ..moveTo(78, 45)
-      ..quadraticBezierTo(65, 31, 50, 45);
-    canvas.drawPath(rightCurve, strokePaint);
-
-    // central ring
-    canvas.drawCircle(
-      const Offset(50, 55),
-      18,
-      Paint()..color = primaryColor.withValues(alpha: 0.8),
-    );
-    canvas.drawCircle(const Offset(50, 55), 14, innerPaint);
-
-    // star
-    final star = Path()
-      ..moveTo(50, 36)
-      ..lineTo(54, 50)
-      ..lineTo(69, 54)
-      ..lineTo(54, 58)
-      ..lineTo(50, 72)
-      ..lineTo(46, 58)
-      ..lineTo(31, 54)
-      ..lineTo(46, 50)
-      ..close();
-    canvas.drawPath(star, fillPaint);
-
-    // top leaves
     final leftLeaf = Path()
-      ..moveTo(50, 36)
-      ..quadraticBezierTo(44, 25, 36, 28)
-      ..quadraticBezierTo(45, 33, 50, 36)
+      ..moveTo(83, 18)
+      ..cubicTo(75, 18, 74, 11, 81, 11)
+      ..cubicTo(85, 12, 85, 15, 83, 18)
       ..close();
     canvas.drawPath(leftLeaf, fillPaint);
+    canvas.drawPath(leftLeaf, strokePaint);
 
     final rightLeaf = Path()
-      ..moveTo(50, 36)
-      ..quadraticBezierTo(56, 25, 64, 28)
-      ..quadraticBezierTo(55, 33, 50, 36)
+      ..moveTo(84, 17)
+      ..cubicTo(86, 10, 94, 10, 92, 16)
+      ..cubicTo(90, 20, 86, 20, 84, 17)
       ..close();
     canvas.drawPath(rightLeaf, fillPaint);
+    canvas.drawPath(rightLeaf, strokePaint);
 
-    // sparkles
-    _drawSparkle(
-      canvas,
-      const Offset(15, 24),
-      primaryColor.withValues(alpha: 0.72),
-    );
-    _drawSparkle(
-      canvas,
-      const Offset(90, 24),
-      primaryColor.withValues(alpha: 0.72),
-    );
-    _drawSparkle(
-      canvas,
-      const Offset(52, 10),
-      primaryColor.withValues(alpha: 0.72),
-    );
-    _drawSparkle(
-      canvas,
-      const Offset(20, 70),
-      primaryColor.withValues(alpha: 0.72),
-    );
-    _drawSparkle(
-      canvas,
-      const Offset(85, 70),
-      primaryColor.withValues(alpha: 0.72),
-    );
+    _drawSparkle(canvas, const Offset(18, 17), innerColor);
+    _drawSparkle(canvas, const Offset(73, 7), innerColor);
+    _drawSparkle(canvas, const Offset(96, 27), innerColor);
 
     canvas.restore();
   }

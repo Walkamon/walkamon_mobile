@@ -45,7 +45,9 @@ class HomePageBackdrop extends StatelessWidget {
           ),
         ),
         ColoredBox(
-          color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.12),
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.28)
+              : AppColors.authCard.withValues(alpha: 0.18),
         ),
         child,
       ],

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/friend_spirit_datasource.dart';
@@ -89,9 +91,16 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
-            onPressed: () => Navigator.of(context).pop(),
+          toolbarHeight: 64,
+          leadingWidth: 68,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+            child: GameBackButton(
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -104,9 +113,16 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
-            onPressed: () => Navigator.of(context).pop(),
+          toolbarHeight: 64,
+          leadingWidth: 68,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+            child: GameBackButton(
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
         ),
         body: Center(
@@ -129,9 +145,16 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: AppIcon(Icons.arrow_back, color: theme.iconTheme.color),
-            onPressed: () => Navigator.of(context).pop(),
+          toolbarHeight: 64,
+          leadingWidth: 68,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+            child: GameBackButton(
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
         ),
         body: Center(
@@ -207,28 +230,18 @@ class _FriendSpiritScreenContentState extends State<_FriendSpiritScreenContent>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        InkWell(
-          onTap: () => Navigator.of(context).pop(),
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: mutedColor.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-            child: AppIcon(Icons.arrow_back, size: 20, color: fgColor),
-          ),
+        GameBackButton(
+          semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        Text(
+        GameButtonLabel(
           AppLocalizations.of(context).friendSpiritOfName(spiritData.userName),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: fgColor,
-          ),
+          fontSize: 17,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
-        const SizedBox(width: 40), // Cân bằng khoảng trống với nút back
+        const SizedBox(width: GameBackButton.buttonSize),
       ],
     );
   }

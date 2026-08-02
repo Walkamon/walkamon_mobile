@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../data/models/daily_login_model.dart';
 
 class DailyLoginCalendarWidget extends StatelessWidget {
@@ -25,35 +27,35 @@ class DailyLoginCalendarWidget extends StatelessWidget {
     final row1 = rewards.take(4).toList();
     final row2 = rewards.skip(4).take(3).toList();
 
-    return Column(
-      children: [
-        // Hàng 1 (Ngày 1 - 4)
-        Row(
-          children: row1.map((reward) {
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                child: _RewardCard(rewardInfo: reward),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 12),
-        // Hàng 2 (Ngày 5 - 7)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(
-            children: row2.map((reward) {
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: _RewardCard(rewardInfo: reward),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final firstRowCardWidth = (constraints.maxWidth - 30) / 4;
+        final cardHeight = (firstRowCardWidth * 1.16).clamp(82.0, 104.0);
+
+        Widget rewardRow(List<DailyLoginRewardModel> items) {
+          return SizedBox(
+            height: cardHeight,
+            child: Row(
+              children: items.map((reward) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: _RewardCard(rewardInfo: reward),
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            rewardRow(row1),
+            const SizedBox(height: 10),
+            FractionallySizedBox(widthFactor: 0.75, child: rewardRow(row2)),
+          ],
+        );
+      },
     );
   }
 }
@@ -76,80 +78,87 @@ class _RewardCard extends StatelessWidget {
     Color textDayColor;
     Color textAmountColor;
     Widget iconWidget;
-    double scale = isCurrent ? 1.02 : 1.0;
-    double borderWidth = isCurrent || isSpecial ? 2.0 : 1.0;
+    double scale = isCurrent ? 1.025 : 1.0;
+    double borderWidth = isCurrent || isSpecial ? 2.2 : 1.5;
 
     if (isClaimed) {
-      bgColor = const Color(0xFFE2E8DF).withOpacity(0.8);
-      borderColor = const Color(0xFFCBD5C8);
-      textDayColor = const Color(0xFF8A9A8D);
-      textAmountColor = const Color(0xFF8A9A8D);
+      bgColor = AppColors.panelMuted.withValues(alpha: 0.82);
+      borderColor = AppColors.wood;
+      textDayColor = AppColors.outlineBrown;
+      textAmountColor = AppColors.outlineBrown;
       iconWidget = Container(
-        width: 32,
-        height: 32,
+        width: 40,
+        height: 40,
         decoration: const BoxDecoration(
-          color: Color(0xFF8A9A8D),
+          color: AppColors.leaf,
           shape: BoxShape.circle,
         ),
-        child: const AppIcon(Icons.check, size: 18, color: Colors.white),
+        child: const AppIcon(
+          Icons.check_rounded,
+          size: 24,
+          color: Colors.white,
+        ),
       );
     } else if (isCurrent) {
-      bgColor = Theme.of(context).cardColor;
-      borderColor = const Color(0xFF7A9D84);
-      textDayColor = const Color(0xFF7A9D84);
-      textAmountColor =
-          Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
-      iconWidget = const AppIcon(
-        Icons.water_drop,
-        size: 28,
-        color: Color(0xFF7A9D84),
+      bgColor = AppColors.authCard.withValues(alpha: 0.94);
+      borderColor = AppColors.woodDeep;
+      textDayColor = AppColors.oliveDeep;
+      textAmountColor = AppColors.inkDark;
+      iconWidget = Image.asset(
+        AppAssets.iconDewDrop,
+        width: 42,
+        height: 42,
+        fit: BoxFit.contain,
       );
     } else if (isSpecial) {
-      bgColor = const Color(0xFFFFF4C2);
-      borderColor = const Color(0xFFFFE885);
-      textDayColor = const Color(0xFF8A9A8D);
-      textAmountColor = const Color(0xFFD97706);
-      iconWidget = const AppIcon(
-        Icons.card_giftcard,
-        size: 28,
-        color: Color(0xFFF59E0B),
+      bgColor = AppColors.creamLight.withValues(alpha: 0.95);
+      borderColor = AppColors.woodDeep;
+      textDayColor = AppColors.woodDeep;
+      textAmountColor = AppColors.inkBrown;
+      iconWidget = Image.asset(
+        AppAssets.iconDailyRewardRes,
+        width: 46,
+        height: 46,
+        fit: BoxFit.contain,
       );
     } else {
-      bgColor = Theme.of(context).cardColor;
-      borderColor = Colors.grey.shade300;
-      textDayColor = Colors.grey.shade500;
-      textAmountColor =
-          Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87;
-      iconWidget = const AppIcon(
-        Icons.water_drop,
-        size: 28,
-        color: Color(0xFFA2B2A6),
+      bgColor = AppColors.authCard.withValues(alpha: 0.9);
+      borderColor = AppColors.wood;
+      textDayColor = AppColors.outlineBrown;
+      textAmountColor = AppColors.inkDark;
+      iconWidget = Opacity(
+        opacity: 0.72,
+        child: Image.asset(
+          AppAssets.iconDewDrop,
+          width: 40,
+          height: 40,
+          fit: BoxFit.contain,
+        ),
       );
     }
 
     return Transform.scale(
       scale: scale,
-      child: AspectRatio(
-        aspectRatio: 3 / 4,
+      child: SizedBox.expand(
         child: Container(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: borderColor, width: borderWidth),
             boxShadow: isCurrent
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: AppColors.woodDeep.withValues(alpha: 0.16),
+                      blurRadius: 7,
+                      offset: const Offset(0, 3),
                     ),
                   ]
                 : (isClaimed
                       ? []
                       : [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
+                            color: AppColors.woodDeep.withValues(alpha: 0.08),
                             blurRadius: 4,
                           ),
                         ]),
@@ -160,7 +169,7 @@ class _RewardCard extends StatelessWidget {
               Text(
                 l10n.dayLabel(rewardInfo.day),
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w800,
                   color: textDayColor,
                 ),
@@ -173,7 +182,7 @@ class _RewardCard extends StatelessWidget {
                   isSpecial && !isClaimed ? 1 : rewardInfo.reward,
                 ),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w800,
                   color: textAmountColor,
                 ),

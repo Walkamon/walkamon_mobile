@@ -45,6 +45,25 @@ String _homeBackgroundForAffinity(String affinityCode) {
   }
 }
 
+double _responsivePetScale(Size viewport) {
+  final heightScale = (viewport.height / 720).clamp(0.58, 1.0);
+  final widthScale = (viewport.width / 360).clamp(0.72, 1.0);
+  return math.min(heightScale, widthScale).toDouble();
+}
+
+double _responsivePetVerticalOffset({
+  required String affinityCode,
+  required int stageNo,
+  required Size viewport,
+}) {
+  final preferredOffset =
+      affinityCode.trim().toLowerCase() == 'warm_sun' && stageNo == 1
+      ? 176.0
+      : 62.0;
+  final availableHeightFactor = ((viewport.height - 400) / 480).clamp(0.0, 1.0);
+  return preferredOffset * availableHeightFactor;
+}
+
 // ── StatBar Widget ──────────────────────────────────────────────────────────
 class _StatBar extends StatefulWidget {
   const _StatBar({
@@ -69,57 +88,47 @@ class _StatBarState extends State<_StatBar> {
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 90,
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: mutedFg,
+        Container(
+          height: 10,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkMuted : AppColors.creamLight,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+              width: 1,
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Container(
-            height: 12,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: widget.value / 100.0),
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, child) => FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: value.clamp(0.0, 1.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.barColor,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: widget.value / 100.0),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) => FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: value.clamp(0.0, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: widget.barColor,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 28,
-          child: Text(
-            '${widget.value}%',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: theme.colorScheme.onSurface,
-            ),
-            textAlign: TextAlign.right,
+        const SizedBox(height: 4),
+        Text(
+          '${widget.label} ${widget.value}%',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: mutedFg,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -190,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _glowCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
+    );
     _glowScale = Tween<double>(
       begin: 1.0,
       end: 1.1,
@@ -416,6 +425,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final String spiritName = gameState.spiritName;
     final String spiritInfo = gameState.spiritInfo;
     final homeBg = _homeBackgroundForAffinity(gameState.affinityCode);
+    final viewport = MediaQuery.sizeOf(context);
+    final petScale = _responsivePetScale(viewport);
+    final petVerticalOffset = _responsivePetVerticalOffset(
+      affinityCode: gameState.affinityCode,
+      stageNo: gameState.petStageNo,
+      viewport: viewport,
+    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -531,14 +547,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         16,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface
-                                            .withOpacity(0.95),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? AppColors.darkBorder
-                                              : AppColors.lightBorder,
+                                        color: AppColors.authCard.withValues(
+                                          alpha: 0.98,
                                         ),
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: AppColors.wood,
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.woodDeep
+                                                .withValues(alpha: 0.25),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 5),
+                                          ),
+                                        ],
                                       ),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -550,25 +574,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             child: GestureDetector(
                                               onTap: () =>
                                                   Navigator.of(context).pop(),
-                                              child: Container(
-                                                width: 32,
-                                                height: 32,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      theme.colorScheme.surface,
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: isDark
-                                                        ? AppColors.darkBorder
-                                                        : AppColors.lightBorder,
-                                                  ),
-                                                ),
+                                              child: SizedBox(
+                                                width: 40,
+                                                height: 40,
                                                 child: _assetIcon(
                                                   AppAssets.iconClose,
-                                                  size: 18,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .onSurface,
+                                                  size: 28,
+                                                  color: AppColors.woodDeep,
                                                 ),
                                               ),
                                             ),
@@ -583,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   _assetIcon(
                                                     AppAssets.iconStep,
                                                     size: 14,
-                                                    color: mutedFg,
+                                                    color: AppColors.woodDeep,
                                                   ),
                                                   const SizedBox(width: 6),
                                                   Text(
@@ -592,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                       fontSize: 12,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: mutedFg,
+                                                      color: AppColors.woodDeep,
                                                     ),
                                                   ),
                                                 ],
@@ -602,9 +614,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w800,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .onSurface,
+                                                  color: AppColors.woodDeep,
                                                 ),
                                               ),
                                             ],
@@ -623,18 +633,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               height: 10,
                                               width: double.infinity,
                                               decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? AppColors.darkMuted
-                                                    : AppColors.lightMuted,
+                                                color: AppColors.parchment,
                                                 borderRadius:
                                                     BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: AppColors.wood,
+                                                  width: 1,
+                                                ),
                                               ),
                                               child: FractionallySizedBox(
                                                 alignment: Alignment.centerLeft,
                                                 widthFactor: val,
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                    color: primary,
+                                                    color:
+                                                        AppColors.buttonGreen,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           6,
@@ -649,8 +662,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             l10n.todayStepsDesc,
                                             style: TextStyle(
                                               fontSize: 11,
-                                              color:
-                                                  theme.colorScheme.onSurface,
+                                              color: AppColors.oliveDeep,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
@@ -664,14 +677,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     horizontal: 10,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.surface
-                                        .withOpacity(0.75),
+                                    color: AppColors.authCard.withValues(
+                                      alpha: 0.92,
+                                    ),
                                     borderRadius: BorderRadius.circular(18),
                                     border: Border.all(
-                                      color: isDark
-                                          ? AppColors.darkBorder
-                                          : AppColors.lightBorder,
+                                      color: AppColors.wood,
+                                      width: 1.6,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.woodDeep.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -679,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       _assetIcon(
                                         AppAssets.iconStep,
                                         size: 14,
-                                        color: mutedFg,
+                                        color: AppColors.woodDeep,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
@@ -687,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: theme.colorScheme.onSurface,
+                                          color: AppColors.woodDeep,
                                         ),
                                       ),
                                     ],
@@ -702,18 +724,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   horizontal: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.surface.withOpacity(
-                                    0.7,
+                                  color: AppColors.authCard.withValues(
+                                    alpha: 0.92,
                                   ),
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
-                                    color: isDark
-                                        ? AppColors.darkBorder
-                                        : AppColors.lightBorder,
+                                    color: AppColors.wood,
+                                    width: 1.6,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: AppColors.woodDeep.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -734,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w900,
-                                        color: theme.colorScheme.onSurface,
+                                        color: AppColors.woodDeep,
                                       ),
                                     ),
                                   ],
@@ -785,58 +808,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // ── Concentric Circles (Waves/Radar effect) ──
-                          AnimatedBuilder(
-                            animation: _glowCtrl,
-                            builder: (_, __) => Transform.scale(
-                              scale: _glowScale.value,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  // Outer circle (280px)
-                                  Container(
-                                    width: 280,
-                                    height: 280,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: luminaGlow.withOpacity(0.03),
-                                      border: Border.all(
-                                        color: luminaGlow.withOpacity(0.05),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  // Middle circle (210px)
-                                  Container(
-                                    width: 210,
-                                    height: 210,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: luminaGlow.withOpacity(0.06),
-                                      border: Border.all(
-                                        color: luminaGlow.withOpacity(0.09),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  // Inner circle (140px)
-                                  Container(
-                                    width: 140,
-                                    height: 140,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: luminaGlow.withOpacity(0.12),
-                                      border: Border.all(
-                                        color: luminaGlow.withOpacity(0.15),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
                           // Floating dew bubbles (drawn on top of the circles)
                           ..._bubbles.map(
                             (bubble) => _BubbleWidget(
@@ -849,61 +820,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
 
                           // Pet sprite placeholder
-                          GestureDetector(
-                            onTap: () => _handlePetTap(gameState),
-                            child: SizedBox(
-                              width: 200,
-                              height: 200,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                alignment: Alignment.center,
-                                children: [
-                                  // Pet visual
-                                  _LuminaSprite(
-                                    affinityCode: gameState.affinityCode,
-                                    stageNo: gameState.petStageNo,
-                                    animationType: _feedAnim
-                                        ? 'excited'
-                                        : (gameState.animationType.isEmpty
-                                              ? 'idle'
-                                              : gameState.animationType),
-                                    primary: primary,
-                                    luminaGlow: luminaGlow,
-                                  ),
+                          Transform.translate(
+                            offset: Offset(0, petVerticalOffset),
+                            child: Transform.scale(
+                              scale: petScale,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _handlePetTap(gameState),
+                                child: SizedBox(
+                                  width: 200,
+                                  height: 200,
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Pet visual
+                                      _LuminaSprite(
+                                        affinityCode: gameState.affinityCode,
+                                        stageNo: gameState.petStageNo,
+                                        animationType: _feedAnim
+                                            ? 'excited'
+                                            : (gameState.animationType.isEmpty
+                                                  ? 'idle'
+                                                  : gameState.animationType),
+                                        primary: primary,
+                                        luminaGlow: luminaGlow,
+                                      ),
 
-                                  // Floating "+♥" numbers on feed
-                                  ..._floatingNums.map(
-                                    (n) => _FloatingHeartWidget(
-                                      key: ValueKey(n.id),
-                                      xOffset: n.xOffset,
-                                      primary: primary,
-                                    ),
-                                  ),
-
-                                  // Ripple pulse on feed tap
-                                  if (_feedAnim)
-                                    AnimatedBuilder(
-                                      animation: _rippleCtrl,
-                                      builder: (_, __) => Transform.scale(
-                                        scale: 0.6 + _rippleCtrl.value * 1.1,
-                                        child: Opacity(
-                                          opacity: (1 - _rippleCtrl.value)
-                                              .clamp(0, 1),
-                                          child: Container(
-                                            width: 220,
-                                            height: 220,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: luminaGlow,
-                                                width: 4,
-                                              ),
-                                            ),
-                                          ),
+                                      // Floating "+♥" numbers on feed
+                                      ..._floatingNums.map(
+                                        (n) => _FloatingHeartWidget(
+                                          key: ValueKey(n.id),
+                                          xOffset: n.xOffset,
+                                          primary: primary,
                                         ),
                                       ),
-                                    ),
-                                ],
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -913,214 +867,259 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     // ── Status Dashboard & Feed Button ────────────────────
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 8, 30),
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
                       child: Stack(
+                        alignment: Alignment.bottomCenter,
                         clipBehavior: Clip.none,
                         children: [
                           // Box Trạng thái
-                          Padding(
-                            padding: const EdgeInsets.only(top: 60, right: 12),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(32),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.surface
-                                        .withOpacity(0.85),
-                                    borderRadius: BorderRadius.circular(32),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? AppColors.darkBorder
-                                          : AppColors.lightBorder,
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 52),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 6,
+                                      sigmaY: 6,
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
+                                    child: Container(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        10,
+                                        10,
+                                        10,
+                                        9,
                                       ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Header
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () => Navigator.pushNamed(
-                                                context,
-                                                '/spirit/detail',
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    l10n.luminaStatus,
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w900,
-                                                      color: mutedFg,
-                                                      letterSpacing: 1.5,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    spiritName,
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface
+                                            .withOpacity(0.85),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? AppColors.darkBorder
+                                              : AppColors.lightBorder,
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.05,
                                             ),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
                                           ),
-                                          GestureDetector(
-                                            onTap: () => Navigator.pushNamed(
-                                              context,
-                                              '/spirit/detail',
-                                            ),
-                                            child: Container(
-                                              width: 20,
-                                              height: 20,
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? AppColors.darkMuted
-                                                    : AppColors.lightMuted,
-                                                shape: BoxShape.circle,
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Header
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: GestureDetector(
+                                                  onTap: () =>
+                                                      Navigator.pushNamed(
+                                                        context,
+                                                        '/spirit/detail',
+                                                      ),
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        l10n.luminaStatus,
+                                                        style: TextStyle(
+                                                          fontSize: 9,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color: mutedFg,
+                                                          letterSpacing: 0.8,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child: Text(
+                                                          spiritName,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: TextStyle(
+                                                            fontSize: 9,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: theme
+                                                                .colorScheme
+                                                                .onSurface,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ),
-                                              child: Center(
-                                                child: _assetIcon(
-                                                  AppAssets.iconInfo,
-                                                  size: 12,
+                                              GestureDetector(
+                                                onTap: () =>
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/spirit/detail',
+                                                    ),
+                                                child: Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  decoration: BoxDecoration(
+                                                    color: isDark
+                                                        ? AppColors.darkMuted
+                                                        : AppColors.lightMuted,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Center(
+                                                    child: _assetIcon(
+                                                      AppAssets.iconInfo,
+                                                      size: 12,
+                                                      color: mutedFg,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                l10n.levelShort(spiritLevel),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: theme
+                                                      .colorScheme
+                                                      .onSurface,
+                                                ),
+                                              ),
+                                              Text(
+                                                l10n.expProgress(
+                                                  spiritExp,
+                                                  100,
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w600,
                                                   color: mutedFg,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            height: 10,
+                                            clipBehavior: Clip.antiAlias,
+                                            decoration: BoxDecoration(
+                                              color: isDark
+                                                  ? AppColors.darkMuted
+                                                  : AppColors.creamLight,
+                                              borderRadius:
+                                                  BorderRadius.circular(999),
+                                              border: Border.all(
+                                                color: isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.woodDeep,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: FractionallySizedBox(
+                                                widthFactor: (spiritExp / 100)
+                                                    .clamp(0.0, 1.0),
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    color: isDark
+                                                        ? AppColors.darkPrimary
+                                                        : AppColors.leafBright,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          999,
+                                                        ),
+                                                  ),
+                                                  child:
+                                                      const SizedBox.expand(),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
+                                          const SizedBox(height: 6),
                                           Text(
-                                            l10n.levelShort(spiritLevel),
+                                            spiritInfo,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w900,
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                            ),
-                                          ),
-                                          Text(
-                                            l10n.expProgress(spiritExp, 100),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
+                                              fontSize: 9,
                                               color: mutedFg,
+                                              height: 1.2,
                                             ),
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _StatBar(
+                                                  label: l10n.energy,
+                                                  value: spiritEnergy,
+                                                  barColor: energyColor,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: _StatBar(
+                                                  label: l10n.lifeForce,
+                                                  value: spiritHealth,
+                                                  barColor:
+                                                      AppColors.buttonYellow,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: _StatBar(
+                                                  label: l10n.bonding,
+                                                  value: bondingLevel,
+                                                  barColor: AppColors.leaf,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        height: 12,
-                                        clipBehavior: Clip.antiAlias,
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? AppColors.darkCard
-                                              : AppColors.lightForeground
-                                                    .withValues(alpha: 0.78),
-                                          borderRadius: BorderRadius.circular(
-                                            999,
-                                          ),
-                                          border: Border.all(
-                                            color: isDark
-                                                ? AppColors.darkBorder
-                                                : AppColors.lightBorder,
-                                          ),
-                                        ),
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: FractionallySizedBox(
-                                            widthFactor: (spiritExp / 100)
-                                                .clamp(0.0, 1.0),
-                                            child: DecoratedBox(
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? AppColors.darkDew
-                                                    : AppColors.lightDew,
-                                                borderRadius:
-                                                    BorderRadius.circular(999),
-                                              ),
-                                              child: const SizedBox.expand(),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        spiritInfo,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: mutedFg,
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      _StatBar(
-                                        label: l10n.energy,
-                                        value: spiritEnergy,
-                                        barColor: energyColor,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _StatBar(
-                                        label: l10n.lifeForce,
-                                        value: spiritHealth,
-                                        barColor: Colors.orange,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _StatBar(
-                                        label: l10n.bonding,
-                                        value: bondingLevel,
-                                        barColor: Colors.green,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ), // Added missing closing parenthesis for Padding
+                          ),
                           Positioned(
                             top: 0,
-                            right: 0,
+                            right: 8,
                             child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () => _handleDewdropTap(gameState),
                               child: Container(
-                                width: 56,
-                                height: 56,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: const Color(0xFFA1D4B1),
                                   border: Border.all(
-                                    color: const Color(0xFF253426),
+                                    color: AppColors.sky,
                                     width: 2.5,
                                   ),
                                 ),
                                 child: Center(
                                   child: _assetIcon(
                                     AppAssets.iconDewDrop,
-                                    size: 28,
+                                    size: 32,
                                   ),
                                 ),
                               ),
@@ -1180,6 +1179,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: _buildFloatingIconBtn(
                     context: context,
                     assetPath: AppAssets.iconNotificationBell,
+                    backgroundOpacity: 0.58,
                     hasBadge: _showNotificationBadge,
                     onTap: () async {
                       await Navigator.pushNamed(context, '/notifications');
@@ -1208,6 +1208,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     required BuildContext context,
     required String assetPath,
     required VoidCallback onTap,
+    double backgroundOpacity = 0.85,
     bool hasBadge = false,
   }) {
     final theme = Theme.of(context);
@@ -1226,16 +1227,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkIconButtonBackground
-                    : AppColors.lightIconButtonBackground,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark
-                      ? AppColors.darkBorder
-                      : AppColors.lightBorder,
-                  width: 2,
-                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -1244,7 +1236,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              child: Center(child: _assetIcon(assetPath, size: 40)),
+              child: ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withValues(
+                        alpha: backgroundOpacity,
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(child: _assetIcon(assetPath, size: 40)),
+                  ),
+                ),
+              ),
             ),
             if (hasBadge)
               Positioned(
@@ -1286,9 +1297,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return Container(
       height: 80,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
+      decoration: BoxDecoration(color: Colors.transparent),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
@@ -1403,7 +1412,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            child: Center(child: Transform.scale(scale: 1.65, child: iconWidget)),
+            child: Center(
+              child: Transform.scale(scale: 1.65, child: iconWidget),
+            ),
           ),
         ],
       ),
@@ -1440,7 +1451,7 @@ class _LuminaSpriteState extends State<_LuminaSprite>
     _bounceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+    );
   }
 
   @override
@@ -1451,36 +1462,18 @@ class _LuminaSpriteState extends State<_LuminaSprite>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _bounceCtrl,
-      builder: (_, child) {
-        final bounce = math.sin(_bounceCtrl.value * math.pi) * 8;
-        return Transform.translate(offset: Offset(0, -bounce), child: child);
-      },
-      child: Container(
-        width: 180,
-        height: 180,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              widget.luminaGlow.withOpacity(0.4),
-              widget.luminaGlow.withOpacity(0.1),
-              Colors.transparent,
-            ],
-            stops: const [0.0, 0.6, 1.0],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: IgnorePointer(
-            child: PetRuntimePreview(
-              affinityCode: widget.affinityCode,
-              stageNo: widget.stageNo,
-              animationType: widget.animationType,
-              compact: true,
-              height: 164,
-            ),
+    return SizedBox(
+      width: 180,
+      height: 180,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: IgnorePointer(
+          child: PetRuntimePreview(
+            affinityCode: widget.affinityCode,
+            stageNo: widget.stageNo,
+            animationType: widget.animationType,
+            compact: true,
+            height: 164,
           ),
         ),
       ),
@@ -1587,16 +1580,27 @@ class _BubbleWidgetState extends State<_BubbleWidget>
 
   @override
   Widget build(BuildContext context) {
+    final gameState = context.watch<GameStateProvider>();
+    final viewport = MediaQuery.sizeOf(context);
+    final petScale = _responsivePetScale(viewport);
+    final petVerticalOffset = _responsivePetVerticalOffset(
+      affinityCode: gameState.affinityCode,
+      stageNo: gameState.petStageNo,
+      viewport: viewport,
+    );
+
     return AnimatedBuilder(
       animation: _floatCtrl,
       builder: (_, __) {
         final yOffset = math.sin(_floatCtrl.value * math.pi) * 12;
         return Positioned(
           top:
-              (widget.bubble.top * MediaQuery.of(context).size.height * 0.5) +
+              (widget.bubble.top * viewport.height * 0.5 * petScale) +
+              petVerticalOffset +
               yOffset,
-          left: widget.bubble.left * MediaQuery.of(context).size.width,
+          left: widget.bubble.left * viewport.width,
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: widget.onCollect,
             child: Container(
               width: widget.bubble.size,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../providers/pvp_provider.dart';
-import '../../../widgets/common/app_icon.dart';
+import '../../../widgets/common/game_back_button.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import 'pvp_asset_resolver.dart';
 import 'widgets/pvp_modals.dart';
@@ -51,14 +51,16 @@ class PvPWaitingRoomScreen extends StatelessWidget {
         ),
         Container(color: Colors.black.withOpacity(0.28)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton.filledTonal(
-                    tooltip: 'Quay lại',
+                  GameBackButton(
+                    semanticLabel: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
                     onPressed: () {
                       if (Navigator.canPop(context)) {
                         Navigator.pop(context);
@@ -66,7 +68,6 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         Navigator.pushNamed(context, '/home');
                       }
                     },
-                    icon: const AppIcon(Icons.arrow_back),
                   ),
                   Row(
                     children: [
