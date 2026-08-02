@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import 'widgets/auth_style.dart';
@@ -40,15 +44,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       parent: _animationController,
       curve: Curves.easeOut,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.04),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -121,100 +123,98 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     final textTheme = Theme.of(context).textTheme;
 
     return AuthGardenScaffold(
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
-              child: Center(
+      child: Stack(
+        children: [
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: FadeTransition(
-                    opacity: _opacityAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: AuthRoundIconButton(
-                              icon: Icons.arrow_back_rounded,
-                              semanticLabel: l10n.loginBack,
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          AuthBrand(
-                            tagline: l10n.loginTagline,
-                            icon: AppAssets.authResetPassword,
-                          ),
-                          const SizedBox(height: 22),
-                          AuthCard(
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    l10n.forgotPasswordTitle,
-                                    textAlign: TextAlign.center,
-                                    style: textTheme.headlineSmall?.copyWith(
-                                      color: AuthStyle.forestDark,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    l10n.forgotPasswordSubtitle,
-                                    textAlign: TextAlign.center,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: AuthStyle.forest.withValues(
-                                        alpha: 0.82,
-                                      ),
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                  if (_errorMessage != null) ...[
-                                    const SizedBox(height: 16),
-                                    AuthMessageBanner(
-                                      message: _errorMessage!,
-                                      isError: true,
-                                    ),
-                                  ],
-                                  if (_successMessage != null) ...[
-                                    const SizedBox(height: 16),
-                                    AuthMessageBanner(
-                                      message: _successMessage!,
-                                      isError: false,
-                                    ),
-                                  ],
-                                  const SizedBox(height: 20),
-                                  AuthTextField(
-                                    controller: _emailController,
-                                    label: l10n.loginEmail,
-                                    assetIcon: AppAssets.authMail,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.send,
-                                    validator: (value) =>
-                                        _validateEmail(context, value),
-                                    onFieldSubmitted: (_) => _handleReset(),
-                                  ),
-                                  const SizedBox(height: 18),
-                                  AuthPrimaryButton(
-                                    label: l10n.forgotPasswordSendSignal,
-                                    iconAsset: AppAssets.authSend,
-                                    isLoading: _isLoading,
-                                    onPressed: _handleReset,
-                                  ),
-                                ],
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 32,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: FadeTransition(
+                        opacity: _opacityAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GameWordmark(
+                                title: l10n.appTitle,
+                                tagline: l10n.welcomeTagline,
+                                width: 270,
                               ),
-                            ),
+                              const SizedBox(height: 22),
+                              AuthCard(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      GameButtonLabel(
+                                        l10n.forgotPasswordTitle,
+                                        fontSize: 23,
+                                        letterSpacing: 0.1,
+                                        color: AppColors.woodDeep,
+                                        outlineColor: AppColors.creamDeep,
+                                        outlineWidth: 2.5,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        l10n.forgotPasswordSubtitle,
+                                        textAlign: TextAlign.center,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: AppColors.oliveDeep,
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                      if (_errorMessage != null) ...[
+                                        const SizedBox(height: 16),
+                                        AuthMessageBanner(
+                                          message: _errorMessage!,
+                                          isError: true,
+                                        ),
+                                      ],
+                                      if (_successMessage != null) ...[
+                                        const SizedBox(height: 16),
+                                        AuthMessageBanner(
+                                          message: _successMessage!,
+                                          isError: false,
+                                        ),
+                                      ],
+                                      const SizedBox(height: 20),
+                                      AuthTextField(
+                                        controller: _emailController,
+                                        label: l10n.loginEmail,
+                                        assetIcon: AppAssets.authMail,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        textInputAction: TextInputAction.send,
+                                        validator: (value) =>
+                                            _validateEmail(context, value),
+                                        onFieldSubmitted: (_) => _handleReset(),
+                                      ),
+                                      const SizedBox(height: 18),
+                                      AuthPrimaryButton(
+                                        label: l10n.forgotPasswordSendSignal,
+                                        isLoading: _isLoading,
+                                        onPressed: _handleReset,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -222,7 +222,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
               ),
             ),
           ),
-        ),
+          PositionedGameBackButton(
+            semanticLabel: l10n.loginBack,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }

@@ -12,9 +12,12 @@ import '../../data/repositories/missions_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 
 enum MissionTab { mission, challenge }
+
+enum MissionListTab { daily, overall }
 
 class _QuestDisplayItem {
   const _QuestDisplayItem({
@@ -108,6 +111,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
   final MissionsScreenRepository _repository = MissionsScreenRepository();
 
   MissionTab _activeTab = MissionTab.mission;
+  MissionListTab _activeMissionListTab = MissionListTab.daily;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -335,9 +339,33 @@ class _MissionsScreenState extends State<MissionsScreen> {
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final dewColor = isDark ? AppColors.darkDew : AppColors.lightDew;
     final energyColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+    final visibleMissionQuests = _activeMissionListTab == MissionListTab.daily
+        ? _dailyQuests
+        : _overallQuests;
+    final visibleMissionEmptyMessage =
+        _activeMissionListTab == MissionListTab.daily
+        ? l10n.missionsDailyEmpty
+        : l10n.missionsOverallEmpty;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+        child: _MissionTabs(
+          missionLabel: l10n.missionsTabMission,
+          challengeLabel: l10n.missionsTabChallenge,
+          activeTab: _activeTab,
+          cardColor: cardColor,
+          borderColor: borderColor,
+          foreground: foreground,
+          mutedForeground: mutedForeground,
+          onChanged: (tab) {
+            if (tab == _activeTab) return;
+            setState(() => _activeTab = tab);
+          },
+        ),
+      ),
       body: Column(
         children: [
           Padding(
@@ -351,24 +379,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
                   borderColor: borderColor,
                   onBack: () => Navigator.pushNamed(context, '/home'),
                 ),
-                const SizedBox(height: 24),
-                _MissionTabs(
-                  missionLabel: l10n.missionsTabMission,
-                  challengeLabel: l10n.missionsTabChallenge,
-                  activeTab: _activeTab,
-                  cardColor: cardColor,
-                  borderColor: borderColor,
-                  foreground: foreground,
-                  mutedForeground: mutedForeground,
-                  onChanged: (tab) {
-                    if (tab == _activeTab) return;
-                    setState(() => _activeTab = tab);
-                  },
-                ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -382,209 +396,226 @@ class _MissionsScreenState extends State<MissionsScreen> {
                       style: TextStyle(color: mutedForeground),
                     ),
                   )
-                : RefreshIndicator(
-                    onRefresh: _loadData,
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
-                      children: [
-                        if (_activeTab == MissionTab.mission) ...[
-                          _SectionTitle(
-                            title: l10n.missionsDailyTitle,
-                            foreground: foreground,
-                          ),
-                          const SizedBox(height: 16),
-                          if (_dailyQuests.isEmpty)
-                            _EmptySection(
-                              message: l10n.missionsDailyEmpty,
-                              mutedForeground: mutedForeground,
-                            )
-                          else
-                            ..._dailyQuests.asMap().entries.map(
-                              (entry) => Padding(
-                                padding: const EdgeInsets.only(bottom: 14),
-                                child: _QuestItemCard(
-                                  quest: entry.value,
-                                  index: entry.key,
-                                  cardColor: cardColor,
-                                  borderColor: borderColor,
-                                  foreground: foreground,
-                                  mutedForeground: mutedForeground,
-                                  accent: accent,
-                                  muted: muted,
-                                  dewColor: dewColor,
-                                  energyColor: energyColor,
-                                  isClaimLoading:
-                                      _claimingMissionId ==
-                                      entry.value.missionId,
-                                  cancelRemaining: _cancelRemaining,
-                                  isCancelLoading:
-                                      _cancellingChallengeId ==
-                                      entry.value.userMissionId,
-                                  onClaim: () => _handleClaim(entry.value),
-                                  onCancel: () =>
-                                      _handleCancelChallenge(entry.value),
+                : LayoutBuilder(
+                    builder: (context, contentConstraints) {
+                      final missionPanelHeight =
+                          (contentConstraints.maxHeight - 36).clamp(
+                            0.0,
+                            contentConstraints.maxHeight,
+                          );
+                      return RefreshIndicator(
+                        onRefresh: _loadData,
+                        notificationPredicate: (notification) =>
+                            notification.depth ==
+                            (_activeTab == MissionTab.mission ? 1 : 0),
+                        child: ListView(
+                          physics: _activeTab == MissionTab.mission
+                              ? const NeverScrollableScrollPhysics()
+                              : const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          children: [
+                            if (_activeTab == MissionTab.mission) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: missionPanelHeight,
+                                child: _MissionListPanel(
+                                  tabs: _MissionListTabs(
+                                    dailyLabel: l10n.missionsDailyTitle,
+                                    overallLabel: l10n.missionsOverallTitle,
+                                    activeTab: _activeMissionListTab,
+                                    onChanged: (tab) {
+                                      if (tab == _activeMissionListTab) return;
+                                      setState(
+                                        () => _activeMissionListTab = tab,
+                                      );
+                                    },
+                                  ),
+                                  child: ListView(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    padding: EdgeInsets.zero,
+                                    children: visibleMissionQuests.isEmpty
+                                        ? [
+                                            _EmptySection(
+                                              message:
+                                                  visibleMissionEmptyMessage,
+                                              mutedForeground: mutedForeground,
+                                            ),
+                                          ]
+                                        : visibleMissionQuests
+                                              .asMap()
+                                              .entries
+                                              .map(
+                                                (entry) => Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        bottom: 10,
+                                                      ),
+                                                  child: _QuestItemCard(
+                                                    quest: entry.value,
+                                                    index: entry.key,
+                                                    cardColor: cardColor,
+                                                    borderColor: borderColor,
+                                                    foreground: foreground,
+                                                    mutedForeground:
+                                                        mutedForeground,
+                                                    accent: accent,
+                                                    muted: muted,
+                                                    dewColor: dewColor,
+                                                    energyColor: energyColor,
+                                                    isClaimLoading:
+                                                        _claimingMissionId ==
+                                                        entry.value.missionId,
+                                                    cancelRemaining:
+                                                        _cancelRemaining,
+                                                    isCancelLoading:
+                                                        _cancellingChallengeId ==
+                                                        entry
+                                                            .value
+                                                            .userMissionId,
+                                                    onClaim: () => _handleClaim(
+                                                      entry.value,
+                                                    ),
+                                                    onCancel: () =>
+                                                        _handleCancelChallenge(
+                                                          entry.value,
+                                                        ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                  ),
                                 ),
                               ),
-                            ),
-                          const SizedBox(height: 18),
-                          _SectionTitle(
-                            title: l10n.missionsOverallTitle,
-                            foreground: foreground,
-                          ),
-                          const SizedBox(height: 16),
-                          if (_overallQuests.isEmpty)
-                            _EmptySection(
-                              message: l10n.missionsOverallEmpty,
-                              mutedForeground: mutedForeground,
-                            )
-                          else
-                            ..._overallQuests.asMap().entries.map(
-                              (entry) => Padding(
-                                padding: const EdgeInsets.only(bottom: 14),
-                                child: _QuestItemCard(
-                                  quest: entry.value,
-                                  index: entry.key,
-                                  cardColor: cardColor,
-                                  borderColor: borderColor,
-                                  foreground: foreground,
-                                  mutedForeground: mutedForeground,
-                                  accent: accent,
-                                  muted: muted,
-                                  dewColor: dewColor,
-                                  energyColor: energyColor,
-                                  isClaimLoading:
-                                      _claimingMissionId ==
-                                      entry.value.missionId,
-                                  cancelRemaining: _cancelRemaining,
-                                  isCancelLoading:
-                                      _cancellingChallengeId ==
-                                      entry.value.userMissionId,
-                                  onClaim: () => _handleClaim(entry.value),
-                                  onCancel: () =>
-                                      _handleCancelChallenge(entry.value),
-                                ),
-                              ),
-                            ),
-                        ] else ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                l10n.missionsRandomChallenge,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: foreground,
-                                ),
-                              ),
-                              Text(
-                                l10n.missionsCancelRemaining(
-                                  _cancelRemaining,
-                                  _cancelLimit,
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: _cancelRemaining <= 0
-                                      ? Theme.of(context).colorScheme.error
-                                      : mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (_challengeQuests.isEmpty)
-                            Material(
-                              color: cardColor.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(24),
-                              child: InkWell(
-                                onTap: _creatingChallenge != null
-                                    ? null
-                                    : _handleRandomChallenge,
-                                borderRadius: BorderRadius.circular(24),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: borderColor,
-                                      style: BorderStyle.solid,
+                            ] else ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: GameButtonLabel(
+                                        l10n.missionsRandomChallenge,
+                                        fontSize: 15,
+                                        color: AppColors.woodDeep,
+                                        outlineColor: AppColors.authCard,
+                                        outlineWidth: 3.5,
+                                      ),
                                     ),
                                   ),
-                                  child: _creatingChallenge != null
-                                      ? const Center(
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            AppIcon(
-                                              Icons.shuffle,
-                                              asset: AppAssets.iconChallenge,
-                                              size: 16,
-                                              color: energyColor,
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Text(
-                                              l10n.missionsNewChallenge,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: mutedForeground,
-                                              ),
-                                            ),
-                                          ],
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: GameButtonLabel(
+                                      l10n.missionsCancelRemaining(
+                                        _cancelRemaining,
+                                        _cancelLimit,
+                                      ),
+                                      fontSize: 12,
+                                      color: _cancelRemaining <= 0
+                                          ? Theme.of(context).colorScheme.error
+                                          : AppColors.oliveDeep,
+                                      outlineColor: AppColors.authCard,
+                                      outlineWidth: 3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              if (_challengeQuests.isEmpty)
+                                Material(
+                                  color: AppColors.authCard.withValues(
+                                    alpha: 0.94,
+                                  ),
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: InkWell(
+                                    onTap: _creatingChallenge != null
+                                        ? null
+                                        : _handleRandomChallenge,
+                                    borderRadius: BorderRadius.circular(18),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 72,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: AppColors.wood,
+                                          width: 2,
                                         ),
+                                      ),
+                                      child: _creatingChallenge != null
+                                          ? const Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                AppIcon(
+                                                  Icons.shuffle,
+                                                  asset:
+                                                      AppAssets.iconChallenge,
+                                                  size: 38,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                GameButtonLabel(
+                                                  l10n.missionsNewChallenge,
+                                                  fontSize: 15,
+                                                  color: AppColors.woodDeep,
+                                                  outlineColor: AppColors.ivory,
+                                                  outlineWidth: 2.5,
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          if (_challengeQuests.isEmpty) ...[
-                            const SizedBox(height: 24),
-                            Center(
-                              child: Text(
-                                l10n.missionsNoActiveChallenge,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: mutedForeground,
+                              if (_challengeQuests.isEmpty) ...[
+                                const SizedBox(height: 24),
+                                Center(
+                                  child: GameButtonLabel(
+                                    l10n.missionsNoActiveChallenge,
+                                    fontSize: 13,
+                                    color: AppColors.oliveDeep,
+                                    outlineColor: AppColors.authCard,
+                                    outlineWidth: 3,
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ] else
-                            ..._challengeQuests.asMap().entries.map(
-                              (entry) => Padding(
-                                padding: const EdgeInsets.only(bottom: 14),
-                                child: _QuestItemCard(
-                                  quest: entry.value,
-                                  index: entry.key,
-                                  cardColor: cardColor,
-                                  borderColor: borderColor,
-                                  foreground: foreground,
-                                  mutedForeground: mutedForeground,
-                                  accent: accent,
-                                  muted: muted,
-                                  dewColor: dewColor,
-                                  energyColor: energyColor,
-                                  isClaimLoading:
-                                      _claimingMissionId ==
-                                      entry.value.missionId,
-                                  cancelRemaining: _cancelRemaining,
-                                  isCancelLoading:
-                                      _cancellingChallengeId ==
-                                      entry.value.userMissionId,
-                                  onClaim: () => _handleClaim(entry.value),
-                                  onCancel: () =>
-                                      _handleCancelChallenge(entry.value),
+                              ] else
+                                ..._challengeQuests.asMap().entries.map(
+                                  (entry) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 14),
+                                    child: _QuestItemCard(
+                                      quest: entry.value,
+                                      index: entry.key,
+                                      cardColor: cardColor,
+                                      borderColor: borderColor,
+                                      foreground: foreground,
+                                      mutedForeground: mutedForeground,
+                                      accent: accent,
+                                      muted: muted,
+                                      dewColor: dewColor,
+                                      energyColor: energyColor,
+                                      isClaimLoading:
+                                          _claimingMissionId ==
+                                          entry.value.missionId,
+                                      cancelRemaining: _cancelRemaining,
+                                      isCancelLoading:
+                                          _cancellingChallengeId ==
+                                          entry.value.userMissionId,
+                                      onClaim: () => _handleClaim(entry.value),
+                                      onCancel: () =>
+                                          _handleCancelChallenge(entry.value),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                        ],
-                      ],
-                    ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
           ),
         ],
@@ -631,13 +662,12 @@ class _MissionsHeader extends StatelessWidget {
             ),
           ),
         ),
-        Text(
+        GameButtonLabel(
           title,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: foreground,
-          ),
+          fontSize: 20,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
       ],
     );
@@ -671,29 +701,40 @@ class _MissionTabs extends StatelessWidget {
       final isActive = activeTab == tab;
       return Expanded(
         child: Material(
-          color: isActive ? cardColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: isActive ? AppColors.buttonGreen : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: () => onChanged(tab),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(14),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              duration: const Duration(milliseconds: 180),
+              height: 44,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: isActive
-                    ? Border.all(color: borderColor.withValues(alpha: 0.3))
-                    : null,
-              ),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isActive ? foreground : mutedForeground,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isActive ? AppColors.woodDeep : Colors.transparent,
+                  width: 1.5,
                 ),
               ),
+              child: isActive
+                  ? GameButtonLabel(
+                      label,
+                      fontSize: 13,
+                      color: AppColors.buttonText,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 2.5,
+                    )
+                  : Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
             ),
           ),
         ),
@@ -701,20 +742,229 @@ class _MissionTabs extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: cardColor.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor.withValues(alpha: 0.6)),
+        color: AppColors.authCard.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.wood, width: 2),
       ),
       child: Row(
         children: [
           buildTab(missionLabel, MissionTab.mission),
+          const SizedBox(width: 4),
           buildTab(challengeLabel, MissionTab.challenge),
         ],
       ),
     );
   }
+}
+
+class _MissionListTabs extends StatelessWidget {
+  const _MissionListTabs({
+    required this.dailyLabel,
+    required this.overallLabel,
+    required this.activeTab,
+    required this.onChanged,
+  });
+
+  final String dailyLabel;
+  final String overallLabel;
+  final MissionListTab activeTab;
+  final ValueChanged<MissionListTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget tab(String label, MissionListTab tab) {
+      final selected = activeTab == tab;
+      return Expanded(
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
+          child: InkWell(
+            onTap: () => onChanged(tab),
+            borderRadius: BorderRadius.circular(11),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.woodLight : AppColors.parchment,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: AppColors.woodDeep,
+                  width: selected ? 2 : 1.4,
+                ),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.woodDeep.withValues(alpha: 0.24),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: selected
+                  ? GameButtonLabel(
+                      label,
+                      fontSize: 14,
+                      color: AppColors.buttonText,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 3,
+                    )
+                  : Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          tab(dailyLabel, MissionListTab.daily),
+          const SizedBox(width: 4),
+          tab(overallLabel, MissionListTab.overall),
+        ],
+      ),
+    );
+  }
+}
+
+class _MissionListPanel extends StatelessWidget {
+  const _MissionListPanel({required this.tabs, required this.child});
+
+  final Widget tabs;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 4),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.leafLight.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(12, 42, 12, 4),
+              decoration: BoxDecoration(
+                color: AppColors.authCard.withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.wood, width: 1.5),
+              ),
+              child: child,
+            ),
+          ),
+        ),
+        Positioned(top: 0, left: 28, right: 28, child: tabs),
+        const Positioned(
+          left: -5,
+          top: 22,
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size(54, 54),
+              painter: _MissionLeafPainter(),
+            ),
+          ),
+        ),
+        const Positioned(
+          right: -4,
+          bottom: -2,
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size(58, 58),
+              painter: _MissionLeafPainter(flower: true, mirrored: true),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MissionLeafPainter extends CustomPainter {
+  const _MissionLeafPainter({this.flower = false, this.mirrored = false});
+
+  final bool flower;
+  final bool mirrored;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mirrored) {
+      canvas.translate(size.width, size.height);
+      canvas.rotate(3.14159);
+    }
+    final stem = Paint()
+      ..color = AppColors.oliveDeep
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final leafFill = Paint()..color = AppColors.leaf;
+    final edge = Paint()
+      ..color = AppColors.oliveDeep
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(4, size.height - 5),
+      Offset(size.width - 7, 7),
+      stem,
+    );
+
+    void leaf(Offset center, double angle) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      final rect = Rect.fromCenter(center: Offset.zero, width: 18, height: 9);
+      canvas.drawOval(rect, leafFill);
+      canvas.drawOval(rect, edge);
+      canvas.restore();
+    }
+
+    leaf(Offset(size.width * 0.3, size.height * 0.65), -0.65);
+    leaf(Offset(size.width * 0.48, size.height * 0.48), 0.75);
+    leaf(Offset(size.width * 0.67, size.height * 0.3), -0.62);
+
+    if (flower) {
+      final center = Offset(size.width * 0.72, size.height * 0.22);
+      final petal = Paint()..color = AppColors.blossom;
+      for (var i = 0; i < 5; i++) {
+        canvas.drawCircle(
+          center + Offset.fromDirection(i * 1.25664, 7),
+          4.8,
+          petal,
+        );
+      }
+      canvas.drawCircle(center, 3.8, Paint()..color = AppColors.goldLight);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MissionLeafPainter oldDelegate) =>
+      oldDelegate.flower != flower || oldDelegate.mirrored != mirrored;
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -798,6 +1048,12 @@ class _QuestItemCard extends StatelessWidget {
         : (safeCurrent / quest.target).clamp(0.0, 1.0);
     final isCompleted = quest.isCompleted;
     final showClaim = quest.canClaim && !quest.isClaimed;
+    final resolvedCardColor = isCompleted
+        ? AppColors.leafLight.withValues(alpha: 0.94)
+        : AppColors.authCard.withValues(alpha: 0.94);
+    final resolvedBorderColor = isCompleted
+        ? AppColors.oliveDeep
+        : AppColors.wood;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -813,19 +1069,15 @@ class _QuestItemCard extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isCompleted
-                ? Colors.amber.withValues(alpha: 0.4)
-                : borderColor,
-          ),
+          color: resolvedCardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: resolvedBorderColor, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
+              color: AppColors.woodDeep.withValues(alpha: 0.12),
+              blurRadius: 5,
               offset: const Offset(0, 2),
             ),
           ],
@@ -835,22 +1087,30 @@ class _QuestItemCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isCompleted ? Colors.amber : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isCompleted ? Colors.amber : borderColor,
-                      width: 2,
+                SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: Center(
+                    child: Icon(
+                      isCompleted
+                          ? Icons.check_rounded
+                          : Icons.star_border_rounded,
+                      size: isCompleted ? 38 : 35,
+                      color: isCompleted
+                          ? AppColors.success
+                          : AppColors.woodLight,
+                      shadows: [
+                        Shadow(
+                          color: isCompleted
+                              ? AppColors.oliveDeep
+                              : AppColors.woodDeep.withValues(alpha: 0.7),
+                          blurRadius: 1.5,
+                        ),
+                      ],
                     ),
                   ),
-                  child: isCompleted
-                      ? AppIcon(Icons.check, size: 14, color: cardColor)
-                      : null,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -868,7 +1128,7 @@ class _QuestItemCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         quest.description,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
@@ -880,37 +1140,6 @@ class _QuestItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (!isCompleted && quest.isChallenge)
-                  Material(
-                    color: cancelRemaining <= 0
-                        ? muted.withValues(alpha: 0.3)
-                        : muted.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: cancelRemaining <= 0 || isCancelLoading
-                          ? null
-                          : onCancel,
-                      borderRadius: BorderRadius.circular(12),
-                      child: SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: isCancelLoading
-                            ? const Padding(
-                                padding: EdgeInsets.all(8),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : AppIcon(
-                                Icons.delete_outline,
-                                size: 14,
-                                color: cancelRemaining <= 0
-                                    ? mutedForeground.withValues(alpha: 0.3)
-                                    : mutedForeground,
-                              ),
-                      ),
-                    ),
-                  ),
                 if (showClaim)
                   Material(
                     color: accent,
@@ -963,7 +1192,7 @@ class _QuestItemCard extends StatelessWidget {
                       ),
                     ),
                   )
-                else
+                else if (!quest.isChallenge)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -988,13 +1217,87 @@ class _QuestItemCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        DewdropIcon(size: 16, color: dewColor),
+                        Image.asset(
+                          AppAssets.iconDewDrop,
+                          width: 22,
+                          height: 22,
+                          fit: BoxFit.contain,
+                        ),
                       ],
                     ),
                   ),
+                if (!isCompleted && quest.isChallenge) ...[
+                  if (isCancelLoading)
+                    const SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Padding(
+                        padding: EdgeInsets.all(9),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
+                      onPressed: cancelRemaining <= 0 ? null : onCancel,
+                      constraints: const BoxConstraints.tightFor(
+                        width: 40,
+                        height: 40,
+                      ),
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 28,
+                        color: cancelRemaining <= 0
+                            ? AppColors.woodDeep.withValues(alpha: 0.35)
+                            : AppColors.woodDeep,
+                      ),
+                    ),
+                ],
               ],
             ),
-            const SizedBox(height: 12),
+            if (quest.isChallenge) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: muted,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: borderColor.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${quest.reward}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: foreground,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Image.asset(
+                        AppAssets.iconDewDrop,
+                        width: 22,
+                        height: 22,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -1008,7 +1311,7 @@ class _QuestItemCard extends StatelessWidget {
                           .surfaceContainerHighest
                           .withValues(alpha: 0.5),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isCompleted ? Colors.amber : energyColor,
+                        isCompleted ? AppColors.buttonGreen : energyColor,
                       ),
                     ),
                   ),

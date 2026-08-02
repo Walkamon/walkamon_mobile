@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_dual_bottom_tabs.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
@@ -310,37 +313,31 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.colorScheme.surface;
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final foreground = isDark
-        ? AppColors.darkForeground
-        : AppColors.lightForeground;
+    final cardColor = AppColors.authCard.withValues(alpha: 0.97);
+    const primary = AppColors.buttonGreen;
+    const onPrimary = AppColors.buttonText;
+    const muted = AppColors.parchment;
+    const mutedForeground = AppColors.outlineBrown;
+    const borderColor = AppColors.wood;
+    const foreground = AppColors.woodDeep;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
+      bottomNavigationBar: _MainTabBar(
+        activeTab: _activeTab,
+        cardColor: cardColor,
+        borderColor: borderColor,
+        primary: primary,
+        onPrimary: onPrimary,
+        mutedForeground: mutedForeground,
+        onChanged: (tab) => setState(() => _activeTab = tab),
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             children: [
               _Header(onBack: () => Navigator.pop(context)),
-              const SizedBox(height: 24),
-              _MainTabBar(
-                activeTab: _activeTab,
-                cardColor: cardColor,
-                borderColor: borderColor,
-                primary: primary,
-                onPrimary: onPrimary,
-                mutedForeground: mutedForeground,
-                onChanged: (tab) => setState(() => _activeTab = tab),
-              ),
               const SizedBox(height: 24),
               Expanded(
                 child: AnimatedSwitcher(
@@ -438,7 +435,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: borderColor),
+            border: Border.all(color: borderColor, width: 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -637,9 +634,21 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     if (_history.isEmpty) {
       return Center(
         key: key,
-        child: Text(
-          l10n.activityStatsNoHistory,
-          style: TextStyle(color: mutedForeground, fontWeight: FontWeight.w600),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+          decoration: BoxDecoration(
+            color: AppColors.authCard.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.wood, width: 2),
+          ),
+          child: Text(
+            l10n.activityStatsNoHistory,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.woodDeep,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       );
     }
@@ -673,44 +682,22 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.colorScheme.surface;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-
     return Stack(
       alignment: Alignment.center,
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: Material(
-            color: cardColor,
-            shape: CircleBorder(side: BorderSide(color: borderColor)),
-            elevation: 1,
-            shadowColor: Colors.black.withValues(alpha: 0.05),
-            child: InkWell(
-              onTap: onBack,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: AppIcon(
-                  Icons.arrow_back_rounded,
-                  size: 20,
-                  color: mutedForeground,
-                ),
-              ),
-            ),
+          child: GameBackButton(
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: onBack,
           ),
         ),
-        Text(
+        GameButtonLabel(
           AppLocalizations.of(context).activityStatsTitle,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          fontSize: 20,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
       ],
     );
@@ -738,35 +725,13 @@ class _MainTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: cardColor.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          _MainTabButton(
-            label: AppLocalizations.of(context).activityStatsStats,
-            icon: Icons.bar_chart_rounded,
-            isActive: activeTab == _MainTab.stats,
-            primary: primary,
-            onPrimary: onPrimary,
-            mutedForeground: mutedForeground,
-            onTap: () => onChanged(_MainTab.stats),
-          ),
-          _MainTabButton(
-            label: AppLocalizations.of(context).activityStatsHistory,
-            icon: Icons.calendar_month_outlined,
-            isActive: activeTab == _MainTab.history,
-            primary: primary,
-            onPrimary: onPrimary,
-            mutedForeground: mutedForeground,
-            onTap: () => onChanged(_MainTab.history),
-          ),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context);
+    return GameDualBottomTabs(
+      firstLabel: l10n.activityStatsStats,
+      secondLabel: l10n.activityStatsHistory,
+      firstSelected: activeTab == _MainTab.stats,
+      onFirstTap: () => onChanged(_MainTab.stats),
+      onSecondTap: () => onChanged(_MainTab.history),
     );
   }
 }
@@ -860,8 +825,9 @@ class _TimeRangeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: muted.withValues(alpha: 0.4),
+        color: AppColors.authCard.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Row(
         children: ActivityTimeRange.values
@@ -887,12 +853,12 @@ class _TimeRangeSelector extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
-                      color: isActive ? cardColor : Colors.transparent,
+                      color: isActive
+                          ? AppColors.buttonGreen
+                          : AppColors.parchment,
                       borderRadius: BorderRadius.circular(12),
                       border: isActive
-                          ? Border.all(
-                              color: borderColor.withValues(alpha: 0.5),
-                            )
+                          ? Border.all(color: AppColors.woodDeep, width: 1.5)
                           : null,
                       boxShadow: isActive
                           ? [
@@ -909,7 +875,17 @@ class _TimeRangeSelector extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: isActive ? foreground : mutedForeground,
+                        color: isActive
+                            ? AppColors.buttonText
+                            : AppColors.woodDeep,
+                        shadows: isActive
+                            ? const [
+                                Shadow(
+                                  color: AppColors.woodDeep,
+                                  blurRadius: 1.5,
+                                ),
+                              ]
+                            : null,
                       ),
                     ),
                   ),
@@ -1098,7 +1074,7 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: borderColor, width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1171,7 +1147,7 @@ class _HistoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: borderColor, width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1272,23 +1248,31 @@ class _ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: onRetry,
-            child: Text(
-              AppLocalizations.of(context).retry,
-              style: TextStyle(color: primary, fontWeight: FontWeight.w700),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.authCard.withValues(alpha: 0.97),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.wood, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.woodDeep,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(AppLocalizations.of(context).retry),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -45,8 +45,9 @@ class _IncomingChallengesContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final providerInvites = context.watch<PvpProvider>().incomingInvites;
-    final activeChallenges =
-        providerInvites.isNotEmpty ? providerInvites : challenges;
+    final activeChallenges = providerInvites.isNotEmpty
+        ? providerInvites
+        : challenges;
 
     return Container(
       decoration: BoxDecoration(
@@ -54,8 +55,9 @@ class _IncomingChallengesContent extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(24),
-      constraints:
-          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -70,8 +72,9 @@ class _IncomingChallengesContent extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Lời mời thách đấu',
-            style:
-                theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           if (activeChallenges.isEmpty)
@@ -110,8 +113,9 @@ class _IncomingChallengesContent extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer
-                          .withValues(alpha: 0.3),
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.3,
+                      ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: theme.dividerColor),
                     ),
@@ -239,7 +243,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                   Navigator.pop(context);
                                   onReject(challenge.inviteId);
                                 },
-                                icon: const AppIcon(Icons.close, size: 16),
+                                icon: const AppIcon(Icons.close, size: 28),
                                 label: const Text('Từ chối'),
                               ),
                             ),
@@ -388,34 +392,26 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                 _FilterChip(
                   label: 'Tất cả',
                   selected: provider.historyMatchType.isEmpty,
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    matchType: '',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, matchType: ''),
                 ),
                 _FilterChip(
                   label: 'Xếp hạng',
                   selected: provider.historyMatchType == 'ranked',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    matchType: 'ranked',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, matchType: 'ranked'),
                 ),
                 _FilterChip(
                   label: 'Bạn bè',
                   selected: provider.historyMatchType == 'friendly',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    matchType: 'friendly',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, matchType: 'friendly'),
                 ),
                 _FilterChip(
                   label: 'Sự kiện',
                   selected: provider.historyMatchType == 'event',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    matchType: 'event',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, matchType: 'event'),
                 ),
               ],
             ),
@@ -428,27 +424,21 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                 _FilterChip(
                   label: 'Mọi kết quả',
                   selected: provider.historyResultFilter.isEmpty,
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    result: '',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, result: ''),
                 ),
                 _FilterChip(
                   label: 'Thắng',
                   selected: provider.historyResultFilter == 'win',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    result: 'win',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, result: 'win'),
                 ),
 
                 _FilterChip(
                   label: 'Thua',
                   selected: provider.historyResultFilter == 'lose',
-                  onSelected: () => provider.loadMatchHistory(
-                    page: 1,
-                    result: 'lose',
-                  ),
+                  onSelected: () =>
+                      provider.loadMatchHistory(page: 1, result: 'lose'),
                 ),
               ],
             ),
@@ -562,9 +552,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                                 shape: BoxShape.circle,
                                 color: isWin
                                     ? Colors.amber.withValues(alpha: 0.2)
-                                    : theme
-                                          .colorScheme
-                                          .surfaceContainerHighest,
+                                    : theme.colorScheme.surfaceContainerHighest,
                                 border: isWin
                                     ? null
                                     : Border.all(color: theme.dividerColor),
@@ -587,6 +575,9 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                                 color: isWin
                                     ? Colors.amber
                                     : theme.colorScheme.onSurfaceVariant,
+                                size: !isWin && !isCancelled && !isDraw
+                                    ? 28
+                                    : 24,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -639,15 +630,15 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   tooltip: 'Trang trước',
                   onPressed:
                       (provider.historyLoading || provider.historyPage <= 1)
-                          ? null
-                          : () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.jumpTo(0);
-                              }
-                              provider.loadMatchHistory(
-                                page: provider.historyPage - 1,
-                              );
-                            },
+                      ? null
+                      : () {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                          provider.loadMatchHistory(
+                            page: provider.historyPage - 1,
+                          );
+                        },
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -663,17 +654,16 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   tooltip: 'Trang sau',
                   onPressed:
                       (provider.historyLoading ||
-                              provider.historyPage >=
-                                  provider.historyTotalPages)
-                          ? null
-                          : () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.jumpTo(0);
-                              }
-                              provider.loadMatchHistory(
-                                page: provider.historyPage + 1,
-                              );
-                            },
+                          provider.historyPage >= provider.historyTotalPages)
+                      ? null
+                      : () {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                          provider.loadMatchHistory(
+                            page: provider.historyPage + 1,
+                          );
+                        },
                 ),
               ],
             ),
@@ -724,8 +714,11 @@ void showFriendsModal(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) =>
-        _FriendsModalContent(online: online, offline: offline, onInvite: onInvite),
+    builder: (context) => _FriendsModalContent(
+      online: online,
+      offline: offline,
+      onInvite: onInvite,
+    ),
   );
 }
 
@@ -734,7 +727,11 @@ class _FriendsModalContent extends StatelessWidget {
   final List<FriendsResponse> offline;
   final Function(String userId, String username) onInvite;
 
-  const _FriendsModalContent({required this.online, required this.offline, required this.onInvite});
+  const _FriendsModalContent({
+    required this.online,
+    required this.offline,
+    required this.onInvite,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -745,7 +742,9 @@ class _FriendsModalContent extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(24),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -760,7 +759,9 @@ class _FriendsModalContent extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Thách đấu Bạn bè',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           Flexible(
@@ -770,9 +771,23 @@ class _FriendsModalContent extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      const Text('ĐANG ONLINE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        'ĐANG ONLINE',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -785,13 +800,29 @@ class _FriendsModalContent extends StatelessWidget {
                       ),
                     )
                   else
-                    ...online.map((f) => _buildFriendItem(context, f, onInvite)),
+                    ...online.map(
+                      (f) => _buildFriendItem(context, f, onInvite),
+                    ),
                   const Divider(height: 32),
                   Row(
                     children: [
-                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.grey,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      const Text('NGOẠI TUYẾN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        'NGOẠI TUYẾN',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -804,7 +835,9 @@ class _FriendsModalContent extends StatelessWidget {
                       ),
                     )
                   else
-                    ...offline.map((f) => _buildFriendItem(context, f, onInvite)),
+                    ...offline.map(
+                      (f) => _buildFriendItem(context, f, onInvite),
+                    ),
                 ],
               ),
             ),
@@ -892,10 +925,7 @@ class _FriendsModalContent extends StatelessWidget {
                 else
                   const Text(
                     'Ngoại tuyến',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
                   ),
               ],
             ),
@@ -936,7 +966,10 @@ class _FriendsModalContent extends StatelessWidget {
                       : theme.colorScheme.surfaceContainerHighest,
                   foregroundColor: theme.colorScheme.onPrimaryContainer,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                 ),
               ),
             ),

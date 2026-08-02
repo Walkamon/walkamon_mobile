@@ -48,6 +48,11 @@ void main() {
   testWidgets('Welcome screen renders Walkamon title', (
     WidgetTester tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final apiClient = ApiClient();
     final profileRepo = ProfileViewScreenRepository(
       ProfileViewScreenDatasource(apiClient),
@@ -72,6 +77,9 @@ void main() {
     );
 
     expect(find.text('Walkamon'), findsOneWidget);
-    expect(find.text('Khám Phá Ngay'), findsOneWidget);
+    expect(find.text('Khám Phá Ngay'), findsNothing);
+    expect(find.text('Đăng nhập'), findsOneWidget);
+    expect(find.text('Đăng ký'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

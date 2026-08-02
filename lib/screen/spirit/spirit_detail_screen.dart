@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/pet_evolution_models.dart';
@@ -283,48 +285,23 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
                       child: Row(
                         children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface.withOpacity(
-                                  0.85,
-                                ),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.06),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: AppIcon(
-                                Icons.arrow_back,
-                                size: 20,
-                                color: primary,
-                              ),
-                            ),
+                          GameBackButton(
+                            semanticLabel: MaterialLocalizations.of(
+                              context,
+                            ).backButtonTooltip,
+                            onPressed: () => Navigator.pop(context),
                           ),
                           Expanded(
                             child: Center(
-                              child: Text(
+                              child: GameButtonLabel(
                                 l10n.spiritDetailTitle(spiritName),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: primary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                                fontSize: 17,
+                                color: AppColors.woodDeep,
+                                outlineColor: AppColors.authCard,
+                                outlineWidth: 4,
                               ),
                             ),
                           ),
@@ -894,19 +871,14 @@ class _StatRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(
-                begin: 0,
-                end: progress.clamp(0.0, 1.0),
-              ),
+              tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
               duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutCubic,
               builder: (context, animatedProgress, _) => Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
                   widthFactor: animatedProgress,
-                  child: SizedBox.expand(
-                    child: ColoredBox(color: color),
-                  ),
+                  child: SizedBox.expand(child: ColoredBox(color: color)),
                 ),
               ),
             ),

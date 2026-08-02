@@ -29,6 +29,7 @@ import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
 import 'widgets/layouts/main_layout.dart';
+import 'widgets/common/home_page_backdrop.dart';
 import 'screen/friends/friends_spirit_screen.dart' as fs;
 
 import 'screen/auth/forgot_password_screen.dart';
@@ -76,6 +77,19 @@ void main() async {
   await AppAudioService.instance.initialize();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WalkamonApp());
+}
+
+class _HiddenScrollbarBehavior extends MaterialScrollBehavior {
+  const _HiddenScrollbarBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
 }
 
 class WalkamonApp extends StatefulWidget {
@@ -152,6 +166,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
           return MaterialApp(
             title: 'Walkamon',
             debugShowCheckedModeBanner: false,
+            scrollBehavior: const _HiddenScrollbarBehavior(),
             navigatorObservers: [appRouteObserver],
             locale: gameState.locale,
             supportedLocales: LocaleHelper.supportedLocales,
@@ -180,6 +195,29 @@ class _WalkamonAppState extends State<WalkamonApp> {
               // 1. Lấy trạng thái đăng nhập thực tế của người dùng từ Provider
               final bool isLogged = gameState.isAuthenticated;
               final String? routeName = settings.name;
+
+              WidgetBuilder withPetBackground(
+                WidgetBuilder pageBuilder, {
+                required String? targetRoute,
+              }) {
+                return (context) {
+                  final page = pageBuilder(context);
+                  if (targetRoute == '/pvp' ||
+                      targetRoute == '/' ||
+                      (targetRoute?.startsWith('/auth/') ?? false)) {
+                    return page;
+                  }
+
+                  return HomePageBackdrop(
+                    child: Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(scaffoldBackgroundColor: Colors.transparent),
+                      child: page,
+                    ),
+                  );
+                };
+              }
 
               // 2. Định nghĩa danh sách các Route cần bảo mật (Private)
               final privateRoutes = [
@@ -213,8 +251,11 @@ class _WalkamonAppState extends State<WalkamonApp> {
               // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
               if (!isLogged && privateRoutes.contains(routeName)) {
                 return MaterialPageRoute(
-                  builder: (_) =>
-                      const AuthLayout(fullBleed: true, child: LoginScreen()),
+                  builder: withPetBackground(
+                    (_) =>
+                        const AuthLayout(fullBleed: true, child: LoginScreen()),
+                    targetRoute: '/auth/login',
+                  ),
                   settings: const RouteSettings(
                     name: '/auth/login',
                   ), // Giữ đúng lịch sử định tuyến
@@ -228,7 +269,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                       routeName == '/auth/login' ||
                       routeName == '/auth/register')) {
                 return MaterialPageRoute(
-                  builder: (_) => const SeedScreen(),
+                  builder: withPetBackground(
+                    (_) => const SeedScreen(),
+                    targetRoute: '/seed',
+                  ),
                   settings: const RouteSettings(name: '/seed'),
                 );
               }
@@ -261,7 +305,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                       const AuthLayout(child: ResetPasswordScreen());
                   break;
                 case '/auth/change-password':
-                  builder = (_) => const ChangePasswordScreen();
+                  builder = (_) => const AuthLayout(
+                    fullBleed: true,
+                    child: ChangePasswordScreen(),
+                  );
                   break;
                 case '/auth/otp_verification':
                   builder = (_) => const AuthLayout(
@@ -275,8 +322,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                       const AuthLayout(fullBleed: true, child: OTP_Register());
                   break;
                 case '/auth/privacy':
-                  builder = (_) =>
-                      const AuthLayout(child: PrivacyPolicyScreen());
+                  builder = (_) => const AuthLayout(
+                    fullBleed: true,
+                    child: PrivacyPolicyScreen(),
+                  );
                   break;
 
                 // Các tuyến đường Private bảo mật
@@ -374,7 +423,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   builder = (_) => const WelcomeScreen();
               }
 
-              return MaterialPageRoute(builder: builder, settings: settings);
+              return MaterialPageRoute(
+                builder: withPetBackground(builder, targetRoute: routeName),
+                settings: settings,
+              );
             },
           );
         },

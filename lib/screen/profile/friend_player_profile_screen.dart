@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
+import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/friend_profile_datasource.dart';
 import '../../data/models/friend_profile_response.dart';
 import '../../data/repositories/friend_profile_repository.dart';
@@ -48,9 +51,7 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _repository = FriendProfileRepository(
-      FriendProfileDatasource(ApiClient()),
-    );
+    _repository = FriendProfileRepository(FriendProfileDatasource(ApiClient()));
     _profileFuture = _repository.getFriendPlayerProfile(widget.userId);
   }
 
@@ -84,10 +85,7 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
         gameText = l10n.friendsPlayerNotFound;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(gameText),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(gameText), behavior: SnackBarBehavior.floating),
       );
     } finally {
       if (mounted) setState(() => _isSendingRequest = false);
@@ -175,14 +173,13 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: FutureBuilder<FriendPlayerProfile>(
             future: _profileFuture,
             builder: (context, snapshot) {
@@ -193,18 +190,19 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
                 children: [
                   Row(
                     children: [
-                      _CircleIconButton(
-                        icon: Icons.arrow_back_rounded,
-                        onTap: () => Navigator.maybePop(context),
+                      GameBackButton(
+                        semanticLabel: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
+                        onPressed: () => Navigator.maybePop(context),
                       ),
                       Expanded(
-                        child: Text(
+                        child: GameButtonLabel(
                           l10n.friendProfileTitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
+                          fontSize: 17,
+                          color: AppColors.woodDeep,
+                          outlineColor: AppColors.authCard,
+                          outlineWidth: 4,
                         ),
                       ),
                       _CircleIconButton(
@@ -222,45 +220,40 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
                     child: snapshot.connectionState == ConnectionState.waiting
                         ? const Center(child: CircularProgressIndicator())
                         : snapshot.hasError
-                            ? _ErrorState(onRetry: _refresh)
-                            : RefreshIndicator(
-                                onRefresh: _refresh,
-                                child: ListView(
-                                  physics:
-                                      const AlwaysScrollableScrollPhysics(),
-                                  padding:
-                                      const EdgeInsets.only(bottom: 28),
-                                  children: [
-                                    _ProfileCard(
-                                      profile: data?.profile,
-                                      fallbackName: widget.initialName,
-                                      fallbackAvatarUrl:
-                                          widget.initialAvatarUrl,
-                                    ),
-                                    const SizedBox(height: 22),
-                                    _SectionTitle(
-                                      title: l10n.friendProfileCompanion,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _SpiritCard(
-                                      spirit: data?.spirit,
-                                      userId: widget.userId,
-                                    ),
-                                    const SizedBox(height: 22),
-                                    _SectionTitle(
-                                      title: l10n.friendProfileStats,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _StatsGrid(spirit: data?.spirit),
-                                    const SizedBox(height: 22),
-                                    _SectionTitle(
-                                      title: l10n.friendProfileAchievements,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    const _AchievementsCard(),
-                                  ],
+                        ? _ErrorState(onRetry: _refresh)
+                        : RefreshIndicator(
+                            onRefresh: _refresh,
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 28),
+                              children: [
+                                _ProfileCard(
+                                  profile: data?.profile,
+                                  fallbackName: widget.initialName,
+                                  fallbackAvatarUrl: widget.initialAvatarUrl,
                                 ),
-                              ),
+                                const SizedBox(height: 22),
+                                _SectionTitle(
+                                  title: l10n.friendProfileCompanion,
+                                ),
+                                const SizedBox(height: 8),
+                                _SpiritCard(
+                                  spirit: data?.spirit,
+                                  userId: widget.userId,
+                                ),
+                                const SizedBox(height: 22),
+                                _SectionTitle(title: l10n.friendProfileStats),
+                                const SizedBox(height: 8),
+                                _StatsGrid(spirit: data?.spirit),
+                                const SizedBox(height: 22),
+                                _SectionTitle(
+                                  title: l10n.friendProfileAchievements,
+                                ),
+                                const SizedBox(height: 8),
+                                const _AchievementsCard(),
+                              ],
+                            ),
+                          ),
                   ),
                 ],
               );
@@ -296,9 +289,7 @@ class _FriendSpiritScreenState extends State<FriendSpiritScreen> {
   @override
   void initState() {
     super.initState();
-    _repository = FriendProfileRepository(
-      FriendProfileDatasource(ApiClient()),
-    );
+    _repository = FriendProfileRepository(FriendProfileDatasource(ApiClient()));
     _spiritFuture = _repository.getFriendSpirit(widget.userId);
   }
 
@@ -311,25 +302,27 @@ class _FriendSpiritScreenState extends State<FriendSpiritScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             children: [
               Row(
                 children: [
-                  _CircleIconButton(
-                    icon: Icons.arrow_back_rounded,
-                    onTap: () => Navigator.maybePop(context),
+                  GameBackButton(
+                    semanticLabel: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    onPressed: () => Navigator.maybePop(context),
                   ),
                   Expanded(
-                    child: Text(
+                    child: GameButtonLabel(
                       l10n.friendSpiritTitle,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      fontSize: 17,
+                      color: AppColors.woodDeep,
+                      outlineColor: AppColors.authCard,
+                      outlineWidth: 4,
                     ),
                   ),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: GameBackButton.buttonSize),
                 ],
               ),
               const SizedBox(height: 18),
@@ -344,8 +337,9 @@ class _FriendSpiritScreenState extends State<FriendSpiritScreen> {
                       return _ErrorState(
                         onRetry: () async {
                           setState(() {
-                            _spiritFuture =
-                                _repository.getFriendSpirit(widget.userId);
+                            _spiritFuture = _repository.getFriendSpirit(
+                              widget.userId,
+                            );
                           });
                           await _spiritFuture;
                         },
@@ -404,11 +398,7 @@ class _ProfileCard extends StatelessWidget {
   final String? fallbackName;
   final String? fallbackAvatarUrl;
 
-  const _ProfileCard({
-    this.profile,
-    this.fallbackName,
-    this.fallbackAvatarUrl,
-  });
+  const _ProfileCard({this.profile, this.fallbackName, this.fallbackAvatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -534,10 +524,10 @@ class _SpiritCard extends StatelessWidget {
         onTap: spirit == null
             ? null
             : () => Navigator.pushNamed(
-                  context,
-                  '/spirit/friend',
-                  arguments: userId,
-                ),
+                context,
+                '/spirit/friend',
+                arguments: userId,
+              ),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -591,10 +581,7 @@ class _SpiritCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.friendProfileSpiritMeta(
-                        type,
-                        spirit?.level ?? 0,
-                      ),
+                      l10n.friendProfileSpiritMeta(type, spirit?.level ?? 0),
                       style: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 12,
@@ -699,12 +686,7 @@ class _StatCard extends StatelessWidget {
               color: iconColor.withOpacity(0.14),
               shape: BoxShape.circle,
             ),
-            child: AppIcon(
-              icon,
-              asset: asset,
-              color: iconColor,
-              size: 19,
-            ),
+            child: AppIcon(icon, asset: asset, color: iconColor, size: 19),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,7 +743,10 @@ class _AchievementsCard extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.amber.withOpacity(0.2)),
             ),
-            child: const AppIcon(Icons.emoji_events_rounded, color: Colors.amber),
+            child: const AppIcon(
+              Icons.emoji_events_rounded,
+              color: Colors.amber,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -807,7 +792,10 @@ class _SpiritHero extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.friendProfileSpiritMeta(_localizedStageName(spirit.stageName, l10n), spirit.level),
+            l10n.friendProfileSpiritMeta(
+              _localizedStageName(spirit.stageName, l10n),
+              spirit.level,
+            ),
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -950,8 +938,9 @@ class _CircleIconButton extends StatelessWidget {
                 : theme.colorScheme.surface.withOpacity(0.85),
             shape: BoxShape.circle,
             border: Border.all(
-              color:
-                  isActive ? Colors.transparent : theme.colorScheme.outlineVariant,
+              color: isActive
+                  ? Colors.transparent
+                  : theme.colorScheme.outlineVariant,
             ),
           ),
           child: Center(

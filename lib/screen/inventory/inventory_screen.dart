@@ -8,6 +8,8 @@ import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/game_back_button.dart';
+import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/bottom_navigation.dart';
 import '../../widgets/common/home_page_backdrop.dart';
 import '../../widgets/common/error_message_widget.dart';
@@ -248,8 +250,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final primary = theme.colorScheme.primary;
     final selectedItem = _selectedItem;
-    final hasAnyItem = _items.isNotEmpty;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
@@ -257,61 +257,81 @@ class _InventoryScreenState extends State<InventoryScreen> {
       body: HomePageBackdrop(
         child: Stack(
           children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 110),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _InventoryHeader(
-                  foreground: foreground,
-                  cardColor: cardColor,
-                  borderColor: borderColor,
-                  mutedForeground: mutedForeground,
-                  onBack: () => Navigator.pushNamed(context, '/home'),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : !hasAnyItem
-                      ? Center(
-                          child: Text(
-                            _errorMessage ?? l10n.inventoryNoItems,
-                            style: TextStyle(color: mutedForeground),
-                          ),
-                        )
-                      : _ItemGrid(
-                          slotCount: _gridSlotCount,
-                          items: _currentItems,
-                          selectedItemId: _selectedItemId,
-                          borderColor: borderColor,
-                          isDark: isDark,
-                          itemColor: _itemColor,
-                          itemIcon: _itemIcon,
-                          onSelectItem: _handleSelectItem,
-                        ),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _InventoryPanel(
+                      title: l10n.inventoryBag,
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Stack(
+                              children: [
+                                _ItemGrid(
+                                  slotCount: _gridSlotCount,
+                                  items: _currentItems,
+                                  selectedItemId: _selectedItemId,
+                                  borderColor: borderColor,
+                                  isDark: isDark,
+                                  itemColor: _itemColor,
+                                  itemIcon: _itemIcon,
+                                  onSelectItem: _handleSelectItem,
+                                ),
+                                if (_errorMessage != null)
+                                  Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      margin: const EdgeInsets.all(8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 7,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.authCard.withValues(
+                                          alpha: 0.94,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: AppColors.wood,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: AppColors.woodDeep,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (_showItemPopup && selectedItem != null)
-            _ItemDetailPopup(
-              item: selectedItem,
-              cardColor: cardColor,
-              borderColor: borderColor,
-              foreground: foreground,
-              mutedForeground: mutedForeground,
-              muted: muted,
-              accent: accent,
-              primary: primary,
-              isDark: isDark,
-              isUsing: _usingItemId == selectedItem.itemId,
-              statBonus: _formatEffect(selectedItem),
-              itemColor: _itemColor(selectedItem, isDark),
-              itemIcon: _itemIcon(selectedItem),
-              onClose: _closeItemPopup,
-              onUse: () => _handleUse(selectedItem),
-            ),
+            if (_showItemPopup && selectedItem != null)
+              _ItemDetailPopup(
+                item: selectedItem,
+                cardColor: cardColor,
+                borderColor: borderColor,
+                foreground: foreground,
+                mutedForeground: mutedForeground,
+                muted: muted,
+                accent: accent,
+                primary: primary,
+                isDark: isDark,
+                isUsing: _usingItemId == selectedItem.itemId,
+                statBonus: _formatEffect(selectedItem),
+                itemColor: _itemColor(selectedItem, isDark),
+                itemIcon: _itemIcon(selectedItem),
+                onClose: _closeItemPopup,
+                onUse: () => _handleUse(selectedItem),
+              ),
           ],
         ),
       ),
@@ -333,9 +353,7 @@ extension on _InventoryScreenState {
 
     return Container(
       height: 80,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
+      decoration: BoxDecoration(color: Colors.transparent),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
@@ -408,7 +426,9 @@ extension on _InventoryScreenState {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD89A70).withValues(alpha: 0.35),
+                          color: const Color(
+                            0xFFD89A70,
+                          ).withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -460,7 +480,9 @@ extension on _InventoryScreenState {
                 ),
               ],
             ),
-            child: Center(child: Transform.scale(scale: 1.65, child: iconWidget)),
+            child: Center(
+              child: Transform.scale(scale: 1.65, child: iconWidget),
+            ),
           ),
         ],
       ),
@@ -544,38 +566,20 @@ class _InventoryHeader extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Material(
-              color: cardColor,
-              shape: CircleBorder(side: BorderSide(color: borderColor)),
-              elevation: 1,
-              shadowColor: Colors.black.withValues(alpha: 0.05),
-              child: InkWell(
-                onTap: onBack,
-                customBorder: const CircleBorder(),
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: AppIcon(
-                    Icons.arrow_back,
-                    size: 20,
-                    color: mutedForeground,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 40),
-          ],
-        ),
-        Text(
-          AppLocalizations.of(context).inventoryBag,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: foreground,
+        // Keep the callback/class shape stable for hot reload, but root screens
+        // reachable from BottomNavigation must not expose a back action.
+        Offstage(
+          child: GameBackButton(
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: onBack,
           ),
+        ),
+        GameButtonLabel(
+          AppLocalizations.of(context).inventoryBag,
+          fontSize: 20,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
       ],
     );
@@ -665,6 +669,175 @@ class _CategoryTabs extends StatelessWidget {
   }
 }
 
+class _InventoryPanel extends StatelessWidget {
+  const _InventoryPanel({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          top: 20,
+          bottom: 4,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.leafLight.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned.fill(
+          top: 26,
+          left: 6,
+          right: 6,
+          bottom: 10,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(14, 42, 14, 14),
+            decoration: BoxDecoration(
+              color: AppColors.authCard.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(color: AppColors.wood, width: 1.5),
+            ),
+            child: child,
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 46,
+          right: 46,
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.woodLight,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.woodDeep, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.woodDeep.withValues(alpha: 0.22),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: GameButtonLabel(title, fontSize: 18, outlineWidth: 3),
+            ),
+          ),
+        ),
+        const Positioned(
+          left: -5,
+          top: 16,
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size(68, 68),
+              painter: _FloralCornerPainter(),
+            ),
+          ),
+        ),
+        Positioned(
+          right: -7,
+          bottom: -2,
+          child: IgnorePointer(
+            child: Transform.rotate(
+              angle: 3.14159,
+              child: const CustomPaint(
+                size: Size(78, 78),
+                painter: _FloralCornerPainter(showFlower: true),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FloralCornerPainter extends CustomPainter {
+  const _FloralCornerPainter({this.showFlower = false});
+
+  final bool showFlower;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stem = Paint()
+      ..color = AppColors.oliveDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    final leaf = Paint()
+      ..color = AppColors.leaf
+      ..style = PaintingStyle.fill;
+    final leafEdge = Paint()
+      ..color = AppColors.oliveDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+
+    final path = Path()
+      ..moveTo(5, size.height - 5)
+      ..quadraticBezierTo(
+        size.width * 0.36,
+        size.height * 0.62,
+        size.width - 7,
+        7,
+      );
+    canvas.drawPath(path, stem);
+
+    void drawLeaf(Offset center, double angle, double width, double height) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      final rect = Rect.fromCenter(
+        center: Offset.zero,
+        width: width,
+        height: height,
+      );
+      canvas.drawOval(rect, leaf);
+      canvas.drawOval(rect, leafEdge);
+      canvas.restore();
+    }
+
+    drawLeaf(Offset(size.width * 0.28, size.height * 0.68), -0.65, 21, 11);
+    drawLeaf(Offset(size.width * 0.43, size.height * 0.53), 0.75, 22, 11);
+    drawLeaf(Offset(size.width * 0.6, size.height * 0.35), -0.62, 20, 10);
+
+    if (showFlower) {
+      final flowerCenter = Offset(size.width * 0.7, size.height * 0.24);
+      final petal = Paint()
+        ..color = AppColors.blossom
+        ..style = PaintingStyle.fill;
+      final petalEdge = Paint()
+        ..color = AppColors.wood
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1;
+      for (var i = 0; i < 5; i++) {
+        final angle = i * 1.25664;
+        final center = flowerCenter + Offset.fromDirection(angle, 9);
+        canvas.drawCircle(center, 6.5, petal);
+        canvas.drawCircle(center, 6.5, petalEdge);
+      }
+      canvas.drawCircle(flowerCenter, 5, Paint()..color = AppColors.goldLight);
+      canvas.drawCircle(flowerCenter, 5, petalEdge);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FloralCornerPainter oldDelegate) =>
+      oldDelegate.showFlower != showFlower;
+}
+
 class _ItemGrid extends StatelessWidget {
   const _ItemGrid({
     required this.slotCount,
@@ -688,36 +861,51 @@ class _ItemGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: slotCount,
-      itemBuilder: (context, index) {
-        if (index < items.length) {
-          final item = items[index];
-          return _AnimatedItemSlot(
-            index: index,
-            item: item,
-            isSelected: selectedItemId == item.itemId,
-            color: itemColor(item, isDark),
-            icon: itemIcon(item),
-            isDark: isDark,
-            onTap: () => onSelectItem(item.itemId),
-          );
-        }
-
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: borderColor.withValues(alpha: 0.4)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columnCount = constraints.maxWidth >= 310 ? 5 : 4;
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(2, 2, 2, 72),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columnCount,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
           ),
+          itemCount: slotCount,
+          itemBuilder: (context, index) {
+            if (index < items.length) {
+              final item = items[index];
+              return _AnimatedItemSlot(
+                index: index,
+                item: item,
+                isSelected: selectedItemId == item.itemId,
+                color: itemColor(item, isDark),
+                icon: itemIcon(item),
+                isDark: isDark,
+                onTap: () => onSelectItem(item.itemId),
+              );
+            }
+
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.darkMuted.withValues(alpha: 0.74)
+                    : AppColors.panelMuted.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: borderColor.withValues(alpha: 0.48),
+                  width: 1.4,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.woodDeep.withValues(alpha: 0.07),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -786,68 +974,77 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
       child: ScaleTransition(
         scale: _scale,
         child: Material(
-          color: widget.color,
-          borderRadius: BorderRadius.circular(24),
-          elevation: widget.isSelected ? 4 : 1,
+          color: widget.isDark
+              ? AppColors.darkMuted
+              : AppColors.panelMuted.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(12),
+          elevation: widget.isSelected ? 3 : 0,
           shadowColor: Colors.black.withValues(alpha: 0.15),
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: widget.isSelected
-                      ? (widget.isDark
-                            ? AppColors.darkBackground
-                            : Colors.white)
-                      : Colors.transparent,
-                  width: 3,
+                      ? AppColors.oliveDeep
+                      : AppColors.wood.withValues(alpha: 0.58),
+                  width: widget.isSelected ? 2.6 : 1.4,
                 ),
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   if (hasImage)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Image.network(
-                        widget.item.image!,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            AppIcon(widget.icon, size: 36, color: Colors.white),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          widget.item.image!,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => AppIcon(
+                            widget.icon,
+                            size: 32,
+                            color: widget.color,
+                          ),
+                        ),
                       ),
                     )
                   else
                     AppIcon(
                       widget.icon,
-                      size: 36,
-                      color: Colors.white,
+                      size: 32,
+                      color: widget.color,
                       shadows: const [
                         Shadow(color: Color(0x33000000), blurRadius: 2),
                       ],
                     ),
                   Positioned(
-                    right: 8,
-                    bottom: 8,
+                    right: 3,
+                    bottom: 3,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 5,
+                        vertical: 1,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.authCard.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(7),
+                        border: Border.all(
+                          color: AppColors.wood.withValues(alpha: 0.7),
+                        ),
                       ),
                       child: Text(
                         'x${widget.item.quantity}',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppColors.woodDeep,
                         ),
                       ),
                     ),
@@ -908,9 +1105,9 @@ class _ItemDetailPopup extends StatelessWidget {
         color: Colors.black.withValues(alpha: 0.4),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
+            padding: const EdgeInsets.fromLTRB(14, 18, 14, 108),
             child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.center,
               child: GestureDetector(
                 onTap: () {},
                 child: TweenAnimationBuilder<double>(
@@ -928,17 +1125,20 @@ class _ItemDetailPopup extends StatelessWidget {
                   },
                   child: Container(
                     width: double.infinity,
-                    constraints: const BoxConstraints(maxWidth: 384),
-                    padding: const EdgeInsets.all(24),
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
                     decoration: BoxDecoration(
-                      color: cardColor,
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(color: borderColor),
+                      color: isDark ? cardColor : AppColors.authCard,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: isDark ? borderColor : AppColors.wood,
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
+                          color: AppColors.woodDeep.withValues(alpha: 0.24),
+                          blurRadius: 18,
+                          offset: const Offset(0, 7),
                         ),
                       ],
                     ),
@@ -947,82 +1147,83 @@ class _ItemDetailPopup extends StatelessWidget {
                       children: [
                         Align(
                           alignment: Alignment.topRight,
-                          child: Material(
-                            color: muted,
-                            shape: const CircleBorder(),
-                            child: InkWell(
-                              onTap: onClose,
-                              customBorder: const CircleBorder(),
-                              child: SizedBox(
-                                width: 32,
-                                height: 32,
-                                child: AppIcon(
-                                  Icons.close,
-                                  size: 18,
-                                  color: mutedForeground,
-                                ),
-                              ),
+                          child: IconButton(
+                            onPressed: onClose,
+                            constraints: const BoxConstraints.tightFor(
+                              width: 40,
+                              height: 40,
+                            ),
+                            padding: EdgeInsets.zero,
+                            icon: AppIcon(
+                              Icons.close,
+                              size: 28,
+                              color: mutedForeground,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 96,
+                          height: 96,
+                          padding: const EdgeInsets.all(9),
                           decoration: BoxDecoration(
-                            color: itemColor,
-                            borderRadius: BorderRadius.circular(24),
+                            color: itemColor.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: AppColors.wood.withValues(alpha: 0.55),
+                              width: 1.5,
+                            ),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: hasImage
                               ? Image.network(
                                   item.image!,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => AppIcon(
                                     itemIcon,
-                                    size: 40,
-                                    color: Colors.white,
+                                    size: 48,
+                                    color: itemColor,
                                   ),
                                 )
-                              : AppIcon(
-                                  itemIcon,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
+                              : AppIcon(itemIcon, size: 48, color: itemColor),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
+                        const SizedBox(height: 18),
+                        GameButtonLabel(
                           item.name,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: foreground,
-                          ),
+                          fontSize: 23,
+                          color: isDark ? foreground : AppColors.woodDeep,
+                          outlineColor: isDark
+                              ? AppColors.darkCard
+                              : AppColors.creamLight,
+                          outlineWidth: 3,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
+                            horizontal: 14,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: primary.withValues(alpha: 0.1),
+                            color: isDark
+                                ? primary.withValues(alpha: 0.18)
+                                : AppColors.leafLight.withValues(alpha: 0.42),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: primary.withValues(alpha: 0.2),
+                              color: isDark
+                                  ? primary.withValues(alpha: 0.35)
+                                  : AppColors.wood.withValues(alpha: 0.4),
                             ),
                           ),
                           child: Text(
                             statBonus,
                             style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? primary : foreground,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? primary : AppColors.woodDeep,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
                         Text(
                           item.description?.trim().isNotEmpty == true
                               ? item.description!.trim()
@@ -1030,19 +1231,23 @@ class _ItemDetailPopup extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: mutedForeground,
-                            height: 1.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? mutedForeground
+                                : AppColors.inkBrown,
+                            height: 1.45,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 26),
                         Row(
                           children: [
                             Expanded(
                               child: _PopupButton(
                                 label: l10n.close,
-                                backgroundColor: muted,
-                                foregroundColor: foreground,
+                                backgroundColor: isDark
+                                    ? muted
+                                    : AppColors.buttonSecondary,
+                                foregroundColor: AppColors.woodDeep,
                                 onPressed: onClose,
                               ),
                             ),
@@ -1052,10 +1257,12 @@ class _ItemDetailPopup extends StatelessWidget {
                                 label: isUsing
                                     ? l10n.processing
                                     : l10n.inventoryUse,
-                                backgroundColor: accent,
+                                backgroundColor: isDark
+                                    ? accent
+                                    : AppColors.buttonYellow,
                                 foregroundColor: isDark
                                     ? AppColors.darkPrimaryForeground
-                                    : AppColors.lightPrimaryForeground,
+                                    : AppColors.buttonText,
                                 onPressed: isUsing ? null : onUse,
                               ),
                             ),
@@ -1091,22 +1298,23 @@ class _PopupButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: backgroundColor,
-      borderRadius: BorderRadius.circular(999),
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      elevation: 0,
+      shape: const StadiumBorder(
+        side: BorderSide(color: AppColors.woodDeep, width: 2),
+      ),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(999),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Text(
+          child: GameButtonLabel(
             label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: foregroundColor,
-            ),
+            fontSize: 14,
+            color: foregroundColor,
+            outlineColor: foregroundColor == AppColors.buttonText
+                ? AppColors.woodDeep
+                : AppColors.authCard,
+            outlineWidth: 2.2,
           ),
         ),
       ),

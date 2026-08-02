@@ -5,9 +5,13 @@ import 'package:provider/provider.dart';
 
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/repositories/notification_repository.dart';
@@ -26,8 +30,7 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   static const _forest = Color(0xFF395C3B);
   static const _forestDark = Color(0xFF213E2B);
-  static const _cream = Color(0xFFFFFBF1);
-  static const _gold = Color(0xFFE9B86A);
+  static const _cream = AppColors.authCard;
 
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -167,20 +170,6 @@ class _LoginScreenState extends State<LoginScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: _RoundIconButton(
-                                icon: Icons.arrow_back_rounded,
-                                semanticLabel: l10n.loginBack,
-                                onPressed: () =>
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      '/',
-                                      (route) => false,
-                                    ),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
                             _buildBrand(context),
                             const SizedBox(height: 22),
                             _buildLoginCard(context, isLoading),
@@ -194,52 +183,31 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+        Positioned(
+          top: GameBackButton.screenTop,
+          left: GameBackButton.screenLeft,
+          child: SafeArea(
+            child: _RoundIconButton(
+              icon: Icons.arrow_back_rounded,
+              semanticLabel: l10n.loginBack,
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/',
+                (route) => false,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildBrand(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    return Column(
-      children: [
-        Container(
-          width: 84,
-          height: 84,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: _cream.withValues(alpha: 0.91),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x334A3213),
-                blurRadius: 22,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Image.asset(AppAssets.authLoginSteps),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'WALKAMON',
-          style: textTheme.titleLarge?.copyWith(
-            color: _forestDark,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 3.2,
-            shadows: const [Shadow(color: Colors.white70, blurRadius: 10)],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          l10n.loginTagline,
-          style: textTheme.bodyMedium?.copyWith(
-            color: _forest,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+    return GameWordmark(
+      title: l10n.appTitle,
+      tagline: l10n.welcomeTagline,
+      width: 270,
     );
   }
 
@@ -251,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: BoxDecoration(
         color: _cream.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        border: Border.all(color: AppColors.wood, width: 2),
         boxShadow: const [
           BoxShadow(
             color: Color(0x3D2B472E),
@@ -265,22 +233,25 @@ class _LoginScreenState extends State<LoginScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            GameButtonLabel(
               l10n.loginWelcomeBack,
-              textAlign: TextAlign.center,
-              style: textTheme.headlineSmall?.copyWith(
-                color: _forestDark,
-                fontWeight: FontWeight.w900,
-              ),
+              fontSize: 23,
+              letterSpacing: 0.1,
+              color: AppColors.woodDeep,
+              outlineColor: AppColors.creamDeep,
+              outlineWidth: 2.5,
             ),
-            const SizedBox(height: 6),
-            Text(
-              l10n.loginSubtitle,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: _forest.withValues(alpha: 0.82),
-                fontWeight: FontWeight.w600,
-                height: 1.35,
+            const SizedBox(height: 9),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: GameButtonLabel(
+                l10n.loginSubtitle,
+                fontSize: 14,
+                letterSpacing: 0.1,
+                color: AppColors.oliveDeep,
+                outlineColor: AppColors.ivory,
+                outlineWidth: 2,
+                maxLines: 2,
               ),
             ),
             if (_inlineErrorMessage != null) ...[
@@ -338,11 +309,13 @@ class _LoginScreenState extends State<LoginScreen>
               onPressed: isLoading ? null : _handleLogin,
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
-                backgroundColor: _forest,
-                foregroundColor: _cream,
-                disabledBackgroundColor: _forest.withValues(alpha: 0.55),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+                backgroundColor: AppColors.buttonGreen,
+                foregroundColor: AppColors.buttonText,
+                disabledBackgroundColor: AppColors.buttonGreen.withValues(
+                  alpha: 0.55,
+                ),
+                shape: const StadiumBorder(
+                  side: const BorderSide(color: AppColors.woodDeep, width: 2),
                 ),
                 elevation: 2,
                 shadowColor: _forest.withValues(alpha: 0.35),
@@ -359,25 +332,9 @@ class _LoginScreenState extends State<LoginScreen>
                           color: _cream,
                         ),
                       )
-                    : Row(
+                    : GameButtonLabel(
+                        l10n.loginButton,
                         key: const ValueKey('ready'),
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            AppAssets.authLoginSteps,
-                            width: 30,
-                            height: 30,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            l10n.loginButton,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
                       ),
               ),
             ),
@@ -472,18 +429,15 @@ class _ForestTextField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+          borderSide: const BorderSide(color: AppColors.wood, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+          borderSide: const BorderSide(color: AppColors.wood, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: _LoginScreenState._gold,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.woodDeep, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -545,17 +499,10 @@ class _RoundIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: _LoginScreenState._cream.withValues(alpha: 0.86),
-      shape: const CircleBorder(),
-      elevation: 3,
-      shadowColor: Colors.black26,
-      child: IconButton(
-        tooltip: semanticLabel,
-        onPressed: onPressed,
-        color: _LoginScreenState._forestDark,
-        icon: AppIcon(icon),
-      ),
+    return GameBackButton(
+      key: ValueKey(icon),
+      semanticLabel: semanticLabel,
+      onPressed: onPressed,
     );
   }
 }

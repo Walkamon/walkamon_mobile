@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
@@ -45,43 +48,38 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.colorScheme.surface;
-    final backgroundColor = theme.colorScheme.surfaceTint.withValues(
-      alpha: 0.02,
-    );
-    final borderColor = theme.dividerColor.withValues(alpha: 0.1);
-
     // Lắng nghe liên tục sự thay đổi dữ liệu từ GameStateProvider
     final provider = context.watch<GameStateProvider>();
     final user = provider.user;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
             // ── Header Bar ──────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _HeaderIconButton(
-                    icon: Icons.arrow_back_rounded,
-                    onTap: () => Navigator.pop(context),
+                  GameBackButton(
+                    semanticLabel: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  Text(
+                  GameButtonLabel(
                     l10n.accountInfo,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                    fontSize: 20,
+                    color: AppColors.woodDeep,
+                    outlineColor: AppColors.authCard,
+                    outlineWidth: 4,
                   ),
                   _HeaderIconButton(
                     icon: Icons.edit_rounded,
                     asset: AppAssets.iconEditProfile,
-                    iconColor: theme.colorScheme.primary,
+                    iconColor: AppColors.woodDeep,
                     onTap: () {
                       Navigator.pushNamed(context, '/profile/edit');
                     },
@@ -158,76 +156,115 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
                     children: [
                       // Avatar Section
-                      Column(
-                        children: [
-                          Container(
-                            width: 96,
-                            height: 96,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: cardColor, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.leafLight.withValues(alpha: 0.96),
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(
+                            color: AppColors.oliveDeep,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.woodDeep.withValues(alpha: 0.2),
+                              blurRadius: 9,
+                              offset: const Offset(0, 4),
                             ),
-                            alignment: Alignment.center,
-                            child: (user.avatarUrl.isNotEmpty)
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(48),
-                                    child: Image.network(
-                                      user.avatarUrl,
-                                      width: 96,
-                                      height: 96,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Text(
+                          ],
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 22,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.authCard.withValues(alpha: 0.97),
+                            borderRadius: BorderRadius.circular(19),
+                            border: Border.all(
+                              color: AppColors.wood,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 96,
+                                height: 96,
+                                decoration: BoxDecoration(
+                                  color: AppColors.leafLight,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.woodDeep,
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.woodDeep.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      blurRadius: 7,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: (user.avatarUrl.isNotEmpty)
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(48),
+                                        child: Image.network(
+                                          user.avatarUrl,
+                                          width: 96,
+                                          height: 96,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            user.name.isNotEmpty
+                                                ? user.name[0].toUpperCase()
+                                                : 'W',
+                                            style: TextStyle(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.woodDeep,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : Text(
                                         user.name.isNotEmpty
                                             ? user.name[0].toUpperCase()
                                             : 'W',
                                         style: TextStyle(
                                           fontSize: 36,
                                           fontWeight: FontWeight.w900,
-                                          color: theme.colorScheme.onPrimary,
+                                          color: AppColors.woodDeep,
                                         ),
                                       ),
-                                    ),
-                                  )
-                                : Text(
-                                    user.name.isNotEmpty
-                                        ? user.name[0].toUpperCase()
-                                        : 'W',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w900,
-                                      color: theme.colorScheme.onPrimary,
-                                    ),
-                                  ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.woodDeep,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                isBioEmpty ? l10n.notUpdated : user.bio,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontStyle: FontStyle.italic,
+                                  color: isBioEmpty
+                                      ? AppColors.outlineBrown
+                                      : AppColors.oliveDeep,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            user.name,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            isBioEmpty ? l10n.notUpdated : user.bio,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              color: isBioEmpty
-                                  ? Colors.grey
-                                  : (isDark ? Colors.white70 : Colors.black54),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 24),
 
@@ -235,29 +272,41 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
-                          vertical: 4,
+                          vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: cardColor,
+                          color: AppColors.authCard.withValues(alpha: 0.97),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: borderColor),
+                          border: Border.all(color: AppColors.wood, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.woodDeep.withValues(alpha: 0.18),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
-                            Divider(height: 1, color: borderColor),
                             _DetailRow(
                               icon: Icons.mail_rounded,
                               label: 'Email',
                               value: user.email,
                             ),
-                            Divider(height: 1, color: borderColor),
+                            const Divider(
+                              height: 1,
+                              color: AppColors.creamDeep,
+                            ),
                             _DetailRow(
                               icon: Icons.calendar_month_rounded,
                               label: l10n.dateOfBirth,
                               value: user.dob,
                               fallback: l10n.notUpdated,
                             ),
-                            Divider(height: 1, color: borderColor),
+                            const Divider(
+                              height: 1,
+                              color: AppColors.creamDeep,
+                            ),
                             _DetailRow(
                               icon: Icons.person_rounded,
                               asset: AppAssets.iconAvatar,
@@ -270,7 +319,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               },
                               fallback: l10n.notUpdated,
                             ),
-                            Divider(height: 1, color: borderColor),
+                            const Divider(
+                              height: 1,
+                              color: AppColors.creamDeep,
+                            ),
                             _DetailRow(
                               icon: Icons.card_membership_rounded,
                               label: l10n.joinDate,
@@ -298,20 +350,23 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: theme.colorScheme.onPrimary,
+                          backgroundColor: AppColors.buttonYellow,
+                          foregroundColor: AppColors.buttonText,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                          shape: const StadiumBorder(
+                            side: BorderSide(
+                              color: AppColors.woodDeep,
+                              width: 2,
+                            ),
                           ),
                           elevation: 2,
                         ),
-                        child: Text(
+                        child: GameButtonLabel(
                           l10n.logout,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          fontSize: 15,
+                          color: AppColors.buttonText,
+                          outlineColor: AppColors.woodDeep,
+                          outlineWidth: 2.5,
                         ),
                       ),
                     ],
@@ -343,14 +398,20 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      width: 40,
-      height: 40,
+      width: GameBackButton.buttonSize,
+      height: GameBackButton.buttonSize,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.8),
+        color: AppColors.authCard.withValues(alpha: 0.96),
         shape: BoxShape.circle,
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.woodDeep, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.woodDeep.withValues(alpha: 0.18),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -360,12 +421,8 @@ class _HeaderIconButton extends StatelessWidget {
           child: AppIcon(
             icon,
             asset: asset,
-            size: 18,
-            color:
-                iconColor ??
-                (theme.brightness == Brightness.dark
-                    ? Colors.white70
-                    : Colors.black54),
+            size: 27,
+            color: iconColor ?? AppColors.woodDeep,
           ),
         ),
       ),
@@ -390,9 +447,7 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mutedColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white54
-        : Colors.black54;
+    const mutedColor = AppColors.outlineBrown;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -401,7 +456,16 @@ class _DetailRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              AppIcon(icon, asset: asset, size: 18, color: mutedColor),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.creamLight,
+                  borderRadius: BorderRadius.circular(11),
+                  border: Border.all(color: AppColors.wood, width: 1.2),
+                ),
+                child: AppIcon(icon, asset: asset, size: 22, color: mutedColor),
+              ),
               const SizedBox(width: 12),
               Text(
                 label,
@@ -413,9 +477,17 @@ class _DetailRow extends StatelessWidget {
               ),
             ],
           ),
-          Text(
-            value.isNotEmpty ? value : fallback,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          Flexible(
+            child: Text(
+              value.isNotEmpty ? value : fallback,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.woodDeep,
+              ),
+            ),
           ),
         ],
       ),

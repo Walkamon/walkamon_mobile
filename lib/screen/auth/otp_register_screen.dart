@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
-import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
@@ -53,15 +56,13 @@ class _OTP_RegisterState extends State<OTP_Register>
       parent: _animationController,
       curve: Curves.easeOut,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.04),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -200,135 +201,136 @@ class _OTP_RegisterState extends State<OTP_Register>
     final textTheme = Theme.of(context).textTheme;
 
     return AuthGardenScaffold(
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
-              child: Center(
+      child: Stack(
+        children: [
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: FadeTransition(
-                    opacity: _opacityAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: AuthRoundIconButton(
-                              icon: Icons.arrow_back_rounded,
-                              semanticLabel: l10n.loginBack,
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          AuthBrand(
-                            tagline: l10n.loginTagline,
-                            icon: AppAssets.authVerified,
-                          ),
-                          const SizedBox(height: 22),
-                          AuthCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  l10n.otpTitle,
-                                  textAlign: TextAlign.center,
-                                  style: textTheme.headlineSmall?.copyWith(
-                                    color: AuthStyle.forestDark,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  l10n.otpSubtitle,
-                                  textAlign: TextAlign.center,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: AuthStyle.forest.withValues(
-                                      alpha: 0.82,
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 32,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: FadeTransition(
+                        opacity: _opacityAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GameWordmark(
+                                title: l10n.appTitle,
+                                tagline: l10n.welcomeTagline,
+                                width: 270,
+                              ),
+                              const SizedBox(height: 22),
+                              AuthCard(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    GameButtonLabel(
+                                      l10n.otpTitle,
+                                      fontSize: 23,
+                                      letterSpacing: 0.1,
+                                      color: AppColors.woodDeep,
+                                      outlineColor: AppColors.creamDeep,
+                                      outlineWidth: 2.5,
                                     ),
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.35,
-                                  ),
-                                ),
-                                if (_errorMessage != null) ...[
-                                  const SizedBox(height: 16),
-                                  AuthMessageBanner(
-                                    message: _errorMessage!,
-                                    isError: true,
-                                  ),
-                                ],
-                                if (_successMessage != null) ...[
-                                  const SizedBox(height: 16),
-                                  AuthMessageBanner(
-                                    message: _successMessage!,
-                                    isError: false,
-                                  ),
-                                ],
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:
-                                      List.generate(_controllers.length, (index) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      l10n.otpSubtitle,
+                                      textAlign: TextAlign.center,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: AppColors.oliveDeep,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.35,
                                       ),
-                                      child: EggOtpField(
-                                        width: 44,
-                                        height: 65,
-                                        controller: _controllers[index],
-                                        focusNode: _focusNodes[index],
-                                        primary: AuthStyle.forest,
-                                        textStyle:
-                                            textTheme.headlineSmall?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                          color: AuthStyle.forestDark,
-                                          fontSize: 20,
-                                        ),
-                                        onChanged: (value) =>
-                                            _handleChange(index, value),
-                                        onBackspace: () =>
-                                            _handleBackspace(index),
-                                        onSubmitted: () {
-                                          if (index ==
-                                              _controllers.length - 1) {
-                                            _handleVerify();
-                                          }
+                                    ),
+                                    if (_errorMessage != null) ...[
+                                      const SizedBox(height: 16),
+                                      AuthMessageBanner(
+                                        message: _errorMessage!,
+                                        isError: true,
+                                      ),
+                                    ],
+                                    if (_successMessage != null) ...[
+                                      const SizedBox(height: 16),
+                                      AuthMessageBanner(
+                                        message: _successMessage!,
+                                        isError: false,
+                                      ),
+                                    ],
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(
+                                        _controllers.length,
+                                        (index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
+                                            child: EggOtpField(
+                                              width: 44,
+                                              height: 65,
+                                              controller: _controllers[index],
+                                              focusNode: _focusNodes[index],
+                                              primary: AppColors.wood,
+                                              textStyle: textTheme.headlineSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w900,
+                                                    color: AppColors.woodDeep,
+                                                    fontSize: 20,
+                                                  ),
+                                              onChanged: (value) =>
+                                                  _handleChange(index, value),
+                                              onBackspace: () =>
+                                                  _handleBackspace(index),
+                                              onSubmitted: () {
+                                                if (index ==
+                                                    _controllers.length - 1) {
+                                                  _handleVerify();
+                                                }
+                                              },
+                                            ),
+                                          );
                                         },
                                       ),
-                                    );
-                                  }),
-                                ),
-                                const SizedBox(height: 24),
-                                AuthPrimaryButton(
-                                  label: l10n.otpVerifyButton,
-                                  iconAsset: AppAssets.authVerified,
-                                  isLoading: _isLoading,
-                                  onPressed: _handleVerify,
-                                ),
-                                const SizedBox(height: 12),
-                                TextButton(
-                                  onPressed:
-                                      _isLoading ? null : _handleResendOtp,
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: AuthStyle.rust,
-                                  ),
-                                  child: Text(
-                                    l10n.otpResendButton,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
                                     ),
-                                  ),
+                                    const SizedBox(height: 24),
+                                    AuthPrimaryButton(
+                                      label: l10n.otpVerifyButton,
+                                      isLoading: _isLoading,
+                                      onPressed: _handleVerify,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextButton(
+                                      onPressed: _isLoading
+                                          ? null
+                                          : _handleResendOtp,
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AuthStyle.rust,
+                                      ),
+                                      child: Text(
+                                        l10n.otpResendButton,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -336,7 +338,11 @@ class _OTP_RegisterState extends State<OTP_Register>
               ),
             ),
           ),
-        ),
+          PositionedGameBackButton(
+            semanticLabel: l10n.loginBack,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }

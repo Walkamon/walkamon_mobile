@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../auth/widgets/auth_style.dart';
 
@@ -188,9 +189,7 @@ class _StoryScreenState extends State<StoryScreen> {
                             onPressed: _skipStory,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AuthStyle.forest,
-                              side: const BorderSide(
-                                color: Color(0xFFD8CDAE),
-                              ),
+                              side: const BorderSide(color: Color(0xFFD8CDAE)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(18),
                               ),
@@ -201,13 +200,16 @@ class _StoryScreenState extends State<StoryScreen> {
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: ElevatedButton(
+                          child: FilledButton(
                             onPressed: _goNext,
-                            style: ElevatedButton.styleFrom(
+                            style: FilledButton.styleFrom(
                               backgroundColor: AuthStyle.forest,
                               foregroundColor: AuthStyle.cream,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                              shape: const StadiumBorder(
+                                side: BorderSide(
+                                  color: AppColors.woodDeep,
+                                  width: 2,
+                                ),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
@@ -237,21 +239,9 @@ class _StoryScreenState extends State<StoryScreen> {
 
 List<StorySlide> _storySlides(AppLocalizations l10n) {
   return [
-    StorySlide(
-      image: AppAssets.welcome,
-      text: l10n.storySlide1,
-    ),
-    StorySlide(
-      image: AppAssets.onboardingSeed,
-      text: l10n.storySlide2,
-    ),
-    StorySlide(
-      image: AppAssets.onboardingNamePet,
-      text: l10n.storySlide3,
-    ),
-    StorySlide(
-      image: AppAssets.dailyReward,
-      text: l10n.storySlide4,
-    ),
+    StorySlide(image: AppAssets.welcome, text: l10n.storySlide1),
+    StorySlide(image: AppAssets.onboardingSeed, text: l10n.storySlide2),
+    StorySlide(image: AppAssets.onboardingNamePet, text: l10n.storySlide3),
+    StorySlide(image: AppAssets.dailyReward, text: l10n.storySlide4),
   ];
 }

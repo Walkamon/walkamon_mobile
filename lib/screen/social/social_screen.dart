@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../friends/friends_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
+import '../../core/theme/app_colors.dart';
+import '../../widgets/common/game_button_label.dart';
 
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
@@ -15,9 +17,7 @@ class _SocialScreenState extends State<SocialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent, // Bắt buộc để kế thừa MainLayout
@@ -28,14 +28,12 @@ class _SocialScreenState extends State<SocialScreen> {
             padding: const EdgeInsets.fromLTRB(24, 32, 24, 8),
             child: Column(
               children: [
-                Text(
+                GameButtonLabel(
                   l10n.socialTitle,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
-                  textAlign: TextAlign.center,
+                  fontSize: 20,
+                  color: AppColors.woodDeep,
+                  outlineColor: AppColors.authCard,
+                  outlineWidth: 4,
                 ),
                 const SizedBox(height: 16),
 
@@ -43,11 +41,9 @@ class _SocialScreenState extends State<SocialScreen> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant.withOpacity(0.5),
+                    color: AppColors.authCard.withOpacity(0.92),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.4),
-                    ),
+                    border: Border.all(color: AppColors.wood, width: 2),
                   ),
                   child: Stack(
                     children: [
@@ -63,7 +59,7 @@ class _SocialScreenState extends State<SocialScreen> {
                           child: Container(
                             height: 40,
                             decoration: BoxDecoration(
-                              color: colorScheme.surface,
+                              color: AppColors.buttonGreen,
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
@@ -72,7 +68,8 @@ class _SocialScreenState extends State<SocialScreen> {
                                 ),
                               ],
                               border: Border.all(
-                                color: colorScheme.outline.withOpacity(0.6),
+                                color: AppColors.woodDeep,
+                                width: 1.5,
                               ),
                             ),
                           ),
@@ -129,8 +126,6 @@ class _SocialScreenState extends State<SocialScreen> {
 
   Widget _buildTabItem(int index, String label) {
     final isActive = _activeTabIndex == index;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -138,16 +133,16 @@ class _SocialScreenState extends State<SocialScreen> {
         child: Container(
           height: 40,
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
-              color: isActive
-                  ? colorScheme.onSurface
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
+          child: isActive
+              ? GameButtonLabel(label, fontSize: 14, outlineWidth: 2.4)
+              : Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.woodDeep,
+                  ),
+                ),
         ),
       ),
     );

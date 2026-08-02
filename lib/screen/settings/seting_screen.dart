@@ -5,6 +5,7 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../core/l10n/locale_helper.dart';
 
 import '../../core/network/api_client.dart';
+import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../data/services/fcm_service.dart';
@@ -13,6 +14,8 @@ import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/game_back_button.dart';
+import '../../widgets/common/game_button_label.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -138,45 +141,45 @@ class _SettingScreenState extends State<SettingScreen> {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Stack(
             children: [
               SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => Navigator.pushNamed(context, '/home'),
-                        icon: AppIcon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Theme.of(context).colorScheme.onSurface,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GameBackButton(
+                          semanticLabel: MaterialLocalizations.of(
+                            context,
+                          ).backButtonTooltip,
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/home'),
                         ),
-                        splashRadius: 24,
-                      ),
+                        GameButtonLabel(
+                          l10n.gameSettings,
+                          fontSize: 20,
+                          color: AppColors.woodDeep,
+                          outlineColor: AppColors.authCard,
+                          outlineWidth: 4,
+                        ),
+                        const SizedBox(width: GameBackButton.buttonSize),
+                      ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 20),
                     // ================= KHỐI 1: THÊM MỚI HỆ THỐNG =================
-                    Text(
+                    GameButtonLabel(
                       l10n.system,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
+                      fontSize: 17,
+                      color: AppColors.woodDeep,
+                      outlineColor: AppColors.authCard,
+                      outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.25),
-                        ),
-                      ),
+                    _SettingsPanel(
                       child: Column(
                         children: [
                           _SettingsSwitch(
@@ -189,7 +192,6 @@ class _SettingScreenState extends State<SettingScreen> {
                                 .read<GameStateProvider>()
                                 .updateSettings(darkMode: value),
                           ),
-                          const Divider(height: 1),
                           _SettingsSwitch(
                             label: l10n.bgm,
                             icon: Icons.music_note_rounded,
@@ -198,7 +200,6 @@ class _SettingScreenState extends State<SettingScreen> {
                                 .read<GameStateProvider>()
                                 .updateSettings(backgroundMusicEnabled: value),
                           ),
-                          const Divider(height: 1),
                           _SettingsSwitch(
                             label: l10n.sfx,
                             icon: Icons.volume_up_rounded,
@@ -207,7 +208,6 @@ class _SettingScreenState extends State<SettingScreen> {
                                 .read<GameStateProvider>()
                                 .updateSettings(soundEnabled: value),
                           ),
-                          const Divider(height: 1),
                           _SettingsSwitch(
                             label: l10n.notificationsRemind,
                             subtitle: l10n.notificationsSubtitle,
@@ -225,25 +225,16 @@ class _SettingScreenState extends State<SettingScreen> {
 
                     const SizedBox(height: 24),
 
-                    Text(
+                    GameButtonLabel(
                       l10n.featuresSupport,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
+                      fontSize: 17,
+                      color: AppColors.woodDeep,
+                      outlineColor: AppColors.authCard,
+                      outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.25),
-                        ),
-                      ),
+                    _SettingsPanel(
                       child: Column(
                         children: [
                           _SettingsButton(
@@ -252,16 +243,13 @@ class _SettingScreenState extends State<SettingScreen> {
                             onPressed: _toggleLanguage,
                             trailing: Text(
                               languageLabel,
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withOpacity(0.75),
-                                  ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.oliveDeep,
+                              ),
                             ),
                           ),
-                          const Divider(height: 1),
                           _SettingsButton(
                             label: l10n.sendFeedback,
                             icon: Icons.message_outlined,
@@ -276,24 +264,16 @@ class _SettingScreenState extends State<SettingScreen> {
 
                     const SizedBox(height: 24),
 
-                    Text(
+                    GameButtonLabel(
                       l10n.accountSecurity,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      fontSize: 17,
+                      color: AppColors.woodDeep,
+                      outlineColor: AppColors.authCard,
+                      outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.25),
-                        ),
-                      ),
+                    _SettingsPanel(
                       child: _SettingsButton(
                         label: l10n.changePassword,
                         icon: Icons.key_rounded,
@@ -306,16 +286,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
                     const SizedBox(height: 16),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withOpacity(0.25),
-                        ),
-                      ),
+                    _SettingsPanel(
                       child: _SettingsButton(
                         label: l10n.logout,
                         icon: Icons.logout_rounded,
@@ -356,30 +327,34 @@ class _SettingScreenState extends State<SettingScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: AppColors.authCard,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.35),
-                  ),
+                  border: Border.all(color: AppColors.wood, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.woodDeep.withValues(alpha: 0.28),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: _feedbackSentSuccess
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 8),
-                          AppIcon(
+                          const AppIcon(
                             Icons.check_circle_outline,
                             size: 64,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: AppColors.oliveDeep,
                           ),
                           const SizedBox(height: 12),
-                          Text(
+                          GameButtonLabel(
                             l10n.feedbackSuccess,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
+                            fontSize: 17,
+                            color: AppColors.woodDeep,
+                            outlineColor: AppColors.creamLight,
+                            outlineWidth: 2.5,
                           ),
                           const SizedBox(height: 12),
                         ],
@@ -398,22 +373,21 @@ class _SettingScreenState extends State<SettingScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
+                                  GameButtonLabel(
                                     l10n.feedbackTitle,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                    fontSize: 17,
+                                    color: AppColors.woodDeep,
+                                    outlineColor: AppColors.creamLight,
+                                    outlineWidth: 2.5,
                                   ),
                                   IconButton(
                                     onPressed: () => setState(
                                       () => _showFeedbackPopup = false,
                                     ),
-                                    icon: AppIcon(
+                                    icon: const AppIcon(
                                       Icons.close_rounded,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
+                                      size: 28,
+                                      color: AppColors.woodDeep,
                                     ),
                                   ),
                                 ],
@@ -446,11 +420,12 @@ class _SettingScreenState extends State<SettingScreen> {
                               const SizedBox(height: 18),
                               Text(
                                 l10n.feedbackDetail,
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.4,
-                                    ),
+                                style: const TextStyle(
+                                  color: AppColors.woodDeep,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                ),
                               ),
                               const SizedBox(height: 10),
                               TextField(
@@ -464,33 +439,42 @@ class _SettingScreenState extends State<SettingScreen> {
                                   hintText: _feedbackType == 'suggestion'
                                       ? l10n.feedbackHintSuggestion
                                       : l10n.feedbackHintBug,
-                                  hintStyle: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withOpacity(0.55),
-                                      ),
+                                  hintStyle: const TextStyle(
+                                    color: AppColors.outlineBrown,
+                                    fontSize: 14,
+                                  ),
                                   filled: true,
-                                  fillColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surface,
+                                  fillColor: AppColors.creamLight,
+                                  suffixIcon: const Padding(
+                                    padding: EdgeInsets.only(
+                                      right: 10,
+                                      bottom: 54,
+                                    ),
+                                    child: AppIcon(
+                                      Icons.edit_rounded,
+                                      size: 23,
+                                      color: AppColors.woodLight,
+                                    ),
+                                  ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outline.withOpacity(0.25),
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.wood,
+                                      width: 1.8,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outline.withOpacity(0.25),
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.wood,
+                                      width: 1.8,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.oliveDeep,
+                                      width: 2,
                                     ),
                                   ),
                                 ),
@@ -500,27 +484,38 @@ class _SettingScreenState extends State<SettingScreen> {
                               if (_feedbackMessage != null)
                                 Text(
                                   _feedbackMessage!,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
+                                  style: const TextStyle(
+                                    color: AppColors.danger,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               const SizedBox(height: 12),
                               ElevatedButton.icon(
                                 onPressed: _isSendingFeedback
                                     ? null
                                     : _handleSendFeedback,
-                                icon: const AppIcon(Icons.send_rounded),
-                                label: Text(
+                                icon: const AppIcon(
+                                  Icons.send_rounded,
+                                  color: AppColors.buttonText,
+                                ),
+                                label: GameButtonLabel(
                                   _isSendingFeedback
                                       ? l10n.feedbackSending
                                       : l10n.feedbackSubmit,
+                                  fontSize: 14,
+                                  color: AppColors.buttonText,
+                                  outlineColor: AppColors.woodDeep,
+                                  outlineWidth: 2.5,
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                  backgroundColor: AppColors.buttonYellow,
+                                  foregroundColor: AppColors.buttonText,
+                                  shape: const StadiumBorder(
+                                    side: BorderSide(
+                                      color: AppColors.woodDeep,
+                                      width: 2,
+                                    ),
                                   ),
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
@@ -560,14 +555,11 @@ class _FeedbackTypeButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: selected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(18),
+          color: selected ? AppColors.leafLight : AppColors.creamLight,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: selected ? AppColors.oliveDeep : AppColors.wood,
+            width: selected ? 2 : 1.4,
           ),
         ),
         child: Row(
@@ -575,24 +567,47 @@ class _FeedbackTypeButton extends StatelessWidget {
           children: [
             AppIcon(
               icon,
-              size: 18,
-              color: selected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+              size: 21,
+              color: selected ? AppColors.oliveDeep : AppColors.woodDeep,
             ),
             const SizedBox(width: 8),
             Text(
               label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: TextStyle(
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: selected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+                color: selected ? AppColors.oliveDeep : AppColors.woodDeep,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SettingsPanel extends StatelessWidget {
+  const _SettingsPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppColors.leafLight.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.oliveDeep, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.woodDeep.withValues(alpha: 0.18),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }
@@ -636,26 +651,41 @@ class _SettingsButtonState extends State<_SettingsButton> {
         scale: _pressed ? 0.98 : 1,
         duration: const Duration(milliseconds: 100),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          color: Colors.transparent,
+          margin: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.authCard.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(17),
+            border: Border.all(color: AppColors.wood, width: 1.35),
+          ),
           child: Row(
             children: [
-              AppIcon(
-                widget.icon,
-                size: 20,
-                color: widget.isWarning
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.onSurface,
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.creamLight,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.wood, width: 1.3),
+                ),
+                child: AppIcon(
+                  widget.icon,
+                  size: 25,
+                  color: widget.isWarning
+                      ? AppColors.danger
+                      : AppColors.woodDeep,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   widget.label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: TextStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: widget.isWarning
-                        ? Theme.of(context).colorScheme.error
-                        : Theme.of(context).colorScheme.onSurface,
+                        ? AppColors.danger
+                        : AppColors.woodDeep,
                   ),
                 ),
               ),
@@ -669,15 +699,14 @@ class _SettingsButtonState extends State<_SettingsButton> {
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: AppColors.oliveDeep,
                   ),
                 )
               else
                 AppIcon(
                   Icons.chevron_right_rounded,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.65),
+                  size: 24,
+                  color: AppColors.woodDeep,
                 ),
             ],
           ),
@@ -704,14 +733,25 @@ class _SettingsSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: AppColors.wood, width: 1.35),
+      ),
       child: Row(
         children: [
-          AppIcon(
-            icon,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurface,
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.creamLight,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.wood, width: 1.3),
+            ),
+            child: AppIcon(icon, size: 25, color: AppColors.woodDeep),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -720,20 +760,20 @@ class _SettingsSwitch extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: AppColors.woodDeep,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.55),
+                      color: AppColors.outlineBrown.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -743,7 +783,11 @@ class _SettingsSwitch extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Theme.of(context).colorScheme.primary,
+            activeThumbColor: AppColors.authCard,
+            activeTrackColor: AppColors.buttonGreen,
+            inactiveThumbColor: AppColors.authCard,
+            inactiveTrackColor: AppColors.creamDeep,
+            trackOutlineColor: const WidgetStatePropertyAll(AppColors.woodDeep),
           ),
         ],
       ),

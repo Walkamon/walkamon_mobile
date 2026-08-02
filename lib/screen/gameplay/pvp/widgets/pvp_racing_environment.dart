@@ -164,10 +164,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
               switchOutCurve: Curves.easeIn,
               layoutBuilder: (currentChild, previousChildren) => Stack(
                 fit: StackFit.expand,
-                children: [
-                  ...previousChildren,
-                  ?currentChild,
-                ],
+                children: [...previousChildren, ?currentChild],
               ),
               child: Image.asset(
                 activeMap,
@@ -240,9 +237,14 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                   ),
                   child: Row(
                     children: [
-                      IconButton.filledTonal(
+                      IconButton(
                         onPressed: widget.onClose,
-                        icon: const AppIcon(Icons.close),
+                        icon: const AppIcon(Icons.close, size: 28),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 40,
+                          height: 40,
+                        ),
+                        padding: EdgeInsets.zero,
                       ),
                       const SizedBox(width: 8),
                       Container(

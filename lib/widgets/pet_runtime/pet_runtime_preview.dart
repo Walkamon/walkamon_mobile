@@ -64,12 +64,13 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
   Future<void> _load() async {
     if (!mounted) return;
 
+    final hasCurrentVisual = _fallbackAsset != null;
     setState(() {
-      _isLoading = true;
+      // Keep the current fallback visible while resolving another state.
+      // Most candidate clips point to the same static fallback; clearing it
+      // here made idle/excited transitions look like a white flash.
+      _isLoading = !hasCurrentVisual;
       _error = null;
-      _fallbackAsset = null;
-      _resolvedFormKey = null;
-      _resolvedClipKey = null;
     });
 
     try {
@@ -144,7 +145,10 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = e.toString();
+        // A state-resolution failure should not blank an already loaded pet.
+        if (_fallbackAsset == null) {
+          _error = e.toString();
+        }
       });
     }
   }
@@ -173,8 +177,10 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
 
     final image = Image.asset(
       _fallbackAsset!,
+      key: ValueKey(_fallbackAsset),
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
+      gaplessPlayback: true,
       errorBuilder: (_, __, ___) => AppIcon(
         Icons.spa_outlined,
         size: widget.compact ? 64 : 56,

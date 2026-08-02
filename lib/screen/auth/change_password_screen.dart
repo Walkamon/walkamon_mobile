@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
+import '../../widgets/common/game_button_label.dart';
+import 'widgets/auth_style.dart';
 
-class ChangePasswordScreen extends StatefulWidget { 
+class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> 
+class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -41,8 +44,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     );
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     _animationController.forward();
   }
@@ -124,16 +127,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
     final primary = theme.colorScheme.primary;
     final onPrimary = theme.colorScheme.onPrimary;
     final cardColor = theme.colorScheme.surface;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-
     return FadeTransition(
       opacity: _opacityAnimation,
       child: SlideTransition(
@@ -148,148 +146,150 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                 ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 360),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l10n.forgotPasswordTitle,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: primary,
+                  child: AuthCard(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          GameButtonLabel(
+                            l10n.forgotPasswordTitle,
+                            fontSize: 23,
+                            color: AppColors.woodDeep,
+                            outlineColor: AppColors.creamDeep,
+                            outlineWidth: 2.5,
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.forgotPasswordSubtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: mutedForeground,
-                            fontWeight: FontWeight.w500,
-                            height: 1.6,
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.forgotPasswordSubtitle,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.oliveDeep,
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (_errorMessage != null) ...[
-                          ErrorMessageWidget(message: _errorMessage!),
-                          const SizedBox(height: 12),
-                        ],
-                        if (_successMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              _successMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                          const SizedBox(height: 20),
+                          if (_errorMessage != null) ...[
+                            ErrorMessageWidget(message: _errorMessage!),
+                            const SizedBox(height: 12),
+                          ],
+                          if (_successMessage != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          child: Row(
-                            children: [
-                              AppIcon(
-                                Icons.directions_walk,
-                                asset: AppAssets.authMail,
-                                size: 22,
-                                color: primary,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.send,
-                                  validator: (value) =>
-                                      _validateEmail(context, value),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: l10n.loginEmail,
-                                    hintStyle: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: theme.colorScheme.onSurface
-                                              .withAlpha((0.6 * 255).round()),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                  ),
-                                  onFieldSubmitted: (_) => _handleReset(),
+                              child: Text(
+                                _successMessage!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _handleReset,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
                             ),
-                            textStyle: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 12),
+                          ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 16,
                             ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.wood,
+                                width: 1.8,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                AppIcon(
+                                  Icons.directions_walk,
+                                  asset: AppAssets.authMail,
+                                  size: 22,
+                                  color: primary,
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.send,
+                                    validator: (value) =>
+                                        _validateEmail(context, value),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                    decoration: InputDecoration(
+                                      hintText: l10n.loginEmail,
+                                      hintStyle: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            color: theme.colorScheme.onSurface
+                                                .withAlpha((0.6 * 255).round()),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                      border: InputBorder.none,
+                                      isDense: true,
                                     ),
+                                    onFieldSubmitted: (_) => _handleReset(),
                                   ),
-                                )
-                              : Text(l10n.forgotPasswordSendSignal),
-                        ),
-                      ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          FilledButton(
+                            onPressed: _isLoading ? null : _handleReset,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: primary,
+                              foregroundColor: onPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              shape: const StadiumBorder(
+                                side: BorderSide(
+                                  color: AppColors.woodDeep,
+                                  width: 2,
+                                ),
+                              ),
+                              textStyle: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(l10n.forgotPasswordSendSignal),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              top: 16,
-              left: 24,
-              child: SafeArea(
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.pop(context),
-                    icon: AppIcon(Icons.arrow_back, color: primary, size: 24),
-                  ),
-                ),
-              ),
+            PositionedGameBackButton(
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onPressed: () => Navigator.pop(context),
             ),
           ],
         ),

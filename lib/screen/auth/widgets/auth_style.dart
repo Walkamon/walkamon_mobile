@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../../core/theme/app_colors.dart';
 
 abstract final class AuthStyle {
   static const forest = Color(0xFF395C3B);
@@ -60,7 +63,7 @@ class AuthBrand extends StatelessWidget {
           decoration: BoxDecoration(
             color: AuthStyle.cream.withValues(alpha: 0.91),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: AppColors.wood, width: 2),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x334A3213),
@@ -107,7 +110,7 @@ class AuthCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AuthStyle.cream.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        border: Border.all(color: AppColors.wood, width: 2),
         boxShadow: const [
           BoxShadow(
             color: Color(0x3D2B472E),
@@ -171,15 +174,15 @@ class AuthTextField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+          borderSide: const BorderSide(color: AppColors.wood, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFD8CDAE)),
+          borderSide: const BorderSide(color: AppColors.wood, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AuthStyle.gold, width: 2),
+          borderSide: const BorderSide(color: AppColors.woodDeep, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -210,10 +213,12 @@ class AuthPrimaryButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(56),
-        backgroundColor: AuthStyle.forest,
-        foregroundColor: AuthStyle.cream,
-        disabledBackgroundColor: AuthStyle.forest.withValues(alpha: 0.55),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        backgroundColor: AppColors.buttonGreen,
+        foregroundColor: AppColors.buttonText,
+        disabledBackgroundColor: AppColors.buttonGreen.withValues(alpha: 0.55),
+        shape: const StadiumBorder(
+          side: const BorderSide(color: AppColors.woodDeep, width: 2),
+        ),
         elevation: 2,
         shadowColor: AuthStyle.forest.withValues(alpha: 0.35),
       ),
@@ -237,14 +242,7 @@ class AuthPrimaryButton extends StatelessWidget {
                     Image.asset(iconAsset!, width: 30, height: 30),
                     const SizedBox(width: 10),
                   ],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
+                  GameButtonLabel(label),
                 ],
               ),
       ),
@@ -266,18 +264,7 @@ class AuthRoundIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AuthStyle.cream.withValues(alpha: 0.86),
-      shape: const CircleBorder(),
-      elevation: 3,
-      shadowColor: Colors.black26,
-      child: IconButton(
-        tooltip: semanticLabel,
-        onPressed: onPressed,
-        color: AuthStyle.forestDark,
-        icon: AppIcon(icon),
-      ),
-    );
+    return GameBackButton(semanticLabel: semanticLabel, onPressed: onPressed);
   }
 }
 

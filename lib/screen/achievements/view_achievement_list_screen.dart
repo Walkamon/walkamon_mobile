@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/network/api_client.dart';
+import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/models/achievement_response.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/common/game_dual_bottom_tabs.dart';
 
 class ViewAchievementListScreen extends StatefulWidget {
   const ViewAchievementListScreen({super.key, this.repository});
@@ -119,32 +123,39 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
+      bottomNavigationBar: _selectedAchievement == null
+          ? GameDualBottomTabs(
+              firstLabel: l10n.achievementsUnlockedTab,
+              secondLabel: l10n.achievementsLockedTab,
+              firstSelected: _activeTab == 'unlocked',
+              onFirstTap: () => setState(() => _activeTab = 'unlocked'),
+              onSecondTap: () => setState(() => _activeTab = 'locked'),
+            )
+          : null,
       body: SafeArea(
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      IconButton(
+                      GameBackButton(
+                        semanticLabel: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
                         onPressed: () => Navigator.pop(context),
-                        icon: const AppIcon(Icons.arrow_back_rounded),
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.surface,
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(10),
-                        ),
                       ),
                       Expanded(
                         child: Center(
-                          child: Text(
+                          child: GameButtonLabel(
                             l10n.achievementVault,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            fontSize: 20,
+                            color: AppColors.woodDeep,
+                            outlineColor: AppColors.authCard,
+                            outlineWidth: 4,
                           ),
                         ),
                       ),
@@ -152,44 +163,31 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _TabButton(
-                            label: l10n.achievementsUnlockedTab,
-                            selected: _activeTab == 'unlocked',
-                            onTap: () =>
-                                setState(() => _activeTab = 'unlocked'),
-                          ),
-                        ),
-                        Expanded(
-                          child: _TabButton(
-                            label: l10n.achievementsLockedTab,
-                            selected: _activeTab == 'locked',
-                            onTap: () => setState(() => _activeTab = 'locked'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Expanded(
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : _errorMessage != null
                         ? Center(
-                            child: Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyMedium,
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppColors.authCard.withValues(
+                                  alpha: 0.97,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.wood,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.woodDeep,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           )
                         : _activeTab == 'unlocked'
@@ -210,8 +208,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Material(
-                          color: theme.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(28),
+                          color: AppColors.authCard,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            side: const BorderSide(
+                              color: AppColors.wood,
+                              width: 2,
+                            ),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(24),
                             child: ConstrainedBox(
@@ -225,27 +229,32 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       onPressed: () => setState(
                                         () => _selectedAchievement = null,
                                       ),
-                                      icon: const AppIcon(Icons.close_rounded),
+                                      icon: const AppIcon(
+                                        Icons.close_rounded,
+                                        size: 28,
+                                        color: AppColors.woodDeep,
+                                      ),
                                     ),
                                   ),
                                   if (_selectedAchievement!['isLocked']
                                       as bool) ...[
                                     CircleAvatar(
                                       radius: 28,
-                                      backgroundColor: Colors.grey.shade200,
+                                      backgroundColor: AppColors.parchment,
                                       child: const AppIcon(
                                         Icons.lock_rounded,
                                         size: 34,
-                                        color: Colors.grey,
+                                        color: AppColors.outlineBrown,
                                       ),
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
                                       _selectedAchievement!['title'],
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      style: const TextStyle(
+                                        color: AppColors.woodDeep,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                     const SizedBox(height: 8),
@@ -253,8 +262,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surfaceVariant,
+                                        color: AppColors.creamLight,
                                         borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColors.wood,
+                                          width: 1.4,
+                                        ),
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
@@ -265,6 +278,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                                   fontWeight: FontWeight.bold,
+                                                  color: AppColors.woodDeep,
                                                 ),
                                           ),
                                           const SizedBox(height: 8),
@@ -274,11 +288,18 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                         _selectedAchievement!['target'])
                                                     .clamp(0.0, 1.0),
                                             minHeight: 8,
+                                            backgroundColor:
+                                                AppColors.parchment,
+                                            color: AppColors.buttonGreen,
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
                                             '${_formatCompact(_selectedAchievement!['progress'])}/${_formatCompact(_selectedAchievement!['target'])}',
-                                            style: theme.textTheme.bodySmall,
+                                            style: const TextStyle(
+                                              color: AppColors.outlineBrown,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -289,14 +310,17 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                         _selectedAchievement!['desc'],
                                         _selectedAchievement!['reward'],
                                       ),
-                                      style: theme.textTheme.bodyMedium,
+                                      style: const TextStyle(
+                                        color: AppColors.outlineBrown,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                   ] else ...[
                                     CircleAvatar(
                                       radius: 28,
-                                      backgroundColor:
-                                          theme.colorScheme.surfaceVariant,
+                                      backgroundColor: AppColors.creamLight,
                                       child:
                                           _selectedAchievement!['iconUrl'] !=
                                                   null &&
@@ -330,10 +354,11 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                     const SizedBox(height: 12),
                                     Text(
                                       _selectedAchievement!['title'],
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      style: const TextStyle(
+                                        color: AppColors.woodDeep,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                     const SizedBox(height: 8),
@@ -343,9 +368,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
+                                            color: AppColors.outlineBrown,
                                           ),
                                     ),
                                     const SizedBox(height: 12),
@@ -353,7 +376,11 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                       l10n.achievementsUnlockedDetail(
                                         _selectedAchievement!['desc'],
                                       ),
-                                      style: theme.textTheme.bodyMedium,
+                                      style: const TextStyle(
+                                        color: AppColors.outlineBrown,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                   ],
@@ -412,15 +439,17 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                 ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                theme.colorScheme.primary,
+                                                AppColors.buttonGreen,
                                             foregroundColor:
-                                                theme.colorScheme.onPrimary,
+                                                AppColors.buttonText,
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 14,
                                             ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(999),
+                                            shape: const StadiumBorder(
+                                              side: BorderSide(
+                                                color: AppColors.woodDeep,
+                                                width: 2,
+                                              ),
                                             ),
                                           ),
                                           child:
@@ -435,7 +464,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                         strokeWidth: 2,
                                                       ),
                                                 )
-                                              : Text(
+                                              : GameButtonLabel(
                                                   isLocked
                                                       ? l10n.achievementsKeepTrying
                                                       : (isClaimed
@@ -443,6 +472,11 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                             : (canClaimComputed
                                                                   ? l10n.dailyLoginClaimNow
                                                                   : l10n.achievementsKeepTrying)),
+                                                  fontSize: 14,
+                                                  color: AppColors.buttonText,
+                                                  outlineColor:
+                                                      AppColors.woodDeep,
+                                                  outlineWidth: 2.5,
                                                 ),
                                         );
                                       },
@@ -470,11 +504,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            color: AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.wood, width: 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColors.woodDeep.withValues(alpha: 0.18),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -488,13 +523,15 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                 child: const AppIcon(
                   Icons.emoji_events_rounded,
                   size: 34,
-                  color: Colors.amber,
+                  color: AppColors.gold,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 AppLocalizations.of(context).achievementsCollection,
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: const TextStyle(
+                  color: AppColors.woodDeep,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -504,7 +541,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   context,
                 ).achievementsCollected(_claimedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: AppColors.outlineBrown,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -541,16 +579,16 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
+                  color: AppColors.authCard.withValues(alpha: 0.97),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  border: Border.all(color: AppColors.wood, width: 1.5),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      backgroundColor: AppColors.creamLight,
                       child: item.iconUrl != null && item.iconUrl!.isNotEmpty
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(999),
@@ -571,6 +609,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: AppColors.woodDeep,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -591,11 +630,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            color: AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.wood, width: 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColors.woodDeep.withValues(alpha: 0.18),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -605,19 +645,19 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: isDark
-                    ? Colors.grey.shade700
-                    : Colors.grey.shade200,
+                backgroundColor: AppColors.parchment,
                 child: const AppIcon(
                   Icons.lock_rounded,
                   size: 34,
-                  color: Colors.grey,
+                  color: AppColors.outlineBrown,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 AppLocalizations.of(context).achievementsGoals,
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: const TextStyle(
+                  color: AppColors.woodDeep,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -627,7 +667,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   context,
                 ).achievementsLockedCount(_unclaimedAchievements.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: AppColors.outlineBrown,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -658,25 +699,23 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
+                  color: AppColors.authCard.withValues(alpha: 0.97),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  border: Border.all(color: AppColors.wood, width: 1.6),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: isDark
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade100,
+                      backgroundColor: AppColors.creamLight,
                       child: item.isUnlocked
                           ? const AppIcon(
                               Icons.emoji_events_rounded,
-                              color: Colors.amber,
+                              color: AppColors.gold,
                             )
                           : const AppIcon(
                               Icons.lock_rounded,
-                              color: Colors.grey,
+                              color: AppColors.outlineBrown,
                             ),
                     ),
                     const SizedBox(width: 12),
@@ -688,13 +727,15 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                             item.title,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: AppColors.woodDeep,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             item.description,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: AppColors.outlineBrown,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -714,17 +755,13 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                 item.targetValue
                                           : 0.0;
                                       final activeColor = completed
-                                          ? theme.colorScheme.primary
-                                          : (isDark
-                                                ? Colors.grey.shade700
-                                                : Colors.grey.shade300);
+                                          ? AppColors.buttonGreen
+                                          : AppColors.creamDeep;
 
                                       return LinearProgressIndicator(
                                         value: progressValue.clamp(0.0, 1.0),
                                         minHeight: 8,
-                                        backgroundColor: isDark
-                                            ? Colors.grey.shade800
-                                            : Colors.grey.shade200,
+                                        backgroundColor: AppColors.parchment,
                                         color: activeColor,
                                       );
                                     },
@@ -735,7 +772,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                               Text(
                                 '${_formatCompact(item.progressValue)}/${_formatCompact(item.targetValue)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  color: AppColors.outlineBrown,
                                 ),
                               ),
                             ],

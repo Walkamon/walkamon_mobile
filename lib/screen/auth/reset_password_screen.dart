@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 
 import '../../core/utils/register_screen_error_translator.dart';
-import '../../core/theme/app_colors.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
 import 'widgets/auth_style.dart';
 import '../../core/constants/app_assets.dart';
+import '../../core/theme/app_colors.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -152,13 +152,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final mutedForeground = isDark
-        ? AppColors.darkMutedForeground
-        : AppColors.lightMutedForeground;
-
     return FadeTransition(
       opacity: _opacityAnimation,
       child: SlideTransition(
@@ -324,8 +317,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                   minimumSize: const Size.fromHeight(56),
                                   backgroundColor: AuthStyle.forest,
                                   foregroundColor: AuthStyle.cream,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(28),
+                                  shape: const StadiumBorder(
+                                    side: BorderSide(
+                                      color: AppColors.woodDeep,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -340,20 +336,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             ),
 
             // small back icon in top-left
-            Positioned(
-              top: 16,
-              left: 24,
-              child: SafeArea(
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.pop(context),
-                    icon: AppIcon(Icons.arrow_back, color: primary, size: 24),
-                  ),
-                ),
-              ),
+            PositionedGameBackButton(
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onPressed: () => Navigator.pop(context),
             ),
           ],
         ),

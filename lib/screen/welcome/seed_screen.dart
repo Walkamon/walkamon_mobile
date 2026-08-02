@@ -4,6 +4,7 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../providers/game_state_provider.dart';
+import '../../core/theme/app_colors.dart';
 import '../auth/widgets/auth_style.dart';
 
 class SeedScreen extends StatefulWidget {
@@ -94,60 +95,63 @@ class _SeedScreenState extends State<SeedScreen>
       backgroundColor: Colors.transparent,
       body: AuthGardenScaffold(
         child: SafeArea(
-        child: FadeTransition(
-          opacity: _opacity,
-          child: SlideTransition(
-            position: _slide,
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 28,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildIntroCard(
-                        theme: theme,
-                        l10n: l10n,
-                        primary: primary,
-                        accent: accent,
-                        mutedForeground: mutedForeground,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildEvolutionCard(theme, l10n, mutedForeground),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _continue,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primary,
-                            foregroundColor: onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
+          child: FadeTransition(
+            opacity: _opacity,
+            child: SlideTransition(
+              position: _slide,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 28,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildIntroCard(
+                          theme: theme,
+                          l10n: l10n,
+                          primary: primary,
+                          accent: accent,
+                          mutedForeground: mutedForeground,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildEvolutionCard(theme, l10n, mutedForeground),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _continue,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: primary,
+                              foregroundColor: onPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: const StadiumBorder(
+                                side: BorderSide(
+                                  color: AppColors.woodDeep,
+                                  width: 2,
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            l10n.seedContinue,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                            child: Text(
+                              l10n.seedContinue,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
