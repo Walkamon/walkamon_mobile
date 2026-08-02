@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/network/api_client.dart';
@@ -415,9 +416,9 @@ class _ProfileCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(color: AppColors.wood, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -531,13 +532,13 @@ class _SpiritCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
+            color: AppColors.authCard.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.woodDeep, width: 1.8),
           ),
           child: Row(
             children: [
-              _SpiritThumb(imageUrl: spirit?.stageImage),
+              _SpiritThumb(imageUrl: spirit?.stageImage, size: 68),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -613,11 +614,11 @@ class _StatsGrid extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return GridView.count(
       crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.35,
+      mainAxisExtent: 76,
       children: [
         _StatCard(
           icon: Icons.directions_walk_rounded,
@@ -667,51 +668,55 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColors.wood, width: 1.5),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.14),
-              shape: BoxShape.circle,
+              color: AppColors.creamLight,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: AppColors.wood, width: 1.2),
             ),
-            child: AppIcon(icon, asset: asset, color: iconColor, size: 19),
+            child: AppIcon(icon, asset: asset, color: iconColor, size: 26),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.woodDeep,
+                    fontSize: 12,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.inkDark,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -729,9 +734,9 @@ class _AchievementsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.woodDeep, width: 1.8),
       ),
       child: Row(
         children: [
@@ -778,9 +783,9 @@ class _SpiritHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Column(
         children: [
@@ -833,9 +838,9 @@ class _SpiritMetricBar extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Column(
         children: [
@@ -883,27 +888,46 @@ class _SpiritThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final url = imageUrl?.trim() ?? '';
+    final imagePath = imageUrl?.trim() ?? '';
+    final scheme = Uri.tryParse(imagePath)?.scheme.toLowerCase();
+    final isNetworkImage = scheme == 'http' || scheme == 'https';
+    final fallback = AppIcon(
+      Icons.auto_awesome_rounded,
+      asset: AppAssets.iconSpiritNav,
+      color: AppColors.oliveDeep,
+      size: size * 0.62,
+    );
+
+    Widget image = fallback;
+    if (imagePath.startsWith('asset://')) {
+      image = PetRuntimePreview(
+        assetReference: imagePath,
+        compact: true,
+        height: size,
+      );
+    } else if (imagePath.isNotEmpty) {
+      image = isNetworkImage
+          ? Image.network(
+              imagePath,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => fallback,
+            )
+          : Image.asset(
+              imagePath,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => fallback,
+            );
+    }
     return Container(
       width: size,
       height: size,
+      padding: EdgeInsets.all(size * 0.06),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.14),
-        borderRadius: BorderRadius.circular(size >= 100 ? 32 : 16),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
-        image: url.isNotEmpty
-            ? DecorationImage(image: NetworkImage(url), fit: BoxFit.cover)
-            : null,
+        color: AppColors.creamLight,
+        borderRadius: BorderRadius.circular(size >= 100 ? 28 : 16),
+        border: Border.all(color: AppColors.wood, width: 1.4),
       ),
-      child: url.isEmpty
-          ? AppIcon(
-              Icons.auto_awesome_rounded,
-              asset: AppAssets.iconSpiritNav,
-              color: theme.colorScheme.primary,
-              size: size * 0.45,
-            )
-          : null,
+      child: image,
     );
   }
 }
@@ -976,9 +1000,12 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(
+      child: GameButtonLabel(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        fontSize: 16,
+        color: AppColors.buttonText,
+        outlineColor: AppColors.woodDeep,
+        outlineWidth: 3,
       ),
     );
   }

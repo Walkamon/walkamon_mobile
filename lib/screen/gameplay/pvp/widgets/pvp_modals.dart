@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/friends_response.dart';
 import '../../../../data/models/pvp_models.dart';
 import '../../../../providers/pvp_provider.dart';
 import '../../../../widgets/common/app_icon.dart';
+
+String _pvpText(BuildContext context, String vi, String en) =>
+    Localizations.localeOf(context).languageCode == 'en' ? en : vi;
 
 void showIncomingChallengesModal(
   BuildContext context,
@@ -50,13 +54,16 @@ class _IncomingChallengesContent extends StatelessWidget {
         : challenges;
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.woodDeep, width: 2),
       ),
       padding: const EdgeInsets.all(24),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        minHeight: 280,
+        maxHeight: MediaQuery.of(context).size.height * 0.72,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -71,17 +78,17 @@ class _IncomingChallengesContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Lời mời thách đấu',
+            _pvpText(context, 'Lời mời thách đấu', 'Challenge invites'),
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 16),
           if (activeChallenges.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Text(
-                'Không có lời mời nào',
+                _pvpText(context, 'Không có lời mời nào', 'No invitations'),
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
             )
@@ -229,22 +236,44 @@ class _IncomingChallengesContent extends StatelessWidget {
                                       }
                                     : null,
                                 icon: const AppIcon(Icons.check, size: 16),
-                                label: const Text('Chấp nhận'),
+                                label: Text(
+                                  _pvpText(context, 'Chấp nhận', 'Accept'),
+                                ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  foregroundColor: theme.colorScheme.onPrimary,
+                                  backgroundColor: AppColors.buttonGreen,
+                                  foregroundColor: AppColors.buttonText,
+                                  side: const BorderSide(
+                                    color: AppColors.woodDeep,
+                                    width: 2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: AppColors.buttonSecondary,
+                                  foregroundColor: AppColors.woodDeep,
+                                  side: const BorderSide(
+                                    color: AppColors.woodDeep,
+                                    width: 2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
                                 onPressed: () {
                                   Navigator.pop(context);
                                   onReject(challenge.inviteId);
                                 },
                                 icon: const AppIcon(Icons.close, size: 28),
-                                label: const Text('Từ chối'),
+                                label: Text(
+                                  _pvpText(context, 'Từ chối', 'Reject'),
+                                ),
                               ),
                             ),
                           ],
@@ -339,12 +368,13 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border.all(color: AppColors.woodDeep, width: 2),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.74,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -362,7 +392,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             children: [
               Expanded(
                 child: Text(
-                  'Lịch sử thi đấu',
+                  _pvpText(context, 'Lịch sử thi đấu', 'Match history'),
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -376,7 +406,12 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   ),
                 ),
               IconButton(
-                tooltip: 'Làm mới',
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.creamLight,
+                  side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
+                  shape: const CircleBorder(),
+                ),
+                tooltip: _pvpText(context, 'Làm mới', 'Refresh'),
                 onPressed: provider.historyLoading
                     ? null
                     : () => provider.loadMatchHistory(page: 1),
@@ -390,25 +425,25 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: 'Tất cả',
+                  label: _pvpText(context, 'Tất cả', 'All'),
                   selected: provider.historyMatchType.isEmpty,
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: ''),
                 ),
                 _FilterChip(
-                  label: 'Xếp hạng',
+                  label: _pvpText(context, 'Xếp hạng', 'Ranked'),
                   selected: provider.historyMatchType == 'ranked',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'ranked'),
                 ),
                 _FilterChip(
-                  label: 'Bạn bè',
+                  label: _pvpText(context, 'Bạn bè', 'Friendly'),
                   selected: provider.historyMatchType == 'friendly',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'friendly'),
                 ),
                 _FilterChip(
-                  label: 'Sự kiện',
+                  label: _pvpText(context, 'Sự kiện', 'Event'),
                   selected: provider.historyMatchType == 'event',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'event'),
@@ -422,20 +457,20 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: 'Mọi kết quả',
+                  label: _pvpText(context, 'Mọi kết quả', 'All results'),
                   selected: provider.historyResultFilter.isEmpty,
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: ''),
                 ),
                 _FilterChip(
-                  label: 'Thắng',
+                  label: _pvpText(context, 'Thắng', 'Wins'),
                   selected: provider.historyResultFilter == 'win',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: 'win'),
                 ),
 
                 _FilterChip(
-                  label: 'Thua',
+                  label: _pvpText(context, 'Thua', 'Losses'),
                   selected: provider.historyResultFilter == 'lose',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: 'lose'),
@@ -444,7 +479,10 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             ),
           ),
           const SizedBox(height: 12),
-          Flexible(
+          SizedBox(
+            height: history.isEmpty
+                ? 190
+                : MediaQuery.sizeOf(context).height * 0.45,
             child: provider.historyLoading
                 ? const Center(child: CircularProgressIndicator())
                 : history.isEmpty
@@ -452,7 +490,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32),
                       child: Text(
-                        'Chưa có trận nào',
+                        _pvpText(context, 'Chưa có trận nào', 'No matches yet'),
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -536,8 +574,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
+                          color: AppColors.creamLight.withValues(alpha: 0.82),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: theme.dividerColor.withValues(alpha: 0.5),
@@ -694,10 +731,16 @@ class _FilterChip extends StatelessWidget {
         label: Text(label),
         selected: selected,
         onSelected: (_) => onSelected(),
-        selectedColor: theme.colorScheme.primaryContainer,
+        selectedColor: AppColors.buttonGreen,
+        backgroundColor: AppColors.buttonSecondary,
+        side: const BorderSide(color: AppColors.woodDeep, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        showCheckmark: selected,
+        checkmarkColor: AppColors.oliveDeep,
         labelStyle: TextStyle(
-          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-          fontSize: 12,
+          color: selected ? AppColors.buttonText : AppColors.woodDeep,
+          fontWeight: FontWeight.w800,
+          fontSize: 13,
         ),
       ),
     );
