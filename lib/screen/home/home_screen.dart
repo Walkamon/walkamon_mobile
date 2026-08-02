@@ -159,7 +159,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  bool _feedAnim = false;
+  String? _petAnimationOverride;
   bool _stepExpanded = false;
   bool _isRefreshingMetrics = false;
   int? _dewBalance;
@@ -172,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _showMissionBadge = false;
   bool _showNotificationBadge = false;
   Timer? _refreshTimer;
+  Timer? _petAnimationTimer;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
     _FloatingBubble(id: 1, top: 0.20, left: 0.12, size: 30),
@@ -317,10 +318,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _petAnimationTimer?.cancel();
     _glowCtrl.dispose();
     _rippleCtrl.dispose();
     _hintCtrl.dispose();
     super.dispose();
+  }
+
+  void _playPetAnimation(String animation, Duration duration) {
+    _petAnimationTimer?.cancel();
+    setState(() => _petAnimationOverride = animation);
+    _petAnimationTimer = Timer(duration, () {
+      if (mounted) setState(() => _petAnimationOverride = null);
+    });
   }
 
   void _handlePetTap(GameStateProvider gameState) async {
@@ -335,19 +345,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _playLevelUpEffectIfNeeded(previousLevel, gameState.spiritLevel);
 
     setState(() {
-      _feedAnim = true;
       final id = DateTime.now().millisecondsSinceEpoch;
       _floatingNums.add(
         _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
       );
     });
+    _playPetAnimation('excited', const Duration(milliseconds: 600));
 
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
-
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (mounted) setState(() => _feedAnim = false);
-    });
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
         setState(() {
@@ -371,19 +377,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _playLevelUpEffectIfNeeded(previousLevel, gameState.spiritLevel);
 
     setState(() {
-      _feedAnim = true;
       final id = DateTime.now().millisecondsSinceEpoch;
       _floatingNums.add(
         _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
       );
     });
+    _playPetAnimation('feed_eat', const Duration(milliseconds: 900));
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
     unawaited(_refreshDewBalance(gameState));
-
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (mounted) setState(() => _feedAnim = false);
-    });
   }
 
   void _collectBubble(int id, GameStateProvider gameState) {
@@ -838,11 +840,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       _LuminaSprite(
                                         affinityCode: gameState.affinityCode,
                                         stageNo: gameState.petStageNo,
-                                        animationType: _feedAnim
-                                            ? 'excited'
-                                            : (gameState.animationType.isEmpty
-                                                  ? 'idle'
-                                                  : gameState.animationType),
+                                        animationType:
+                                            _petAnimationOverride ??
+                                            (gameState.animationType.isEmpty
+                                                ? 'idle'
+                                                : gameState.animationType),
                                         primary: primary,
                                         luminaGlow: luminaGlow,
                                       ),

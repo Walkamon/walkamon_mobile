@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../common/app_icon.dart';
+import 'pet_atlas_grid_animation.dart';
+import 'pet_frame_animation.dart';
 
 /// Lightweight pet visual backed by the V7.2 runtime catalog.
 ///
@@ -155,6 +157,84 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
 
   @override
   Widget build(BuildContext context) {
+    final reference = parsePetRuntimeAssetReference(widget.assetReference);
+    final resolvedAffinity =
+        reference?.affinityCode ?? widget.affinityCode.trim().toLowerCase();
+
+    if (widget.animationType.trim().toLowerCase() == 'feed_eat') {
+      final frames = petFeedSuccessAnimationFrames(
+        affinityCode: resolvedAffinity,
+        stageNo: reference?.stageNo ?? widget.stageNo,
+      );
+      final animation = PetFrameAnimation(
+        key: ValueKey(frames.first),
+        frames: frames,
+        fps: 10,
+      );
+
+      return SizedBox(
+        height: widget.height,
+        width: widget.compact ? widget.height : null,
+        child: Center(child: animation),
+      );
+    }
+
+    final resolvedStage = reference?.stageNo ?? widget.stageNo;
+    final evolvedBaseAtlas = _evolvedBaseAtlasForPet(
+      affinityCode: resolvedAffinity,
+      stageNo: resolvedStage,
+    );
+    if (evolvedBaseAtlas != null) {
+      return SizedBox(
+        height: widget.height,
+        width: widget.compact ? widget.height : null,
+        child: Center(
+          child: PetAtlasGridAnimation(
+            atlasAsset: evolvedBaseAtlas.atlasAsset,
+            manifestAsset: evolvedBaseAtlas.manifestAsset,
+            manifestAtlasAsset: evolvedBaseAtlas.manifestAtlasAsset,
+            fps: 3,
+          ),
+        ),
+      );
+    }
+
+    if (resolvedAffinity != 'sprout') {
+      final frames = petEvolvedExcitedAnimationFrames(
+        affinityCode: resolvedAffinity,
+        stageNo: resolvedStage,
+      );
+      if (frames.isNotEmpty) {
+        return SizedBox(
+          height: widget.height,
+          width: widget.compact ? widget.height : null,
+          child: Center(
+            child: PetFrameAnimation(
+              key: ValueKey(frames.first),
+              frames: frames,
+              fps: 3,
+            ),
+          ),
+        );
+      }
+    }
+
+    if (resolvedAffinity == 'sprout') {
+      return SizedBox(
+        height: widget.height,
+        width: widget.compact ? widget.height : null,
+        child: const Center(
+          child: PetAtlasGridAnimation(
+            atlasAsset: AppAssets.sproutDefaultAtlas,
+            manifestAsset: AppAssets.petRuntimeManifestSproutStage0,
+            manifestAtlasAsset:
+                'assets/Mobile/flame/pet_runtime_v7_2/atlas_dd7071c64cc0f0ba6ecc554d.png',
+            fps: 3,
+          ),
+        ),
+      );
+    }
+
     if (_isLoading) {
       return SizedBox(
         height: widget.height,
@@ -227,6 +307,38 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
       ),
     );
   }
+}
+
+({String atlasAsset, String manifestAsset, String manifestAtlasAsset})?
+_evolvedBaseAtlasForPet({required String affinityCode, required int stageNo}) {
+  final stage = stageNo.clamp(1, 2);
+  return switch (affinityCode.trim().toLowerCase()) {
+    'moonlight' when stage == 1 => (
+      atlasAsset: AppAssets.moonlightStage1DefaultAtlas,
+      manifestAsset: AppAssets.petRuntimeManifestMoonlightStage1,
+      manifestAtlasAsset:
+          'assets/Mobile/flame/pet_runtime_v7_2/atlas_e78e207b4fb6783144a0a55e.png',
+    ),
+    'dawn' when stage == 2 => (
+      atlasAsset: AppAssets.dawnStage2DefaultAtlas,
+      manifestAsset: AppAssets.petRuntimeManifestDawnStage2,
+      manifestAtlasAsset:
+          'assets/Mobile/flame/pet_runtime_v7_2/atlas_fa372753875fe8d5d0bd080e.png',
+    ),
+    'warm_sun' when stage == 1 => (
+      atlasAsset: AppAssets.warmSunStage1DefaultAtlas,
+      manifestAsset: AppAssets.petRuntimeManifestWarmSunStage1,
+      manifestAtlasAsset:
+          'assets/Mobile/flame/pet_runtime_v7_2/atlas_ff327504644d8c1f0717b891.png',
+    ),
+    'warm_sun' => (
+      atlasAsset: AppAssets.warmSunStage2DefaultAtlas,
+      manifestAsset: AppAssets.petRuntimeManifestWarmSunStage2,
+      manifestAtlasAsset:
+          'assets/Mobile/flame/pet_runtime_v7_2/atlas_f540b13296415a1387269766.png',
+    ),
+    _ => null,
+  };
 }
 
 class PetRuntimeAssetReference {

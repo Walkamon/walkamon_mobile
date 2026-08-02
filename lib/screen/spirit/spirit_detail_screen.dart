@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
   bool _isLoading = true;
   bool _isSubmitting = false;
   bool _isEvolved = false;
+  String? _petAnimationOverride;
+  Timer? _petAnimationTimer;
   PetOverviewResponse? _petOverview;
   List<PetEvolutionStageResponse> _evolutionStages =
       <PetEvolutionStageResponse>[];
@@ -42,6 +45,12 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPetData();
     });
+  }
+
+  @override
+  void dispose() {
+    _petAnimationTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadPetData({bool showLoading = true}) async {
@@ -166,6 +175,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
   Future<void> _handleAction(
     Future<bool> Function() action,
     String successMessage,
+    String successAnimation,
   ) async {
     if (_isSubmitting) return;
 
@@ -174,9 +184,19 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
 
     if (!mounted) return;
 
-    setState(() => _isSubmitting = false);
+    setState(() {
+      _isSubmitting = false;
+      if (success) _petAnimationOverride = successAnimation;
+    });
 
     if (success) {
+      _petAnimationTimer?.cancel();
+      _petAnimationTimer = Timer(
+        Duration(milliseconds: successAnimation == 'feed_eat' ? 900 : 600),
+        () {
+          if (mounted) setState(() => _petAnimationOverride = null);
+        },
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(successMessage),
@@ -349,6 +369,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                     _petOverview?.stageNo ??
                                                     gameState.petStageNo,
                                                 animationType:
+                                                    _petAnimationOverride ??
                                                     _currentAnimation
                                                         ?.animationType ??
                                                     _petOverview
@@ -743,6 +764,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                       : () => _handleAction(
                           () => context.read<GameStateProvider>().tapSpirit(),
                           l10n.spiritTapSuccess,
+                          'excited',
                         ),
                 ),
               ),
@@ -756,6 +778,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                       : () => _handleAction(
                           () => context.read<GameStateProvider>().feedSpirit(),
                           l10n.spiritFeedSuccess,
+                          'feed_eat',
                         ),
                 ),
               ),
