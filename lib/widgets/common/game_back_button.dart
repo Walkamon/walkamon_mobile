@@ -11,8 +11,8 @@ class GameBackButton extends StatelessWidget {
     required this.semanticLabel,
   });
 
-  static const double buttonSize = 40;
-  static const double iconSize = 30;
+  static const double buttonSize = 48;
+  static const double iconSize = 32;
   static const double screenLeft = 20;
   static const double screenTop = 8;
 
@@ -24,9 +24,9 @@ class GameBackButton extends StatelessWidget {
     return SizedBox.square(
       dimension: buttonSize,
       child: Material(
-        color: AppColors.authCard.withValues(alpha: 0.92),
+        color: AppColors.authCard,
         shape: const CircleBorder(
-          side: BorderSide(color: AppColors.buttonBorder, width: 2),
+          side: BorderSide(color: AppColors.woodDeep, width: 2),
         ),
         elevation: 3,
         shadowColor: Colors.black26,

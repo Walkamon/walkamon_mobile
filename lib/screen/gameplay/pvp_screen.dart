@@ -18,7 +18,7 @@ class PvPScreen extends StatelessWidget {
             ..fetchWaitingRoomData(),
       child: const Scaffold(
         extendBody: true,
-        body: SafeArea(child: PvPMainScreen()),
+        body: const PvPMainScreen(),
         bottomNavigationBar: BottomNavigation(),
       ),
     );

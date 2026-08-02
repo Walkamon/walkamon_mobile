@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/l10n/locale_helper.dart';
+import '../../core/constants/app_assets.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
@@ -184,9 +185,9 @@ class _SettingScreenState extends State<SettingScreen> {
                         children: [
                           _SettingsSwitch(
                             label: l10n.darkMode,
-                            icon: gameState.settings.darkMode
-                                ? Icons.dark_mode_rounded
-                                : Icons.light_mode_rounded,
+                            icon: Icons.light_mode_rounded,
+                            asset: AppAssets.iconSun,
+                            showToggle: false,
                             value: gameState.settings.darkMode,
                             onChanged: (value) => context
                                 .read<GameStateProvider>()
@@ -195,6 +196,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           _SettingsSwitch(
                             label: l10n.bgm,
                             icon: Icons.music_note_rounded,
+                            asset: AppAssets.iconMusic,
                             value: gameState.settings.backgroundMusicEnabled,
                             onChanged: (value) => context
                                 .read<GameStateProvider>()
@@ -203,6 +205,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           _SettingsSwitch(
                             label: l10n.sfx,
                             icon: Icons.volume_up_rounded,
+                            asset: AppAssets.iconVolume,
                             value: gameState.settings.soundEnabled,
                             onChanged: (value) => context
                                 .read<GameStateProvider>()
@@ -398,7 +401,6 @@ class _SettingScreenState extends State<SettingScreen> {
                                   Expanded(
                                     child: _FeedbackTypeButton(
                                       label: l10n.feedbackSuggestion,
-                                      icon: Icons.lightbulb_outline,
                                       selected: _feedbackType == 'suggestion',
                                       onTap: () => setState(
                                         () => _feedbackType = 'suggestion',
@@ -409,7 +411,6 @@ class _SettingScreenState extends State<SettingScreen> {
                                   Expanded(
                                     child: _FeedbackTypeButton(
                                       label: l10n.feedbackBug,
-                                      icon: Icons.bug_report_outlined,
                                       selected: _feedbackType == 'bug',
                                       onTap: () =>
                                           setState(() => _feedbackType = 'bug'),
@@ -491,15 +492,11 @@ class _SettingScreenState extends State<SettingScreen> {
                                   ),
                                 ),
                               const SizedBox(height: 12),
-                              ElevatedButton.icon(
+                              ElevatedButton(
                                 onPressed: _isSendingFeedback
                                     ? null
                                     : _handleSendFeedback,
-                                icon: const AppIcon(
-                                  Icons.send_rounded,
-                                  color: AppColors.buttonText,
-                                ),
-                                label: GameButtonLabel(
+                                child: GameButtonLabel(
                                   _isSendingFeedback
                                       ? l10n.feedbackSending
                                       : l10n.feedbackSubmit,
@@ -538,13 +535,11 @@ class _SettingScreenState extends State<SettingScreen> {
 class _FeedbackTypeButton extends StatelessWidget {
   const _FeedbackTypeButton({
     required this.label,
-    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -565,12 +560,6 @@ class _FeedbackTypeButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AppIcon(
-              icon,
-              size: 21,
-              color: selected ? AppColors.oliveDeep : AppColors.woodDeep,
-            ),
-            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -615,6 +604,7 @@ class _SettingsPanel extends StatelessWidget {
 class _SettingsButton extends StatefulWidget {
   const _SettingsButton({
     required this.icon,
+    this.asset,
     required this.label,
     required this.onPressed,
     this.trailing,
@@ -623,6 +613,7 @@ class _SettingsButton extends StatefulWidget {
   });
 
   final IconData icon;
+  final String? asset;
   final String label;
   final VoidCallback onPressed;
   final Widget? trailing;
@@ -719,15 +710,19 @@ class _SettingsButtonState extends State<_SettingsButton> {
 class _SettingsSwitch extends StatelessWidget {
   const _SettingsSwitch({
     required this.icon,
+    this.asset,
     required this.label,
     this.subtitle = '',
+    this.showToggle = true,
     required this.value,
     required this.onChanged,
   });
 
   final IconData icon;
+  final String? asset;
   final String label;
   final String subtitle;
+  final bool showToggle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -751,7 +746,9 @@ class _SettingsSwitch extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.wood, width: 1.3),
             ),
-            child: AppIcon(icon, size: 25, color: AppColors.woodDeep),
+            child: asset != null
+                ? Image.asset(asset!, width: 30, height: 30)
+                : AppIcon(icon, size: 25, color: AppColors.woodDeep),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -780,15 +777,18 @@ class _SettingsSwitch extends StatelessWidget {
               ],
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.authCard,
-            activeTrackColor: AppColors.buttonGreen,
-            inactiveThumbColor: AppColors.authCard,
-            inactiveTrackColor: AppColors.creamDeep,
-            trackOutlineColor: const WidgetStatePropertyAll(AppColors.woodDeep),
-          ),
+          if (showToggle)
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.authCard,
+              activeTrackColor: AppColors.buttonGreen,
+              inactiveThumbColor: AppColors.authCard,
+              inactiveTrackColor: AppColors.creamDeep,
+              trackOutlineColor: const WidgetStatePropertyAll(
+                AppColors.woodDeep,
+              ),
+            ),
         ],
       ),
     );

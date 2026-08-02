@@ -6,6 +6,8 @@ import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/game_button_label.dart';
+import '../../core/theme/app_colors.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -54,7 +56,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           side: BorderSide(
             color: isError
                 ? Colors.redAccent
-                : theme.colorScheme.primary.withOpacity(0.5), // Viền sáng màu
+                : theme.colorScheme.primary.withValues(
+                    alpha: 0.5,
+                  ), // Viền sáng màu
             width: 1.5,
           ),
         ),
@@ -110,194 +114,193 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       barrierColor: Colors.black45,
       builder: (context) {
         return Dialog(
-          backgroundColor: Theme.of(context).cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 24,
           ),
-          child: FutureBuilder<NotificationDetail>(
-            future: _datasource.getNotificationDetail(item.notificationId),
-            builder: (context, snapshot) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 32,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 420,
+              maxHeight: MediaQuery.sizeOf(context).height * 0.78,
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+              decoration: BoxDecoration(
+                color: AppColors.authCard,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppColors.wood, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.woodDeep.withValues(alpha: 0.25),
+                    blurRadius: 18,
+                    offset: const Offset(0, 7),
+                  ),
+                ],
+              ),
+              child: FutureBuilder<NotificationDetail>(
+                future: _datasource.getNotificationDetail(item.notificationId),
+                builder: (context, snapshot) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: IconButton(
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonTooltip,
+                          onPressed: () => Navigator.of(context).pop(),
+                          constraints: const BoxConstraints.tightFor(
+                            width: 40,
+                            height: 40,
                           ),
-                          textAlign: TextAlign.center,
+                          padding: EdgeInsets.zero,
+                          icon: const AppIcon(
+                            Icons.close_rounded,
+                            size: 30,
+                            color: AppColors.woodDeep,
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _formatTimeAgo(item.createdAt),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(
+                      ),
+                      Container(
+                        width: 82,
+                        height: 82,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.leafLight.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.wood, width: 1.5),
+                        ),
+                        child: AppIcon(
+                          _getNotificationIcon(item.typeCode),
+                          asset: _getNotificationIconAsset(item.typeCode),
+                          size: 48,
+                          color: AppColors.oliveDeep,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      GameButtonLabel(
+                        item.title,
+                        fontSize: 21,
+                        color: AppColors.woodDeep,
+                        outlineColor: AppColors.creamLight,
+                        outlineWidth: 3,
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatTimeAgo(item.createdAt),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.outlineBrown,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const Padding(
+                          padding: EdgeInsets.all(28),
+                          child: CircularProgressIndicator(
+                            color: AppColors.oliveDeep,
+                          ),
+                        )
+                      else if (snapshot.hasError)
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            AppLocalizations.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          const Padding(
-                            padding: EdgeInsets.all(24.0),
-                            child: CircularProgressIndicator(),
-                          )
-                        else if (snapshot.hasError)
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Text(
-                              AppLocalizations.of(
-                                context,
-                              ).notificationsDetailError,
+                            ).notificationsDetailError,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.inkBrown,
+                              fontWeight: FontWeight.w700,
                             ),
-                          )
-                        else if (snapshot.hasData)
-                          Flexible(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (snapshot.data!.imageUrl != null &&
-                                      snapshot.data!.imageUrl!.isNotEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 16.0,
+                          ),
+                        )
+                      else if (snapshot.hasData)
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                if (snapshot.data!.imageUrl != null &&
+                                    snapshot.data!.imageUrl!.isNotEmpty) ...[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.network(
+                                      snapshot.data!.imageUrl!,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) =>
+                                          const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                ],
+                                if (snapshot.data!.typeCode?.isNotEmpty == true)
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 13,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.leafLight.withValues(
+                                        alpha: 0.5,
                                       ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Image.network(
-                                          snapshot.data!.imageUrl!,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const SizedBox.shrink(),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: AppColors.wood.withValues(
+                                          alpha: 0.55,
                                         ),
                                       ),
                                     ),
-
-                                  if ((snapshot.data!.icon != null &&
-                                          snapshot.data!.icon!.isNotEmpty) ||
-                                      (snapshot.data!.typeCode != null &&
-                                          snapshot.data!.typeCode!.isNotEmpty))
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 12.0,
+                                    child: Text(
+                                      _translateTypeCode(
+                                        snapshot.data!.typeCode,
                                       ),
-                                      child: Row(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 8.0,
-                                            ),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.1),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: AppIcon(
-                                                _getNotificationIcon(
-                                                  snapshot.data!.icon,
-                                                  snapshot.data!.typeCode,
-                                                ),
-                                                asset:
-                                                    _getNotificationIconAsset(
-                                                      snapshot.data!.icon,
-                                                      snapshot.data!.typeCode,
-                                                    ),
-                                                size: 20,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                              ),
-                                            ),
-                                          ),
-
-                                          if (snapshot.data!.typeCode != null &&
-                                              snapshot
-                                                  .data!
-                                                  .typeCode!
-                                                  .isNotEmpty)
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                              child: Text(
-                                                _translateTypeCode(
-                                                  snapshot.data!.typeCode,
-                                                ),
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.oliveDeep,
                                       ),
-                                    ),
-
-                                  Text(
-                                    snapshot.data!.body,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.8),
-                                      height: 1.6,
                                     ),
                                   ),
-                                ],
-                              ),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.creamLight.withValues(
+                                      alpha: 0.72,
+                                    ),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: AppColors.wood.withValues(
+                                        alpha: 0.55,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    snapshot.data!.body,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.inkBrown,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.55,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: IconButton(
-                      icon: const AppIcon(Icons.close, size: 20),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ],
-              );
-            },
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
         );
       },
@@ -318,8 +321,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _notificationIconKey(String? iconName, String? typeCode) {
     final normalizedIcon = iconName?.trim().toLowerCase() ?? '';
     final normalizedType = typeCode?.trim().toLowerCase() ?? '';
-    if (_isKnownNotificationIconKey(normalizedIcon) ||
-        normalizedType.isEmpty) {
+    if (_isKnownNotificationIconKey(normalizedIcon) || normalizedType.isEmpty) {
       return normalizedIcon;
     }
     return normalizedType;
@@ -477,9 +479,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        title: Text(
+        title: GameButtonLabel(
           l10n.notificationsTitle,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          fontSize: 20,
+          color: AppColors.woodDeep,
+          outlineColor: AppColors.authCard,
+          outlineWidth: 4,
         ),
         centerTitle: true,
       ),
@@ -487,12 +492,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
           ? Center(
-              child: Text(
+              child: GameButtonLabel(
                 l10n.notificationsEmpty,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
-                ),
+                fontSize: 16,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.authCard,
+                outlineWidth: 3,
+                maxLines: 2,
               ),
             )
           : ListView.builder(
@@ -505,112 +511,147 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: item.isRead
-                        ? theme.cardColor.withOpacity(0.5)
-                        : theme.cardColor,
-                    borderRadius: BorderRadius.circular(24),
+                        ? AppColors.authCard.withValues(alpha: 0.82)
+                        : AppColors.authCard.withValues(alpha: 0.96),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: item.isRead
-                          ? theme.dividerColor
-                          : theme.colorScheme.primary.withOpacity(0.3),
+                          ? AppColors.wood.withValues(alpha: 0.65)
+                          : AppColors.oliveDeep,
+                      width: item.isRead ? 1.5 : 2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.woodDeep.withValues(alpha: 0.12),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(24),
-                    onTap: () => _showNotificationDetail(item),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!item.isRead) ...[
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  margin: const EdgeInsets.only(
-                                    top: 4,
-                                    right: 8,
-                                  ),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.orange,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Opacity(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () => _showNotificationDetail(item),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Opacity(
                                   opacity: item.isRead ? 0.65 : 1,
-                                  child: AppIcon(
-                                    _getNotificationIcon(item.typeCode),
-                                    asset: _getNotificationIconAsset(
-                                      item.typeCode,
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    padding: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.leafLight.withValues(
+                                        alpha: 0.48,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: AppColors.wood.withValues(
+                                          alpha: 0.55,
+                                        ),
+                                      ),
                                     ),
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  item.title,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: item.isRead
-                                        ? theme.textTheme.bodyMedium?.color
-                                              ?.withOpacity(0.6)
-                                        : theme.textTheme.bodyLarge?.color,
-                                  ),
-                                ),
-                              ),
-
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(20),
-                                  onTap: () {
-                                    final deletedId = item.notificationId;
-                                    setState(() {
-                                      _notifications.removeAt(index);
-                                    });
-                                    _deleteNotification(deletedId, index);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
                                     child: AppIcon(
-                                      Icons.delete_outline,
-                                      size: 20,
-                                      color: theme.colorScheme.onSurface
-                                          .withOpacity(0.4),
+                                      _getNotificationIcon(item.typeCode),
+                                      asset: _getNotificationIconAsset(
+                                        item.typeCode,
+                                      ),
+                                      size: 34,
+                                      color: item.isRead
+                                          ? AppColors.outlineBrown
+                                          : AppColors.oliveDeep,
                                     ),
                                   ),
                                 ),
+                                if (!item.isRead)
+                                  const Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SizedBox(width: 11, height: 11),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(width: 11),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: item.isRead
+                                          ? AppColors.outlineBrown
+                                          : AppColors.inkDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    item.shortBody,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      height: 1.4,
+                                      fontWeight: FontWeight.w600,
+                                      color: item.isRead
+                                          ? AppColors.outlineBrown
+                                          : AppColors.inkBrown,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _formatTimeAgo(item.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.outlineBrown,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.shortBody,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.6),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formatTimeAgo(item.createdAt),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: theme.textTheme.bodySmall?.color
-                                  ?.withOpacity(0.5),
+                            const SizedBox(width: 6),
+                            IconButton(
+                              tooltip: MaterialLocalizations.of(
+                                context,
+                              ).deleteButtonTooltip,
+                              onPressed: () {
+                                final deletedId = item.notificationId;
+                                setState(() {
+                                  _notifications.removeAt(index);
+                                });
+                                _deleteNotification(deletedId, index);
+                              },
+                              constraints: const BoxConstraints.tightFor(
+                                width: 40,
+                                height: 40,
+                              ),
+                              padding: EdgeInsets.zero,
+                              icon: const AppIcon(
+                                Icons.delete_outline,
+                                size: 26,
+                                color: AppColors.woodDeep,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

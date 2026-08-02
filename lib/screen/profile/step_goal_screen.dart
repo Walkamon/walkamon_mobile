@@ -7,7 +7,6 @@ import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
-import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
@@ -476,13 +475,15 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
           onClaim: _claimReward,
         ),
         const SizedBox(height: 24),
-        Text(
-          AppLocalizations.of(context).stepGoalSuggestions,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: mutedForeground,
-            letterSpacing: 1,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: GameButtonLabel(
+            AppLocalizations.of(context).stepGoalSuggestions,
+            fontSize: 14,
+            letterSpacing: 0.8,
+            color: AppColors.woodDeep,
+            outlineColor: AppColors.authCard,
+            outlineWidth: 3,
           ),
         ),
         const SizedBox(height: 12),
@@ -951,24 +952,71 @@ class _StreakRewardCard extends StatelessWidget {
                   ),
                 ),
               ),
-              FilledButton.icon(
-                onPressed: canClaim && !isClaiming ? onClaim : null,
-                icon: isClaiming
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )
-                    : const AppIcon(
-                        Icons.wallet_giftcard_rounded,
-                        asset: AppAssets.iconClaimReward,
-                        size: 18,
+              Material(
+                color: AppColors.buttonGreen,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(32),
+                  side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                ),
+                child: InkWell(
+                  onTap: canClaim && !isClaiming ? onClaim : null,
+                  borderRadius: BorderRadius.circular(32),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 124,
+                      minHeight: 54,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 15,
                       ),
-                label: Text(
-                  isClaiming ? l10n.stepGoalClaiming : l10n.missionsClaim,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const RotatedBox(
+                            quarterTurns: 3,
+                            child: Icon(
+                              Icons.eco_rounded,
+                              size: 22,
+                              color: AppColors.oliveDeep,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          if (isClaiming) ...[
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.buttonText,
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                          ],
+                          GameButtonLabel(
+                            isClaiming
+                                ? l10n.stepGoalClaiming
+                                : l10n.missionsClaim,
+                            fontSize: 14,
+                            color: AppColors.buttonText,
+                            outlineColor: AppColors.woodDeep,
+                            outlineWidth: 2.4,
+                          ),
+                          const SizedBox(width: 6),
+                          const RotatedBox(
+                            quarterTurns: 1,
+                            child: Icon(
+                              Icons.eco_rounded,
+                              size: 22,
+                              color: AppColors.oliveDeep,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

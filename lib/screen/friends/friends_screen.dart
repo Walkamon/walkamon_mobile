@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/core/theme/app_colors.dart';
@@ -322,44 +322,49 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Widget _buildHeaderActions(AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.zero,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
+          SizedBox(
+            width: 48,
+            height: 48,
             child: OutlinedButton(
               onPressed: () => _showFriendRequestsPopup(context),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.woodDeep,
-                backgroundColor: AppColors.authCard.withValues(alpha: 0.94),
-                side: const BorderSide(color: AppColors.wood, width: 2),
-                minimumSize: const Size(0, 42),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                shape: const StadiumBorder(),
+                backgroundColor: AppColors.authCard,
+                side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.all(6),
+                shape: const CircleBorder(),
               ),
-              child: Text(
-                l10n.friendsRequest,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w800),
+              child: Image.asset(
+                AppAssets.iconFriendRequest,
+                width: 32,
+                height: 32,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: FilledButton(
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: OutlinedButton(
               onPressed: () => _showAddFriendPopup(context),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.buttonGreen,
-                foregroundColor: AppColors.buttonText,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: AppColors.authCard,
+                foregroundColor: AppColors.woodDeep,
                 elevation: 0,
                 side: const BorderSide(color: AppColors.woodDeep, width: 2),
-                minimumSize: const Size(0, 42),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                shape: const StadiumBorder(),
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.all(6),
+                shape: const CircleBorder(),
               ),
-              child: GameButtonLabel(
-                l10n.friendsAdd,
-                fontSize: 14,
-                outlineWidth: 2.4,
+              child: Image.asset(
+                AppAssets.iconAddFriend,
+                width: 32,
+                height: 32,
               ),
             ),
           ),
@@ -509,15 +514,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: friend.isOnline
-                                  ? AppColors.success
-                                  : AppColors.outlineBrown,
-                            ),
+                          Image.asset(
+                            friend.isOnline
+                                ? AppAssets.iconOnline
+                                : AppAssets.iconOffline,
+                            width: 18,
+                            height: 18,
                           ),
                           const SizedBox(width: 5),
                           Flexible(
@@ -1668,10 +1670,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                       padding: const EdgeInsets.all(8),
                                       minimumSize: const Size(40, 40),
                                     ),
-                                    icon: const AppIcon(
-                                      Icons.check_rounded,
-                                      color: Colors.white,
-                                      size: 28,
+                                    icon: Image.asset(
+                                      AppAssets.iconAcceptFriend,
+                                      width: 32,
+                                      height: 32,
                                     ),
                                   ),
 
@@ -1684,10 +1686,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(40, 40),
                                     ),
-                                    icon: AppIcon(
-                                      Icons.close_rounded,
-                                      color: colorScheme.secondary,
-                                      size: 28,
+                                    icon: Image.asset(
+                                      AppAssets.iconDeclineFriend,
+                                      width: 32,
+                                      height: 32,
                                     ),
                                   ),
                                   const SizedBox(width: 8),

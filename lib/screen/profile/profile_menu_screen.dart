@@ -244,7 +244,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       children: [
                         _MenuItemRow(
                           icon: Icons.person_rounded,
-                          asset: AppAssets.iconAvatar,
+                          asset: AppAssets.iconProfileNav,
                           iconColor: AppColors.sky,
                           title: l10n.accountInfo,
                           onTap: () =>
