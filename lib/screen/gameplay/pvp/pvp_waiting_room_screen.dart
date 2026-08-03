@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/pvp_provider.dart';
 import '../../../widgets/common/game_back_button.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
@@ -35,8 +37,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEnglish = Localizations.localeOf(context).languageCode == 'en';
-    String localized(String vi, String en) => isEnglish ? en : vi;
+    final l10n = AppLocalizations.of(context);
+    final numberFormat = NumberFormat.decimalPattern(l10n.localeName);
     final mapAsset = PvpAssetResolver.mapForNow(
       pvpProvider.estimatedServerNow(),
     );
@@ -47,25 +49,13 @@ class PvPWaitingRoomScreen extends StatelessWidget {
         ? pvpProvider.petStageNo
         : activePetStageNo;
     final passiveAsset = PvpAssetResolver.passiveForAffinity(affinityCode);
-    final rawAffinity = pvpProvider.spiritAffinity.trim();
-    final providerAffinityCode = pvpProvider.spiritAffinityCode.trim();
-    final isSameProviderAffinity =
-        providerAffinityCode.toLowerCase() == affinityCode.toLowerCase();
-    final affinityLabel =
-        isSameProviderAffinity &&
-            rawAffinity.isNotEmpty &&
-            rawAffinity.toLowerCase() != affinityCode.toLowerCase()
-        ? rawAffinity
-        : PvpAssetResolver.affinityDisplayName(affinityCode);
-    final displayAffinityLabel = isEnglish
-        ? <String, String>{
-                'warm_sun': 'Warm Sun',
-                'dawn': 'Dawn',
-                'moonlight': 'Moonlight',
-                'sprout': 'Sprout',
-              }[affinityCode.toLowerCase()] ??
-              affinityLabel
-        : affinityLabel;
+    final displayAffinityLabel = switch (affinityCode.toLowerCase()) {
+      'warm_sun' => l10n.pvpAffinityWarmSun,
+      'dawn' => l10n.pvpAffinityDawn,
+      'moonlight' => l10n.pvpAffinityMoonlight,
+      'sprout' => l10n.pvpAffinitySprout,
+      _ => l10n.pvpAffinityUnknown,
+    };
     final isSearchingForOpponent =
         pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
     // Use part of the reserved bottom-navigation gap for the search status so
@@ -122,7 +112,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                               shape: const CircleBorder(),
                               padding: const EdgeInsets.all(8),
                             ),
-                            tooltip: localized('Lời mời', 'Invites'),
+                            tooltip: l10n.pvpInvites,
                             onPressed: onShowIncomingChallenges,
                             icon: Image.asset(
                               AppAssets.pvpIconInviteFriend,
@@ -141,7 +131,9 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                                   shape: BoxShape.circle,
                                 ),
                                 child: Text(
-                                  '${pvpProvider.incomingInvites.length}',
+                                  numberFormat.format(
+                                    pvpProvider.incomingInvites.length,
+                                  ),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -163,7 +155,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                           shape: const CircleBorder(),
                           padding: const EdgeInsets.all(8),
                         ),
-                        tooltip: localized('Lịch sử', 'History'),
+                        tooltip: l10n.pvpHistory,
                         onPressed: onShowMatchHistory,
                         icon: Image.asset(
                           AppAssets.pvpIconBattleHistory,
@@ -266,26 +258,26 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                               ),
                               const Divider(height: 24),
                               _buildStatRow(
-                                localized('Bước đi hôm nay:', 'Today steps:'),
-                                '${pvpProvider.todaySteps}',
+                                l10n.pvpTodayStepsLabel,
+                                numberFormat.format(pvpProvider.todaySteps),
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                localized('Hệ tinh linh:', 'Spirit affinity:'),
+                                l10n.pvpSpiritAffinityLabel,
                                 displayAffinityLabel,
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                localized('Năng lượng:', 'Energy:'),
-                                '${pvpProvider.currentEnergy}/${pvpProvider.maxEnergy}',
+                                l10n.pvpEnergyLabel,
+                                '${numberFormat.format(pvpProvider.currentEnergy)}/${numberFormat.format(pvpProvider.maxEnergy)}',
                                 theme,
                               ),
                               const SizedBox(height: 8),
                               _buildStatRow(
-                                localized('Độ gắn kết:', 'Bond:'),
-                                '${pvpProvider.currentBond}',
+                                l10n.pvpBondLabel,
+                                numberFormat.format(pvpProvider.currentBond),
                                 theme,
                               ),
                             ],
@@ -303,10 +295,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Text(
-                      localized(
-                        'Đang tìm đối thủ...',
-                        'Searching for an opponent...',
-                      ),
+                      l10n.pvpSearchingOpponent,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
@@ -340,17 +329,14 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       : null,
                   child: Text(
                     pvpProvider.matchmakingState == PvpMatchmakingState.waiting
-                        ? localized('Hủy tìm trận', 'Cancel search')
+                        ? l10n.pvpCancelSearch
                         : pvpProvider.matchmakingState ==
                               PvpMatchmakingState.connecting
-                        ? localized('Đang kết nối...', 'Connecting...')
+                        ? l10n.pvpConnecting
                         : pvpProvider.matchmakingState ==
                               PvpMatchmakingState.countdown
-                        ? localized('Đang chuẩn bị...', 'Preparing...')
-                        : localized(
-                            'Ghép trận ngẫu nhiên',
-                            'Find random match',
-                          ),
+                        ? l10n.pvpPreparing
+                        : l10n.pvpFindRandomMatch,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -389,7 +375,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                           );
                         },
                   child: Text(
-                    localized('Thách đấu với bạn bè', 'Challenge a friend'),
+                    l10n.pvpChallengeFriend,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),

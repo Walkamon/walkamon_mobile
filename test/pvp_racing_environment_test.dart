@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/screen/gameplay/pvp/pvp_asset_resolver.dart';
 import 'package:walkamon_mobile/screen/gameplay/pvp/widgets/pvp_frame_animation.dart';
 import 'package:walkamon_mobile/screen/gameplay/pvp/widgets/pvp_racing_environment.dart';
@@ -127,6 +128,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: PvPRacingEnvironment(
             isMoving: false,
@@ -160,6 +164,9 @@ void main() {
 
     Widget buildEnvironment(double trackProgress) {
       return MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: PvPRacingEnvironment(
             isMoving: false,
@@ -204,5 +211,40 @@ void main() {
       closeTo(tester.getSize(track).width * 0.9, 0.1),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('localizes the race HUD in English', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final semantics = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: PvPRacingEnvironment(
+            isMoving: false,
+            trackProgress: 0.5,
+            myProgress: 50,
+            opponentProgress: 50,
+            opponentName: 'Rival',
+            racePhase: 'go',
+            isFinished: false,
+            onClose: () {},
+            mapAssets: PvpAssetResolver.mapsForNow(DateTime(2026, 1, 1, 12)),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('You'), findsOneWidget);
+    expect(find.text('GO!'), findsOneWidget);
+    expect(find.byTooltip('Leave race'), findsOneWidget);
+    expect(find.bySemanticsLabel('Race progress: 50%'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
   });
 }

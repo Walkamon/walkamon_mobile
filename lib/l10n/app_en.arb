@@ -942,5 +942,160 @@
   "friendSpiritInit": "Initialized",
   "friendSpiritStageSeedling": "Seedling",
   "friendSpiritStageSprout": "Sprout",
-  "friendSpiritStageLeaf": "Leaf"
+  "friendSpiritStageLeaf": "Leaf",
+  "pvpInvites": "Invites",
+  "pvpHistory": "History",
+  "pvpTodayStepsLabel": "Today's steps:",
+  "pvpSpiritAffinityLabel": "Spirit affinity:",
+  "pvpEnergyLabel": "Energy:",
+  "pvpBondLabel": "Bond:",
+  "pvpSearchingOpponent": "Searching for an opponent...",
+  "pvpCancelSearch": "Cancel search",
+  "pvpConnecting": "Connecting...",
+  "pvpPreparing": "Preparing...",
+  "pvpFindRandomMatch": "Find random match",
+  "pvpChallengeFriend": "Challenge a friend",
+  "pvpAffinityWarmSun": "Warm Sun",
+  "pvpAffinityDawn": "Dawn",
+  "pvpAffinityMoonlight": "Moonlight",
+  "pvpAffinitySprout": "Sprout",
+  "pvpAffinityUnknown": "Unknown affinity",
+  "pvpExitMatchTitle": "Leave match?",
+  "pvpExitMatchMessage": "Leaving now will count as a DEFEAT and your opponent will win.",
+  "pvpStayInMatch": "Stay",
+  "pvpExitAndForfeit": "Leave & forfeit",
+  "pvpNoticeTitle": "Notice",
+  "pvpInviteDeclined": "The player declined your invitation.",
+  "pvpChallengeInvitesTitle": "Challenge invites",
+  "pvpNoInvitations": "No invitations",
+  "pvpStatusOffline": "Offline",
+  "pvpStatusBusy": "Busy",
+  "pvpStatusOnline": "Online",
+  "pvpOpponent": "Opponent",
+  "pvpSenderInAnotherMatch": "The sender is in another match",
+  "pvpSenderOffline": "The sender has gone offline",
+  "pvpAccept": "Accept",
+  "pvpReject": "Reject",
+  "pvpMatchTypeRanked": "Ranked",
+  "pvpMatchTypeFriendly": "Friendly",
+  "pvpMatchTypeEvent": "Event",
+  "pvpMatchTypeOther": "Other",
+  "pvpMatchSourceBot": "Bot",
+  "pvpMatchSourceMatchmaking": "Matchmaking",
+  "pvpMatchSourceInvite": "Invite",
+  "pvpMatchSourceOther": "Other source",
+  "pvpMatchHistoryTitle": "Match history",
+  "pvpRefresh": "Refresh",
+  "pvpFilterAll": "All",
+  "pvpFilterAllResults": "All results",
+  "pvpFilterWins": "Wins",
+  "pvpFilterLosses": "Losses",
+  "pvpNoMatches": "No matches yet",
+  "pvpHistoryVictory": "VICTORY",
+  "pvpHistoryCancelled": "CANCELLED",
+  "pvpHistoryDefeat": "DEFEAT",
+  "pvpHistoryDraw": "DRAW",
+  "pvpHistoryResultUnknown": "UNKNOWN",
+  "pvpPreviousPage": "Previous page",
+  "pvpPageOf": "Page {page} / {totalPages}",
+  "@pvpPageOf": {
+    "placeholders": {
+      "page": { "type": "int" },
+      "totalPages": { "type": "int" }
+    }
+  },
+  "pvpNextPage": "Next page",
+  "pvpChallengeFriendsTitle": "Challenge Friends",
+  "pvpOnlineSection": "ONLINE",
+  "pvpNoOnlineFriends": "No friends are online",
+  "pvpOfflineSection": "OFFLINE",
+  "pvpNoOfflineFriends": "No offline friends",
+  "pvpFriendBusy": "Friend is busy",
+  "pvpChallengeAction": "Challenge",
+  "pvpInviteSent": "Invitation sent!",
+  "pvpWaitingForFriend": "Waiting for {opponentName} to respond...",
+  "@pvpWaitingForFriend": {
+    "placeholders": {
+      "opponentName": { "type": "String" }
+    }
+  },
+  "pvpCancelRequest": "Cancel request",
+  "pvpConnected": "Connected!",
+  "pvpRaceAgainst": "You will race against {opponentName}",
+  "@pvpRaceAgainst": {
+    "placeholders": {
+      "opponentName": { "type": "String" }
+    }
+  },
+  "pvpPrepareForMatch": "GET READY",
+  "pvpMatchSuccess": "Match found!",
+  "pvpEnteringRace": "Entering the race. The countdown will begin as soon as the match is ready.",
+  "pvpResultVictoryTitle": "Victory!",
+  "pvpResultDrawTitle": "Draw!",
+  "pvpResultDefeatTitle": "Defeat",
+  "pvpResultTitle": "Match result",
+  "pvpResultWinGeneric": "You won the sprint!",
+  "pvpResultBeatOpponent": "You defeated {opponentName}",
+  "@pvpResultBeatOpponent": {
+    "placeholders": {
+      "opponentName": { "type": "String" }
+    }
+  },
+  "pvpResultScoresTied": "Both sides finished with the same score",
+  "pvpResultForfeitGeneric": "You left the match and forfeited.",
+  "pvpResultForfeitOpponentWon": "You left the match. {opponentName} won.",
+  "@pvpResultForfeitOpponentWon": {
+    "placeholders": {
+      "opponentName": { "type": "String" }
+    }
+  },
+  "pvpResultTryAgain": "Keep going—you've almost got it!",
+  "pvpResultLoadingServer": "Loading the result from the server...",
+  "pvpLoadingResult": "Loading result...",
+  "pvpWaitingServerFinalize": "Waiting for the server to finalize the match...",
+  "pvpResultUnavailableTitle": "Match result unavailable",
+  "pvpResultUnavailableMessage": "The match has ended. Try again later or continue.",
+  "pvpMmr": "MMR",
+  "pvpCurrentMmr": "Current MMR",
+  "pvpNewRank": "New rank",
+  "pvpRank": "Rank",
+  "pvpRewardClaimed": "Reward claimed",
+  "pvpRewardsReceived": "REWARDS RECEIVED",
+  "pvpCoinReward": "{count, plural, =1 {+1 Dewdrop} other {+{count} Dewdrops}}",
+  "@pvpCoinReward": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "pvpItemReward": "{quantity, plural, =1 {x1 item} other {x{quantity} items}}",
+  "@pvpItemReward": {
+    "placeholders": {
+      "quantity": { "type": "int" }
+    }
+  },
+  "pvpClaimReward": "Claim reward",
+  "pvpContinue": "Continue",
+  "pvpYou": "You",
+  "pvpSprintMode": "SPRINT",
+  "pvpRaceProgress": "Race progress: {percent}%",
+  "@pvpRaceProgress": {
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+  "pvpRaceGo": "GO!",
+  "pvpCloseRace": "Leave race",
+  "pvpMatchStatusWaiting": "Waiting",
+  "pvpMatchStatusCountdown": "Countdown",
+  "pvpMatchStatusRunning": "Running",
+  "pvpMatchStatusSettling": "Finalizing",
+  "pvpMatchStatusFinished": "Finished",
+  "pvpMatchStatusCancelled": "Cancelled",
+  "pvpTierMamDong": "Bronze Sprout",
+  "pvpTierLaBac": "Silver Leaf",
+  "pvpTierNuVang": "Golden Bud",
+  "pvpTierHoaLam": "Indigo Flower",
+  "pvpTierTrangTim": "Purple Moon",
+  "pvpTierTinhLinhCauVong": "Rainbow Spirit",
+  "pvpTierUnknown": "Unknown rank"
 }

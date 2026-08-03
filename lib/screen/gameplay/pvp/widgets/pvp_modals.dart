@@ -1,15 +1,17 @@
-﻿import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/friends_response.dart';
 import '../../../../data/models/pvp_models.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/pvp_provider.dart';
 import '../../../../widgets/common/app_icon.dart';
 
-String _pvpText(BuildContext context, String vi, String en) =>
-    Localizations.localeOf(context).languageCode == 'en' ? en : vi;
+String? _nonBlank(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
 
 void showIncomingChallengesModal(
   BuildContext context,
@@ -48,6 +50,7 @@ class _IncomingChallengesContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final providerInvites = context.watch<PvpProvider>().incomingInvites;
     final activeChallenges = providerInvites.isNotEmpty
         ? providerInvites
@@ -78,7 +81,7 @@ class _IncomingChallengesContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            _pvpText(context, 'Lời mời thách đấu', 'Challenge invites'),
+            l10n.pvpChallengeInvitesTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -88,7 +91,7 @@ class _IncomingChallengesContent extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Text(
-                _pvpText(context, 'Không có lời mời nào', 'No invitations'),
+                l10n.pvpNoInvitations,
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
             )
@@ -107,13 +110,13 @@ class _IncomingChallengesContent extends StatelessWidget {
                   String presenceLabel;
                   Color presenceColor;
                   if (!senderOnline) {
-                    presenceLabel = 'Ngoại tuyến';
+                    presenceLabel = l10n.pvpStatusOffline;
                     presenceColor = Colors.grey;
                   } else if (senderCode == 'busy') {
-                    presenceLabel = 'Đang bận';
+                    presenceLabel = l10n.pvpStatusBusy;
                     presenceColor = Colors.orange;
                   } else {
-                    presenceLabel = 'Đang online';
+                    presenceLabel = l10n.pvpStatusOnline;
                     presenceColor = Colors.green;
                   }
 
@@ -147,7 +150,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                   Text(
                                     challenge.user.username.isNotEmpty
                                         ? challenge.user.username
-                                        : 'Đối thủ',
+                                        : l10n.pvpOpponent,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -191,7 +194,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Người gửi đang trong trận khác',
+                                  l10n.pvpSenderInAnotherMatch,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.orange.shade700,
@@ -212,7 +215,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Người gửi đã ngoại tuyến',
+                                  l10n.pvpSenderOffline,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -236,9 +239,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                       }
                                     : null,
                                 icon: const AppIcon(Icons.check, size: 16),
-                                label: Text(
-                                  _pvpText(context, 'Chấp nhận', 'Accept'),
-                                ),
+                                label: Text(l10n.pvpAccept),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.buttonGreen,
                                   foregroundColor: AppColors.buttonText,
@@ -271,9 +272,7 @@ class _IncomingChallengesContent extends StatelessWidget {
                                   onReject(challenge.inviteId);
                                 },
                                 icon: const AppIcon(Icons.close, size: 28),
-                                label: Text(
-                                  _pvpText(context, 'Từ chối', 'Reject'),
-                                ),
+                                label: Text(l10n.pvpReject),
                               ),
                             ),
                           ],
@@ -334,35 +333,38 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
     super.dispose();
   }
 
-  String _matchTypeLabel(String code) {
+  String _matchTypeLabel(String code, AppLocalizations l10n) {
     switch (code.toLowerCase()) {
       case 'ranked':
-        return 'Xếp hạng';
+        return l10n.pvpMatchTypeRanked;
       case 'friendly':
-        return 'Bạn bè';
+        return l10n.pvpMatchTypeFriendly;
       case 'event':
-        return 'Sự kiện';
+        return l10n.pvpMatchTypeEvent;
       default:
-        return code.isEmpty ? code : code.toUpperCase();
+        return code.isEmpty ? '' : l10n.pvpMatchTypeOther;
     }
   }
 
-  String _sourceLabel(String? source) {
+  String _sourceLabel(String? source, AppLocalizations l10n) {
     switch ((source ?? '').toLowerCase()) {
       case 'bot':
-        return 'Bot';
+        return l10n.pvpMatchSourceBot;
       case 'matchmaking':
-        return 'Ghép trận';
+        return l10n.pvpMatchSourceMatchmaking;
       case 'invite':
-        return 'Mời';
+        return l10n.pvpMatchSourceInvite;
       default:
-        return source ?? '';
+        return source?.isNotEmpty == true ? l10n.pvpMatchSourceOther : '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final materialL10n = MaterialLocalizations.of(context);
+    final alwaysUse24HourFormat = MediaQuery.alwaysUse24HourFormatOf(context);
     final provider = context.watch<PvpProvider>();
     final history = provider.matchHistory;
 
@@ -392,7 +394,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             children: [
               Expanded(
                 child: Text(
-                  _pvpText(context, 'Lịch sử thi đấu', 'Match history'),
+                  l10n.pvpMatchHistoryTitle,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -400,7 +402,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
               ),
               if (provider.historyTotal > 0)
                 Text(
-                  '${history.length}/${provider.historyTotal}',
+                  '${materialL10n.formatDecimal(history.length)}/${materialL10n.formatDecimal(provider.historyTotal)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -411,7 +413,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
                   shape: const CircleBorder(),
                 ),
-                tooltip: _pvpText(context, 'Làm mới', 'Refresh'),
+                tooltip: l10n.pvpRefresh,
                 onPressed: provider.historyLoading
                     ? null
                     : () => provider.loadMatchHistory(page: 1),
@@ -425,25 +427,25 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: _pvpText(context, 'Tất cả', 'All'),
+                  label: l10n.pvpFilterAll,
                   selected: provider.historyMatchType.isEmpty,
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: ''),
                 ),
                 _FilterChip(
-                  label: _pvpText(context, 'Xếp hạng', 'Ranked'),
+                  label: l10n.pvpMatchTypeRanked,
                   selected: provider.historyMatchType == 'ranked',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'ranked'),
                 ),
                 _FilterChip(
-                  label: _pvpText(context, 'Bạn bè', 'Friendly'),
+                  label: l10n.pvpMatchTypeFriendly,
                   selected: provider.historyMatchType == 'friendly',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'friendly'),
                 ),
                 _FilterChip(
-                  label: _pvpText(context, 'Sự kiện', 'Event'),
+                  label: l10n.pvpMatchTypeEvent,
                   selected: provider.historyMatchType == 'event',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, matchType: 'event'),
@@ -457,20 +459,20 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: _pvpText(context, 'Mọi kết quả', 'All results'),
+                  label: l10n.pvpFilterAllResults,
                   selected: provider.historyResultFilter.isEmpty,
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: ''),
                 ),
                 _FilterChip(
-                  label: _pvpText(context, 'Thắng', 'Wins'),
+                  label: l10n.pvpFilterWins,
                   selected: provider.historyResultFilter == 'win',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: 'win'),
                 ),
 
                 _FilterChip(
-                  label: _pvpText(context, 'Thua', 'Losses'),
+                  label: l10n.pvpFilterLosses,
                   selected: provider.historyResultFilter == 'lose',
                   onSelected: () =>
                       provider.loadMatchHistory(page: 1, result: 'lose'),
@@ -490,7 +492,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32),
                       child: Text(
-                        _pvpText(context, 'Chưa có trận nào', 'No matches yet'),
+                        l10n.pvpNoMatches,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -543,28 +545,31 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                           match.statusCode.toLowerCase() == 'cancelled' ||
                           resultCode == 'cancelled';
                       final resultLabel = isWin
-                          ? 'CHIẾN THẮNG'
+                          ? l10n.pvpHistoryVictory
                           : isCancelled
-                          ? 'HỦY'
+                          ? l10n.pvpHistoryCancelled
                           : resultCode == 'lose'
-                          ? 'THẤT BẠI'
+                          ? l10n.pvpHistoryDefeat
                           : isDraw
-                          ? 'HÒA'
-                          : match.statusCode.toUpperCase();
+                          ? l10n.pvpHistoryDraw
+                          : l10n.pvpHistoryResultUnknown;
 
                       final oppName =
-                          opponent?.displayName ??
+                          _nonBlank(opponent?.displayName) ??
                           (opponent?.participantTypeCode.toLowerCase() == 'bot'
-                              ? 'Bot'
+                              ? l10n.pvpMatchSourceBot
                               : null) ??
-                          opponent?.userId ??
-                          'Đối thủ';
+                          l10n.pvpOpponent;
                       final when = match.endedAt ?? match.createdAt;
-                      final dateStr = when != null
-                          ? DateFormat('dd/MM HH:mm').format(when.toLocal())
+                      final localWhen = when?.toLocal();
+                      final dateStr = localWhen != null
+                          ? '${materialL10n.formatShortDate(localWhen)} ${materialL10n.formatTimeOfDay(TimeOfDay.fromDateTime(localWhen), alwaysUse24HourFormat: alwaysUse24HourFormat)}'
                           : '';
-                      final typeLabel = _matchTypeLabel(match.matchTypeCode);
-                      final sourceLabel = _sourceLabel(match.sourceCode);
+                      final typeLabel = _matchTypeLabel(
+                        match.matchTypeCode,
+                        l10n,
+                      );
+                      final sourceLabel = _sourceLabel(match.sourceCode, l10n);
                       final meta = [
                         if (dateStr.isNotEmpty) dateStr,
                         if (typeLabel.isNotEmpty) typeLabel,
@@ -664,7 +669,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
               children: [
                 IconButton(
                   icon: const AppIcon(Icons.chevron_left),
-                  tooltip: 'Trang trước',
+                  tooltip: l10n.pvpPreviousPage,
                   onPressed:
                       (provider.historyLoading || provider.historyPage <= 1)
                       ? null
@@ -680,7 +685,10 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Trang ${provider.historyPage} / ${provider.historyTotalPages}',
+                    l10n.pvpPageOf(
+                      provider.historyPage,
+                      provider.historyTotalPages,
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -688,7 +696,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                 ),
                 IconButton(
                   icon: const AppIcon(Icons.chevron_right),
-                  tooltip: 'Trang sau',
+                  tooltip: l10n.pvpNextPage,
                   onPressed:
                       (provider.historyLoading ||
                           provider.historyPage >= provider.historyTotalPages)
@@ -724,7 +732,6 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
@@ -779,6 +786,7 @@ class _FriendsModalContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -801,7 +809,7 @@ class _FriendsModalContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Thách đấu Bạn bè',
+            l10n.pvpChallengeFriendsTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -823,9 +831,9 @@ class _FriendsModalContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'ĐANG ONLINE',
-                        style: TextStyle(
+                      Text(
+                        l10n.pvpOnlineSection,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -835,11 +843,14 @@ class _FriendsModalContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (online.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        'Không có bạn bè đang online',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                        l10n.pvpNoOnlineFriends,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
                       ),
                     )
                   else
@@ -858,9 +869,9 @@ class _FriendsModalContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'NGOẠI TUYẾN',
-                        style: TextStyle(
+                      Text(
+                        l10n.pvpOfflineSection,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -870,11 +881,14 @@ class _FriendsModalContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (offline.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        'Không có bạn bè ngoại tuyến',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                        l10n.pvpNoOfflineFriends,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
                       ),
                     )
                   else
@@ -896,6 +910,7 @@ class _FriendsModalContent extends StatelessWidget {
     Function(String userId, String username) onInvite,
   ) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final canChallenge = friend.isPvpAvailable;
     final isBusy = friend.isPvpBusy;
 
@@ -933,9 +948,9 @@ class _FriendsModalContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Đang bận',
-                        style: TextStyle(
+                      Text(
+                        l10n.pvpStatusBusy,
+                        style: const TextStyle(
                           color: Colors.orange,
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
@@ -955,9 +970,9 @@ class _FriendsModalContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Online',
-                        style: TextStyle(
+                      Text(
+                        l10n.pvpStatusOnline,
+                        style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
@@ -966,16 +981,16 @@ class _FriendsModalContent extends StatelessWidget {
                     ],
                   )
                 else
-                  const Text(
-                    'Ngoại tuyến',
-                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                  Text(
+                    l10n.pvpStatusOffline,
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
                   ),
               ],
             ),
           ),
           if (friend.isOnline)
             Tooltip(
-              message: isBusy ? 'Bạn bè đang bận' : 'Thách đấu',
+              message: isBusy ? l10n.pvpFriendBusy : l10n.pvpChallengeAction,
               child: ElevatedButton.icon(
                 onPressed: canChallenge
                     ? () {
@@ -995,7 +1010,7 @@ class _FriendsModalContent extends StatelessWidget {
                       : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
                 label: Text(
-                  isBusy ? 'Đang bận' : 'Thách đấu',
+                  isBusy ? l10n.pvpStatusBusy : l10n.pvpChallengeAction,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: canChallenge

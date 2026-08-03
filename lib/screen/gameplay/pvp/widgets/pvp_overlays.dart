@@ -1,15 +1,44 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../data/models/pvp_models.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/common/app_icon.dart';
 import '../pvp_asset_resolver.dart';
 import 'pvp_frame_animation.dart';
+
+const _opponentPlaceholder = '\u{FFFC}';
+
+TextSpan _opponentMessageSpan({
+  required String message,
+  required String opponentName,
+  required TextStyle? style,
+}) {
+  final opponentIndex = message.indexOf(_opponentPlaceholder);
+  if (opponentIndex < 0) {
+    return TextSpan(text: message, style: style);
+  }
+
+  return TextSpan(
+    style: style,
+    children: [
+      TextSpan(text: message.substring(0, opponentIndex)),
+      TextSpan(
+        text: opponentName,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+      ),
+      TextSpan(
+        text: message.substring(opponentIndex + _opponentPlaceholder.length),
+      ),
+    ],
+  );
+}
 
 class PvPMatchingOverlay extends StatelessWidget {
   const PvPMatchingOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
@@ -23,7 +52,7 @@ class PvPMatchingOverlay extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 24),
               Text(
-                'Đang tìm đối thủ...',
+                l10n.pvpSearchingOpponent,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -48,6 +77,7 @@ class PvPWaitingFriendOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
@@ -61,32 +91,23 @@ class PvPWaitingFriendOverlay extends StatelessWidget {
               const CircularProgressIndicator(),
               const SizedBox(height: 24),
               Text(
-                'Đã gửi lời mời!',
+                l10n.pvpInviteSent,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               RichText(
-                text: TextSpan(
+                text: _opponentMessageSpan(
+                  message: l10n.pvpWaitingForFriend(_opponentPlaceholder),
+                  opponentName: opponentName,
                   style: Theme.of(context).textTheme.bodyMedium,
-                  children: [
-                    const TextSpan(text: 'Đang chờ '),
-                    TextSpan(
-                      text: opponentName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const TextSpan(text: ' phản hồi...'),
-                  ],
                 ),
               ),
               const SizedBox(height: 24),
               OutlinedButton(
                 onPressed: onCancel,
-                child: const Text('Hủy yêu cầu'),
+                child: Text(l10n.pvpCancelRequest),
               ),
             ],
           ),
@@ -108,6 +129,8 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final materialL10n = MaterialLocalizations.of(context);
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
@@ -132,30 +155,22 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Đã kết nối!',
+                l10n.pvpConnected,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               RichText(
-                text: TextSpan(
+                text: _opponentMessageSpan(
+                  message: l10n.pvpRaceAgainst(_opponentPlaceholder),
+                  opponentName: opponentName,
                   style: Theme.of(context).textTheme.bodyMedium,
-                  children: [
-                    const TextSpan(text: 'Bạn sẽ đua với '),
-                    TextSpan(
-                      text: opponentName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                countdown > 0 ? '$countdown' : '',
+                countdown > 0 ? materialL10n.formatDecimal(countdown) : '',
                 style: const TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
@@ -163,9 +178,9 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'CHUẨN BỊ VÀO TRẬN',
-                style: TextStyle(
+              Text(
+                l10n.pvpPrepareForMatch,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
                   color: Colors.grey,
@@ -185,6 +200,7 @@ class PvPMatchSuccessOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
@@ -209,16 +225,16 @@ class PvPMatchSuccessOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Ghép trận thành công!',
+                l10n.pvpMatchSuccess,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Đang vào cuộc đua. Đếm ngược sẽ bắt đầu ngay sau khi trận đấu sẵn sàng.',
+              Text(
+                l10n.pvpEnteringRace,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
                   color: Colors.grey,
@@ -265,54 +281,74 @@ class PvPFinishedOverlay extends StatelessWidget {
     return Color(normalized.length == 6 ? (0xFF000000 | value) : value);
   }
 
-  String _titleForResult(String? resultCode) {
+  String _titleForResult(AppLocalizations l10n, String? resultCode) {
     switch (resultCode) {
       case 'win':
-        return 'Chiến thắng!';
+        return l10n.pvpResultVictoryTitle;
       case 'draw':
-        return 'Hòa!';
+        return l10n.pvpResultDrawTitle;
       case 'lose':
-        return 'Thất bại';
+        return l10n.pvpResultDefeatTitle;
       default:
-        return 'Kết quả trận đấu';
+        return l10n.pvpResultTitle;
     }
   }
 
-  String _subtitleForResult(String? resultCode) {
+  String _subtitleForResult(AppLocalizations l10n, String? resultCode) {
     switch (resultCode) {
       case 'win':
         return opponentName.isEmpty
-            ? 'Bạn đã thắng trận sprint!'
-            : 'Bạn đã đánh bại $opponentName';
+            ? l10n.pvpResultWinGeneric
+            : l10n.pvpResultBeatOpponent(opponentName);
       case 'draw':
-        return 'Hai bên ngang điểm';
+        return l10n.pvpResultScoresTied;
       case 'lose':
         if (forcedResultCode == 'lose') {
           return opponentName.isEmpty
-              ? 'Bạn đã thoát trận và nhận thua.'
-              : 'Bạn đã thoát trận. $opponentName thắng.';
+              ? l10n.pvpResultForfeitGeneric
+              : l10n.pvpResultForfeitOpponentWon(opponentName);
         }
-        return 'Cố gắng thêm chút nữa nhé!';
+        return l10n.pvpResultTryAgain;
       default:
-        return 'Đang tải kết quả từ máy chủ...';
+        return l10n.pvpResultLoadingServer;
     }
   }
 
-  String _formatMmrDelta(int delta) {
-    if (delta > 0) return '+$delta';
-    return '$delta';
+  String _localizedTierName(AppLocalizations l10n, PvpRankTierResponse rank) {
+    switch (rank.tierCode.trim().toLowerCase()) {
+      case 'mam_dong':
+        return l10n.pvpTierMamDong;
+      case 'la_bac':
+        return l10n.pvpTierLaBac;
+      case 'nu_vang':
+        return l10n.pvpTierNuVang;
+      case 'hoa_lam':
+        return l10n.pvpTierHoaLam;
+      case 'trang_tim':
+        return l10n.pvpTierTrangTim;
+      case 'tinh_linh_cau_vong':
+        return l10n.pvpTierTinhLinhCauVong;
+      default:
+        final displayName = rank.displayName.trim();
+        return displayName.isNotEmpty ? displayName : l10n.pvpTierUnknown;
+    }
+  }
+
+  String _formatMmrDelta(int delta, MaterialLocalizations materialL10n) {
+    final formatted = materialL10n.formatDecimal(delta);
+    return delta > 0 ? '+$formatted' : formatted;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final materialL10n = MaterialLocalizations.of(context);
     final resultCode =
         (forcedResultCode?.isNotEmpty == true
             ? forcedResultCode!.toLowerCase()
             : null) ??
         result?.resultCodeForUser(currentUserId);
-    final isWin = resultCode == 'win';
-    final isDraw = resultCode == 'draw';
     final rank = result?.rankAfter ?? result?.rankBefore;
     final rankColor =
         _parseHexColor(rank?.colorHex) ?? theme.colorScheme.primary;
@@ -339,14 +375,14 @@ class PvPFinishedOverlay extends StatelessWidget {
                   const CircularProgressIndicator(),
                   const SizedBox(height: 24),
                   Text(
-                    'Đang tải kết quả...',
+                    l10n.pvpLoadingResult,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Đang chờ máy chủ chốt trận...',
+                    l10n.pvpWaitingServerFinalize,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.grey,
                     ),
@@ -360,28 +396,28 @@ class PvPFinishedOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Chưa lấy được kết quả trận',
+                    l10n.pvpResultUnavailableTitle,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Trận đã kết thúc. Thử lại sau hoặc tiếp tục.',
+                  Text(
+                    l10n.pvpResultUnavailableMessage,
                     textAlign: TextAlign.center,
                   ),
                 ] else ...[
                   const SizedBox(height: 24),
                   Text(
-                    _titleForResult(resultCode),
+                    _titleForResult(l10n, resultCode),
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _subtitleForResult(resultCode),
+                    _subtitleForResult(l10n, resultCode),
                     textAlign: TextAlign.center,
                   ),
                   if (result != null) ...[
@@ -394,8 +430,8 @@ class PvPFinishedOverlay extends StatelessWidget {
                         if (result!.isRanked) ...[
                           _buildRewardCard(
                             context,
-                            'MMR',
-                            _formatMmrDelta(result!.mmrDelta),
+                            l10n.pvpMmr,
+                            _formatMmrDelta(result!.mmrDelta, materialL10n),
                             Icons.trending_up,
                             result!.mmrDelta >= 0
                                 ? Colors.amber
@@ -403,8 +439,8 @@ class PvPFinishedOverlay extends StatelessWidget {
                           ),
                           _buildRewardCard(
                             context,
-                            'MMR hiện tại',
-                            '${result!.mmrAfter}',
+                            l10n.pvpCurrentMmr,
+                            materialL10n.formatDecimal(result!.mmrAfter),
                             Icons.speed,
                             theme.colorScheme.primary,
                           ),
@@ -412,8 +448,10 @@ class PvPFinishedOverlay extends StatelessWidget {
                         if (rank != null)
                           _buildRewardCard(
                             context,
-                            result!.tierChanged ? 'Rank mới' : 'Rank',
-                            rank.displayName,
+                            result!.tierChanged
+                                ? l10n.pvpNewRank
+                                : l10n.pvpRank,
+                            _localizedTierName(l10n, rank),
                             Icons.military_tech,
                             rankColor,
                             leadingAsset: PvpAssetResolver.rankAssetFromTier(
@@ -433,7 +471,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                     if (result!.claimedAt != null) ...[
                       const SizedBox(height: 12),
                       Text(
-                        'Đã nhận thưởng',
+                        l10n.pvpRewardClaimed,
                         style: TextStyle(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -458,9 +496,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'PHẦN THƯỞNG NHẬN ĐƯỢC',
-                                style: TextStyle(
+                              Text(
+                                l10n.pvpRewardsReceived,
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
@@ -478,7 +516,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '+${claimResponse!.walletReward} coin',
+                                      l10n.pvpCoinReward(
+                                        claimResponse!.walletReward,
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
@@ -502,7 +542,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'x${item.quantity} vật phẩm',
+                                          l10n.pvpItemReward(item.quantity),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 14,
@@ -542,9 +582,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                               height: 22,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text(
-                              'Nhận thưởng',
-                              style: TextStyle(
+                          : Text(
+                              l10n.pvpClaimReward,
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -565,9 +605,9 @@ class PvPFinishedOverlay extends StatelessWidget {
                         borderRadius: BorderRadius.circular(28),
                       ),
                     ),
-                    child: const Text(
-                      'Tiếp tục',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.pvpContinue,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
