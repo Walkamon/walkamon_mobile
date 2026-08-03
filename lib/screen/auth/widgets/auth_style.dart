@@ -15,9 +15,14 @@ abstract final class AuthStyle {
 }
 
 class AuthGardenScaffold extends StatelessWidget {
-  const AuthGardenScaffold({super.key, required this.child});
+  const AuthGardenScaffold({
+    super.key,
+    required this.child,
+    this.backgroundAsset = AppAssets.authGarden,
+  });
 
   final Widget child;
+  final String backgroundAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,7 @@ class AuthGardenScaffold extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          AppAssets.authGarden,
+          backgroundAsset,
           fit: BoxFit.cover,
           alignment: Alignment.center,
         ),

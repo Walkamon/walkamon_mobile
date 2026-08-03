@@ -398,7 +398,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get seedEvolutionDescription =>
-      'Mầm sẽ tiến hóa thành các dạng Tinh Linh khác nhau dựa trên thói quen vận động của bạn.';
+      'Khi Mầm Ánh Sáng đạt cấp tiến hóa, bạn sẽ được tự chọn một trong ba hệ Tinh Linh để đồng hành.';
 
   @override
   String get seedPath1Name => 'Tinh Linh Bình Minh';

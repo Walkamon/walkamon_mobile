@@ -833,7 +833,7 @@ abstract class AppLocalizations {
   /// No description provided for @seedEvolutionDescription.
   ///
   /// In en, this message translates to:
-  /// **'The Seed will evolve into different Lumina forms based on your walking habits.'**
+  /// **'When the Seed of Light reaches its evolution level, you can choose one of three Spirit affinities as your companion.'**
   String get seedEvolutionDescription;
 
   /// No description provided for @seedPath1Name.

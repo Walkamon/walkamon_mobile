@@ -399,7 +399,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get seedEvolutionDescription =>
-      'The Seed will evolve into different Lumina forms based on your walking habits.';
+      'When the Seed of Light reaches its evolution level, you can choose one of three Spirit affinities as your companion.';
 
   @override
   String get seedPath1Name => 'Dawn Spirit';

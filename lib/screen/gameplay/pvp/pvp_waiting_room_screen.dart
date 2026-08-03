@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/pvp_provider.dart';
 import '../../../widgets/common/game_back_button.dart';
+import '../../../widgets/common/game_button_label.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import 'pvp_asset_resolver.dart';
 import 'widgets/pvp_modals.dart';
@@ -36,7 +37,6 @@ class PvPWaitingRoomScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final numberFormat = NumberFormat.decimalPattern(l10n.localeName);
     final mapAsset = PvpAssetResolver.mapForNow(
@@ -58,10 +58,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     };
     final isSearchingForOpponent =
         pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
-    // Use part of the reserved bottom-navigation gap for the search status so
-    // the hero/stats viewport does not shrink and clip the Bond row.
-    const matchmakingStatusExtent = 30.0;
-    const bottomNavigationClearance = 100.0;
+    final isCompactHeight = MediaQuery.sizeOf(context).height < 900;
+    final bottomNavigationClearance = isCompactHeight ? 88.0 : 100.0;
+    final petViewportHeight = isCompactHeight ? 128.0 : 178.0;
+    final petPreviewHeight = isCompactHeight ? 116.0 : 158.0;
 
     return Stack(
       fit: StackFit.expand,
@@ -72,7 +72,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
           alignment: Alignment.center,
           filterQuality: FilterQuality.medium,
         ),
-        Container(color: Colors.black.withOpacity(0.28)),
+        Container(color: Colors.black.withValues(alpha: 0.28)),
         Padding(
           padding: EdgeInsets.fromLTRB(
             20,
@@ -173,112 +173,84 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 168,
-                              height: 168,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: theme.colorScheme.primaryContainer
-                                    .withOpacity(0.75),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: theme.colorScheme.primary.withAlpha(
-                                      90,
-                                    ),
-                                    blurRadius: 40,
-                                    spreadRadius: 10,
-                                  ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: PetRuntimePreview(
-                                    affinityCode: affinityCode,
-                                    stageNo: stageNo,
-                                    animationType:
-                                        activePetAnimationType.trim().isEmpty
-                                        ? 'idle'
-                                        : activePetAnimationType.trim(),
-                                    compact: true,
-                                    height: 144,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: -4,
-                              bottom: -4,
-                              child: Image.asset(
-                                PvpAssetResolver.rankAsset(),
-                                width: 52,
-                                height: 52,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            if (passiveAsset != null)
-                              Positioned(
-                                left: -4,
-                                top: -4,
-                                child: Image.asset(
-                                  passiveAsset,
-                                  width: 44,
-                                  height: 44,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withOpacity(0.92),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: theme.dividerColor),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(13),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
+                        _PvpPetPanel(
+                          title: pvpProvider.petName,
+                          compact: isCompactHeight,
                           child: Column(
                             children: [
-                              Text(
-                                pvpProvider.petName,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Container(
+                                width: double.infinity,
+                                height: petViewportHeight,
+                                decoration: BoxDecoration(
+                                  color: AppColors.creamLight.withValues(
+                                    alpha: 0.52,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppColors.woodLight,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    PetRuntimePreview(
+                                      affinityCode: affinityCode,
+                                      stageNo: stageNo,
+                                      animationType:
+                                          activePetAnimationType.trim().isEmpty
+                                          ? 'idle'
+                                          : activePetAnimationType.trim(),
+                                      compact: true,
+                                      height: petPreviewHeight,
+                                    ),
+                                    Positioned(
+                                      right: 10,
+                                      bottom: 8,
+                                      child: Image.asset(
+                                        PvpAssetResolver.rankAsset(),
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    if (passiveAsset != null)
+                                      Positioned(
+                                        left: 10,
+                                        top: 8,
+                                        child: Image.asset(
+                                          passiveAsset,
+                                          width: 44,
+                                          height: 44,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                              const Divider(height: 24),
+                              SizedBox(height: isCompactHeight ? 5 : 9),
                               _buildStatRow(
                                 l10n.pvpTodayStepsLabel,
                                 numberFormat.format(pvpProvider.todaySteps),
-                                theme,
+                                compact: isCompactHeight,
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: isCompactHeight ? 4 : 6),
                               _buildStatRow(
                                 l10n.pvpSpiritAffinityLabel,
                                 displayAffinityLabel,
-                                theme,
+                                compact: isCompactHeight,
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: isCompactHeight ? 4 : 6),
                               _buildStatRow(
                                 l10n.pvpEnergyLabel,
                                 '${numberFormat.format(pvpProvider.currentEnergy)}/${numberFormat.format(pvpProvider.maxEnergy)}',
-                                theme,
+                                compact: isCompactHeight,
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: isCompactHeight ? 4 : 6),
                               _buildStatRow(
                                 l10n.pvpBondLabel,
                                 numberFormat.format(pvpProvider.currentBond),
-                                theme,
+                                compact: isCompactHeight,
                               ),
                             ],
                           ),
@@ -288,24 +260,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              if (isSearchingForOpponent)
-                SizedBox(
-                  height: matchmakingStatusExtent,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      l10n.pvpSearchingOpponent,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ),
+              SizedBox(height: isCompactHeight ? 10 : 24),
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: isCompactHeight ? 50 : 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF6C95D),
@@ -317,21 +275,16 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                   onPressed:
                       pvpProvider.matchmakingState ==
-                          PvpMatchmakingState.waiting
-                      ? onCancelMatchmaking
-                      : pvpProvider.matchmakingState ==
-                                PvpMatchmakingState.idle ||
-                            pvpProvider.matchmakingState ==
-                                PvpMatchmakingState.finished ||
-                            pvpProvider.matchmakingState ==
-                                PvpMatchmakingState.cancelled
+                              PvpMatchmakingState.idle ||
+                          pvpProvider.matchmakingState ==
+                              PvpMatchmakingState.finished ||
+                          pvpProvider.matchmakingState ==
+                              PvpMatchmakingState.cancelled
                       ? onStartMatchmaking
                       : null,
                   child: Text(
-                    pvpProvider.matchmakingState == PvpMatchmakingState.waiting
-                        ? l10n.pvpCancelSearch
-                        : pvpProvider.matchmakingState ==
-                              PvpMatchmakingState.connecting
+                    pvpProvider.matchmakingState ==
+                            PvpMatchmakingState.connecting
                         ? l10n.pvpConnecting
                         : pvpProvider.matchmakingState ==
                               PvpMatchmakingState.countdown
@@ -344,10 +297,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isCompactHeight ? 10 : 16),
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: isCompactHeight ? 50 : 56,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppColors.authCard,
@@ -380,35 +333,344 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                height: isSearchingForOpponent
-                    ? bottomNavigationClearance - matchmakingStatusExtent
-                    : bottomNavigationClearance,
-              ),
+              SizedBox(height: bottomNavigationClearance),
             ],
           ),
         ),
+        if (isSearchingForOpponent)
+          Positioned.fill(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const ModalBarrier(
+                  dismissible: false,
+                  color: Color(0x990F1A12),
+                ),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _PvpSearchingModal(
+                      title: l10n.pvpSearchingOpponent,
+                      cancelLabel: l10n.pvpCancelSearch,
+                      onCancel: onCancelMatchmaking,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildStatRow(String label, String value, ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
+  Widget _buildStatRow(
+    String label,
+    String value, {
+    bool compact = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: compact ? 5 : 8,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.creamLight.withValues(alpha: 0.76),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: AppColors.woodLight, width: 1.1),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.inkBrown,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: AppColors.woodDeep,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PvpSearchingModal extends StatelessWidget {
+  const _PvpSearchingModal({
+    required this.title,
+    required this.cancelLabel,
+    required this.onCancel,
+  });
+
+  final String title;
+  final String cancelLabel;
+  final VoidCallback? onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 360),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+          decoration: BoxDecoration(
+            color: AppColors.authCard,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: AppColors.woodDeep, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: AppColors.leafLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.oliveDeep, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: const SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    color: AppColors.oliveDeep,
+                    backgroundColor: AppColors.creamLight,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              GameButtonLabel(
+                title,
+                fontSize: 20,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.creamLight,
+                outlineWidth: 3.5,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppColors.creamLight,
+                    foregroundColor: AppColors.woodDeep,
+                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                  child: GameButtonLabel(
+                    cancelLabel,
+                    fontSize: 16,
+                    color: AppColors.woodDeep,
+                    outlineColor: AppColors.creamLight,
+                    outlineWidth: 2.5,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+    );
+  }
+}
+
+class _PvpPetPanel extends StatelessWidget {
+  const _PvpPetPanel({
+    required this.title,
+    required this.child,
+    this.compact = false,
+  });
+
+  final String title;
+  final Widget child;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            top: compact ? 20 : 24,
+            bottom: 4,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.leafLight.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(
+                10,
+                compact ? 28 : 34,
+                10,
+                compact ? 9 : 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.authCard.withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.wood, width: 1.5),
+              ),
+              child: child,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 52,
+          right: 52,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 47),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.woodLight,
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: AppColors.woodDeep, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.woodDeep.withValues(alpha: 0.24),
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: GameButtonLabel(
+              title,
+              fontSize: 17,
+              color: AppColors.buttonText,
+              outlineColor: AppColors.woodDeep,
+              outlineWidth: 3,
+            ),
+          ),
+        ),
+        const Positioned(
+          left: -4,
+          top: 24,
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size(46, 46),
+              painter: _PvpPanelLeafPainter(),
+            ),
+          ),
+        ),
+        const Positioned(
+          right: -3,
+          bottom: -1,
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size(50, 50),
+              painter: _PvpPanelLeafPainter(flower: true, mirrored: true),
+            ),
+          ),
         ),
       ],
     );
   }
+}
+
+class _PvpPanelLeafPainter extends CustomPainter {
+  const _PvpPanelLeafPainter({this.flower = false, this.mirrored = false});
+
+  final bool flower;
+  final bool mirrored;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (mirrored) {
+      canvas.translate(size.width, size.height);
+      canvas.rotate(3.14159);
+    }
+
+    final stem = Paint()
+      ..color = AppColors.oliveDeep
+      ..strokeWidth = 2.2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final leafFill = Paint()..color = AppColors.leaf;
+    final edge = Paint()
+      ..color = AppColors.oliveDeep
+      ..strokeWidth = 1.1
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(
+      Offset(4, size.height - 5),
+      Offset(size.width - 7, 7),
+      stem,
+    );
+
+    void drawLeaf(Offset center, double angle) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      final rect = Rect.fromCenter(center: Offset.zero, width: 16, height: 8);
+      canvas.drawOval(rect, leafFill);
+      canvas.drawOval(rect, edge);
+      canvas.restore();
+    }
+
+    drawLeaf(Offset(size.width * 0.3, size.height * 0.65), -0.65);
+    drawLeaf(Offset(size.width * 0.5, size.height * 0.46), 0.75);
+    drawLeaf(Offset(size.width * 0.68, size.height * 0.28), -0.62);
+
+    if (flower) {
+      final center = Offset(size.width * 0.72, size.height * 0.22);
+      final petal = Paint()..color = AppColors.blossom;
+      for (var i = 0; i < 5; i++) {
+        canvas.drawCircle(
+          center + Offset.fromDirection(i * 1.25664, 6.5),
+          4.4,
+          petal,
+        );
+      }
+      canvas.drawCircle(center, 3.4, Paint()..color = AppColors.goldLight);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PvpPanelLeafPainter oldDelegate) =>
+      oldDelegate.flower != flower || oldDelegate.mirrored != mirrored;
 }

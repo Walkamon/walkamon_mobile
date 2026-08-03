@@ -94,7 +94,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     ),
                     child: Center(
                       child: Image.asset(
-                        AppAssets.iconDailyRewardRes,
+                        AppAssets.iconDailyRewardSystem,
                         width: 62,
                         height: 62,
                         fit: BoxFit.contain,

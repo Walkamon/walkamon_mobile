@@ -101,6 +101,7 @@ class GameSettings {
 
 class GameStateProvider extends ChangeNotifier {
   static const _languageCodeKey = 'language_code';
+  static const _storySeenKeyPrefix = 'story_seen_';
 
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
@@ -316,6 +317,7 @@ class GameStateProvider extends ChangeNotifier {
     _user = null;
     _profileErrorMessage = null;
     _hasStarterPet = false;
+    _hasSeenStory = false;
     _spiritName = 'Lumina';
     _affinityCode = 'sprout';
     _petStageNo = 0;
@@ -357,7 +359,7 @@ class GameStateProvider extends ChangeNotifier {
         languageCode: preferredLanguageCode,
       );
 
-      _hasSeenStory = profileData.hasSeenStory;
+      _hasSeenStory = profileData.hasSeenStory || await _hasSeenStoryLocally();
 
       notifyListeners();
       return true;
@@ -727,9 +729,39 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  void setHasSeenStory(bool seen) {
+  Future<bool> _hasSeenStoryLocally() async {
+    final userId = _user?.id ?? '';
+    if (userId.isEmpty) return false;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      return preferences.getBool('$_storySeenKeyPrefix$userId') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> loadHasSeenStory() async {
+    if (_hasSeenStory) return true;
+    final localSeen = await _hasSeenStoryLocally();
+    if (localSeen != _hasSeenStory) {
+      _hasSeenStory = localSeen;
+      notifyListeners();
+    }
+    return _hasSeenStory;
+  }
+
+  Future<void> setHasSeenStory(bool seen) async {
     _hasSeenStory = seen;
     notifyListeners();
+
+    final userId = _user?.id ?? '';
+    if (userId.isEmpty) return;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('$_storySeenKeyPrefix$userId', seen);
+    } catch (error) {
+      debugPrint('Không thể lưu trạng thái onboarding: $error');
+    }
   }
 
   bool canAfford(int price) => _user != null && _user!.coins >= price;

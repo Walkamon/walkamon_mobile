@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
-import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
 
-import '../../providers/game_state_provider.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
+import '../../providers/game_state_provider.dart';
 import '../auth/widgets/auth_style.dart';
 
 class SeedScreen extends StatefulWidget {
@@ -18,14 +20,12 @@ class _EvolutionPath {
   const _EvolutionPath({
     required this.name,
     required this.description,
-    required this.icon,
-    required this.accentColor,
+    required this.affinityCode,
   });
 
   final String name;
   final String description;
-  final IconData icon;
-  final Color accentColor;
+  final String affinityCode;
 }
 
 class _SeedScreenState extends State<SeedScreen>
@@ -44,14 +44,11 @@ class _SeedScreenState extends State<SeedScreen>
     );
     _opacity = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _slide = Tween<Offset>(
-      begin: const Offset(0.18, 0),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _redirectIfPetExists();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _redirectIfPetExists());
   }
 
   @override
@@ -61,14 +58,20 @@ class _SeedScreenState extends State<SeedScreen>
   }
 
   Future<void> _redirectIfPetExists() async {
-    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    final gameState = context.read<GameStateProvider>();
+    final hasSeenStory = await gameState.loadHasSeenStory();
     if (!mounted) return;
+    if (!hasSeenStory) {
+      Navigator.pushReplacementNamed(context, '/story');
+      return;
+    }
 
+    final hasPet = await gameState.fetchPetName();
+    if (!mounted) return;
     if (hasPet) {
       Navigator.pushReplacementNamed(context, '/home');
       return;
     }
-
     setState(() => _isCheckingPet = false);
   }
 
@@ -80,253 +83,328 @@ class _SeedScreenState extends State<SeedScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    const primary = AuthStyle.forest;
-    const onPrimary = AuthStyle.cream;
-    final mutedForeground = AuthStyle.forest.withValues(alpha: 0.78);
-    const accent = AuthStyle.rust;
-
-    if (_isCheckingPet) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AuthGardenScaffold(
+        backgroundAsset: AppAssets.onboardingSeed,
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _opacity,
-            child: SlideTransition(
-              position: _slide,
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 28,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildIntroCard(
-                          theme: theme,
-                          l10n: l10n,
-                          primary: primary,
-                          accent: accent,
-                          mutedForeground: mutedForeground,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildEvolutionCard(theme, l10n, mutedForeground),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: _continue,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: primary,
-                              foregroundColor: onPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: const StadiumBorder(
-                                side: BorderSide(
-                                  color: AppColors.woodDeep,
-                                  width: 2,
+          child: _isCheckingPet
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.oliveDeep),
+                )
+              : FadeTransition(
+                  opacity: _opacity,
+                  child: SlideTransition(
+                    position: _slide,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight - 42,
+                            ),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 440,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _buildIntroCard(l10n),
+                                    const SizedBox(height: 12),
+                                    _buildEvolutionPanel(l10n),
+                                    const SizedBox(height: 14),
+                                    _SeedContinueButton(
+                                      label: l10n.seedContinue,
+                                      onPressed: _continue,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            child: Text(
-                              l10n.seedContinue,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildIntroCard({
-    required ThemeData theme,
-    required AppLocalizations l10n,
-    required Color primary,
-    required Color accent,
-    required Color mutedForeground,
-  }) {
+  Widget _buildIntroCard(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
-        color: AuthStyle.cream.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.wood, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: AppColors.woodDeep.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         children: [
           Container(
-            width: 88,
-            height: 88,
+            width: 132,
+            height: 132,
+            padding: const EdgeInsets.all(4),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
+              color: AppColors.creamLight,
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.72),
-              border: Border.all(
-                color: AuthStyle.gold.withValues(alpha: 0.42),
-                width: 1.5,
-              ),
+              border: Border.all(color: AppColors.wood, width: 1.8),
             ),
-            child: AppIcon(
-              Icons.local_florist_rounded,
-              size: 46,
-              color: accent,
+            child: const PetRuntimePreview(
+              affinityCode: 'sprout',
+              stageNo: 0,
+              animationType: 'idle',
+              compact: true,
+              height: 122,
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
+          const SizedBox(height: 12),
+          GameButtonLabel(
             l10n.seedTitleScreen,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AuthStyle.forestDark,
-            ),
-            textAlign: TextAlign.center,
+            fontSize: 23,
+            color: AppColors.woodDeep,
+            outlineColor: AppColors.creamLight,
+            outlineWidth: 3.5,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 9),
           Text(
             l10n.seedDescriptionScreen,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: mutedForeground,
-              fontWeight: FontWeight.w500,
-              height: 1.6,
-            ),
             textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13.5,
+              height: 1.45,
+              fontWeight: FontWeight.w700,
+              color: AppColors.inkBrown,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEvolutionCard(
-    ThemeData theme,
-    AppLocalizations l10n,
-    Color mutedForeground,
-  ) {
-    final evolutionPaths = [
+  Widget _buildEvolutionPanel(AppLocalizations l10n) {
+    final paths = [
       _EvolutionPath(
         name: l10n.seedPath1Name,
         description: l10n.seedPath1Description,
-        icon: Icons.wb_sunny_outlined,
-        accentColor: const Color(0xFFF59E0B),
+        affinityCode: 'dawn',
       ),
       _EvolutionPath(
         name: l10n.seedPath2Name,
         description: l10n.seedPath2Description,
-        icon: Icons.nightlight_round,
-        accentColor: const Color(0xFF6366F1),
+        affinityCode: 'moonlight',
       ),
       _EvolutionPath(
         name: l10n.seedPath3Name,
         description: l10n.seedPath3Description,
-        icon: Icons.local_florist_outlined,
-        accentColor: const Color(0xFF22C55E),
+        affinityCode: 'warm_sun',
       ),
     ];
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: AuthStyle.cream.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        color: AppColors.leafLight.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.oliveDeep, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.woodDeep.withValues(alpha: 0.16),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.seedEvolutionTitle,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AuthStyle.forestDark,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+            child: Column(
+              children: [
+                GameButtonLabel(
+                  l10n.seedEvolutionTitle,
+                  fontSize: 18,
+                  color: AppColors.woodDeep,
+                  outlineColor: AppColors.leafLight,
+                  outlineWidth: 3,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.seedEvolutionDescription,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.inkBrown,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.seedEvolutionDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: mutedForeground,
-              height: 1.6,
+          ...paths.map(_buildEvolutionPathCard),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEvolutionPathCard(_EvolutionPath path) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.authCard.withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: AppColors.wood, width: 1.35),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 82,
+            height: 82,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: AppColors.creamLight,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: AppColors.wood, width: 1.2),
+            ),
+            child: PetRuntimePreview(
+              affinityCode: path.affinityCode,
+              stageNo: 1,
+              animationType: 'idle',
+              compact: true,
+              height: 74,
             ),
           ),
-          const SizedBox(height: 18),
-          ...evolutionPaths.map(
-            (path) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.58),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFD8CDAE)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  path.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.woodDeep,
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: path.accentColor.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: AppIcon(
-                        path.icon,
-                        color: path.accentColor,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            path.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AuthStyle.forestDark,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            path.description,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: mutedForeground,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 3),
+                Text(
+                  path.description,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    height: 1.3,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.outlineBrown,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _SeedContinueButton extends StatelessWidget {
+  const _SeedContinueButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.buttonGreen,
+      borderRadius: BorderRadius.circular(32),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(32),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: AppColors.woodDeep, width: 2),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(painter: _SeedButtonLeafPainter()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 36,
+                  vertical: 15,
+                ),
+                child: GameButtonLabel(
+                  label,
+                  fontSize: 17,
+                  color: AppColors.buttonText,
+                  outlineColor: AppColors.woodDeep,
+                  outlineWidth: 3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SeedButtonLeafPainter extends CustomPainter {
+  const _SeedButtonLeafPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width < 110) return;
+    final fill = Paint()..color = AppColors.oliveDeep;
+    final edge = Paint()
+      ..color = AppColors.woodDeep
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    void drawLeaf(Offset center, double angle) {
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      final rect = Rect.fromCenter(center: Offset.zero, width: 16, height: 8);
+      canvas.drawOval(rect, fill);
+      canvas.drawOval(rect, edge);
+      canvas.restore();
+    }
+
+    final y = size.height / 2;
+    drawLeaf(Offset(9, y - 5), -0.55);
+    drawLeaf(Offset(9, y + 5), 0.55);
+    drawLeaf(Offset(size.width - 9, y - 5), 0.55);
+    drawLeaf(Offset(size.width - 9, y + 5), -0.55);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

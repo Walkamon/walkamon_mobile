@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "vi",
   "appTitle": "Walkamon",
   "system": "Hệ thống",
@@ -532,7 +532,7 @@
   "seedTitleScreen": "Mầm Ánh Sáng",
   "seedDescriptionScreen": "Đây là khởi đầu của hành trình. Mầm Ánh Sáng sẽ hấp thụ Sinh Mệnh Lực từ những bước chân của bạn để phát triển.",
   "seedEvolutionTitle": "Tiến Hoá",
-  "seedEvolutionDescription": "Mầm sẽ tiến hóa thành các dạng Tinh Linh khác nhau dựa trên thói quen vận động của bạn.",
+  "seedEvolutionDescription": "Khi Mầm Ánh Sáng đạt cấp tiến hóa, bạn sẽ được tự chọn một trong ba hệ Tinh Linh để đồng hành.",
   "storySkip": "Bỏ qua",
   "storyBack": "Quay lại",
   "storyContinue": "Tiếp tục",
@@ -796,7 +796,7 @@
 "seedDescription": "Đây là khởi đầu của hành trình. Mầm Ánh Sáng sẽ hấp thụ Sinh Mệnh Lực từ những bước chân của bạn để phát triển.",
 
 "seedEvolutionTitle": "Tiến Hoá",
-"seedEvolutionDescription": "Mầm sẽ tiến hóa thành các dạng Tinh Linh khác nhau dựa trên thói quen vận động của bạn.",
+"seedEvolutionDescription": "Khi Mầm Ánh Sáng đạt cấp tiến hóa, bạn sẽ được tự chọn một trong ba hệ Tinh Linh để đồng hành.",
 
 "seedPath1Name": "Tinh Linh Bình Minh",
 "seedPath1Description": "Hệ Bay • Đi bộ buổi sáng",
@@ -1027,3 +1027,5 @@
   "pvpTierTinhLinhCauVong": "Tinh Linh Cầu Vồng",
   "pvpTierUnknown": "Chưa xác định"
 }
+
+
