@@ -9,7 +9,6 @@ import 'pvp_waiting_room_screen.dart';
 import 'widgets/pvp_modals.dart';
 import 'widgets/pvp_racing_environment.dart';
 import 'widgets/pvp_overlays.dart';
-import 'widgets/pvp_two_slot_hud.dart';
 
 class PvPSprintScreen extends StatefulWidget {
   const PvPSprintScreen({super.key});
@@ -31,6 +30,15 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   bool _isLoadingResult = false;
   String? _resultRequestedForMatchId;
   bool _battleMusicActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(context.read<GameStateProvider>().fetchPetVisual());
+    });
+  }
 
   @override
   void dispose() {
@@ -269,8 +277,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   @override
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
+    final gameState = context.watch<GameStateProvider>();
     _syncMatchMusic(pvpProvider);
-    final currentUserId = context.watch<GameStateProvider>().user?.id ?? '';
+    final currentUserId = gameState.user?.id ?? '';
     if (currentUserId.isNotEmpty &&
         pvpProvider.currentUserId != currentUserId) {
       pvpProvider.setCurrentUserId(currentUserId);
@@ -385,6 +394,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         if (!showRacingTrack)
           PvPWaitingRoomScreen(
             pvpProvider: pvpProvider,
+            activePetAffinityCode: gameState.affinityCode,
+            activePetStageNo: gameState.petStageNo,
+            activePetAnimationType: gameState.animationType,
             onStartMatchmaking:
                 (_gameState == 'waiting' || _gameState == 'finished')
                 ? () => _startMatchmaking()
@@ -416,11 +428,9 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             mapAssets: PvpAssetResolver.mapsForNow(
               pvpProvider.estimatedServerNow(),
             ),
-            myAffinityCode: pvpProvider.mySpiritAffinityCode,
+            myAffinityCode: gameState.affinityCode,
             opponentAffinityCode: pvpProvider.opponentSpiritAffinityCode,
-            myStageNo: pvpProvider.petStageNo,
-            leftSlot: const PvpHudSlot(itemCode: 'haste'),
-            rightSlot: const PvpHudSlot(itemCode: 'shield'),
+            myStageNo: gameState.petStageNo,
           ),
 
         if (isProviderConnecting) const PvPMatchingOverlay(),

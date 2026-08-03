@@ -5,7 +5,9 @@ import '../../../data/models/pvp_models.dart';
 
 /// Maps API codes → bundled `assets/Mobile/PVP` paths from the V1 manifest.
 abstract final class PvpAssetResolver {
-  static const hudCenterSlice = Rect.fromLTWH(352, 128, 64, 128);
+  // The 768x384 HUD is authored at 4x for a logical height of 96px.
+  static const hudAssetScale = 4.0;
+  static const hudCenterSlice = Rect.fromLTWH(88, 32, 16, 32);
 
   static String mapForNow(DateTime now) {
     return mapsForNow(now).first;

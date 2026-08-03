@@ -38,6 +38,7 @@ class PvpTwoSlotHud extends StatelessWidget {
           Positioned.fill(
             child: Image.asset(
               AppAssets.pvpTwoSlotHud,
+              scale: PvpAssetResolver.hudAssetScale,
               fit: BoxFit.fill,
               centerSlice: PvpAssetResolver.hudCenterSlice,
               filterQuality: FilterQuality.medium,

@@ -10,6 +10,9 @@ import 'widgets/pvp_modals.dart';
 
 class PvPWaitingRoomScreen extends StatelessWidget {
   final PvpProvider pvpProvider;
+  final String activePetAffinityCode;
+  final int activePetStageNo;
+  final String activePetAnimationType;
   final VoidCallback? onStartMatchmaking;
   final VoidCallback? onCancelMatchmaking;
   final void Function(String userId, String username)? onInviteFriend;
@@ -19,6 +22,9 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   const PvPWaitingRoomScreen({
     super.key,
     required this.pvpProvider,
+    required this.activePetAffinityCode,
+    required this.activePetStageNo,
+    this.activePetAnimationType = 'idle',
     required this.onStartMatchmaking,
     required this.onCancelMatchmaking,
     required this.onInviteFriend,
@@ -34,11 +40,20 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     final mapAsset = PvpAssetResolver.mapForNow(
       pvpProvider.estimatedServerNow(),
     );
-    final affinityCode = pvpProvider.spiritAffinityCode;
+    final affinityCode = activePetAffinityCode.trim().isEmpty
+        ? pvpProvider.spiritAffinityCode
+        : activePetAffinityCode.trim();
+    final stageNo = activePetAffinityCode.trim().isEmpty
+        ? pvpProvider.petStageNo
+        : activePetStageNo;
     final passiveAsset = PvpAssetResolver.passiveForAffinity(affinityCode);
     final rawAffinity = pvpProvider.spiritAffinity.trim();
+    final providerAffinityCode = pvpProvider.spiritAffinityCode.trim();
+    final isSameProviderAffinity =
+        providerAffinityCode.toLowerCase() == affinityCode.toLowerCase();
     final affinityLabel =
-        rawAffinity.isNotEmpty &&
+        isSameProviderAffinity &&
+            rawAffinity.isNotEmpty &&
             rawAffinity.toLowerCase() != affinityCode.toLowerCase()
         ? rawAffinity
         : PvpAssetResolver.affinityDisplayName(affinityCode);
@@ -51,6 +66,12 @@ class PvPWaitingRoomScreen extends StatelessWidget {
               }[affinityCode.toLowerCase()] ??
               affinityLabel
         : affinityLabel;
+    final isSearchingForOpponent =
+        pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
+    // Use part of the reserved bottom-navigation gap for the search status so
+    // the hero/stats viewport does not shrink and clip the Bond row.
+    const matchmakingStatusExtent = 30.0;
+    const bottomNavigationClearance = 100.0;
 
     return Stack(
       fit: StackFit.expand,
@@ -186,8 +207,11 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                                   padding: const EdgeInsets.all(12),
                                   child: PetRuntimePreview(
                                     affinityCode: affinityCode,
-                                    stageNo: pvpProvider.petStageNo,
-                                    animationType: 'idle',
+                                    stageNo: stageNo,
+                                    animationType:
+                                        activePetAnimationType.trim().isEmpty
+                                        ? 'idle'
+                                        : activePetAnimationType.trim(),
                                     compact: true,
                                     height: 144,
                                   ),
@@ -273,17 +297,20 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              if (pvpProvider.matchmakingState == PvpMatchmakingState.waiting)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    localized(
-                      'Đang tìm đối thủ...',
-                      'Searching for an opponent...',
-                    ),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+              if (isSearchingForOpponent)
+                SizedBox(
+                  height: matchmakingStatusExtent,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Text(
+                      localized(
+                        'Đang tìm đối thủ...',
+                        'Searching for an opponent...',
+                      ),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -367,7 +394,11 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 100),
+              SizedBox(
+                height: isSearchingForOpponent
+                    ? bottomNavigationClearance - matchmakingStatusExtent
+                    : bottomNavigationClearance,
+              ),
             ],
           ),
         ),

@@ -190,6 +190,7 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
         width: widget.compact ? widget.height : null,
         child: Center(
           child: PetAtlasGridAnimation(
+            key: ValueKey(evolvedBaseAtlas.atlasAsset),
             atlasAsset: evolvedBaseAtlas.atlasAsset,
             manifestAsset: evolvedBaseAtlas.manifestAsset,
             manifestAtlasAsset: evolvedBaseAtlas.manifestAtlasAsset,
@@ -225,6 +226,7 @@ class _PetRuntimePreviewState extends State<PetRuntimePreview> {
         width: widget.compact ? widget.height : null,
         child: const Center(
           child: PetAtlasGridAnimation(
+            key: ValueKey(AppAssets.sproutDefaultAtlas),
             atlasAsset: AppAssets.sproutDefaultAtlas,
             manifestAsset: AppAssets.petRuntimeManifestSproutStage0,
             manifestAtlasAsset:
