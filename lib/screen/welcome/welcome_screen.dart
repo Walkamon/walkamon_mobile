@@ -125,7 +125,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            AppAssets.authGarden,
+            AppAssets.welcome,
             fit: BoxFit.cover,
             alignment: Alignment.center,
           ),
@@ -626,15 +626,6 @@ class _SettingsOverlay extends StatelessWidget {
                                             .read<GameStateProvider>()
                                             .setLanguageCode(code);
                                       },
-                                    ),
-                                    _WelcomeSettingsSwitch(
-                                      label: l10n.darkMode,
-                                      icon: Icons.light_mode_rounded,
-                                      asset: AppAssets.iconSun,
-                                      value: settings.darkMode,
-                                      onChanged: (value) => context
-                                          .read<GameStateProvider>()
-                                          .updateSettings(darkMode: value),
                                     ),
                                     _WelcomeSettingsSwitch(
                                       label: l10n.bgm,

@@ -7,6 +7,7 @@ import '../../../../data/models/pvp_models.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/pvp_provider.dart';
 import '../../../../widgets/common/app_icon.dart';
+import '../../../../widgets/common/game_button_label.dart';
 
 String? _nonBlank(String? value) {
   final trimmed = value?.trim();
@@ -407,6 +408,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+              const SizedBox(width: 14),
               IconButton(
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.creamLight,
@@ -785,14 +787,14 @@ class _FriendsModalContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: AppColors.authCard,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(top: BorderSide(color: AppColors.wood, width: 2)),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
@@ -800,101 +802,45 @@ class _FriendsModalContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
+            width: 52,
             height: 6,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(3),
+              color: AppColors.creamDeep,
+              borderRadius: BorderRadius.circular(99),
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 18),
+          GameButtonLabel(
             l10n.pvpChallengeFriendsTitle,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            fontSize: 22,
+            color: AppColors.woodDeep,
+            outlineColor: AppColors.authCard,
+            outlineWidth: 3,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Flexible(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.pvpOnlineSection,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                  _buildPresenceSection(
+                    context,
+                    label: l10n.pvpOnlineSection,
+                    emptyLabel: l10n.pvpNoOnlineFriends,
+                    friends: online,
+                    online: true,
                   ),
-                  const SizedBox(height: 8),
-                  if (online.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        l10n.pvpNoOnlineFriends,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    )
-                  else
-                    ...online.map(
-                      (f) => _buildFriendItem(context, f, onInvite),
-                    ),
-                  const Divider(height: 32),
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.grey,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.pvpOfflineSection,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: Divider(color: AppColors.wood, thickness: 1.5),
                   ),
-                  const SizedBox(height: 8),
-                  if (offline.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        l10n.pvpNoOfflineFriends,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    )
-                  else
-                    ...offline.map(
-                      (f) => _buildFriendItem(context, f, onInvite),
-                    ),
+                  _buildPresenceSection(
+                    context,
+                    label: l10n.pvpOfflineSection,
+                    emptyLabel: l10n.pvpNoOfflineFriends,
+                    friends: offline,
+                    online: false,
+                  ),
                 ],
               ),
             ),
@@ -904,6 +850,61 @@ class _FriendsModalContent extends StatelessWidget {
     );
   }
 
+  Widget _buildPresenceSection(
+    BuildContext context, {
+    required String label,
+    required String emptyLabel,
+    required List<FriendsResponse> friends,
+    required bool online,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Image.asset(
+              online ? AppAssets.iconOnline : AppAssets.iconOffline,
+              width: 24,
+              height: 24,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: online ? AppColors.success : AppColors.outlineBrown,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.woodDeep,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (friends.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              emptyLabel,
+              style: const TextStyle(
+                color: AppColors.outlineBrown,
+                fontSize: 14,
+              ),
+            ),
+          )
+        else
+          ...friends.map((f) => _buildFriendItem(context, f, onInvite)),
+      ],
+    );
+  }
   Widget _buildFriendItem(
     BuildContext context,
     FriendsResponse friend,
@@ -918,9 +919,9 @@ class _FriendsModalContent extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.creamLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Row(
         children: [
@@ -933,7 +934,7 @@ class _FriendsModalContent extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: theme.colorScheme.onSurface,
+                    color: AppColors.woodDeep,
                   ),
                 ),
                 if (isBusy)

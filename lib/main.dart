@@ -44,7 +44,7 @@ import 'screen/spirit/spirit_detail_screen.dart';
 import 'screen/social/social_screen.dart';
 import 'screen/gameplay/pvp_screen.dart';
 import 'screen/welcome/daily_reward_screen.dart';
-import 'screen/welcome/story_screen.dart';
+import 'screen/welcome/lumina_onboarding_screen.dart';
 import 'screen/welcome/name_pet_screen.dart';
 import 'screen/welcome/seed_screen.dart';
 import 'screen/notifications/notifications_screen.dart';
@@ -244,6 +244,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 '/spirit/detail',
                 '/spirit/friend',
 
+                '/story',
                 '/seed',
                 '/name-pet',
               ];
@@ -409,7 +410,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
                   );
                   break;
                 case '/story':
-                  builder = (_) => const StoryScreen();
+                  builder = (_) => const LuminaOnboardingScreen();
                   break;
                 case '/seed':
                   builder = (_) => const SeedScreen();

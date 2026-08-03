@@ -16,10 +16,24 @@ class PvPScreen extends StatelessWidget {
       create: (_) =>
           PvpProvider(presenceProvider: presenceProvider)
             ..fetchWaitingRoomData(),
-      child: const Scaffold(
-        extendBody: true,
-        body: const PvPMainScreen(),
-        bottomNavigationBar: BottomNavigation(),
+      child: Consumer<PvpProvider>(
+        builder: (context, pvpProvider, _) {
+          final hideBottomNavigation =
+              pvpProvider.matchmakingState == PvpMatchmakingState.connecting ||
+              pvpProvider.matchmakingState == PvpMatchmakingState.waiting ||
+              pvpProvider.matchmakingState == PvpMatchmakingState.countdown ||
+              pvpProvider.matchmakingState == PvpMatchmakingState.running ||
+              pvpProvider.matchmakingState == PvpMatchmakingState.finished ||
+              pvpProvider.isRaceFinished;
+
+          return Scaffold(
+            extendBody: true,
+            body: const PvPMainScreen(),
+            bottomNavigationBar: hideBottomNavigation
+                ? null
+                : const BottomNavigation(),
+          );
+        },
       ),
     );
   }

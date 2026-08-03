@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "en",
   "appTitle": "Walkamon",
   "system": "System",
@@ -158,7 +158,7 @@
 "seedDescription": "This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.",
 
 "seedEvolutionTitle": "Evolution",
-"seedEvolutionDescription": "The Seed will evolve into different Lumina forms based on your walking habits.",
+"seedEvolutionDescription": "When the Seed of Light reaches its evolution level, you can choose one of three Spirit affinities as your companion.",
 
 "seedPath1Name": "Dawn Spirit",
 "seedPath1Description": "Flying Type • Morning Walks",
@@ -619,7 +619,7 @@
   "seedTitleScreen": "Seed of Light",
   "seedDescriptionScreen": "This is the beginning of your journey. The Seed of Light absorbs Life Force from your footsteps to grow.",
   "seedEvolutionTitle": "Evolution",
-  "seedEvolutionDescription": "The Seed will evolve into different Lumina forms based on your walking habits.",
+  "seedEvolutionDescription": "When the Seed of Light reaches its evolution level, you can choose one of three Spirit affinities as your companion.",
   "storySkip": "Skip",
   "storyBack": "Back",
   "storyContinue": "Continue",
@@ -1099,3 +1099,5 @@
   "pvpTierTinhLinhCauVong": "Rainbow Spirit",
   "pvpTierUnknown": "Unknown rank"
 }
+
+

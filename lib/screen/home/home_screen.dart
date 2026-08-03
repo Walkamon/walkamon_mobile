@@ -654,23 +654,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Align(
-                                            alignment: Alignment.topRight,
-                                            child: GestureDetector(
-                                              onTap: () =>
-                                                  Navigator.of(context).pop(),
-                                              child: SizedBox(
-                                                width: 40,
-                                                height: 40,
-                                                child: _assetIcon(
-                                                  AppAssets.iconClose,
-                                                  size: 28,
-                                                  color: AppColors.woodDeep,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,

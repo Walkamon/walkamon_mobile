@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../core/audio/app_audio_service.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../widgets/common/game_button_label.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
@@ -56,7 +58,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       _showMatchSuccessPopup = true;
       _enterRacingAfterPopup = false;
     });
-    _successPopupTimer = Timer(const Duration(milliseconds: 900), () {
+    _successPopupTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
       setState(() {
         _showMatchSuccessPopup = false;
@@ -194,19 +196,78 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.pvpExitMatchTitle),
-        content: Text(l10n.pvpExitMatchMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.pvpStayInMatch),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
+          decoration: BoxDecoration(
+            color: AppColors.authCard,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.wood, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.woodDeep.withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.pvpExitAndForfeit),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GameButtonLabel(
+                l10n.pvpExitMatchTitle,
+                fontSize: 22,
+                color: AppColors.woodDeep,
+                outlineColor: AppColors.authCard,
+                outlineWidth: 3,
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l10n.pvpExitMatchMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.woodDeep,
+                  fontSize: 15,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.woodDeep,
+                        side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                        backgroundColor: AppColors.buttonSecondary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Text(l10n.pvpStayInMatch),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: AppColors.buttonText,
+                        backgroundColor: AppColors.buttonGreen,
+                        side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Text(l10n.pvpExitAndForfeit),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
 
@@ -439,7 +500,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
           ),
 
         if (isProviderConnecting) const PvPMatchingOverlay(),
-        if (_showMatchSuccessPopup) const PvPMatchSuccessOverlay(),
+        if (_showMatchSuccessPopup)
+          PvPMatchSuccessOverlay(
+            myAffinityCode: gameState.affinityCode,
+            myStageNo: gameState.petStageNo,
+            opponentAffinityCode: pvpProvider.opponentSpiritAffinityCode,
+          ),
         if (_gameState == 'waiting-for-friend')
           PvPWaitingFriendOverlay(
             opponentName: _opponentName,

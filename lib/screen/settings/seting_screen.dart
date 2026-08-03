@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
@@ -141,11 +141,12 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Stack(
-            children: [
-              SingleChildScrollView(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -183,16 +184,6 @@ class _SettingScreenState extends State<SettingScreen> {
                     _SettingsPanel(
                       child: Column(
                         children: [
-                          _SettingsSwitch(
-                            label: l10n.darkMode,
-                            icon: Icons.light_mode_rounded,
-                            asset: AppAssets.iconSun,
-                            showToggle: false,
-                            value: gameState.settings.darkMode,
-                            onChanged: (value) => context
-                                .read<GameStateProvider>()
-                                .updateSettings(darkMode: value),
-                          ),
                           _SettingsSwitch(
                             label: l10n.bgm,
                             icon: Icons.music_note_rounded,
@@ -303,9 +294,9 @@ class _SettingScreenState extends State<SettingScreen> {
                   ],
                 ),
               ),
-              if (_showFeedbackPopup) _buildFeedbackPopup(context),
-            ],
-          ),
+            ),
+            if (_showFeedbackPopup) _buildFeedbackPopup(context),
+          ],
         ),
       ),
     );
@@ -713,7 +704,6 @@ class _SettingsSwitch extends StatelessWidget {
     this.asset,
     required this.label,
     this.subtitle = '',
-    this.showToggle = true,
     required this.value,
     required this.onChanged,
   });
@@ -722,7 +712,6 @@ class _SettingsSwitch extends StatelessWidget {
   final String? asset;
   final String label;
   final String subtitle;
-  final bool showToggle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -777,18 +766,15 @@ class _SettingsSwitch extends StatelessWidget {
               ],
             ),
           ),
-          if (showToggle)
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeThumbColor: AppColors.authCard,
-              activeTrackColor: AppColors.buttonGreen,
-              inactiveThumbColor: AppColors.authCard,
-              inactiveTrackColor: AppColors.creamDeep,
-              trackOutlineColor: const WidgetStatePropertyAll(
-                AppColors.woodDeep,
-              ),
-            ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.authCard,
+            activeTrackColor: AppColors.buttonGreen,
+            inactiveThumbColor: AppColors.authCard,
+            inactiveTrackColor: AppColors.creamDeep,
+            trackOutlineColor: const WidgetStatePropertyAll(AppColors.woodDeep),
+          ),
         ],
       ),
     );

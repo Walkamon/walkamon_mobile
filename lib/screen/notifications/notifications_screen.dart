@@ -126,11 +126,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               maxHeight: MediaQuery.sizeOf(context).height * 0.78,
             ),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+              padding: const EdgeInsets.fromLTRB(38, 34, 38, 52),
               decoration: BoxDecoration(
-                color: AppColors.authCard,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: AppColors.wood, width: 2),
+                image: const DecorationImage(
+                  image: AssetImage(AppAssets.notificationModalFrame),
+                  fit: BoxFit.fill,
+                  filterQuality: FilterQuality.medium,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.woodDeep.withValues(alpha: 0.25),
@@ -145,42 +148,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: IconButton(
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).closeButtonTooltip,
-                          onPressed: () => Navigator.of(context).pop(),
-                          constraints: const BoxConstraints.tightFor(
-                            width: 40,
-                            height: 40,
-                          ),
-                          padding: EdgeInsets.zero,
-                          icon: const AppIcon(
-                            Icons.close_rounded,
-                            size: 30,
-                            color: AppColors.woodDeep,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 82,
-                        height: 82,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.leafLight.withValues(alpha: 0.55),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.wood, width: 1.5),
-                        ),
-                        child: AppIcon(
-                          _getNotificationIcon(item.typeCode),
-                          asset: _getNotificationIconAsset(item.typeCode),
-                          size: 48,
-                          color: AppColors.oliveDeep,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+
                       GameButtonLabel(
                         item.title,
                         fontSize: 21,
@@ -268,27 +236,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                     ),
                                   ),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.creamLight.withValues(
-                                      alpha: 0.72,
-                                    ),
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(
-                                      color: AppColors.wood.withValues(
-                                        alpha: 0.55,
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 12),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: Text(
+                                      snapshot.data!.body,
+                                      textAlign: TextAlign.left,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.inkBrown,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.55,
                                       ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    snapshot.data!.body,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.inkBrown,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.55,
                                     ),
                                   ),
                                 ),

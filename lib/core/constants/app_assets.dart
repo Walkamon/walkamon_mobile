@@ -7,6 +7,18 @@ abstract final class AppAssets {
   static const onboardingSeed = '$root/Onboarding/onboarding_seed_portrait.png';
   static const onboardingNamePet =
       '$root/Onboarding/onboarding_name_pet_portrait.png';
+  static const onboardingStory01 =
+      '$root/Onboarding/onboarding_01_luminara_alive-qa1.png';
+  static const onboardingStory02 =
+      '$root/Onboarding/onboarding_02_silent_night-qa1.png';
+  static const onboardingStory03 =
+      '$root/Onboarding/onboarding_03_last_seed-qa1.png';
+  static const onboardingStory04 =
+      '$root/Onboarding/onboarding_04_waiting_device-qa1.png';
+  static const onboardingStory05 =
+      '$root/Onboarding/onboarding_05_first_step-qa1.png';
+  static const onboardingStory06 =
+      '$root/Onboarding/onboarding_06_lumina_awakens-qa1.png';
   static const dailyReward = '$root/Onboarding/daily_reward_portrait.png';
   static const menuBackdrop = '$root/Menu/menu_backdrop_portrait.png';
 
