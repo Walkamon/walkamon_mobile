@@ -8,10 +8,15 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../widgets/common/app_icon.dart';
 import '../pvp_asset_resolver.dart';
 import 'pvp_frame_animation.dart';
-import 'pvp_two_slot_hud.dart';
 
 const double _startPhaseEnd = 5 / 30;
 const double _finishPhaseStart = 25 / 30;
+const double _mapSourceWidth = 1440;
+const double _mapSourceHeight = 2560;
+const double _startLineLeadingSourceX = 92;
+const double _petForwardVisibleFactor = 0.40;
+const List<double> _morningLaneCenters = [1280, 1680];
+const List<double> _nightLaneCenters = [1008, 1664];
 
 /// Texture phase for the documented 30-second race:
 /// start map (0-5s) -> loop map (5-25s) -> finish map (25-30s).
@@ -24,17 +29,44 @@ int pvpTrackPhaseIndex(double raceProgress) {
 }
 
 @visibleForTesting
-double pvpLaneBaseline(double viewportHeight, int laneIndex) {
-  return viewportHeight * (laneIndex == 0 ? 0.58 : 0.73);
+double pvpLaneCenterY({
+  required double viewportWidth,
+  required double viewportHeight,
+  required String mapAsset,
+  required int laneIndex,
+}) {
+  assert(laneIndex == 0 || laneIndex == 1);
+  final sourceCenters = mapAsset.contains('_night_')
+      ? _nightLaneCenters
+      : _morningLaneCenters;
+  final coverScale = math.max(
+    viewportWidth / _mapSourceWidth,
+    viewportHeight / _mapSourceHeight,
+  );
+  final renderedHeight = _mapSourceHeight * coverScale;
+  final centeredCoverTop = (viewportHeight - renderedHeight) / 2;
+  return centeredCoverTop + sourceCenters[laneIndex] * coverScale;
 }
 
 @visibleForTesting
 double pvpRunnerScreenX({
   required double viewportWidth,
+  double? viewportHeight,
   required double progress,
   required double runnerWidth,
 }) {
-  final minimum = math.max(viewportWidth * 0.10, runnerWidth / 2 + 8);
+  final coverScale = viewportHeight == null
+      ? viewportWidth / _mapSourceWidth
+      : math.max(
+          viewportWidth / _mapSourceWidth,
+          viewportHeight / _mapSourceHeight,
+        );
+  final startLineX = _startLineLeadingSourceX * coverScale;
+  final petWidth = math.max(0.0, runnerWidth - 24);
+  final minimum = math.max(
+    0.0,
+    startLineX - petWidth * _petForwardVisibleFactor,
+  );
   final maximum = math.min(
     viewportWidth * 0.90,
     viewportWidth - runnerWidth / 2 - 8,
@@ -61,8 +93,6 @@ class PvPRacingEnvironment extends StatefulWidget {
     this.opponentStageNo = 0,
     this.myActiveEffects = const <String>[],
     this.opponentActiveEffects = const <String>[],
-    this.leftSlot = const PvpHudSlot(itemCode: 'haste'),
-    this.rightSlot = const PvpHudSlot(itemCode: 'shield'),
   });
 
   final bool isMoving;
@@ -80,8 +110,6 @@ class PvPRacingEnvironment extends StatefulWidget {
   final int opponentStageNo;
   final List<String> myActiveEffects;
   final List<String> opponentActiveEffects;
-  final PvpHudSlot leftSlot;
-  final PvpHudSlot rightSlot;
 
   @override
   State<PvPRacingEnvironment> createState() => _PvPRacingEnvironmentState();
@@ -143,14 +171,16 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final maps = _trackMaps;
-        final activeMap = maps[pvpTrackPhaseIndex(widget.trackProgress)];
+        final normalizedTrackProgress = widget.trackProgress
+            .clamp(0.0, 1.0)
+            .toDouble();
+        final activeMap = maps[pvpTrackPhaseIndex(normalizedTrackProgress)];
         const opponentPetSize = 72.0;
         const myPetSize = 84.0;
 
@@ -172,7 +202,9 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                 width: width,
                 height: height,
                 fit: BoxFit.cover,
-                alignment: Alignment.center,
+                alignment: activeMap == maps.first
+                    ? Alignment.centerLeft
+                    : Alignment.center,
                 filterQuality: FilterQuality.medium,
                 gaplessPlayback: true,
               ),
@@ -195,10 +227,16 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
               progress: widget.opponentProgress,
               screenX: pvpRunnerScreenX(
                 viewportWidth: width,
+                viewportHeight: height,
                 progress: widget.opponentProgress,
                 runnerWidth: opponentPetSize + 24,
               ),
-              baselineY: pvpLaneBaseline(height, 0),
+              laneCenterY: pvpLaneCenterY(
+                viewportWidth: width,
+                viewportHeight: height,
+                mapAsset: activeMap,
+                laneIndex: 0,
+              ),
               label: widget.opponentName,
               labelColor: theme.colorScheme.surface,
               labelTextColor: theme.colorScheme.onSurface,
@@ -212,10 +250,16 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
               progress: widget.myProgress,
               screenX: pvpRunnerScreenX(
                 viewportWidth: width,
+                viewportHeight: height,
                 progress: widget.myProgress,
                 runnerWidth: myPetSize + 24,
               ),
-              baselineY: pvpLaneBaseline(height, 1),
+              laneCenterY: pvpLaneCenterY(
+                viewportWidth: width,
+                viewportHeight: height,
+                mapAsset: activeMap,
+                laneIndex: 1,
+              ),
               label: 'Bạn',
               labelColor: theme.colorScheme.primary,
               labelTextColor: theme.colorScheme.onPrimary,
@@ -268,56 +312,66 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Container(
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.black26,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Stack(
-                            children: [
-                              AnimatedFractionallySizedBox(
-                                duration: const Duration(milliseconds: 100),
-                                widthFactor: (widget.myProgress / 100)
-                                    .clamp(0.0, 1.0)
-                                    .toDouble(),
-                                alignment: Alignment.centerLeft,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(6),
+                        child: Semantics(
+                          label: 'Race progress',
+                          value: '${(normalizedTrackProgress * 100).round()}%',
+                          child: Container(
+                            key: const ValueKey('pvp-race-progress-track'),
+                            height: 12,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: Colors.black26,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Stack(
+                              children: [
+                                AnimatedFractionallySizedBox(
+                                  key: const ValueKey('pvp-race-progress-fill'),
+                                  duration: const Duration(milliseconds: 100),
+                                  widthFactor: normalizedTrackProgress,
+                                  heightFactor: 1,
+                                  alignment: Alignment.centerLeft,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          theme.colorScheme.primary,
+                                          theme.colorScheme.tertiary,
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              AnimatedFractionallySizedBox(
-                                duration: const Duration(milliseconds: 100),
-                                widthFactor: (widget.opponentProgress / 100)
-                                    .clamp(0.0, 1.0)
-                                    .toDouble(),
-                                alignment: Alignment.centerLeft,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.circular(6),
+                                Align(
+                                  alignment: const Alignment(-2 / 3, 0),
+                                  child: Container(
+                                    width: 1,
+                                    height: 12,
+                                    color: Colors.white38,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Align(
+                                  alignment: const Alignment(2 / 3, 0),
+                                  child: Container(
+                                    width: 1,
+                                    height: 12,
+                                    color: Colors.white38,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 4),
+                      const AppIcon(
+                        Icons.sports_score_rounded,
+                        size: 20,
+                        color: Colors.white,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16 + bottomInset,
-              child: PvpTwoSlotHud(
-                left: widget.leftSlot,
-                right: widget.rightSlot,
               ),
             ),
             if (_shouldShowCountdown)
@@ -351,7 +405,7 @@ class _Runner extends StatelessWidget {
   const _Runner({
     required this.progress,
     required this.screenX,
-    required this.baselineY,
+    required this.laneCenterY,
     required this.label,
     required this.labelColor,
     required this.labelTextColor,
@@ -364,7 +418,7 @@ class _Runner extends StatelessWidget {
 
   final double progress;
   final double screenX;
-  final double baselineY;
+  final double laneCenterY;
   final String label;
   final Color labelColor;
   final Color labelTextColor;
@@ -384,28 +438,35 @@ class _Runner extends StatelessWidget {
       duration: const Duration(milliseconds: 140),
       curve: Curves.easeOutCubic,
       left: screenX - runnerWidth / 2,
-      top: baselineY - runnerHeight,
+      top: laneCenterY - runnerHeight + petSize / 2,
       width: runnerWidth,
       height: runnerHeight,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Container(
-            constraints: BoxConstraints(maxWidth: runnerWidth),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: labelColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: labelTextColor,
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 140),
+            curve: Curves.easeOutCubic,
+            alignment: screenX < runnerWidth / 2
+                ? Alignment.centerRight
+                : Alignment.center,
+            child: Container(
+              constraints: BoxConstraints(maxWidth: runnerWidth),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: labelColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: labelTextColor,
+                ),
               ),
             ),
           ),

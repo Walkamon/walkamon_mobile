@@ -16,27 +16,66 @@ void main() {
       expect(pvpTrackPhaseIndex(1), 2);
     });
 
-    test('pet baselines match the two lanes in the asset guide', () {
-      expect(pvpLaneBaseline(1000, 0), 580);
-      expect(pvpLaneBaseline(1000, 1), 730);
+    test('maps each theme lane center through centered BoxFit.cover', () {
+      expect(
+        pvpLaneCenterY(
+          viewportWidth: 625,
+          viewportHeight: 873,
+          mapAsset: AppAssets.pvpMapNightStart,
+          laneIndex: 0,
+        ),
+        closeTo(318.44, 0.1),
+      );
+      expect(
+        pvpLaneCenterY(
+          viewportWidth: 625,
+          viewportHeight: 873,
+          mapAsset: AppAssets.pvpMapNightStart,
+          laneIndex: 1,
+        ),
+        closeTo(603.17, 0.1),
+      );
+      expect(
+        pvpLaneCenterY(
+          viewportWidth: 625,
+          viewportHeight: 873,
+          mapAsset: AppAssets.pvpMapMorningStart,
+          laneIndex: 0,
+        ),
+        closeTo(436.5, 0.1),
+      );
+      expect(
+        pvpLaneCenterY(
+          viewportWidth: 625,
+          viewportHeight: 873,
+          mapAsset: AppAssets.pvpMapMorningStart,
+          laneIndex: 1,
+        ),
+        closeTo(610.11, 0.1),
+      );
     });
 
-    test('pet movement stays inside safe horizontal bounds', () {
-      const width = 400.0;
+    test('pets start behind the line and finish inside the track', () {
+      const width = 625.0;
+      const height = 873.0;
       const runnerWidth = 108.0;
+      const petWidth = runnerWidth - 24;
+      final startLineX = 92 * (width / 1440);
 
       final start = pvpRunnerScreenX(
         viewportWidth: width,
+        viewportHeight: height,
         progress: -10,
         runnerWidth: runnerWidth,
       );
       final finish = pvpRunnerScreenX(
         viewportWidth: width,
+        viewportHeight: height,
         progress: 120,
         runnerWidth: runnerWidth,
       );
 
-      expect(start - runnerWidth / 2, greaterThanOrEqualTo(8));
+      expect(start + petWidth * 0.40, closeTo(startLineX, 0.1));
       expect(finish + runnerWidth / 2, lessThanOrEqualTo(width - 8));
     });
   });
@@ -80,7 +119,7 @@ void main() {
     });
   });
 
-  testWidgets('renders both pet sprites on the actual lane baselines', (
+  testWidgets('renders both pet sprite centers on the lane centers', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(400, 800));
@@ -98,9 +137,7 @@ void main() {
             racePhase: 'ready',
             isFinished: false,
             onClose: () {},
-            mapAssets: PvpAssetResolver.mapsForNow(
-              DateTime(2026, 1, 1, 12),
-            ),
+            mapAssets: PvpAssetResolver.mapsForNow(DateTime(2026, 1, 1, 12)),
           ),
         ),
       ),
@@ -109,8 +146,63 @@ void main() {
 
     final pets = find.byType(PvpPetAnimation);
     expect(pets, findsNWidgets(2));
-    expect(tester.getBottomLeft(pets.at(0)).dy, closeTo(800 * 0.58, 0.1));
-    expect(tester.getBottomLeft(pets.at(1)).dy, closeTo(800 * 0.73, 0.1));
+    expect(tester.getCenter(pets.at(0)).dy, closeTo(400, 0.1));
+    expect(tester.getCenter(pets.at(1)).dy, closeTo(525, 0.1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('race timeline fills and switches maps through the finish', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final maps = PvpAssetResolver.mapsForNow(DateTime(2026, 1, 1, 12));
+
+    Widget buildEnvironment(double trackProgress) {
+      return MaterialApp(
+        home: Scaffold(
+          body: PvPRacingEnvironment(
+            isMoving: false,
+            trackProgress: trackProgress,
+            myProgress: trackProgress * 100,
+            opponentProgress: trackProgress * 100,
+            opponentName: 'Đối thủ',
+            racePhase: 'running',
+            isFinished: false,
+            onClose: () {},
+            mapAssets: maps,
+          ),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(buildEnvironment(0));
+    await tester.pump();
+    expect(find.byKey(ValueKey(maps[0])), findsOneWidget);
+
+    await tester.pumpWidget(buildEnvironment(0.5));
+    await tester.pump(const Duration(milliseconds: 160));
+
+    final track = find.byKey(const ValueKey('pvp-race-progress-track'));
+    final fill = find.byKey(const ValueKey('pvp-race-progress-fill'));
+    expect(track, findsOneWidget);
+    expect(fill, findsOneWidget);
+    expect(tester.getSize(fill).height, closeTo(12, 0.1));
+    expect(
+      tester.getSize(fill).width,
+      closeTo(tester.getSize(track).width * 0.5, 0.1),
+    );
+    expect(find.byKey(ValueKey(maps[0])), findsNothing);
+    expect(find.byKey(ValueKey(maps[1])), findsOneWidget);
+
+    await tester.pumpWidget(buildEnvironment(0.9));
+    await tester.pump(const Duration(milliseconds: 160));
+    expect(find.byKey(ValueKey(maps[1])), findsNothing);
+    expect(find.byKey(ValueKey(maps[2])), findsOneWidget);
+    expect(
+      tester.getSize(fill).width,
+      closeTo(tester.getSize(track).width * 0.9, 0.1),
+    );
     expect(tester.takeException(), isNull);
   });
 }
