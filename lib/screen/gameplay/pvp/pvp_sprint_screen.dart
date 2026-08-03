@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../core/audio/app_audio_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
 import 'pvp_asset_resolver.dart';
@@ -180,6 +181,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
   Future<void> _onCloseRacePressed() async {
     if (_isLoadingResult) return;
+    final l10n = AppLocalizations.of(context);
     final provider = context.read<PvpProvider>();
     final isRacing =
         provider.matchmakingState == PvpMatchmakingState.running ||
@@ -193,18 +195,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Thoát trận?'),
-        content: const Text(
-          'Nếu thoát bây giờ bạn sẽ nhận kết quả THẤT BẠI và đối thủ thắng.',
-        ),
+        title: Text(l10n.pvpExitMatchTitle),
+        content: Text(l10n.pvpExitMatchMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Ở lại'),
+            child: Text(l10n.pvpStayInMatch),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Thoát & nhận thua'),
+            child: Text(l10n.pvpExitAndForfeit),
           ),
         ],
       ),
@@ -278,6 +278,11 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
     final gameState = context.watch<GameStateProvider>();
+    final l10n = AppLocalizations.of(context);
+    final providerOpponentName = pvpProvider.currentOpponentName.trim();
+    final opponentDisplayName = providerOpponentName.isNotEmpty
+        ? providerOpponentName
+        : l10n.pvpOpponent;
     _syncMatchMusic(pvpProvider);
     final currentUserId = gameState.user?.id ?? '';
     if (currentUserId.isNotEmpty &&
@@ -292,12 +297,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Thông báo'),
-            content: const Text('Người chơi từ chối lời mời'),
+            title: Text(l10n.pvpNoticeTitle),
+            content: Text(l10n.pvpInviteDeclined),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Đóng'),
+                child: Text(l10n.close),
               ),
             ],
           ),
@@ -421,7 +426,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             trackProgress: pvpProvider.raceTimeProgress,
             myProgress: pvpProvider.myProgress,
             opponentProgress: pvpProvider.opponentProgress,
-            opponentName: pvpProvider.currentOpponentName,
+            opponentName: opponentDisplayName,
             racePhase: pvpProvider.racePhase,
             isFinished: pvpProvider.isRaceFinished,
             onClose: _onCloseRacePressed,

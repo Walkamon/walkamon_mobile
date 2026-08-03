@@ -38,10 +38,11 @@ Future<void> _pumpWaitingRoom(
   String affinityCode = 'sprout',
   int stageNo = 0,
   String animationType = 'idle',
+  Locale locale = const Locale('vi'),
 }) async {
   await tester.pumpWidget(
     MaterialApp(
-      locale: const Locale('vi'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -62,7 +63,57 @@ Future<void> _pumpWaitingRoom(
   await tester.pump();
 }
 
+void _expectMatchmakingLayout(
+  WidgetTester tester, {
+  required String bondLabel,
+  required String searchStatus,
+  required String cancelButton,
+  required String friendButton,
+}) {
+  final statsScroller = find.byType(SingleChildScrollView);
+  final bond = find.text(bondLabel);
+  final status = find.text(searchStatus);
+  final cancel = find.text(cancelButton);
+  final friend = find.text(friendButton);
+
+  expect(statsScroller, findsOneWidget);
+  expect(bond, findsOneWidget);
+  expect(status, findsOneWidget);
+  expect(cancel, findsOneWidget);
+  expect(friend, findsOneWidget);
+
+  final scrollerRect = tester.getRect(statsScroller);
+  final bondRect = tester.getRect(bond);
+  final statusRect = tester.getRect(status);
+  final cancelRect = tester.getRect(cancel);
+  final friendRect = tester.getRect(friend);
+
+  expect(bondRect.bottom, lessThanOrEqualTo(scrollerRect.bottom));
+  expect(bondRect.bottom, lessThan(statusRect.top));
+  expect(statusRect.bottom, lessThan(cancelRect.top));
+  expect(cancelRect.bottom, lessThan(friendRect.top));
+  expect(tester.takeException(), isNull);
+}
+
 void main() {
+  testWidgets('renders the waiting room in English', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(500, 698));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final provider = _TestPvpProvider(PvpMatchmakingState.waiting);
+    addTearDown(provider.dispose);
+
+    await _pumpWaitingRoom(tester, provider, locale: const Locale('en'));
+
+    _expectMatchmakingLayout(
+      tester,
+      bondLabel: 'Bond:',
+      searchStatus: 'Searching for an opponent...',
+      cancelButton: 'Cancel search',
+      friendButton: 'Challenge a friend',
+    );
+  });
+
   testWidgets('uses the active Home pet visual', (tester) async {
     await tester.binding.setSurfaceSize(const Size(500, 698));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -96,29 +147,13 @@ void main() {
 
     await _pumpWaitingRoom(tester, provider);
 
-    final statsScroller = find.byType(SingleChildScrollView);
-    final bondLabel = find.text('Độ gắn kết:');
-    final searchStatus = find.text('Đang tìm đối thủ...');
-    final cancelButton = find.text('Hủy tìm trận');
-    final friendButton = find.text('Thách đấu với bạn bè');
-
-    expect(statsScroller, findsOneWidget);
-    expect(bondLabel, findsOneWidget);
-    expect(searchStatus, findsOneWidget);
-    expect(cancelButton, findsOneWidget);
-    expect(friendButton, findsOneWidget);
-
-    final scrollerRect = tester.getRect(statsScroller);
-    final bondRect = tester.getRect(bondLabel);
-    final statusRect = tester.getRect(searchStatus);
-    final cancelRect = tester.getRect(cancelButton);
-    final friendRect = tester.getRect(friendButton);
-
-    expect(bondRect.bottom, lessThanOrEqualTo(scrollerRect.bottom));
-    expect(bondRect.bottom, lessThan(statusRect.top));
-    expect(statusRect.bottom, lessThan(cancelRect.top));
-    expect(cancelRect.bottom, lessThan(friendRect.top));
-    expect(tester.takeException(), isNull);
+    _expectMatchmakingLayout(
+      tester,
+      bondLabel: 'Độ gắn kết:',
+      searchStatus: 'Đang tìm đối thủ...',
+      cancelButton: 'Hủy tìm trận',
+      friendButton: 'Thách đấu với bạn bè',
+    );
   });
 
   testWidgets('matchmaking status pushes the action buttons down', (

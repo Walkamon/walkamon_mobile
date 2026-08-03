@@ -1676,4 +1676,378 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendSpiritStageLeaf => 'Leaf';
+
+  @override
+  String get pvpInvites => 'Invites';
+
+  @override
+  String get pvpHistory => 'History';
+
+  @override
+  String get pvpTodayStepsLabel => 'Today\'s steps:';
+
+  @override
+  String get pvpSpiritAffinityLabel => 'Spirit affinity:';
+
+  @override
+  String get pvpEnergyLabel => 'Energy:';
+
+  @override
+  String get pvpBondLabel => 'Bond:';
+
+  @override
+  String get pvpSearchingOpponent => 'Searching for an opponent...';
+
+  @override
+  String get pvpCancelSearch => 'Cancel search';
+
+  @override
+  String get pvpConnecting => 'Connecting...';
+
+  @override
+  String get pvpPreparing => 'Preparing...';
+
+  @override
+  String get pvpFindRandomMatch => 'Find random match';
+
+  @override
+  String get pvpChallengeFriend => 'Challenge a friend';
+
+  @override
+  String get pvpAffinityWarmSun => 'Warm Sun';
+
+  @override
+  String get pvpAffinityDawn => 'Dawn';
+
+  @override
+  String get pvpAffinityMoonlight => 'Moonlight';
+
+  @override
+  String get pvpAffinitySprout => 'Sprout';
+
+  @override
+  String get pvpAffinityUnknown => 'Unknown affinity';
+
+  @override
+  String get pvpExitMatchTitle => 'Leave match?';
+
+  @override
+  String get pvpExitMatchMessage =>
+      'Leaving now will count as a DEFEAT and your opponent will win.';
+
+  @override
+  String get pvpStayInMatch => 'Stay';
+
+  @override
+  String get pvpExitAndForfeit => 'Leave & forfeit';
+
+  @override
+  String get pvpNoticeTitle => 'Notice';
+
+  @override
+  String get pvpInviteDeclined => 'The player declined your invitation.';
+
+  @override
+  String get pvpChallengeInvitesTitle => 'Challenge invites';
+
+  @override
+  String get pvpNoInvitations => 'No invitations';
+
+  @override
+  String get pvpStatusOffline => 'Offline';
+
+  @override
+  String get pvpStatusBusy => 'Busy';
+
+  @override
+  String get pvpStatusOnline => 'Online';
+
+  @override
+  String get pvpOpponent => 'Opponent';
+
+  @override
+  String get pvpSenderInAnotherMatch => 'The sender is in another match';
+
+  @override
+  String get pvpSenderOffline => 'The sender has gone offline';
+
+  @override
+  String get pvpAccept => 'Accept';
+
+  @override
+  String get pvpReject => 'Reject';
+
+  @override
+  String get pvpMatchTypeRanked => 'Ranked';
+
+  @override
+  String get pvpMatchTypeFriendly => 'Friendly';
+
+  @override
+  String get pvpMatchTypeEvent => 'Event';
+
+  @override
+  String get pvpMatchTypeOther => 'Other';
+
+  @override
+  String get pvpMatchSourceBot => 'Bot';
+
+  @override
+  String get pvpMatchSourceMatchmaking => 'Matchmaking';
+
+  @override
+  String get pvpMatchSourceInvite => 'Invite';
+
+  @override
+  String get pvpMatchSourceOther => 'Other source';
+
+  @override
+  String get pvpMatchHistoryTitle => 'Match history';
+
+  @override
+  String get pvpRefresh => 'Refresh';
+
+  @override
+  String get pvpFilterAll => 'All';
+
+  @override
+  String get pvpFilterAllResults => 'All results';
+
+  @override
+  String get pvpFilterWins => 'Wins';
+
+  @override
+  String get pvpFilterLosses => 'Losses';
+
+  @override
+  String get pvpNoMatches => 'No matches yet';
+
+  @override
+  String get pvpHistoryVictory => 'VICTORY';
+
+  @override
+  String get pvpHistoryCancelled => 'CANCELLED';
+
+  @override
+  String get pvpHistoryDefeat => 'DEFEAT';
+
+  @override
+  String get pvpHistoryDraw => 'DRAW';
+
+  @override
+  String get pvpHistoryResultUnknown => 'UNKNOWN';
+
+  @override
+  String get pvpPreviousPage => 'Previous page';
+
+  @override
+  String pvpPageOf(int page, int totalPages) {
+    return 'Page $page / $totalPages';
+  }
+
+  @override
+  String get pvpNextPage => 'Next page';
+
+  @override
+  String get pvpChallengeFriendsTitle => 'Challenge Friends';
+
+  @override
+  String get pvpOnlineSection => 'ONLINE';
+
+  @override
+  String get pvpNoOnlineFriends => 'No friends are online';
+
+  @override
+  String get pvpOfflineSection => 'OFFLINE';
+
+  @override
+  String get pvpNoOfflineFriends => 'No offline friends';
+
+  @override
+  String get pvpFriendBusy => 'Friend is busy';
+
+  @override
+  String get pvpChallengeAction => 'Challenge';
+
+  @override
+  String get pvpInviteSent => 'Invitation sent!';
+
+  @override
+  String pvpWaitingForFriend(String opponentName) {
+    return 'Waiting for $opponentName to respond...';
+  }
+
+  @override
+  String get pvpCancelRequest => 'Cancel request';
+
+  @override
+  String get pvpConnected => 'Connected!';
+
+  @override
+  String pvpRaceAgainst(String opponentName) {
+    return 'You will race against $opponentName';
+  }
+
+  @override
+  String get pvpPrepareForMatch => 'GET READY';
+
+  @override
+  String get pvpMatchSuccess => 'Match found!';
+
+  @override
+  String get pvpEnteringRace =>
+      'Entering the race. The countdown will begin as soon as the match is ready.';
+
+  @override
+  String get pvpResultVictoryTitle => 'Victory!';
+
+  @override
+  String get pvpResultDrawTitle => 'Draw!';
+
+  @override
+  String get pvpResultDefeatTitle => 'Defeat';
+
+  @override
+  String get pvpResultTitle => 'Match result';
+
+  @override
+  String get pvpResultWinGeneric => 'You won the sprint!';
+
+  @override
+  String pvpResultBeatOpponent(String opponentName) {
+    return 'You defeated $opponentName';
+  }
+
+  @override
+  String get pvpResultScoresTied => 'Both sides finished with the same score';
+
+  @override
+  String get pvpResultForfeitGeneric => 'You left the match and forfeited.';
+
+  @override
+  String pvpResultForfeitOpponentWon(String opponentName) {
+    return 'You left the match. $opponentName won.';
+  }
+
+  @override
+  String get pvpResultTryAgain => 'Keep going—you\'ve almost got it!';
+
+  @override
+  String get pvpResultLoadingServer => 'Loading the result from the server...';
+
+  @override
+  String get pvpLoadingResult => 'Loading result...';
+
+  @override
+  String get pvpWaitingServerFinalize =>
+      'Waiting for the server to finalize the match...';
+
+  @override
+  String get pvpResultUnavailableTitle => 'Match result unavailable';
+
+  @override
+  String get pvpResultUnavailableMessage =>
+      'The match has ended. Try again later or continue.';
+
+  @override
+  String get pvpMmr => 'MMR';
+
+  @override
+  String get pvpCurrentMmr => 'Current MMR';
+
+  @override
+  String get pvpNewRank => 'New rank';
+
+  @override
+  String get pvpRank => 'Rank';
+
+  @override
+  String get pvpRewardClaimed => 'Reward claimed';
+
+  @override
+  String get pvpRewardsReceived => 'REWARDS RECEIVED';
+
+  @override
+  String pvpCoinReward(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count Dewdrops',
+      one: '+1 Dewdrop',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pvpItemReward(int quantity) {
+    String _temp0 = intl.Intl.pluralLogic(
+      quantity,
+      locale: localeName,
+      other: 'x$quantity items',
+      one: 'x1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pvpClaimReward => 'Claim reward';
+
+  @override
+  String get pvpContinue => 'Continue';
+
+  @override
+  String get pvpYou => 'You';
+
+  @override
+  String get pvpSprintMode => 'SPRINT';
+
+  @override
+  String pvpRaceProgress(int percent) {
+    return 'Race progress: $percent%';
+  }
+
+  @override
+  String get pvpRaceGo => 'GO!';
+
+  @override
+  String get pvpCloseRace => 'Leave race';
+
+  @override
+  String get pvpMatchStatusWaiting => 'Waiting';
+
+  @override
+  String get pvpMatchStatusCountdown => 'Countdown';
+
+  @override
+  String get pvpMatchStatusRunning => 'Running';
+
+  @override
+  String get pvpMatchStatusSettling => 'Finalizing';
+
+  @override
+  String get pvpMatchStatusFinished => 'Finished';
+
+  @override
+  String get pvpMatchStatusCancelled => 'Cancelled';
+
+  @override
+  String get pvpTierMamDong => 'Bronze Sprout';
+
+  @override
+  String get pvpTierLaBac => 'Silver Leaf';
+
+  @override
+  String get pvpTierNuVang => 'Golden Bud';
+
+  @override
+  String get pvpTierHoaLam => 'Indigo Flower';
+
+  @override
+  String get pvpTierTrangTim => 'Purple Moon';
+
+  @override
+  String get pvpTierTinhLinhCauVong => 'Rainbow Spirit';
+
+  @override
+  String get pvpTierUnknown => 'Unknown rank';
 }

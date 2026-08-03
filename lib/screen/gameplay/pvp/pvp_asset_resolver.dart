@@ -61,23 +61,6 @@ abstract final class PvpAssetResolver {
     );
   }
 
-  static String affinityDisplayName(String? affinityCode) {
-    switch ((affinityCode ?? '').trim().toLowerCase()) {
-      case 'warm_sun':
-        return 'Nắng Ấm';
-      case 'dawn':
-        return 'Bình Minh';
-      case 'moonlight':
-        return 'Ánh Trăng';
-      case 'sprout':
-        return 'Thực Vật';
-      default:
-        return affinityCode?.trim().isNotEmpty == true
-            ? affinityCode!.trim()
-            : 'Thực Vật';
-    }
-  }
-
   static String? passiveForAffinity(String? affinityCode) {
     switch ((affinityCode ?? '').trim().toLowerCase()) {
       case 'dawn':

@@ -1674,4 +1674,365 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get friendSpiritStageLeaf => 'Lá Xanh';
+
+  @override
+  String get pvpInvites => 'Lời mời';
+
+  @override
+  String get pvpHistory => 'Lịch sử';
+
+  @override
+  String get pvpTodayStepsLabel => 'Bước đi hôm nay:';
+
+  @override
+  String get pvpSpiritAffinityLabel => 'Hệ tinh linh:';
+
+  @override
+  String get pvpEnergyLabel => 'Năng lượng:';
+
+  @override
+  String get pvpBondLabel => 'Độ gắn kết:';
+
+  @override
+  String get pvpSearchingOpponent => 'Đang tìm đối thủ...';
+
+  @override
+  String get pvpCancelSearch => 'Hủy tìm trận';
+
+  @override
+  String get pvpConnecting => 'Đang kết nối...';
+
+  @override
+  String get pvpPreparing => 'Đang chuẩn bị...';
+
+  @override
+  String get pvpFindRandomMatch => 'Ghép trận ngẫu nhiên';
+
+  @override
+  String get pvpChallengeFriend => 'Thách đấu với bạn bè';
+
+  @override
+  String get pvpAffinityWarmSun => 'Nắng Ấm';
+
+  @override
+  String get pvpAffinityDawn => 'Bình Minh';
+
+  @override
+  String get pvpAffinityMoonlight => 'Ánh Trăng';
+
+  @override
+  String get pvpAffinitySprout => 'Thực Vật';
+
+  @override
+  String get pvpAffinityUnknown => 'Chưa xác định';
+
+  @override
+  String get pvpExitMatchTitle => 'Thoát trận?';
+
+  @override
+  String get pvpExitMatchMessage =>
+      'Nếu thoát bây giờ bạn sẽ nhận kết quả THẤT BẠI và đối thủ thắng.';
+
+  @override
+  String get pvpStayInMatch => 'Ở lại';
+
+  @override
+  String get pvpExitAndForfeit => 'Thoát & nhận thua';
+
+  @override
+  String get pvpNoticeTitle => 'Thông báo';
+
+  @override
+  String get pvpInviteDeclined => 'Người chơi đã từ chối lời mời.';
+
+  @override
+  String get pvpChallengeInvitesTitle => 'Lời mời thách đấu';
+
+  @override
+  String get pvpNoInvitations => 'Không có lời mời nào';
+
+  @override
+  String get pvpStatusOffline => 'Ngoại tuyến';
+
+  @override
+  String get pvpStatusBusy => 'Đang bận';
+
+  @override
+  String get pvpStatusOnline => 'Đang online';
+
+  @override
+  String get pvpOpponent => 'Đối thủ';
+
+  @override
+  String get pvpSenderInAnotherMatch => 'Người gửi đang trong trận khác';
+
+  @override
+  String get pvpSenderOffline => 'Người gửi đã ngoại tuyến';
+
+  @override
+  String get pvpAccept => 'Chấp nhận';
+
+  @override
+  String get pvpReject => 'Từ chối';
+
+  @override
+  String get pvpMatchTypeRanked => 'Xếp hạng';
+
+  @override
+  String get pvpMatchTypeFriendly => 'Bạn bè';
+
+  @override
+  String get pvpMatchTypeEvent => 'Sự kiện';
+
+  @override
+  String get pvpMatchTypeOther => 'Khác';
+
+  @override
+  String get pvpMatchSourceBot => 'Máy';
+
+  @override
+  String get pvpMatchSourceMatchmaking => 'Ghép trận';
+
+  @override
+  String get pvpMatchSourceInvite => 'Lời mời';
+
+  @override
+  String get pvpMatchSourceOther => 'Nguồn khác';
+
+  @override
+  String get pvpMatchHistoryTitle => 'Lịch sử thi đấu';
+
+  @override
+  String get pvpRefresh => 'Làm mới';
+
+  @override
+  String get pvpFilterAll => 'Tất cả';
+
+  @override
+  String get pvpFilterAllResults => 'Mọi kết quả';
+
+  @override
+  String get pvpFilterWins => 'Thắng';
+
+  @override
+  String get pvpFilterLosses => 'Thua';
+
+  @override
+  String get pvpNoMatches => 'Chưa có trận nào';
+
+  @override
+  String get pvpHistoryVictory => 'CHIẾN THẮNG';
+
+  @override
+  String get pvpHistoryCancelled => 'ĐÃ HỦY';
+
+  @override
+  String get pvpHistoryDefeat => 'THẤT BẠI';
+
+  @override
+  String get pvpHistoryDraw => 'HÒA';
+
+  @override
+  String get pvpHistoryResultUnknown => 'CHƯA RÕ';
+
+  @override
+  String get pvpPreviousPage => 'Trang trước';
+
+  @override
+  String pvpPageOf(int page, int totalPages) {
+    return 'Trang $page / $totalPages';
+  }
+
+  @override
+  String get pvpNextPage => 'Trang sau';
+
+  @override
+  String get pvpChallengeFriendsTitle => 'Thách đấu bạn bè';
+
+  @override
+  String get pvpOnlineSection => 'ĐANG ONLINE';
+
+  @override
+  String get pvpNoOnlineFriends => 'Không có bạn bè đang online';
+
+  @override
+  String get pvpOfflineSection => 'NGOẠI TUYẾN';
+
+  @override
+  String get pvpNoOfflineFriends => 'Không có bạn bè ngoại tuyến';
+
+  @override
+  String get pvpFriendBusy => 'Bạn bè đang bận';
+
+  @override
+  String get pvpChallengeAction => 'Thách đấu';
+
+  @override
+  String get pvpInviteSent => 'Đã gửi lời mời!';
+
+  @override
+  String pvpWaitingForFriend(String opponentName) {
+    return 'Đang chờ $opponentName phản hồi...';
+  }
+
+  @override
+  String get pvpCancelRequest => 'Hủy yêu cầu';
+
+  @override
+  String get pvpConnected => 'Đã kết nối!';
+
+  @override
+  String pvpRaceAgainst(String opponentName) {
+    return 'Bạn sẽ đua với $opponentName';
+  }
+
+  @override
+  String get pvpPrepareForMatch => 'CHUẨN BỊ VÀO TRẬN';
+
+  @override
+  String get pvpMatchSuccess => 'Ghép trận thành công!';
+
+  @override
+  String get pvpEnteringRace =>
+      'Đang vào cuộc đua. Đếm ngược sẽ bắt đầu ngay sau khi trận đấu sẵn sàng.';
+
+  @override
+  String get pvpResultVictoryTitle => 'Chiến thắng!';
+
+  @override
+  String get pvpResultDrawTitle => 'Hòa!';
+
+  @override
+  String get pvpResultDefeatTitle => 'Thất bại';
+
+  @override
+  String get pvpResultTitle => 'Kết quả trận đấu';
+
+  @override
+  String get pvpResultWinGeneric => 'Bạn đã thắng trận sprint!';
+
+  @override
+  String pvpResultBeatOpponent(String opponentName) {
+    return 'Bạn đã đánh bại $opponentName';
+  }
+
+  @override
+  String get pvpResultScoresTied => 'Hai bên ngang điểm';
+
+  @override
+  String get pvpResultForfeitGeneric => 'Bạn đã thoát trận và nhận thua.';
+
+  @override
+  String pvpResultForfeitOpponentWon(String opponentName) {
+    return 'Bạn đã thoát trận. $opponentName thắng.';
+  }
+
+  @override
+  String get pvpResultTryAgain => 'Cố gắng thêm chút nữa nhé!';
+
+  @override
+  String get pvpResultLoadingServer => 'Đang tải kết quả từ máy chủ...';
+
+  @override
+  String get pvpLoadingResult => 'Đang tải kết quả...';
+
+  @override
+  String get pvpWaitingServerFinalize => 'Đang chờ máy chủ chốt trận...';
+
+  @override
+  String get pvpResultUnavailableTitle => 'Chưa lấy được kết quả trận';
+
+  @override
+  String get pvpResultUnavailableMessage =>
+      'Trận đã kết thúc. Thử lại sau hoặc tiếp tục.';
+
+  @override
+  String get pvpMmr => 'MMR';
+
+  @override
+  String get pvpCurrentMmr => 'MMR hiện tại';
+
+  @override
+  String get pvpNewRank => 'Rank mới';
+
+  @override
+  String get pvpRank => 'Rank';
+
+  @override
+  String get pvpRewardClaimed => 'Đã nhận thưởng';
+
+  @override
+  String get pvpRewardsReceived => 'PHẦN THƯỞNG NHẬN ĐƯỢC';
+
+  @override
+  String pvpCoinReward(int count) {
+    return '+$count Giọt Sương';
+  }
+
+  @override
+  String pvpItemReward(int quantity) {
+    return 'x$quantity vật phẩm';
+  }
+
+  @override
+  String get pvpClaimReward => 'Nhận thưởng';
+
+  @override
+  String get pvpContinue => 'Tiếp tục';
+
+  @override
+  String get pvpYou => 'Bạn';
+
+  @override
+  String get pvpSprintMode => 'SPRINT';
+
+  @override
+  String pvpRaceProgress(int percent) {
+    return 'Tiến độ đường đua: $percent%';
+  }
+
+  @override
+  String get pvpRaceGo => 'CHẠY!';
+
+  @override
+  String get pvpCloseRace => 'Thoát đường đua';
+
+  @override
+  String get pvpMatchStatusWaiting => 'Đang chờ';
+
+  @override
+  String get pvpMatchStatusCountdown => 'Đếm ngược';
+
+  @override
+  String get pvpMatchStatusRunning => 'Đang đua';
+
+  @override
+  String get pvpMatchStatusSettling => 'Đang chốt kết quả';
+
+  @override
+  String get pvpMatchStatusFinished => 'Đã kết thúc';
+
+  @override
+  String get pvpMatchStatusCancelled => 'Đã hủy';
+
+  @override
+  String get pvpTierMamDong => 'Mầm Đồng';
+
+  @override
+  String get pvpTierLaBac => 'Lá Bạc';
+
+  @override
+  String get pvpTierNuVang => 'Nụ Vàng';
+
+  @override
+  String get pvpTierHoaLam => 'Hoa Lam';
+
+  @override
+  String get pvpTierTrangTim => 'Trăng Tím';
+
+  @override
+  String get pvpTierTinhLinhCauVong => 'Tinh Linh Cầu Vồng';
+
+  @override
+  String get pvpTierUnknown => 'Chưa xác định';
 }

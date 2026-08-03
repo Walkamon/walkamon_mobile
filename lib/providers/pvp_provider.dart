@@ -542,6 +542,7 @@ class PvpProvider extends ChangeNotifier {
     _inviteDeclined = false;
     notifyListeners();
   }
+
   final Set<String> _processedEventIds = <String>{};
   final Map<String, int> _lastSequences = <String, int>{};
 
@@ -550,19 +551,16 @@ class PvpProvider extends ChangeNotifier {
 
   String _spiritAffinityCode = 'sprout';
   String get spiritAffinityCode => _spiritAffinityCode;
-  String get spiritAffinity =>
-      _spiritAffinityLabel.isEmpty
-          ? 'Thực Vật'
-          : _spiritAffinityLabel;
-  String _spiritAffinityLabel = 'Thực Vật';
+  String get spiritAffinity => _spiritAffinityLabel;
+  String _spiritAffinityLabel = '';
 
   int _petStageNo = 0;
   int get petStageNo => _petStageNo;
 
   String get mySpiritAffinityCode =>
       _myParticipant?.spiritAffinityCode?.trim().isNotEmpty == true
-          ? _myParticipant!.spiritAffinityCode!.trim()
-          : _spiritAffinityCode;
+      ? _myParticipant!.spiritAffinityCode!.trim()
+      : _spiritAffinityCode;
 
   String get opponentSpiritAffinityCode {
     final participants = _currentMatch?.participants;
@@ -730,7 +728,6 @@ class PvpProvider extends ChangeNotifier {
 
   String? get activeMatchId => _activeMatchId;
 
-
   String get currentOpponentName {
     final participants =
         _currentMatch?.participants ?? <PvpParticipantResponse>[];
@@ -740,11 +737,6 @@ class PvpProvider extends ChangeNotifier {
       if (name != null && name.isNotEmpty) {
         return name;
       }
-    }
-    for (final participant in participants) {
-      if (_isMyParticipant(participant)) continue;
-      final id = participant.userId ?? participant.botProfileId;
-      if (id != null && id.isNotEmpty) return id;
     }
     return '';
   }
@@ -839,9 +831,7 @@ class PvpProvider extends ChangeNotifier {
       if (row == null) return p;
 
       final distance = (row['distanceUnits'] as num?)?.toInt();
-      print(
-        '[PvP][match.progress][apply] participant=$id distance=$distance',
-      );
+      print('[PvP][match.progress][apply] participant=$id distance=$distance');
       return p.copyWith(
         distanceUnits: distance,
         validatedSteps: (row['validatedSteps'] as num?)?.toInt(),
@@ -1074,8 +1064,12 @@ class PvpProvider extends ChangeNotifier {
       _opponentProgress = _raceTimeProgress * 100.0;
     } else {
       final scale = math.max(math.max(myDist, oppDist), 1);
-      _myProgress = ((myDist / scale) * _raceTimeProgress * 100).clamp(0, 100).toDouble();
-      _opponentProgress = ((oppDist / scale) * _raceTimeProgress * 100).clamp(0, 100).toDouble();
+      _myProgress = ((myDist / scale) * _raceTimeProgress * 100)
+          .clamp(0, 100)
+          .toDouble();
+      _opponentProgress = ((oppDist / scale) * _raceTimeProgress * 100)
+          .clamp(0, 100)
+          .toDouble();
     }
   }
 
@@ -1179,7 +1173,9 @@ class PvpProvider extends ChangeNotifier {
 
     if (serverStarted != null && serverEnded != null) {
       final raceTotalMs = serverEnded.difference(serverStarted).inMilliseconds;
-      _raceDuration = Duration(milliseconds: raceTotalMs > 0 ? raceTotalMs : 30000);
+      _raceDuration = Duration(
+        milliseconds: raceTotalMs > 0 ? raceTotalMs : 30000,
+      );
       _raceStartedAt = serverStarted.toUtc();
     } else if (serverStarted != null) {
       _raceDuration = const Duration(seconds: 30);
@@ -1350,11 +1346,7 @@ class PvpProvider extends ChangeNotifier {
         }
         _petStageNo = overview.stageNo;
         final formName = overview.formName.trim();
-        if (formName.isNotEmpty) {
-          _spiritAffinityLabel = formName;
-        } else if (code.isNotEmpty) {
-          _spiritAffinityLabel = code;
-        }
+        _spiritAffinityLabel = formName;
       }
 
       if (activityResp.success && activityResp.data != null) {
@@ -1639,9 +1631,7 @@ class PvpProvider extends ChangeNotifier {
         final readyStartsAt = readyResponse['countdownStartsAt'] as String?;
         final readyEndsAt = readyResponse['countdownEndsAt'] as String?;
         final readyServerTime = readyResponse['serverTime'] as String?;
-        debugPrint(
-          '[PvP] ReadyMatch allReady=$allReady matchId=$matchId',
-        );
+        debugPrint('[PvP] ReadyMatch allReady=$allReady matchId=$matchId');
         if (allReady &&
             readyStartsAt != null &&
             readyEndsAt != null &&
@@ -1817,13 +1807,14 @@ class PvpProvider extends ChangeNotifier {
 
     final payload = (event['payload'] as Map<String, dynamic>?) ?? event;
 
-    final userId = payload['userId']?.toString()
-        ?? event['aggregateId']?.toString();
+    final userId =
+        payload['userId']?.toString() ?? event['aggregateId']?.toString();
     if (userId == null || userId.isEmpty) return;
 
     final isOnline = payload['isOnline'] == true;
     final pvpCode =
-        payload['pvpAvailabilityCode'] as String? ?? (isOnline ? 'available' : 'offline');
+        payload['pvpAvailabilityCode'] as String? ??
+        (isOnline ? 'available' : 'offline');
 
     debugPrint(
       '[PvP] presence.changed userId=$userId isOnline=$isOnline pvpCode=$pvpCode',
@@ -2044,12 +2035,12 @@ class PvpProvider extends ChangeNotifier {
     final updatedParticipants = match.participants.map((p) {
       final isMe = me != null
           ? ((p.matchPlayerId != null &&
-                  me.matchPlayerId != null &&
-                  p.matchPlayerId == me.matchPlayerId) ||
-              (p.userId != null &&
-                  me.userId != null &&
-                  p.userId == me.userId) ||
-              identical(p, me))
+                    me.matchPlayerId != null &&
+                    p.matchPlayerId == me.matchPlayerId) ||
+                (p.userId != null &&
+                    me.userId != null &&
+                    p.userId == me.userId) ||
+                identical(p, me))
           : _isMyParticipant(p);
       return p.copyWith(resultCode: isMe ? 'lose' : 'win');
     }).toList();
@@ -2258,7 +2249,9 @@ class PvpProvider extends ChangeNotifier {
       notifyListeners();
       return invite;
     } else {
-      debugPrint('[PvP] createInvite failed status=${response.status}: ${response.message}');
+      debugPrint(
+        '[PvP] createInvite failed status=${response.status}: ${response.message}',
+      );
       return null;
     }
   }
@@ -2278,13 +2271,17 @@ class PvpProvider extends ChangeNotifier {
       _incomingInvites.removeWhere((item) => item.inviteId == inviteId);
       notifyListeners();
 
-      if (accept && inviteData.matchId != null && inviteData.matchId!.isNotEmpty) {
+      if (accept &&
+          inviteData.matchId != null &&
+          inviteData.matchId!.isNotEmpty) {
         _log('Invite accepted, joining match directly: ${inviteData.matchId}');
         await _joinAndSyncMatch(inviteData.matchId!);
       }
       return inviteData;
     } else {
-      debugPrint('[PvP] respondToInvite failed status=${response.status}: ${response.message}');
+      debugPrint(
+        '[PvP] respondToInvite failed status=${response.status}: ${response.message}',
+      );
       return null;
     }
   }
@@ -2306,7 +2303,9 @@ class PvpProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } else {
-      debugPrint('[PvP] cancelInvite failed status=${response.status}: ${response.message}');
+      debugPrint(
+        '[PvP] cancelInvite failed status=${response.status}: ${response.message}',
+      );
       _updateState(PvpMatchmakingState.idle);
       return false;
     }

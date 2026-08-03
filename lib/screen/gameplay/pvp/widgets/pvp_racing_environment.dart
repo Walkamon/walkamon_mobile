@@ -5,6 +5,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_assets.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/common/app_icon.dart';
 import '../pvp_asset_resolver.dart';
 import 'pvp_frame_animation.dart';
@@ -171,6 +172,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -260,7 +262,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                 mapAsset: activeMap,
                 laneIndex: 1,
               ),
-              label: 'Bạn',
+              label: l10n.pvpYou,
               labelColor: theme.colorScheme.primary,
               labelTextColor: theme.colorScheme.onPrimary,
               affinityCode: widget.myAffinityCode,
@@ -283,6 +285,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                     children: [
                       IconButton(
                         onPressed: widget.onClose,
+                        tooltip: l10n.pvpCloseRace,
                         icon: const AppIcon(Icons.close, size: 28),
                         constraints: const BoxConstraints.tightFor(
                           width: 40,
@@ -300,9 +303,9 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                           color: Colors.black45,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          'SPRINT',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.pvpSprintMode,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
@@ -313,8 +316,9 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Semantics(
-                          label: 'Race progress',
-                          value: '${(normalizedTrackProgress * 100).round()}%',
+                          label: l10n.pvpRaceProgress(
+                            (normalizedTrackProgress * 100).round(),
+                          ),
                           child: Container(
                             key: const ValueKey('pvp-race-progress-track'),
                             height: 12,
@@ -377,9 +381,13 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment> {
             if (_shouldShowCountdown)
               Center(
                 child: Text(
-                  widget.racePhase.toUpperCase(),
+                  widget.racePhase.toLowerCase() == 'go'
+                      ? l10n.pvpRaceGo
+                      : widget.racePhase,
                   style: TextStyle(
-                    fontSize: widget.racePhase == 'go' ? 110 : 120,
+                    fontSize: widget.racePhase.toLowerCase() == 'go'
+                        ? 110
+                        : 120,
                     fontWeight: FontWeight.bold,
                     color: widget.racePhase == 'go'
                         ? Colors.amber

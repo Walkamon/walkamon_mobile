@@ -3121,6 +3121,690 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leaf'**
   String get friendSpiritStageLeaf;
+
+  /// No description provided for @pvpInvites.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites'**
+  String get pvpInvites;
+
+  /// No description provided for @pvpHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get pvpHistory;
+
+  /// No description provided for @pvpTodayStepsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s steps:'**
+  String get pvpTodayStepsLabel;
+
+  /// No description provided for @pvpSpiritAffinityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Spirit affinity:'**
+  String get pvpSpiritAffinityLabel;
+
+  /// No description provided for @pvpEnergyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy:'**
+  String get pvpEnergyLabel;
+
+  /// No description provided for @pvpBondLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bond:'**
+  String get pvpBondLabel;
+
+  /// No description provided for @pvpSearchingOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for an opponent...'**
+  String get pvpSearchingOpponent;
+
+  /// No description provided for @pvpCancelSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel search'**
+  String get pvpCancelSearch;
+
+  /// No description provided for @pvpConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get pvpConnecting;
+
+  /// No description provided for @pvpPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing...'**
+  String get pvpPreparing;
+
+  /// No description provided for @pvpFindRandomMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Find random match'**
+  String get pvpFindRandomMatch;
+
+  /// No description provided for @pvpChallengeFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge a friend'**
+  String get pvpChallengeFriend;
+
+  /// No description provided for @pvpAffinityWarmSun.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm Sun'**
+  String get pvpAffinityWarmSun;
+
+  /// No description provided for @pvpAffinityDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Dawn'**
+  String get pvpAffinityDawn;
+
+  /// No description provided for @pvpAffinityMoonlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonlight'**
+  String get pvpAffinityMoonlight;
+
+  /// No description provided for @pvpAffinitySprout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get pvpAffinitySprout;
+
+  /// No description provided for @pvpAffinityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown affinity'**
+  String get pvpAffinityUnknown;
+
+  /// No description provided for @pvpExitMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave match?'**
+  String get pvpExitMatchTitle;
+
+  /// No description provided for @pvpExitMatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving now will count as a DEFEAT and your opponent will win.'**
+  String get pvpExitMatchMessage;
+
+  /// No description provided for @pvpStayInMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get pvpStayInMatch;
+
+  /// No description provided for @pvpExitAndForfeit.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave & forfeit'**
+  String get pvpExitAndForfeit;
+
+  /// No description provided for @pvpNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice'**
+  String get pvpNoticeTitle;
+
+  /// No description provided for @pvpInviteDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'The player declined your invitation.'**
+  String get pvpInviteDeclined;
+
+  /// No description provided for @pvpChallengeInvitesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge invites'**
+  String get pvpChallengeInvitesTitle;
+
+  /// No description provided for @pvpNoInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'No invitations'**
+  String get pvpNoInvitations;
+
+  /// No description provided for @pvpStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get pvpStatusOffline;
+
+  /// No description provided for @pvpStatusBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy'**
+  String get pvpStatusBusy;
+
+  /// No description provided for @pvpStatusOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get pvpStatusOnline;
+
+  /// No description provided for @pvpOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent'**
+  String get pvpOpponent;
+
+  /// No description provided for @pvpSenderInAnotherMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The sender is in another match'**
+  String get pvpSenderInAnotherMatch;
+
+  /// No description provided for @pvpSenderOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The sender has gone offline'**
+  String get pvpSenderOffline;
+
+  /// No description provided for @pvpAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get pvpAccept;
+
+  /// No description provided for @pvpReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get pvpReject;
+
+  /// No description provided for @pvpMatchTypeRanked.
+  ///
+  /// In en, this message translates to:
+  /// **'Ranked'**
+  String get pvpMatchTypeRanked;
+
+  /// No description provided for @pvpMatchTypeFriendly.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly'**
+  String get pvpMatchTypeFriendly;
+
+  /// No description provided for @pvpMatchTypeEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get pvpMatchTypeEvent;
+
+  /// No description provided for @pvpMatchTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get pvpMatchTypeOther;
+
+  /// No description provided for @pvpMatchSourceBot.
+  ///
+  /// In en, this message translates to:
+  /// **'Bot'**
+  String get pvpMatchSourceBot;
+
+  /// No description provided for @pvpMatchSourceMatchmaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Matchmaking'**
+  String get pvpMatchSourceMatchmaking;
+
+  /// No description provided for @pvpMatchSourceInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get pvpMatchSourceInvite;
+
+  /// No description provided for @pvpMatchSourceOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other source'**
+  String get pvpMatchSourceOther;
+
+  /// No description provided for @pvpMatchHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match history'**
+  String get pvpMatchHistoryTitle;
+
+  /// No description provided for @pvpRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get pvpRefresh;
+
+  /// No description provided for @pvpFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get pvpFilterAll;
+
+  /// No description provided for @pvpFilterAllResults.
+  ///
+  /// In en, this message translates to:
+  /// **'All results'**
+  String get pvpFilterAllResults;
+
+  /// No description provided for @pvpFilterWins.
+  ///
+  /// In en, this message translates to:
+  /// **'Wins'**
+  String get pvpFilterWins;
+
+  /// No description provided for @pvpFilterLosses.
+  ///
+  /// In en, this message translates to:
+  /// **'Losses'**
+  String get pvpFilterLosses;
+
+  /// No description provided for @pvpNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches yet'**
+  String get pvpNoMatches;
+
+  /// No description provided for @pvpHistoryVictory.
+  ///
+  /// In en, this message translates to:
+  /// **'VICTORY'**
+  String get pvpHistoryVictory;
+
+  /// No description provided for @pvpHistoryCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get pvpHistoryCancelled;
+
+  /// No description provided for @pvpHistoryDefeat.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFEAT'**
+  String get pvpHistoryDefeat;
+
+  /// No description provided for @pvpHistoryDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'DRAW'**
+  String get pvpHistoryDraw;
+
+  /// No description provided for @pvpHistoryResultUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'UNKNOWN'**
+  String get pvpHistoryResultUnknown;
+
+  /// No description provided for @pvpPreviousPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get pvpPreviousPage;
+
+  /// No description provided for @pvpPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} / {totalPages}'**
+  String pvpPageOf(int page, int totalPages);
+
+  /// No description provided for @pvpNextPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Next page'**
+  String get pvpNextPage;
+
+  /// No description provided for @pvpChallengeFriendsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge Friends'**
+  String get pvpChallengeFriendsTitle;
+
+  /// No description provided for @pvpOnlineSection.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLINE'**
+  String get pvpOnlineSection;
+
+  /// No description provided for @pvpNoOnlineFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends are online'**
+  String get pvpNoOnlineFriends;
+
+  /// No description provided for @pvpOfflineSection.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE'**
+  String get pvpOfflineSection;
+
+  /// No description provided for @pvpNoOfflineFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'No offline friends'**
+  String get pvpNoOfflineFriends;
+
+  /// No description provided for @pvpFriendBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend is busy'**
+  String get pvpFriendBusy;
+
+  /// No description provided for @pvpChallengeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge'**
+  String get pvpChallengeAction;
+
+  /// No description provided for @pvpInviteSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent!'**
+  String get pvpInviteSent;
+
+  /// No description provided for @pvpWaitingForFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {opponentName} to respond...'**
+  String pvpWaitingForFriend(String opponentName);
+
+  /// No description provided for @pvpCancelRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get pvpCancelRequest;
+
+  /// No description provided for @pvpConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected!'**
+  String get pvpConnected;
+
+  /// No description provided for @pvpRaceAgainst.
+  ///
+  /// In en, this message translates to:
+  /// **'You will race against {opponentName}'**
+  String pvpRaceAgainst(String opponentName);
+
+  /// No description provided for @pvpPrepareForMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'GET READY'**
+  String get pvpPrepareForMatch;
+
+  /// No description provided for @pvpMatchSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Match found!'**
+  String get pvpMatchSuccess;
+
+  /// No description provided for @pvpEnteringRace.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering the race. The countdown will begin as soon as the match is ready.'**
+  String get pvpEnteringRace;
+
+  /// No description provided for @pvpResultVictoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Victory!'**
+  String get pvpResultVictoryTitle;
+
+  /// No description provided for @pvpResultDrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw!'**
+  String get pvpResultDrawTitle;
+
+  /// No description provided for @pvpResultDefeatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Defeat'**
+  String get pvpResultDefeatTitle;
+
+  /// No description provided for @pvpResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result'**
+  String get pvpResultTitle;
+
+  /// No description provided for @pvpResultWinGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'You won the sprint!'**
+  String get pvpResultWinGeneric;
+
+  /// No description provided for @pvpResultBeatOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'You defeated {opponentName}'**
+  String pvpResultBeatOpponent(String opponentName);
+
+  /// No description provided for @pvpResultScoresTied.
+  ///
+  /// In en, this message translates to:
+  /// **'Both sides finished with the same score'**
+  String get pvpResultScoresTied;
+
+  /// No description provided for @pvpResultForfeitGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'You left the match and forfeited.'**
+  String get pvpResultForfeitGeneric;
+
+  /// No description provided for @pvpResultForfeitOpponentWon.
+  ///
+  /// In en, this message translates to:
+  /// **'You left the match. {opponentName} won.'**
+  String pvpResultForfeitOpponentWon(String opponentName);
+
+  /// No description provided for @pvpResultTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going—you\'ve almost got it!'**
+  String get pvpResultTryAgain;
+
+  /// No description provided for @pvpResultLoadingServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the result from the server...'**
+  String get pvpResultLoadingServer;
+
+  /// No description provided for @pvpLoadingResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading result...'**
+  String get pvpLoadingResult;
+
+  /// No description provided for @pvpWaitingServerFinalize.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the server to finalize the match...'**
+  String get pvpWaitingServerFinalize;
+
+  /// No description provided for @pvpResultUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result unavailable'**
+  String get pvpResultUnavailableTitle;
+
+  /// No description provided for @pvpResultUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The match has ended. Try again later or continue.'**
+  String get pvpResultUnavailableMessage;
+
+  /// No description provided for @pvpMmr.
+  ///
+  /// In en, this message translates to:
+  /// **'MMR'**
+  String get pvpMmr;
+
+  /// No description provided for @pvpCurrentMmr.
+  ///
+  /// In en, this message translates to:
+  /// **'Current MMR'**
+  String get pvpCurrentMmr;
+
+  /// No description provided for @pvpNewRank.
+  ///
+  /// In en, this message translates to:
+  /// **'New rank'**
+  String get pvpNewRank;
+
+  /// No description provided for @pvpRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank'**
+  String get pvpRank;
+
+  /// No description provided for @pvpRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed'**
+  String get pvpRewardClaimed;
+
+  /// No description provided for @pvpRewardsReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'REWARDS RECEIVED'**
+  String get pvpRewardsReceived;
+
+  /// No description provided for @pvpCoinReward.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {+1 Dewdrop} other {+{count} Dewdrops}}'**
+  String pvpCoinReward(int count);
+
+  /// No description provided for @pvpItemReward.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity, plural, =1 {x1 item} other {x{quantity} items}}'**
+  String pvpItemReward(int quantity);
+
+  /// No description provided for @pvpClaimReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim reward'**
+  String get pvpClaimReward;
+
+  /// No description provided for @pvpContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get pvpContinue;
+
+  /// No description provided for @pvpYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get pvpYou;
+
+  /// No description provided for @pvpSprintMode.
+  ///
+  /// In en, this message translates to:
+  /// **'SPRINT'**
+  String get pvpSprintMode;
+
+  /// No description provided for @pvpRaceProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Race progress: {percent}%'**
+  String pvpRaceProgress(int percent);
+
+  /// No description provided for @pvpRaceGo.
+  ///
+  /// In en, this message translates to:
+  /// **'GO!'**
+  String get pvpRaceGo;
+
+  /// No description provided for @pvpCloseRace.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave race'**
+  String get pvpCloseRace;
+
+  /// No description provided for @pvpMatchStatusWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get pvpMatchStatusWaiting;
+
+  /// No description provided for @pvpMatchStatusCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Countdown'**
+  String get pvpMatchStatusCountdown;
+
+  /// No description provided for @pvpMatchStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get pvpMatchStatusRunning;
+
+  /// No description provided for @pvpMatchStatusSettling.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalizing'**
+  String get pvpMatchStatusSettling;
+
+  /// No description provided for @pvpMatchStatusFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get pvpMatchStatusFinished;
+
+  /// No description provided for @pvpMatchStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get pvpMatchStatusCancelled;
+
+  /// No description provided for @pvpTierMamDong.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze Sprout'**
+  String get pvpTierMamDong;
+
+  /// No description provided for @pvpTierLaBac.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver Leaf'**
+  String get pvpTierLaBac;
+
+  /// No description provided for @pvpTierNuVang.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden Bud'**
+  String get pvpTierNuVang;
+
+  /// No description provided for @pvpTierHoaLam.
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo Flower'**
+  String get pvpTierHoaLam;
+
+  /// No description provided for @pvpTierTrangTim.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple Moon'**
+  String get pvpTierTrangTim;
+
+  /// No description provided for @pvpTierTinhLinhCauVong.
+  ///
+  /// In en, this message translates to:
+  /// **'Rainbow Spirit'**
+  String get pvpTierTinhLinhCauVong;
+
+  /// No description provided for @pvpTierUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown rank'**
+  String get pvpTierUnknown;
 }
 
 class _AppLocalizationsDelegate
