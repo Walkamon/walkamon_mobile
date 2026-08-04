@@ -33,6 +33,16 @@ class MissionsScreenDatasource {
     );
   }
 
+  Future<ApiResponse<ClaimChallengeRewardResponse>> claimChallenge(
+    String userMissionId,
+  ) async {
+    return await _apiClient.post<ClaimChallengeRewardResponse>(
+      ApiConstants.claimChallenge(userMissionId),
+      fromJsonT: (json) =>
+          ClaimChallengeRewardResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
   Future<ApiResponse<PlayerChallengeStateResponse>> createRandomChallenge() async {
     return await _apiClient.post<PlayerChallengeStateResponse>(
       ApiConstants.challengeRandom,

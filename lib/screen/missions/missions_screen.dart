@@ -158,6 +158,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
     PlayerChallengeResponse challenge,
     AppLocalizations l10n,
   ) {
+    final claimed = challenge.statusCode.toLowerCase() == 'claimed';
+    final completed = challenge.progressValue >= challenge.targetValue;
+    
     return _QuestDisplayItem(
       missionId: challenge.challengeId,
       userMissionId: challenge.userMissionId,
@@ -169,17 +172,19 @@ class _MissionsScreenState extends State<MissionsScreen> {
       current: challenge.progressValue,
       reward: challenge.walletAmount,
       isChallenge: true,
-      canClaim: false,
-      isClaimed: false,
+      canClaim: completed && !claimed,
+      isClaimed: claimed,
       isCancelable: challenge.isCancelable,
     );
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadData({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final missionsFuture = _repository.getAllMissions();
@@ -202,7 +207,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
             : [];
         _cancelLimit = challengeState.cancelLimit;
         _cancelRemaining = challengeState.cancelRemaining;
-        _isLoading = false;
+        if (showLoading) _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
@@ -211,19 +216,54 @@ class _MissionsScreenState extends State<MissionsScreen> {
         _overallQuests = [];
         _challengeQuests = [];
         _errorMessage = AppLocalizations.of(context).missionsLoadError;
-        _isLoading = false;
+        if (showLoading) _isLoading = false;
       });
     }
   }
 
   Future<void> _handleClaim(_QuestDisplayItem quest) async {
-    if (!quest.canClaim || quest.isChallenge) return;
+    // Handle mission claim
+    if (!quest.isChallenge) {
+      if (!quest.canClaim) return;
+
+      AppAudioService.instance.suppressNextTabSound();
+      setState(() => _claimingMissionId = quest.missionId);
+      final provider = context.read<GameStateProvider>();
+      try {
+        final result = await _repository.claimMission(quest.missionId);
+        final user = provider.user;
+        if (user != null) {
+          provider.setUser(user.copyWith(coins: result.walletBalance));
+        }
+
+        unawaited(AppAudioService.instance.playReward());
+
+        if (mounted) {
+          _showSuccess(
+            AppLocalizations.of(
+              context,
+            ).missionsClaimSuccess(result.walletAmount),
+          );
+        }
+        await _loadData(showLoading: false);
+      } catch (e) {
+        if (mounted) {
+          _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
+        }
+      } finally {
+        if (mounted) setState(() => _claimingMissionId = null);
+      }
+      return;
+    }
+
+    // Handle challenge claim
+    if (quest.userMissionId == null || quest.userMissionId!.isEmpty) return;
 
     AppAudioService.instance.suppressNextTabSound();
     setState(() => _claimingMissionId = quest.missionId);
     final provider = context.read<GameStateProvider>();
     try {
-      final result = await _repository.claimMission(quest.missionId);
+      final result = await _repository.claimChallenge(quest.userMissionId!);
       final user = provider.user;
       if (user != null) {
         provider.setUser(user.copyWith(coins: result.walletBalance));
@@ -238,7 +278,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
           ).missionsClaimSuccess(result.walletAmount),
         );
       }
-      await _loadData();
+      await _loadData(showLoading: false);
     } catch (e) {
       if (mounted) {
         _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
@@ -278,8 +318,28 @@ class _MissionsScreenState extends State<MissionsScreen> {
       }
     } catch (e) {
       _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
+      if (mounted) {
+        await _refreshChallengeState();
+      }
     } finally {
       if (mounted) setState(() => _creatingChallenge = null);
+    }
+  }
+
+  Future<void> _refreshChallengeState() async {
+    try {
+      final challengeState = await _repository.getChallengeState();
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      setState(() {
+        _challengeQuests = challengeState.currentChallenge != null
+            ? [_fromChallenge(challengeState.currentChallenge!, l10n)]
+            : [];
+        _cancelLimit = challengeState.cancelLimit;
+        _cancelRemaining = challengeState.cancelRemaining;
+      });
+    } catch (_) {
+      // Ignore refresh failures; keep existing UI state.
     }
   }
 
@@ -297,12 +357,28 @@ class _MissionsScreenState extends State<MissionsScreen> {
             _cancelLimit = resp.data!.cancelLimit;
           });
         }
+        if (mounted) {
+          setState(() {
+            _challengeQuests = [];
+            _cancelRemaining = resp.data!.cancelRemaining;
+            _cancelLimit = resp.data!.cancelLimit;
+          });
+        }
         _showMessage(AppLocalizations.of(context).missionsChallengeCanceled);
+        if (mounted) {
+          await _refreshChallengeState();
+        }
       } else {
         _showError(resp.message);
+        if (mounted) {
+          await _refreshChallengeState();
+        }
       }
     } catch (e) {
       _showError(AppLocalizations.of(context).missionsCancelFailed('$e'));
+      if (mounted) {
+        await _refreshChallengeState();
+      }
     } finally {
       if (mounted) setState(() => _cancellingChallengeId = null);
     }
@@ -377,7 +453,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                   foreground: foreground,
                   cardColor: cardColor,
                   borderColor: borderColor,
-                  onBack: () => Navigator.pushNamed(context, '/home'),
+                  onBack: () => Navigator.pop(context),
                 ),
               ],
             ),
