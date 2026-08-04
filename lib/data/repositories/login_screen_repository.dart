@@ -27,17 +27,24 @@ class LoginScreenRepository {
   Future<void> _persistTokenIfPresent(
     ApiResponse<LoginResponse> response,
   ) async {
-    if (response.success && response.data != null) {
-      final token = response.data!.token;
+    if (!response.success || response.data == null) return;
 
-      if (token.isNotEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('access_token', token);
-        final userId = response.data!.userId;
-        if (userId != null && userId.isNotEmpty) {
-          await prefs.setString('user_id', userId);
-        }
-      }
+    final prefs = await SharedPreferences.getInstance();
+
+    // Never let an account reuse the previous account's persisted identity.
+    await prefs.remove('access_token');
+    await prefs.remove('jwt');
+    await prefs.remove('refresh_token');
+    await prefs.remove('user_id');
+
+    final token = response.data!.token;
+    if (token.isNotEmpty) {
+      await prefs.setString('access_token', token);
+    }
+
+    final userId = response.data!.userId;
+    if (userId != null && userId.isNotEmpty) {
+      await prefs.setString('user_id', userId);
     }
   }
 }

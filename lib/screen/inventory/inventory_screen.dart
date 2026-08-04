@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
@@ -215,6 +217,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
         if (mounted) {
           _showSuccess(AppLocalizations.of(context).inventoryUsed(item.name));
         }
+        if (!mounted) return;
+        final gameState = context.read<GameStateProvider>();
+        await Future.wait([
+          gameState.fetchPetStatus(),
+          gameState.fetchPetVisual(),
+        ]);
+        if (!mounted) return;
         _closeItemPopup();
         await _loadInventory();
       } else if (mounted) {

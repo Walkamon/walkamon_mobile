@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/core/theme/app_colors.dart';
@@ -19,17 +21,61 @@ class FriendsScreen extends StatefulWidget {
   State<FriendsScreen> createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> {
+class _FriendsScreenState extends State<FriendsScreen>
+    with WidgetsBindingObserver {
   List<FriendsResponse> friends = [];
   bool isLoading = true;
   String searchQuery = '';
+  int _pendingReceivedRequestCount = 0;
+  bool _isRefreshingPendingRequests = false;
+  Timer? _pendingRequestRefreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFriends();
+      _loadPendingFriendRequestCount();
     });
+    _pendingRequestRefreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _loadPendingFriendRequestCount(),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pendingRequestRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadFriends();
+      _loadPendingFriendRequestCount();
+    }
+  }
+
+  Future<void> _loadPendingFriendRequestCount() async {
+    if (!mounted || _isRefreshingPendingRequests) return;
+    _isRefreshingPendingRequests = true;
+    try {
+      final requests = await context
+          .read<FriendsRepository>()
+          .getReceivedFriendRequests();
+      final pendingCount = requests
+          .where((request) => request.statusCode.toLowerCase() == 'pending')
+          .length;
+      if (!mounted || pendingCount == _pendingReceivedRequestCount) return;
+      setState(() => _pendingReceivedRequestCount = pendingCount);
+    } catch (error) {
+      debugPrint('Không thể cập nhật badge lời mời kết bạn: $error');
+    } finally {
+      _isRefreshingPendingRequests = false;
+    }
   }
 
   Future<void> _loadFriends() async {
@@ -326,25 +372,50 @@ class _FriendsScreenState extends State<FriendsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: OutlinedButton(
-              onPressed: () => _showFriendRequestsPopup(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.woodDeep,
-                backgroundColor: AppColors.authCard,
-                side: const BorderSide(color: AppColors.woodDeep, width: 2),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.all(6),
-                shape: const CircleBorder(),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: () => _showFriendRequestsPopup(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.woodDeep,
+                    backgroundColor: AppColors.authCard,
+                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.all(6),
+                    shape: const CircleBorder(),
+                  ),
+                  child: Image.asset(
+                    AppAssets.iconFriendRequest,
+                    width: 32,
+                    height: 32,
+                  ),
+                ),
               ),
-              child: Image.asset(
-                AppAssets.iconFriendRequest,
-                width: 32,
-                height: 32,
-              ),
-            ),
+              if (_pendingReceivedRequestCount > 0)
+                Positioned(
+                  top: -1,
+                  right: -1,
+                  child: Container(
+                    width: 13,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.authCard, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.woodDeep.withValues(alpha: 0.3),
+                          blurRadius: 3,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 10),
           SizedBox(
@@ -695,6 +766,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       // Cũng refresh dữ liệu khi đóng popup phòng hờ
       if (mounted) {
         _loadFriends();
+        _loadPendingFriendRequestCount();
       }
     });
   }

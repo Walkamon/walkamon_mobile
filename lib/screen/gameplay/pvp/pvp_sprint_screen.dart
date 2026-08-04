@@ -241,7 +241,10 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.woodDeep,
-                        side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                        side: const BorderSide(
+                          color: AppColors.woodDeep,
+                          width: 2,
+                        ),
                         backgroundColor: AppColors.buttonSecondary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: const StadiumBorder(),
@@ -256,7 +259,10 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       style: ElevatedButton.styleFrom(
                         foregroundColor: AppColors.buttonText,
                         backgroundColor: AppColors.buttonGreen,
-                        side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                        side: const BorderSide(
+                          color: AppColors.woodDeep,
+                          width: 2,
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: const StadiumBorder(),
                       ),
@@ -313,8 +319,17 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     if (matchId == null || matchId.isEmpty) return;
 
     setState(() => _isClaimingReward = true);
-    await provider.claimMatchReward(matchId);
+    final success = await provider.claimMatchReward(matchId);
     if (!mounted) return;
+
+    if (success) {
+      final reward = provider.lastClaimResponse;
+      final gameState = context.read<GameStateProvider>();
+      final user = gameState.user;
+      if (reward != null && user != null) {
+        gameState.setUser(user.copyWith(coins: reward.walletBalance));
+      }
+    }
     setState(() => _isClaimingReward = false);
   }
 
@@ -355,17 +370,78 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         pvpProvider.clearInviteDeclined();
-        showDialog(
+        showDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.pvpNoticeTitle),
-            content: Text(l10n.pvpInviteDeclined),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.close),
+          barrierColor: Colors.black.withValues(alpha: 0.42),
+          builder: (dialogContext) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 28,
+              vertical: 24,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
+                decoration: BoxDecoration(
+                  color: AppColors.authCard,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: AppColors.woodDeep, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.woodDeep.withValues(alpha: 0.28),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GameButtonLabel(
+                      l10n.pvpNoticeTitle,
+                      fontSize: 24,
+                      color: AppColors.authCard,
+                      outlineColor: AppColors.woodDeep,
+                      outlineWidth: 4,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.pvpInviteDeclined,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: AppColors.buttonText,
+                          backgroundColor: AppColors.buttonGreen,
+                          side: const BorderSide(
+                            color: AppColors.woodDeep,
+                            width: 2,
+                          ),
+                          minimumSize: const Size.fromHeight(52),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: GameButtonLabel(l10n.close),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         );
       });

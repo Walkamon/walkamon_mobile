@@ -59,6 +59,19 @@ class _SeedScreenState extends State<SeedScreen>
 
   Future<void> _redirectIfPetExists() async {
     final gameState = context.read<GameStateProvider>();
+
+    // Pet data is persisted by the backend after this account completes its
+    // onboarding. Check it first so restarting the app cannot replay the story
+    // when local/browser preferences are unavailable.
+    final hasPet = await gameState.preparePetForHome();
+    if (!mounted) return;
+    if (hasPet) {
+      await gameState.setHasSeenStory(true);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+      return;
+    }
+
     final hasSeenStory = await gameState.loadHasSeenStory();
     if (!mounted) return;
     if (!hasSeenStory) {
@@ -66,17 +79,11 @@ class _SeedScreenState extends State<SeedScreen>
       return;
     }
 
-    final hasPet = await gameState.fetchPetName();
-    if (!mounted) return;
-    if (hasPet) {
-      Navigator.pushReplacementNamed(context, '/home');
-      return;
-    }
     setState(() => _isCheckingPet = false);
   }
 
   Future<void> _continue() async {
-    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    final hasPet = await context.read<GameStateProvider>().preparePetForHome();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, hasPet ? '/home' : '/name-pet');
   }
