@@ -71,7 +71,7 @@ class GameSettings {
     this.darkMode = false,
     this.soundEnabled = true,
     this.backgroundMusicEnabled = true,
-    this.notifications = true, // Đã có sẵn thuộc tính notifications[cite: 5]
+    this.notifications = false,
     this.languageCode = 'vi-VN',
   });
 
@@ -102,6 +102,8 @@ class GameSettings {
 class GameStateProvider extends ChangeNotifier {
   static const _languageCodeKey = 'language_code';
   static const _storySeenKeyPrefix = 'story_seen_';
+  static const _notificationPreferenceKeyPrefix =
+      'notifications_enabled_for_user_';
 
   final LoginScreenRepository _loginRepository = LoginScreenRepository();
   final SettingScreenRepository _settingRepository = SettingScreenRepository();
@@ -145,6 +147,7 @@ class GameStateProvider extends ChangeNotifier {
   String? _errorMessage;
 
   bool _isProfileLoading = false;
+  bool _isUpdatingNotifications = false;
   String? _profileErrorMessage;
 
   GameUser? get user => _user;
@@ -170,6 +173,7 @@ class GameStateProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool get isProfileLoading => _isProfileLoading;
+  bool get isUpdatingNotifications => _isUpdatingNotifications;
   String? get profileErrorMessage => _profileErrorMessage;
 
   void setUser(GameUser? user) {
@@ -202,7 +206,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
-      _fcmService.setupToken();
+      await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
       _errorMessage = translateError(response.message);
@@ -247,7 +251,7 @@ class GameStateProvider extends ChangeNotifier {
 
       if (successFetch) {
         print("[AutoLogin] Tự động đăng nhập THÀNH CÔNG!");
-        _fcmService.setupToken();
+        await _synchronizeNotificationsAfterLogin();
         return true;
       } else {
         print(
@@ -284,7 +288,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
-      _fcmService.setupToken();
+      await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
       _errorMessage = translateError(response.message);
@@ -315,6 +319,7 @@ class GameStateProvider extends ChangeNotifier {
 
     // 3. Reset trạng thái app
     _user = null;
+    _settings = _settings.copyWith(notifications: false);
     _profileErrorMessage = null;
     _hasStarterPet = false;
     _hasSeenStory = false;
@@ -420,23 +425,134 @@ class GameStateProvider extends ChangeNotifier {
   }
 
   // ── THÊM MỚI: Hàm xử lý Bật/Tắt Notification gọi xuống Backend ──
-  Future<void> setNotificationsEnabled(bool value) async {
-    // 1. Lấy giá trị cũ từ biến private _settings
-    final oldValue = _settings.notifications;
+  String? get _notificationPreferenceKey {
+    final userId = _user?.id.trim() ?? '';
+    final email = _user?.email.trim().toLowerCase() ?? '';
+    final accountKey = userId.isNotEmpty && userId != '0' ? userId : email;
+    if (accountKey.isEmpty) return null;
+    return _notificationPreferenceKeyPrefix + accountKey;
+  }
 
-    // 2. Cập nhật State ngay lập tức vào _settings để giao diện phản hồi mượt mà
-    _settings = _settings.copyWith(notifications: value);
+  Future<void> _saveNotificationPreference(bool enabled) async {
+    final key = _notificationPreferenceKey;
+    if (key == null) return;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool(key, enabled);
+      debugPrint(
+        '[NotificationFlow][State] local_preference_saved=$enabled',
+      );
+    } catch (error) {
+      debugPrint('Cannot save notification preference: $error');
+    }
+  }
+
+  Future<void> _synchronizeNotificationsAfterLogin() async {
+    final key = _notificationPreferenceKey;
+    bool? savedPreference;
+    if (key != null) {
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        savedPreference = preferences.getBool(key);
+      } catch (error) {
+        debugPrint('Cannot read notification preference: $error');
+      }
+    }
+
+    final accountLabel = (_user?.id.isNotEmpty ?? false) && _user?.id != '0'
+        ? _user!.id
+        : 'email_fallback';
+    debugPrint(
+      '[NotificationFlow][State] login_sync account=$accountLabel '
+      'saved_preference=$savedPreference first_device_login=${savedPreference == null}',
+    );
+
+    // First login for this account on this device: request OS permission.
+    await _applyNotificationPreference(savedPreference ?? true);
+  }
+
+  Future<bool> setNotificationsEnabled(bool value) {
+    debugPrint(
+      '[NotificationFlow][Toggle] user_requested=$value '
+      'current=${_settings.notifications}',
+    );
+    return _applyNotificationPreference(value);
+  }
+
+  Future<bool> _applyNotificationPreference(bool requestedValue) async {
+    if (_isUpdatingNotifications) {
+      debugPrint('[NotificationFlow][State] request_ignored=update_in_progress');
+      return _settings.notifications;
+    }
+
+    debugPrint(
+      '[NotificationFlow][State] apply_started requested=$requestedValue '
+      'current=${_settings.notifications}',
+    );
+    final oldValue = _settings.notifications;
+    _isUpdatingNotifications = true;
     notifyListeners();
 
     try {
-      // 3. Gửi request lên server
-      await _notificationRepository.updateNotification(value);
-    } catch (e) {
-      // 4. Hoàn tác lại giá trị cũ vào _settings nếu API báo lỗi
-      _settings = _settings.copyWith(notifications: oldValue);
-      notifyListeners();
+      if (requestedValue) {
+        final permissionGranted = await _fcmService.setupToken();
+        debugPrint(
+          '[NotificationFlow][State] device_activation=$permissionGranted',
+        );
+        if (!permissionGranted) {
+          _settings = _settings.copyWith(notifications: false);
+          await _saveNotificationPreference(false);
+          try {
+            await _notificationRepository.updateNotification(false);
+            debugPrint(
+              '[NotificationFlow][Backend] notifications_enabled=false '
+              'reason=permission_denied',
+            );
+          } catch (error) {
+            debugPrint(
+              'Cannot synchronize denied notification permission: $error',
+            );
+          }
+          return false;
+        }
 
-      debugPrint('Cập nhật thông báo thất bại: $e');
+        try {
+          await _notificationRepository.updateNotification(true);
+          debugPrint('[NotificationFlow][Backend] notifications_enabled=true');
+          _settings = _settings.copyWith(notifications: true);
+          await _saveNotificationPreference(true);
+          return true;
+        } catch (error) {
+          await _fcmService.deactivateToken();
+          _settings = _settings.copyWith(notifications: false);
+          await _saveNotificationPreference(false);
+          debugPrint('Cannot enable notifications on server: $error');
+          return false;
+        }
+      }
+
+      try {
+        await _notificationRepository.updateNotification(false);
+        debugPrint(
+          '[NotificationFlow][Backend] notifications_enabled=false '
+          'reason=user_toggle',
+        );
+        await _fcmService.deactivateToken();
+        _settings = _settings.copyWith(notifications: false);
+        await _saveNotificationPreference(false);
+        return true;
+      } catch (error) {
+        _settings = _settings.copyWith(notifications: oldValue);
+        debugPrint('Cannot disable notifications: $error');
+        return false;
+      }
+    } finally {
+      _isUpdatingNotifications = false;
+      debugPrint(
+        '[NotificationFlow][State] apply_finished '
+        'toggle=${_settings.notifications}',
+      );
+      notifyListeners();
     }
   }
 
