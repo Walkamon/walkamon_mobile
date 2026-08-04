@@ -61,7 +61,7 @@ void main() {
     });
   });
 
-  test('monthly stats are split into pages of seven days', () {
+  test('monthly stats are split into pages of six days', () {
     final data = List.generate(
       16,
       (index) => DailyStepStatisticItemResponse(
@@ -77,12 +77,12 @@ void main() {
     final pages = buildWeeklyChartPages(points);
 
     expect(pages.length, 3);
-    expect(pages[0].length, 7);
-    expect(pages[1].length, 7);
-    expect(pages[2].length, 2);
+    expect(pages[0].length, 6);
+    expect(pages[1].length, 6);
+    expect(pages[2].length, 4);
     expect(pages[0].first.label, 'day-0');
-    expect(pages[1].first.label, 'day-7');
-    expect(pages[2].first.label, 'day-14');
+    expect(pages[1].first.label, 'day-6');
+    expect(pages[2].first.label, 'day-12');
     expect(
       pages
           .expand((page) => page)

@@ -75,12 +75,13 @@ List<StepChartPoint> buildChartPointsForRange({
 List<List<StepChartPoint>> buildWeeklyChartPages(
   Iterable<StepChartPoint> data,
 ) {
+  const pageSize = 6;
   final points = data.toList();
   if (points.isEmpty) return const [];
 
-  return List.generate((points.length / 7).ceil(), (index) {
-    final start = index * 7;
-    final end = (start + 7).clamp(0, points.length);
+  return List.generate((points.length / pageSize).ceil(), (index) {
+    final start = index * pageSize;
+    final end = (start + pageSize).clamp(0, points.length);
     return points.sublist(start, end);
   });
 }
@@ -1022,52 +1023,67 @@ class _StepsBarChart extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(5, (_) {
-                        return Container(
-                          height: 1,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(
-                                color: borderColor.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    Positioned.fill(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: data.map((point) {
-                          final reached = point.steps >= goal;
-                          final heightFactor = maxY <= 0
-                              ? 0.0
-                              : (point.steps / maxY).clamp(0.0, 1.0);
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final slotCount = timeRange == ActivityTimeRange.monthly
+                        ? 6
+                        : data.length;
+                    final availableSlotWidth = slotCount == 0
+                        ? barWidth
+                        : constraints.maxWidth / slotCount;
+                    final responsiveBarWidth = availableSlotWidth * 0.6;
+                    final effectiveBarWidth = responsiveBarWidth < barWidth
+                        ? responsiveBarWidth
+                        : barWidth;
 
-                          return Tooltip(
-                            message:
-                                '${formatStepCount(point.steps)} ${l10n.activityStatsStepsUnit}',
-                            child: FractionallySizedBox(
-                              heightFactor: heightFactor,
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                width: barWidth,
-                                decoration: BoxDecoration(
-                                  color: reached ? primary : muted,
-                                  borderRadius: BorderRadius.circular(6),
+                    return Stack(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(5, (_) {
+                            return Container(
+                              height: 1,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: borderColor.withValues(alpha: 0.5),
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
+                            );
+                          }),
+                        ),
+                        Positioned.fill(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: data.map((point) {
+                              final reached = point.steps >= goal;
+                              final heightFactor = maxY <= 0
+                                  ? 0.0
+                                  : (point.steps / maxY).clamp(0.0, 1.0);
+
+                              return Tooltip(
+                                message:
+                                    '${formatStepCount(point.steps)} ${l10n.activityStatsStepsUnit}',
+                                child: FractionallySizedBox(
+                                  heightFactor: heightFactor,
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    width: effectiveBarWidth,
+                                    decoration: BoxDecoration(
+                                      color: reached ? primary : muted,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -1078,10 +1094,11 @@ class _StepsBarChart extends StatelessWidget {
           padding: const EdgeInsets.only(left: 44),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: data.map((point) {
+            children: data.asMap().entries.map((entry) {
+              final point = entry.value;
               return Expanded(
                 child: Text(
-                  _localizedLabel(point.label),
+                  _localizedLabel(point.label, entry.key),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1106,7 +1123,12 @@ class _StepsBarChart extends StatelessWidget {
     return value.toInt().toString();
   }
 
-  String _localizedLabel(String label) {
+  String _localizedLabel(String label, int index) {
+    if (timeRange == ActivityTimeRange.weekly) {
+      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return index < weekdays.length ? weekdays[index] : label;
+    }
+
     if (timeRange != ActivityTimeRange.monthly || !label.startsWith('W')) {
       return label;
     }
