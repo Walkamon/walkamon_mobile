@@ -327,6 +327,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     const mutedForeground = AppColors.outlineBrown;
     const borderColor = AppColors.wood;
     const foreground = AppColors.woodDeep;
+    final compactLayout = MediaQuery.sizeOf(context).height < 850;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -341,11 +342,16 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: EdgeInsets.fromLTRB(
+            compactLayout ? 14 : 20,
+            8,
+            compactLayout ? 14 : 20,
+            compactLayout ? 10 : 24,
+          ),
           child: Column(
             children: [
               _Header(onBack: () => Navigator.pop(context)),
-              const SizedBox(height: 24),
+              SizedBox(height: compactLayout ? 12 : 24),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -432,16 +438,24 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     final total = _displayTotal(stats);
     final average = _displayAverage(stats);
     final distance = _displayDistance(stats);
+    final screenSize = MediaQuery.sizeOf(context);
+    final compactHeight = screenSize.height < 850;
+    final compactWidth = screenSize.width < 380;
+    final panelPadding = compactWidth ? 14.0 : (compactHeight ? 18.0 : 24.0);
+    final sectionGap = compactHeight ? 14.0 : 24.0;
+    final chartHeight = screenSize.height < 700
+        ? 145.0
+        : (compactHeight ? 185.0 : 256.0);
 
     return ListView(
       key: key,
       physics: const BouncingScrollPhysics(),
       children: [
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(panelPadding),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(compactWidth ? 24 : 32),
             border: Border.all(color: borderColor, width: 2),
             boxShadow: [
               BoxShadow(
@@ -501,7 +515,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: sectionGap),
               Row(
                 children: [
                   Container(
@@ -557,9 +571,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: sectionGap),
               SizedBox(
-                height: 256,
+                height: chartHeight,
                 child: stats.chartData.isEmpty
                     ? Center(
                         child: Text(
@@ -580,14 +594,14 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                         mutedForeground: mutedForeground,
                         borderColor: borderColor,
                         barWidth: _timeRange == ActivityTimeRange.monthly
-                            ? 40
-                            : 32,
+                            ? (compactWidth ? 22 : 32)
+                            : (compactWidth ? 20 : 28),
                       ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: compactHeight ? 10 : 16),
         Row(
           children: [
             Expanded(
@@ -600,7 +614,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 mutedForeground: mutedForeground,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: compactWidth ? 8 : 16),
             Expanded(
               child: _SummaryCard(
                 label: l10n.activityStatsDistance,
@@ -614,7 +628,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: compactHeight ? 10 : 24),
       ],
     );
   }

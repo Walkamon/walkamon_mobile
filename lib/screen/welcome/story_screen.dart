@@ -48,7 +48,7 @@ class _StoryScreenState extends State<StoryScreen> {
   }
 
   Future<void> _goToPetOnboarding() async {
-    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    final hasPet = await context.read<GameStateProvider>().preparePetForHome();
     if (!mounted) return;
 
     Navigator.pushReplacementNamed(context, hasPet ? '/home' : '/seed');

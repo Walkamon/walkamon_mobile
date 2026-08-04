@@ -126,7 +126,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final petRepository = context.read<GameStateProvider>().petRepository;
+      final gameState = context.read<GameStateProvider>();
+      final petRepository = gameState.petRepository;
 
       bool success = false;
       if (petId != null) {
@@ -150,6 +151,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         return false;
       }
 
+      await Future.wait([
+        gameState.fetchPetStatus(),
+        gameState.fetchPetVisual(),
+      ]);
       return true;
     } catch (e) {
       if (mounted) {

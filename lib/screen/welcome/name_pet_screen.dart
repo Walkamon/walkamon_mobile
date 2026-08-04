@@ -60,7 +60,7 @@ class _NamePetScreenState extends State<NamePetScreen>
   }
 
   Future<void> _redirectIfPetExists() async {
-    final hasPet = await context.read<GameStateProvider>().fetchPetName();
+    final hasPet = await context.read<GameStateProvider>().preparePetForHome();
     if (!mounted) return;
     if (hasPet) {
       Navigator.pushReplacementNamed(context, '/home');

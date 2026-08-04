@@ -32,6 +32,8 @@ class DailyLoginProvider extends ChangeNotifier {
   }
 
   Future<ClaimDailyRewardData?> claimReward() async {
+    if (_isLoading) return null;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -42,7 +44,7 @@ class DailyLoginProvider extends ChangeNotifier {
       await loadDailyLoginStatus();
 
       return data; // Trả về object dữ liệu thành công
-    } catch (e, stackTrace) {
+    } catch (e) {
       // print('Vị trí lỗi (Stack Trace):\n$stackTrace');
       _isLoading = false;
       _errorMessage = e.toString();
