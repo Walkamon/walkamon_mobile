@@ -3,6 +3,16 @@ import '../models/pet_evolution_models.dart';
 import '../models/pet_name_response.dart';
 import '../models/pet_status_response.dart';
 
+class PetFeedException implements Exception {
+  const PetFeedException({required this.status, required this.message});
+
+  final int status;
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class PetScreenRepository {
   PetScreenRepository({PetScreenDatasource? datasource})
     : _datasource = datasource ?? PetScreenDatasource();
@@ -20,6 +30,20 @@ class PetScreenRepository {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : 'Không thể tải trạng thái thú cưng.',
+    );
+  }
+
+  Future<bool> getStoryStatus() async {
+    final apiResponse = await _datasource.getStoryStatus();
+
+    if (apiResponse.success && apiResponse.data != null) {
+      return apiResponse.data!;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải trạng thái cốt truyện.',
     );
   }
 
@@ -79,8 +103,9 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
+    throw PetFeedException(
+      status: apiResponse.status,
+      message: apiResponse.message.isNotEmpty
           ? apiResponse.message
           : 'Không thể cho thú cưng ăn.',
     );

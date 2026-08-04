@@ -2093,7 +2093,7 @@ abstract class AppLocalizations {
   /// No description provided for @activityStatsMonthTitle.
   ///
   /// In en, this message translates to:
-  /// **'This month\'s activity'**
+  /// **'Month activity'**
   String get activityStatsMonthTitle;
 
   /// No description provided for @activityStatsTotal.

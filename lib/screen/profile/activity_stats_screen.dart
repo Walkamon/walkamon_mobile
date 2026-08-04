@@ -75,12 +75,13 @@ List<StepChartPoint> buildChartPointsForRange({
 List<List<StepChartPoint>> buildWeeklyChartPages(
   Iterable<StepChartPoint> data,
 ) {
+  const pageSize = 6;
   final points = data.toList();
   if (points.isEmpty) return const [];
 
-  return List.generate((points.length / 7).ceil(), (index) {
-    final start = index * 7;
-    final end = (start + 7).clamp(0, points.length);
+  return List.generate((points.length / pageSize).ceil(), (index) {
+    final start = index * pageSize;
+    final end = (start + pageSize).clamp(0, points.length);
     return points.sublist(start, end);
   });
 }
@@ -115,9 +116,15 @@ class ActivityStatsScreenRepository {
   }
 
   Future<StepStatsResponse> getStats(ActivityTimeRange range) async {
-    final response = range == ActivityTimeRange.daily
-        ? await _repository.getStatistic(ActivityStatsRange.daily)
-        : await _getMonthlyResponse();
+    final response = await (switch (range) {
+      ActivityTimeRange.daily => _repository.getStatistic(
+        ActivityStatsRange.daily,
+      ),
+      ActivityTimeRange.weekly => _repository.getStatistic(
+        ActivityStatsRange.weekly,
+      ),
+      ActivityTimeRange.monthly => _getMonthlyResponse(),
+    });
     final chartData = buildChartPointsForRange(
       range: range,
       data: response.data,
@@ -166,7 +173,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       ActivityStatsScreenRepository();
 
   _MainTab _activeTab = _MainTab.stats;
-  ActivityTimeRange _timeRange = ActivityTimeRange.weekly;
+  ActivityTimeRange _timeRange = ActivityTimeRange.monthly;
 
   bool _isStatsLoading = true;
   bool _isHistoryLoading = true;
@@ -195,7 +202,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       if (!mounted) return;
       setState(() {
         _stats = stats;
-        if (_timeRange != ActivityTimeRange.daily) {
+        if (_timeRange == ActivityTimeRange.monthly) {
           final pages = buildWeeklyChartPages(stats.chartData);
           _selectedWeekIndex = pages.isEmpty ? 0 : pages.length - 1;
         }
@@ -243,7 +250,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   }
 
   StepStatsResponse _visibleStats(StepStatsResponse stats) {
-    if (_timeRange == ActivityTimeRange.daily) return stats;
+    if (_timeRange != ActivityTimeRange.monthly) return stats;
     final pages = _weekPages(stats);
     if (pages.isEmpty) return stats;
     final index = _selectedWeekIndex.clamp(0, pages.length - 1);
@@ -320,6 +327,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     const mutedForeground = AppColors.outlineBrown;
     const borderColor = AppColors.wood;
     const foreground = AppColors.woodDeep;
+    final compactLayout = MediaQuery.sizeOf(context).height < 850;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -334,11 +342,16 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: EdgeInsets.fromLTRB(
+            compactLayout ? 14 : 20,
+            8,
+            compactLayout ? 14 : 20,
+            compactLayout ? 10 : 24,
+          ),
           child: Column(
             children: [
               _Header(onBack: () => Navigator.pop(context)),
-              const SizedBox(height: 24),
+              SizedBox(height: compactLayout ? 12 : 24),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -425,16 +438,24 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     final total = _displayTotal(stats);
     final average = _displayAverage(stats);
     final distance = _displayDistance(stats);
+    final screenSize = MediaQuery.sizeOf(context);
+    final compactHeight = screenSize.height < 850;
+    final compactWidth = screenSize.width < 380;
+    final panelPadding = compactWidth ? 14.0 : (compactHeight ? 18.0 : 24.0);
+    final sectionGap = compactHeight ? 14.0 : 24.0;
+    final chartHeight = screenSize.height < 700
+        ? 145.0
+        : (compactHeight ? 185.0 : 256.0);
 
     return ListView(
       key: key,
       physics: const BouncingScrollPhysics(),
       children: [
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(panelPadding),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(compactWidth ? 24 : 32),
             border: Border.all(color: borderColor, width: 2),
             boxShadow: [
               BoxShadow(
@@ -456,21 +477,26 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 foreground: foreground,
                 onChanged: _onTimeRangeChanged,
               ),
-              if (_timeRange != ActivityTimeRange.daily &&
+              if (_timeRange == ActivityTimeRange.monthly &&
                   weekPages.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      tooltip: 'Tuần trước',
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).previousPageTooltip,
                       onPressed: _selectedWeekIndex > 0
                           ? () => setState(() => _selectedWeekIndex--)
                           : null,
-                      icon: const AppIcon(Icons.chevron_left_rounded),
+                      icon: Transform.flip(
+                        flipX: true,
+                        child: const AppIcon(Icons.chevron_right_rounded),
+                      ),
                     ),
                     Text(
-                      '${l10n.activityStatsWeekBucket(_selectedWeekIndex + 1)}'
+                      '${l10n.activityStatsMonthly} ${_selectedWeekIndex + 1}'
                       '/${weekPages.length}',
                       style: TextStyle(
                         color: foreground,
@@ -478,7 +504,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Tuần tiếp theo',
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).nextPageTooltip,
                       onPressed: _selectedWeekIndex < weekPages.length - 1
                           ? () => setState(() => _selectedWeekIndex++)
                           : null,
@@ -487,7 +515,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: sectionGap),
               Row(
                 children: [
                   Container(
@@ -543,9 +571,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: sectionGap),
               SizedBox(
-                height: 256,
+                height: chartHeight,
                 child: stats.chartData.isEmpty
                     ? Center(
                         child: Text(
@@ -566,14 +594,14 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                         mutedForeground: mutedForeground,
                         borderColor: borderColor,
                         barWidth: _timeRange == ActivityTimeRange.monthly
-                            ? 40
-                            : 32,
+                            ? (compactWidth ? 22 : 32)
+                            : (compactWidth ? 20 : 28),
                       ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: compactHeight ? 10 : 16),
         Row(
           children: [
             Expanded(
@@ -586,7 +614,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 mutedForeground: mutedForeground,
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: compactWidth ? 8 : 16),
             Expanded(
               child: _SummaryCard(
                 label: l10n.activityStatsDistance,
@@ -600,7 +628,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: compactHeight ? 10 : 24),
       ],
     );
   }
@@ -896,69 +924,59 @@ class _TimeRangeSelector extends StatelessWidget {
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Row(
-        children: ActivityTimeRange.values
-            .where((range) => range != ActivityTimeRange.monthly)
-            .map((range) {
-              final isActive = timeRange == range;
-              final label = switch (range) {
-                ActivityTimeRange.daily => AppLocalizations.of(
-                  context,
-                ).activityStatsDaily,
-                ActivityTimeRange.weekly => AppLocalizations.of(
-                  context,
-                ).activityStatsWeekly,
-                ActivityTimeRange.monthly => AppLocalizations.of(
-                  context,
-                ).activityStatsMonthly,
-              };
+        children: ActivityTimeRange.values.map((range) {
+          final isActive = timeRange == range;
+          final label = switch (range) {
+            ActivityTimeRange.daily => AppLocalizations.of(
+              context,
+            ).activityStatsDaily,
+            ActivityTimeRange.weekly => AppLocalizations.of(
+              context,
+            ).activityStatsWeekly,
+            ActivityTimeRange.monthly => AppLocalizations.of(
+              context,
+            ).activityStatsMonthly,
+          };
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onChanged(range),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.buttonGreen
-                          : AppColors.parchment,
-                      borderRadius: BorderRadius.circular(12),
-                      border: isActive
-                          ? Border.all(color: AppColors.woodDeep, width: 1.5)
-                          : null,
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? AppColors.buttonText
-                            : AppColors.woodDeep,
-                        shadows: isActive
-                            ? const [
-                                Shadow(
-                                  color: AppColors.woodDeep,
-                                  blurRadius: 1.5,
-                                ),
-                              ]
-                            : null,
-                      ),
-                    ),
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(range),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.buttonGreen : AppColors.parchment,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isActive
+                      ? Border.all(color: AppColors.woodDeep, width: 1.5)
+                      : null,
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? AppColors.buttonText : AppColors.woodDeep,
+                    shadows: isActive
+                        ? const [
+                            Shadow(color: AppColors.woodDeep, blurRadius: 1.5),
+                          ]
+                        : null,
                   ),
                 ),
-              );
-            })
-            .toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -1019,52 +1037,67 @@ class _StepsBarChart extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(5, (_) {
-                        return Container(
-                          height: 1,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(
-                                color: borderColor.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    Positioned.fill(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: data.map((point) {
-                          final reached = point.steps >= goal;
-                          final heightFactor = maxY <= 0
-                              ? 0.0
-                              : (point.steps / maxY).clamp(0.0, 1.0);
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final slotCount = timeRange == ActivityTimeRange.monthly
+                        ? 6
+                        : data.length;
+                    final availableSlotWidth = slotCount == 0
+                        ? barWidth
+                        : constraints.maxWidth / slotCount;
+                    final responsiveBarWidth = availableSlotWidth * 0.6;
+                    final effectiveBarWidth = responsiveBarWidth < barWidth
+                        ? responsiveBarWidth
+                        : barWidth;
 
-                          return Tooltip(
-                            message:
-                                '${formatStepCount(point.steps)} ${l10n.activityStatsStepsUnit}',
-                            child: FractionallySizedBox(
-                              heightFactor: heightFactor,
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                width: barWidth,
-                                decoration: BoxDecoration(
-                                  color: reached ? primary : muted,
-                                  borderRadius: BorderRadius.circular(6),
+                    return Stack(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(5, (_) {
+                            return Container(
+                              height: 1,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: borderColor.withValues(alpha: 0.5),
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
+                            );
+                          }),
+                        ),
+                        Positioned.fill(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: data.map((point) {
+                              final reached = point.steps >= goal;
+                              final heightFactor = maxY <= 0
+                                  ? 0.0
+                                  : (point.steps / maxY).clamp(0.0, 1.0);
+
+                              return Tooltip(
+                                message:
+                                    '${formatStepCount(point.steps)} ${l10n.activityStatsStepsUnit}',
+                                child: FractionallySizedBox(
+                                  heightFactor: heightFactor,
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    width: effectiveBarWidth,
+                                    decoration: BoxDecoration(
+                                      color: reached ? primary : muted,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -1075,10 +1108,11 @@ class _StepsBarChart extends StatelessWidget {
           padding: const EdgeInsets.only(left: 44),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: data.map((point) {
+            children: data.asMap().entries.map((entry) {
+              final point = entry.value;
               return Expanded(
                 child: Text(
-                  _localizedLabel(point.label),
+                  _localizedLabel(point.label, entry.key),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1103,7 +1137,12 @@ class _StepsBarChart extends StatelessWidget {
     return value.toInt().toString();
   }
 
-  String _localizedLabel(String label) {
+  String _localizedLabel(String label, int index) {
+    if (timeRange == ActivityTimeRange.weekly) {
+      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return index < weekdays.length ? weekdays[index] : label;
+    }
+
     if (timeRange != ActivityTimeRange.monthly || !label.startsWith('W')) {
       return label;
     }

@@ -40,6 +40,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   }
 
   Future<void> _loadAchievementCount() async {
+    if (mounted) {
+      setState(() {
+        _isAchievementCountLoading = true;
+        _achievementCountError = null;
+      });
+    }
     try {
       final achievements = await _achievementRepository.getAchievements();
       if (!mounted) return;
@@ -311,8 +317,13 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                           : _achievementCountError != null
                           ? l10n.achievementsLoadFailed
                           : l10n.achievementsCollected(_achievementCount ?? 0),
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/profile/achievements'),
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          '/profile/achievements',
+                        );
+                        if (mounted) await _loadAchievementCount();
+                      },
                     ),
                   ),
                 ],

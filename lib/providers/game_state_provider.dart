@@ -99,9 +99,17 @@ class GameSettings {
   }
 }
 
+enum PetFeedFailureReason {
+  none,
+  busy,
+  fullLifeForce,
+  limitReached,
+  insufficientDew,
+  failed,
+}
+
 class GameStateProvider extends ChangeNotifier {
   static const _languageCodeKey = 'language_code';
-  static const _storySeenKeyPrefix = 'story_seen_';
   static const _notificationPreferenceKeyPrefix =
       'notifications_enabled_for_user_';
 
@@ -136,6 +144,7 @@ class GameStateProvider extends ChangeNotifier {
   String _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
   bool _hasStarterPet = false;
   bool _hasSeenStory = false;
+  bool _hasCompletedStoryThisSession = false;
   bool _hasLocalLanguagePreference = false;
 
   String _affinityCode = 'sprout';
@@ -148,6 +157,8 @@ class GameStateProvider extends ChangeNotifier {
 
   bool _isProfileLoading = false;
   bool _isUpdatingNotifications = false;
+  bool _isFeedingSpirit = false;
+  PetFeedFailureReason _lastFeedFailure = PetFeedFailureReason.none;
   String? _profileErrorMessage;
 
   GameUser? get user => _user;
@@ -163,6 +174,7 @@ class GameStateProvider extends ChangeNotifier {
   String get spiritInfo => _spiritInfo;
   bool get hasStarterPet => _hasStarterPet;
   bool get hasSeenStory => _hasSeenStory;
+  bool get hasCompletedStoryThisSession => _hasCompletedStoryThisSession;
   String get affinityCode => _affinityCode;
   int get petStageNo => _petStageNo;
   String get animationType => _animationType;
@@ -174,11 +186,39 @@ class GameStateProvider extends ChangeNotifier {
 
   bool get isProfileLoading => _isProfileLoading;
   bool get isUpdatingNotifications => _isUpdatingNotifications;
+  bool get isFeedingSpirit => _isFeedingSpirit;
+  PetFeedFailureReason get lastFeedFailure => _lastFeedFailure;
   String? get profileErrorMessage => _profileErrorMessage;
 
   void setUser(GameUser? user) {
     _user = user;
     notifyListeners();
+  }
+
+  void _resetAccountScopedState() {
+    debugPrint(
+      '[AccountState] Resetting pet/profile state before account swap',
+    );
+    _user = null;
+    _settings = _settings.copyWith(notifications: false);
+    _bondingLevel = 50;
+    _spiritLevel = 1;
+    _spiritExp = 25;
+    _spiritEnergy = 62;
+    _spiritHealth = 70;
+    _spiritName = 'Lumina';
+    _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
+    _hasStarterPet = false;
+    _hasSeenStory = false;
+    _hasCompletedStoryThisSession = false;
+    _affinityCode = 'sprout';
+    _petStageNo = 0;
+    _animationType = 'idle';
+    _petStageName = '';
+    _isFeedingSpirit = false;
+    _lastFeedFailure = PetFeedFailureReason.none;
+    _isProfileLoading = false;
+    _profileErrorMessage = null;
   }
 
   Future<bool> login({required String email, required String password}) async {
@@ -195,9 +235,14 @@ class GameStateProvider extends ChangeNotifier {
 
     if (response.success && response.data != null) {
       TokenStorage.setToken(response.data!.token);
+      _resetAccountScopedState();
+
+      final resolvedUserId =
+          response.data!.userId ?? _userIdFromJwt(response.data!.token) ?? '';
+      await _persistResolvedUserId(resolvedUserId);
 
       _user = GameUser(
-        id: response.data!.userId ?? '0',
+        id: resolvedUserId,
         name: response.data!.username ?? 'Lữ Hành Giả',
         email: email,
         level: 1,
@@ -206,6 +251,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
+      await fetchProfileDetail();
       await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
@@ -277,9 +323,14 @@ class GameStateProvider extends ChangeNotifier {
 
     if (response.success && response.data != null) {
       TokenStorage.setToken(response.data!.token);
+      _resetAccountScopedState();
+
+      final resolvedUserId =
+          response.data!.userId ?? _userIdFromJwt(response.data!.token) ?? '';
+      await _persistResolvedUserId(resolvedUserId);
 
       _user = GameUser(
-        id: response.data!.userId ?? '0',
+        id: resolvedUserId,
         name: response.data!.username ?? 'Lữ Hành Giả',
         email: '',
         level: 1,
@@ -288,6 +339,7 @@ class GameStateProvider extends ChangeNotifier {
       );
 
       notifyListeners();
+      await fetchProfileDetail();
       await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
@@ -318,16 +370,7 @@ class GameStateProvider extends ChangeNotifier {
     await TokenStorage.clearAuthData();
 
     // 3. Reset trạng thái app
-    _user = null;
-    _settings = _settings.copyWith(notifications: false);
-    _profileErrorMessage = null;
-    _hasStarterPet = false;
-    _hasSeenStory = false;
-    _spiritName = 'Lumina';
-    _affinityCode = 'sprout';
-    _petStageNo = 0;
-    _animationType = 'idle';
-    _petStageName = '';
+    _resetAccountScopedState();
     _isLoading = false;
     notifyListeners();
   }
@@ -364,7 +407,9 @@ class GameStateProvider extends ChangeNotifier {
         languageCode: preferredLanguageCode,
       );
 
-      _hasSeenStory = profileData.hasSeenStory || await _hasSeenStoryLocally();
+      // The dedicated Pet story-status endpoint is authoritative for routing.
+      // Keep the profile value only as a temporary fallback if that request fails.
+      _hasSeenStory = profileData.hasSeenStory;
 
       notifyListeners();
       return true;
@@ -439,9 +484,7 @@ class GameStateProvider extends ChangeNotifier {
     try {
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool(key, enabled);
-      debugPrint(
-        '[NotificationFlow][State] local_preference_saved=$enabled',
-      );
+      debugPrint('[NotificationFlow][State] local_preference_saved=$enabled');
     } catch (error) {
       debugPrint('Cannot save notification preference: $error');
     }
@@ -481,7 +524,9 @@ class GameStateProvider extends ChangeNotifier {
 
   Future<bool> _applyNotificationPreference(bool requestedValue) async {
     if (_isUpdatingNotifications) {
-      debugPrint('[NotificationFlow][State] request_ignored=update_in_progress');
+      debugPrint(
+        '[NotificationFlow][State] request_ignored=update_in_progress',
+      );
       return _settings.notifications;
     }
 
@@ -760,6 +805,26 @@ class GameStateProvider extends ChangeNotifier {
     return known.contains(code) ? code : null;
   }
 
+  Future<bool> preparePetForHome() async {
+    debugPrint('[AccountState] Preparing pet data before opening Home');
+    final hasPet = await fetchPetName();
+    if (!hasPet) {
+      debugPrint('[AccountState] Home preparation stopped: no pet');
+      return false;
+    }
+
+    final results = await Future.wait<bool>([
+      fetchPetStatus(),
+      fetchPetVisual(),
+    ]);
+    debugPrint(
+      '[AccountState] Home preparation complete '
+      'status=${results[0]} visual=${results[1]} '
+      'affinity=$_affinityCode stage=$_petStageNo',
+    );
+    return true;
+  }
+
   Future<bool> fetchPetName() async {
     try {
       final petName = await _petRepository.getPetName();
@@ -789,8 +854,26 @@ class GameStateProvider extends ChangeNotifier {
         _spiritName = petName.trim();
       }
 
+      // Creating/naming the starter pet is the final onboarding action. The
+      // backend persists HasSeenStory as part of this successful operation.
       _hasStarterPet = true;
+      _hasSeenStory = true;
+      _hasCompletedStoryThisSession = false;
       notifyListeners();
+
+      try {
+        final serverSeen = await _petRepository.getStoryStatus();
+        debugPrint('[Onboarding] story-status after pet creation: $serverSeen');
+        if (serverSeen && !_hasSeenStory) {
+          _hasSeenStory = true;
+          notifyListeners();
+        }
+      } catch (error) {
+        debugPrint(
+          '[Onboarding] could not confirm story-status after pet creation: '
+          '$error',
+        );
+      }
       return true;
     } catch (e) {
       debugPrint('Lỗi khi tạo thú cưng khởi đầu: $e');
@@ -800,8 +883,29 @@ class GameStateProvider extends ChangeNotifier {
 
   // ── Feed Spirit with API call ──
   Future<bool> feedSpirit() async {
+    if (_isFeedingSpirit) {
+      _lastFeedFailure = PetFeedFailureReason.busy;
+      return false;
+    }
+
+    if (_spiritHealth >= 100) {
+      _lastFeedFailure = PetFeedFailureReason.fullLifeForce;
+      return false;
+    }
+
+    _isFeedingSpirit = true;
+    _lastFeedFailure = PetFeedFailureReason.none;
     try {
+      final previousEnergy = _spiritEnergy;
+      final previousLifeForce = _spiritHealth;
+      final previousBond = _bondingLevel;
       final result = await _petRepository.feedSpirit();
+
+      debugPrint(
+        '[PetFeed] Energy: $previousEnergy -> ${result.currentEnergy}; '
+        'LifeForce: $previousLifeForce -> ${result.currentLifeForce}; '
+        'Bond: $previousBond -> ${result.currentBond}',
+      );
 
       // Update local state from API response
       _spiritEnergy = result.currentEnergy;
@@ -814,7 +918,31 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Lỗi khi cho thú cưng ăn: $e');
+      final message = e.toString().toLowerCase();
+      if (message.contains('life force') ||
+          message.contains('lifeforce') ||
+          message.contains('sinh mệnh lực')) {
+        _lastFeedFailure = PetFeedFailureReason.fullLifeForce;
+      } else if ((e is PetFeedException && e.status == 429) ||
+          message.contains('limit') ||
+          message.contains('too many') ||
+          message.contains('cooldown') ||
+          message.contains('maximum') ||
+          message.contains('rate limit') ||
+          message.contains('giới hạn')) {
+        _lastFeedFailure = PetFeedFailureReason.limitReached;
+      } else if (message.contains('insufficient') ||
+          message.contains('not enough') ||
+          message.contains('balance') ||
+          message.contains('wallet') ||
+          message.contains('không đủ')) {
+        _lastFeedFailure = PetFeedFailureReason.insufficientDew;
+      } else {
+        _lastFeedFailure = PetFeedFailureReason.failed;
+      }
       return false;
+    } finally {
+      _isFeedingSpirit = false;
     }
   }
 
@@ -845,39 +973,41 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> _hasSeenStoryLocally() async {
-    final userId = _user?.id ?? '';
-    if (userId.isEmpty) return false;
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      return preferences.getBool('$_storySeenKeyPrefix$userId') ?? false;
-    } catch (_) {
-      return false;
-    }
+  Future<void> _persistResolvedUserId(String userId) async {
+    if (userId.isEmpty) return;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('user_id', userId);
   }
 
   Future<bool> loadHasSeenStory() async {
-    if (_hasSeenStory) return true;
-    final localSeen = await _hasSeenStoryLocally();
-    if (localSeen != _hasSeenStory) {
-      _hasSeenStory = localSeen;
-      notifyListeners();
+    try {
+      final serverSeen = await _petRepository.getStoryStatus();
+      if (serverSeen != _hasSeenStory) {
+        _hasSeenStory = serverSeen;
+        notifyListeners();
+      }
+      debugPrint(
+        '[Onboarding] GET /api/Pet/story-status => $serverSeen '
+        'account=${_user?.id ?? ''}',
+      );
+      return serverSeen;
+    } catch (error) {
+      debugPrint(
+        '[Onboarding] story-status request failed; using profile fallback '
+        '($_hasSeenStory): $error',
+      );
+      return _hasSeenStory;
     }
-    return _hasSeenStory;
   }
 
-  Future<void> setHasSeenStory(bool seen) async {
-    _hasSeenStory = seen;
+  void markStoryCompletedForCurrentFlow() {
+    if (_hasCompletedStoryThisSession) return;
+    _hasCompletedStoryThisSession = true;
+    debugPrint(
+      '[Onboarding] story completed in this session; waiting for pet name '
+      'before marking it seen',
+    );
     notifyListeners();
-
-    final userId = _user?.id ?? '';
-    if (userId.isEmpty) return;
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setBool('$_storySeenKeyPrefix$userId', seen);
-    } catch (error) {
-      debugPrint('Không thể lưu trạng thái onboarding: $error');
-    }
   }
 
   bool canAfford(int price) => _user != null && _user!.coins >= price;

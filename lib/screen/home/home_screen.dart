@@ -241,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String? _petAnimationOverride;
   bool _stepExpanded = false;
   bool _isRefreshingMetrics = false;
+  bool _isFeedButtonPressed = false;
   int? _dewBalance;
   final WalletRepository _walletRepository = WalletRepository();
   final MissionsScreenRepository _missionsRepository =
@@ -313,6 +314,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _playLevelUpEffectIfNeeded(int previousLevel, int currentLevel) {
     if (currentLevel <= previousLevel) return;
     unawaited(AppAudioService.instance.playLevelUp());
+  }
+
+  Future<void> _openRouteAndRefresh(String route) async {
+    await Navigator.pushNamed(context, route);
+    if (mounted) unawaited(_refreshHomeMetrics());
   }
 
   Future<void> _refreshHomeMetrics() async {
@@ -450,11 +456,71 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _setFeedButtonPressed(bool pressed) {
+    if (!mounted || _isFeedButtonPressed == pressed) return;
+    setState(() => _isFeedButtonPressed = pressed);
+  }
+
+  void _showFeedNotice(PetFeedFailureReason reason) {
+    if (!mounted) return;
+
+    final isVietnamese = Localizations.localeOf(context).languageCode == 'vi';
+    final message = switch (reason) {
+      PetFeedFailureReason.busy =>
+        isVietnamese
+            ? 'Bạn đang cho pet ăn quá nhanh. Hãy chờ thao tác hiện tại hoàn tất.'
+            : 'You are feeding too quickly. Please wait for the current action to finish.',
+      PetFeedFailureReason.fullLifeForce =>
+        isVietnamese
+            ? 'Sinh Mệnh Lực của pet đã đạt giới hạn rồi.'
+            : 'Your pet has reached its Life Force limit.',
+      PetFeedFailureReason.limitReached =>
+        isVietnamese
+            ? 'Bạn đã đạt giới hạn cho pet ăn. Hãy quay lại sau nhé.'
+            : 'You have reached the feeding limit. Please come back later.',
+      PetFeedFailureReason.insufficientDew =>
+        isVietnamese
+            ? 'Bạn không đủ Giọt Sương để cho pet ăn.'
+            : 'You do not have enough Dew Drops to feed your pet.',
+      _ =>
+        isVietnamese
+            ? 'Chưa thể cho pet ăn lúc này. Vui lòng thử lại.'
+            : 'Unable to feed your pet right now. Please try again.',
+    };
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.woodDeep,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.cream,
+          margin: const EdgeInsets.fromLTRB(24, 0, 24, 112),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: AppColors.woodDeep, width: 2),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+  }
+
   void _handleDewdropTap(GameStateProvider gameState) async {
     AppAudioService.instance.suppressNextTabSound();
     final previousLevel = gameState.spiritLevel;
     final success = await gameState.feedSpirit();
+    if (!mounted) return;
     if (!success) {
+      _showFeedNotice(gameState.lastFeedFailure);
       return;
     }
 
@@ -920,8 +986,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                               // 4. Level / Profile
                               GestureDetector(
-                                onTap: () =>
-                                    Navigator.pushNamed(context, '/profile'),
+                                onTap: () => _openRouteAndRefresh('/profile'),
                                 child: Container(
                                   width: 48,
                                   height: 48,
@@ -958,63 +1023,98 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Pet Area ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
                     Expanded(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Floating dew bubbles (drawn on top of the circles)
-                          ..._bubbles.map(
-                            (bubble) => _BubbleWidget(
-                              key: ValueKey(bubble.id),
-                              bubble: bubble,
-                              dewColor: dewColor,
-                              onCollect: () =>
-                                  _collectBubble(bubble.id, gameState),
-                            ),
-                          ),
+                      child: LayoutBuilder(
+                        builder: (context, petAreaConstraints) {
+                          final heightFit =
+                              ((petAreaConstraints.maxHeight - 16) / 200).clamp(
+                                0.42,
+                                1.0,
+                              );
+                          final widthFit =
+                              ((petAreaConstraints.maxWidth - 24) / 200).clamp(
+                                0.42,
+                                1.0,
+                              );
+                          final areaScale = math.min(heightFit, widthFit);
+                          final effectivePetScale = math
+                              .min(petScale, areaScale)
+                              .toDouble();
+                          final scaledPetSize = 200 * effectivePetScale;
+                          final maxPetOffset = math.max(
+                            0.0,
+                            (petAreaConstraints.maxHeight - scaledPetSize) / 2 -
+                                8,
+                          );
+                          final safePetVerticalOffset = petVerticalOffset
+                              .clamp(-maxPetOffset, maxPetOffset)
+                              .toDouble();
 
-                          // Pet sprite placeholder
-                          Transform.translate(
-                            offset: Offset(0, petVerticalOffset),
-                            child: Transform.scale(
-                              scale: petScale,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _handlePetTap(gameState),
-                                child: SizedBox(
-                                  width: 200,
-                                  height: 200,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // Pet visual
-                                      _LuminaSprite(
-                                        affinityCode: gameState.affinityCode,
-                                        stageNo: gameState.petStageNo,
-                                        animationType:
-                                            _petAnimationOverride ??
-                                            (gameState.animationType.isEmpty
-                                                ? 'idle'
-                                                : gameState.animationType),
-                                        primary: primary,
-                                        luminaGlow: luminaGlow,
-                                      ),
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Floating dew bubbles (drawn on top of the circles)
+                              ..._bubbles.map(
+                                (bubble) => _BubbleWidget(
+                                  key: ValueKey(bubble.id),
+                                  bubble: bubble,
+                                  dewColor: dewColor,
+                                  petAreaSize: Size(
+                                    petAreaConstraints.maxWidth,
+                                    petAreaConstraints.maxHeight,
+                                  ),
+                                  petScale: effectivePetScale,
+                                  petVerticalOffset: safePetVerticalOffset,
+                                  onCollect: () =>
+                                      _collectBubble(bubble.id, gameState),
+                                ),
+                              ),
 
-                                      // Floating "+ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥" numbers on feed
-                                      ..._floatingNums.map(
-                                        (n) => _FloatingHeartWidget(
-                                          key: ValueKey(n.id),
-                                          xOffset: n.xOffset,
-                                          primary: primary,
-                                        ),
+                              // Pet sprite placeholder
+                              Transform.translate(
+                                offset: Offset(0, safePetVerticalOffset),
+                                child: Transform.scale(
+                                  scale: effectivePetScale,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => _handlePetTap(gameState),
+                                    child: SizedBox(
+                                      width: 200,
+                                      height: 200,
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        alignment: Alignment.center,
+                                        children: [
+                                          // Pet visual
+                                          _LuminaSprite(
+                                            affinityCode:
+                                                gameState.affinityCode,
+                                            stageNo: gameState.petStageNo,
+                                            animationType:
+                                                _petAnimationOverride ??
+                                                (gameState.animationType.isEmpty
+                                                    ? 'idle'
+                                                    : gameState.animationType),
+                                            primary: primary,
+                                            luminaGlow: luminaGlow,
+                                          ),
+
+                                          // Floating "+ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥" numbers on feed
+                                          ..._floatingNums.map(
+                                            (n) => _FloatingHeartWidget(
+                                              key: ValueKey(n.id),
+                                              xOffset: n.xOffset,
+                                              primary: primary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
+                            ],
+                          );
+                        },
                       ),
                     ),
 
@@ -1075,8 +1175,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               Expanded(
                                                 child: GestureDetector(
                                                   onTap: () =>
-                                                      Navigator.pushNamed(
-                                                        context,
+                                                      _openRouteAndRefresh(
                                                         '/spirit/detail',
                                                       ),
                                                   child: Row(
@@ -1114,8 +1213,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               ),
                                               GestureDetector(
                                                 onTap: () =>
-                                                    Navigator.pushNamed(
-                                                      context,
+                                                    _openRouteAndRefresh(
                                                       '/spirit/detail',
                                                     ),
                                                 child: _assetIcon(
@@ -1288,22 +1386,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             right: 8,
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
+                              onTapDown: (_) => _setFeedButtonPressed(true),
+                              onTapUp: (_) => _setFeedButtonPressed(false),
+                              onTapCancel: () => _setFeedButtonPressed(false),
                               onTap: () => _handleDewdropTap(gameState),
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFFA1D4B1),
-                                  border: Border.all(
-                                    color: AppColors.sky,
-                                    width: 2.5,
-                                  ),
+                              child: AnimatedScale(
+                                scale: _isFeedButtonPressed ? 0.86 : 1,
+                                duration: Duration(
+                                  milliseconds: _isFeedButtonPressed ? 80 : 180,
                                 ),
-                                child: Center(
-                                  child: _assetIcon(
-                                    AppAssets.iconDewDrop,
-                                    size: 32,
+                                curve: _isFeedButtonPressed
+                                    ? Curves.easeOut
+                                    : Curves.elasticOut,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 120),
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _isFeedButtonPressed
+                                        ? AppColors.aqua
+                                        : const Color(0xFFA1D4B1),
+                                    border: Border.all(
+                                      color: _isFeedButtonPressed
+                                          ? AppColors.woodDeep
+                                          : AppColors.sky,
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: _isFeedButtonPressed
+                                        ? const []
+                                        : [
+                                            BoxShadow(
+                                              color: AppColors.sky.withValues(
+                                                alpha: 0.48,
+                                              ),
+                                              blurRadius: 8,
+                                              spreadRadius: 1,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                  ),
+                                  child: Center(
+                                    child: _assetIcon(
+                                      AppAssets.iconDewDrop,
+                                      size: 32,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1325,7 +1452,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       _buildFloatingIconBtn(
                         context: context,
                         assetPath: AppAssets.iconSettingsNav,
-                        onTap: () => Navigator.pushNamed(context, '/settings'),
+                        onTap: () => _openRouteAndRefresh('/settings'),
                       ),
                       const SizedBox(height: 16),
                       // Daily Reward
@@ -1338,7 +1465,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             context,
                             '/daily-login-calendar',
                           );
-                          if (mounted) unawaited(_refreshHomeBadges());
+                          if (mounted) unawaited(_refreshHomeMetrics());
                         },
                       ),
                       const SizedBox(height: 16),
@@ -1349,7 +1476,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         hasBadge: _showMissionBadge,
                         onTap: () async {
                           await Navigator.pushNamed(context, '/missions');
-                          if (mounted) unawaited(_refreshHomeBadges());
+                          if (mounted) unawaited(_refreshHomeMetrics());
                         },
                       ),
                     ],
@@ -1367,7 +1494,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     hasBadge: _showNotificationBadge,
                     onTap: () async {
                       await Navigator.pushNamed(context, '/notifications');
-                      if (mounted) unawaited(_refreshHomeBadges());
+                      if (mounted) unawaited(_refreshHomeMetrics());
                     },
                   ),
                 ),
@@ -1735,10 +1862,16 @@ class _BubbleWidget extends StatefulWidget {
     super.key,
     required this.bubble,
     required this.dewColor,
+    required this.petAreaSize,
+    required this.petScale,
+    required this.petVerticalOffset,
     required this.onCollect,
   });
   final _FloatingBubble bubble;
   final Color dewColor;
+  final Size petAreaSize;
+  final double petScale;
+  final double petVerticalOffset;
   final VoidCallback onCollect;
 
   @override
@@ -1766,25 +1899,19 @@ class _BubbleWidgetState extends State<_BubbleWidget>
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameStateProvider>();
-    final viewport = MediaQuery.sizeOf(context);
-    final petScale = _responsivePetScale(viewport);
-    final petVerticalOffset = _responsivePetVerticalOffset(
-      affinityCode: gameState.affinityCode,
-      stageNo: gameState.petStageNo,
-      viewport: viewport,
-    );
-
     return AnimatedBuilder(
       animation: _floatCtrl,
       builder: (_, __) {
         final yOffset = math.sin(_floatCtrl.value * math.pi) * 12;
         return Positioned(
           top:
-              (widget.bubble.top * viewport.height * 0.5 * petScale) +
-              petVerticalOffset +
+              (widget.bubble.top *
+                  widget.petAreaSize.height *
+                  0.5 *
+                  widget.petScale) +
+              widget.petVerticalOffset +
               yOffset,
-          left: widget.bubble.left * viewport.width,
+          left: widget.bubble.left * widget.petAreaSize.width,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: widget.onCollect,

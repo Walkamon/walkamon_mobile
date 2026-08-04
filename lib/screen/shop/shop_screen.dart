@@ -67,6 +67,10 @@ class _ShopScreenState extends State<ShopScreen> {
     try {
       final wallet = await _walletRepository.getBalance();
       if (!mounted) return;
+      final provider = context.read<GameStateProvider>();
+      if (provider.user != null && provider.user!.coins != wallet.balance) {
+        provider.setUser(provider.user!.copyWith(coins: wallet.balance));
+      }
       setState(() {
         _walletBalance = wallet.balance;
         _isWalletLoading = false;
@@ -134,49 +138,84 @@ class _ShopScreenState extends State<ShopScreen> {
     showGameNotificationDialog(context, message: message, isSuccess: true);
   }
 
+  int? _extractWalletBalance(dynamic data) {
+    int? parseValue(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '');
+    }
+
+    if (data is! Map) return null;
+    final map = Map<String, dynamic>.from(data);
+    const balanceKeys = [
+      'coins',
+      'Coins',
+      'balance',
+      'Balance',
+      'walletBalance',
+      'WalletBalance',
+      'currentBalance',
+      'CurrentBalance',
+    ];
+    for (final key in balanceKeys) {
+      if (map.containsKey(key)) {
+        final balance = parseValue(map[key]);
+        if (balance != null) return balance;
+      }
+    }
+
+    const containerKeys = ['wallet', 'Wallet', 'user', 'User', 'data', 'Data'];
+    for (final key in containerKeys) {
+      final nestedBalance = _extractWalletBalance(map[key]);
+      if (nestedBalance != null) return nestedBalance;
+    }
+    return null;
+  }
+
   Future<void> _handleBuy(_ShopDisplayItem item) async {
+    if (_buyingItemId != null) return;
+
     AppAudioService.instance.suppressNextTabSound();
     setState(() => _buyingItemId = item.shopItemId);
     try {
       final resp = await _repository.buyShopItem(item.shopItemId);
+      if (!mounted) return;
+
       if (resp.success) {
         unawaited(AppAudioService.instance.playReward());
-        final data = resp.data;
-        int? newCoins;
-        if (data is Map) {
-          if (data['wallet'] is Map && data['wallet']['coins'] is int) {
-            newCoins = data['wallet']['coins'] as int;
-          } else if (data['coins'] is int) {
-            newCoins = data['coins'] as int;
-          } else if (data['user'] is Map && data['user']['coins'] is int) {
-            newCoins = data['user']['coins'] as int;
-          }
-        }
-
         final provider = context.read<GameStateProvider>();
-        if (newCoins != null && provider.user != null) {
-          provider.setUser(provider.user!.copyWith(coins: newCoins));
-        } else {
-          // Fallback: locally deduct price
-          await context.read<GameStateProvider>().buyShopItem(
-            price: item.price,
-          );
+        final serverBalance = _extractWalletBalance(resp.data);
+        final currentBalance = _isWalletLoading
+            ? (provider.user?.coins ?? _walletBalance)
+            : _walletBalance;
+        final updatedBalance =
+            serverBalance ??
+            (currentBalance >= item.price ? currentBalance - item.price : 0);
+
+        if (provider.user != null) {
+          provider.setUser(provider.user!.copyWith(coins: updatedBalance));
         }
 
-        if (mounted) {
-          _showSuccess(AppLocalizations.of(context).shopBuySuccess(item.name));
-        }
+        setState(() {
+          _walletBalance = updatedBalance;
+          _isWalletLoading = false;
+          _selectedItem = null;
+          _buyingItemId = null;
+        });
+
+        _showSuccess(AppLocalizations.of(context).shopBuySuccess(item.name));
+        unawaited(_loadWalletBalance());
       } else {
-        if (mounted) {
-          _showError(AppLocalizations.of(context).shopBuyFailed(resp.message));
-        }
+        _showError(AppLocalizations.of(context).shopBuyFailed(resp.message));
       }
     } catch (e) {
       if (mounted) {
         _showError(AppLocalizations.of(context).shopBuyError(e.toString()));
       }
     } finally {
-      if (mounted) setState(() => _buyingItemId = null);
+      if (mounted && _buyingItemId != null) {
+        setState(() => _buyingItemId = null);
+      }
     }
   }
 

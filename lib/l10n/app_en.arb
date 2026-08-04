@@ -561,7 +561,7 @@
   "activityStatsSuffixKm": "km",
   "activityStatsTodayTitle": "Today's activity",
   "activityStatsWeekTitle": "This week's activity",
-  "activityStatsMonthTitle": "This month's activity",
+  "activityStatsMonthTitle": "Month activity",
   "activityStatsTotal": "Total",
   "activityStatsAverage": "Average",
   "activityStatsWeekBucket": "Week {week}",

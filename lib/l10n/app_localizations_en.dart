@@ -1089,7 +1089,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityStatsWeekTitle => 'This week\'s activity';
 
   @override
-  String get activityStatsMonthTitle => 'This month\'s activity';
+  String get activityStatsMonthTitle => 'Month activity';
 
   @override
   String get activityStatsTotal => 'Total';
