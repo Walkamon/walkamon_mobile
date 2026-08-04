@@ -55,6 +55,8 @@ class StepSensorSession {
     required this.nextSequence,
     this.attested = false,
     this.motionPolicy = const StepMotionPolicy(),
+    this.dailyStepDate,
+    this.dailyAcceptedTotal,
   });
 
   final String id;
@@ -64,6 +66,8 @@ class StepSensorSession {
   final int nextSequence;
   final bool attested;
   final StepMotionPolicy motionPolicy;
+  final String? dailyStepDate;
+  final int? dailyAcceptedTotal;
 
   bool get isExpired => expiresAt.isBefore(DateTime.now().toUtc());
 
@@ -76,6 +80,8 @@ class StepSensorSession {
         nextSequence: nextSequence ?? this.nextSequence,
         attested: attested ?? this.attested,
         motionPolicy: motionPolicy,
+        dailyStepDate: dailyStepDate,
+        dailyAcceptedTotal: dailyAcceptedTotal,
       );
 
   factory StepSensorSession.fromJson(
@@ -90,6 +96,8 @@ class StepSensorSession {
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     nextSequence: _asInt(json['nextSequence'], 1),
     attested: false,
+    dailyStepDate: json['dailyStepDate']?.toString(),
+    dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
     motionPolicy: StepMotionPolicy.fromJson(
       json['motionPolicy'] is Map
           ? Map<String, dynamic>.from(json['motionPolicy'] as Map)
@@ -110,6 +118,8 @@ class StepSensorSession {
             DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         nextSequence: _asInt(json['nextSequence'], 1),
         attested: json['attested'] == true,
+        dailyStepDate: json['dailyStepDate']?.toString(),
+        dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
         motionPolicy: StepMotionPolicy.fromJson(
           json['motionPolicy'] is Map
               ? Map<String, dynamic>.from(json['motionPolicy'] as Map)
@@ -124,6 +134,8 @@ class StepSensorSession {
     'expiresAt': expiresAt.toUtc().toIso8601String(),
     'nextSequence': nextSequence,
     'attested': attested,
+    'dailyStepDate': dailyStepDate,
+    'dailyAcceptedTotal': dailyAcceptedTotal,
     'motionPolicy': motionPolicy.toJson(),
   };
 }
@@ -376,6 +388,8 @@ class StepSensorBatchResult {
     required this.motionScore,
     required this.degradedEvidence,
     required this.motionReasons,
+    required this.dailyStepDate,
+    required this.dailyAcceptedTotal,
   });
 
   final int acceptedSteps;
@@ -387,6 +401,8 @@ class StepSensorBatchResult {
   final int motionScore;
   final bool degradedEvidence;
   final List<String> motionReasons;
+  final String? dailyStepDate;
+  final int? dailyAcceptedTotal;
 
   factory StepSensorBatchResult.fromJson(Map<String, dynamic> json) =>
       StepSensorBatchResult(
@@ -404,6 +420,8 @@ class StepSensorBatchResult {
                 ?.map((value) => value.toString())
                 .toList() ??
             const [],
+        dailyStepDate: json['dailyStepDate']?.toString(),
+        dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
       );
 }
 

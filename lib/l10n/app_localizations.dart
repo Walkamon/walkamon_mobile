@@ -344,6 +344,30 @@ abstract class AppLocalizations {
   /// **'Steps you\'ve walked today'**
   String get todayStepsDesc;
 
+  /// No description provided for @stepTrackingPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow activity recognition to record steps in the background.'**
+  String get stepTrackingPermissionRequired;
+
+  /// No description provided for @stepTrackingPermissionAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access'**
+  String get stepTrackingPermissionAction;
+
+  /// No description provided for @stepTrackingPermissionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get stepTrackingPermissionSettings;
+
+  /// No description provided for @stepTrackingSensorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Step sensors are unavailable on this device.'**
+  String get stepTrackingSensorUnavailable;
+
   /// No description provided for @step.
   ///
   /// In en, this message translates to:

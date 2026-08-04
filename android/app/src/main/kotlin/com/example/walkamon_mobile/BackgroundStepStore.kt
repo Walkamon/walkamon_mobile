@@ -27,6 +27,7 @@ data class PendingStepBatch(
     val eventIds: List<Long>,
     val windowIds: List<Long>,
     val attestationToken: String?,
+    val attestationRequestedAtMs: Long?,
 )
 
 class BackgroundStepStore(context: Context) :
@@ -61,7 +62,8 @@ class BackgroundStepStore(context: Context) :
                 body_json TEXT NOT NULL,
                 event_ids_json TEXT NOT NULL,
                 window_ids_json TEXT NOT NULL,
-                attestation_token TEXT NULL
+                attestation_token TEXT NULL,
+                attestation_requested_at_ms INTEGER NULL
             )
             """.trimIndent(),
         )
@@ -69,7 +71,13 @@ class BackgroundStepStore(context: Context) :
         db.execSQL("CREATE INDEX ix_pending_motion_windows_time ON pending_motion_windows(window_started_at_ms, window_ended_at_ms)")
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            db.execSQL(
+                "ALTER TABLE pending_step_batch ADD COLUMN attestation_requested_at_ms INTEGER NULL",
+            )
+        }
+    }
 
     @Synchronized
     fun addSensorEvent(payload: JSONObject) {
@@ -175,6 +183,7 @@ class BackgroundStepStore(context: Context) :
                 put("event_ids_json", JSONArray(batch.eventIds).toString())
                 put("window_ids_json", JSONArray(batch.windowIds).toString())
                 put("attestation_token", batch.attestationToken)
+                put("attestation_requested_at_ms", batch.attestationRequestedAtMs)
             },
             SQLiteDatabase.CONFLICT_REPLACE,
         )
@@ -189,6 +198,7 @@ class BackgroundStepStore(context: Context) :
             "event_ids_json",
             "window_ids_json",
             "attestation_token",
+            "attestation_requested_at_ms",
         ),
         "singleton_id = 1",
         null,
@@ -203,14 +213,31 @@ class BackgroundStepStore(context: Context) :
             eventIds = JSONArray(cursor.getString(2)).toLongList(),
             windowIds = JSONArray(cursor.getString(3)).toLongList(),
             attestationToken = if (cursor.isNull(4)) null else cursor.getString(4),
+            attestationRequestedAtMs = if (cursor.isNull(5)) null else cursor.getLong(5),
         )
     }
 
     @Synchronized
-    fun setPendingAttestation(token: String) {
+    fun setPendingAttestation(token: String, requestedAtMs: Long) {
         writableDatabase.update(
             "pending_step_batch",
-            ContentValues().apply { put("attestation_token", token) },
+            ContentValues().apply {
+                put("attestation_token", token)
+                put("attestation_requested_at_ms", requestedAtMs)
+            },
+            "singleton_id = 1",
+            null,
+        )
+    }
+
+    @Synchronized
+    fun clearPendingAttestation() {
+        writableDatabase.update(
+            "pending_step_batch",
+            ContentValues().apply {
+                putNull("attestation_token")
+                putNull("attestation_requested_at_ms")
+            },
             "singleton_id = 1",
             null,
         )
@@ -270,6 +297,6 @@ class BackgroundStepStore(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "background_steps.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
     }
 }

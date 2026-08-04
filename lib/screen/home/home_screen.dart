@@ -12,6 +12,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/repositories/missions_screen_repository.dart';
 import '../../data/repositories/wallet_repository.dart';
+import '../../data/services/step_tracking_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/daily_login_provider.dart';
@@ -489,7 +490,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final user = gameState.user;
 
     // GiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£ lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡c biÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿n tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nh toÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡n bÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âºc chÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢n giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œng nhÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â° React
-    final int dailySteps = context.watch<StepTrackingProvider>().dailySteps;
+    final stepTracking = context.watch<StepTrackingProvider>();
+    final int dailySteps = stepTracking.dailySteps;
+    final trackingStatus = stepTracking.status;
     const int goalSteps = 10000;
     final double stepPct = (dailySteps / goalSteps).clamp(0.0, 1.0);
 
@@ -733,6 +736,90 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
+                                          if (trackingStatus ==
+                                              StepTrackingStatus
+                                                  .permissionDenied)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
+                                              child: TextButton.icon(
+                                                onPressed: () => context
+                                                    .read<
+                                                      StepTrackingProvider
+                                                    >()
+                                                    .requestActivityPermission(),
+                                                icon: const Icon(
+                                                  Icons.lock_open,
+                                                  size: 16,
+                                                ),
+                                                label: Text(
+                                                  l10n.stepTrackingPermissionAction,
+                                                ),
+                                                style: TextButton.styleFrom(
+                                                  minimumSize: const Size(
+                                                    44,
+                                                    44,
+                                                  ),
+                                                  padding: EdgeInsets.zero,
+                                                  tapTargetSize:
+                                                      MaterialTapTargetSize
+                                                          .shrinkWrap,
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                ),
+                                              ),
+                                            ),
+                                          if (trackingStatus ==
+                                              StepTrackingStatus
+                                                  .permissionPermanentlyDenied)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
+                                              child: TextButton.icon(
+                                                onPressed: () => context
+                                                    .read<
+                                                      StepTrackingProvider
+                                                    >()
+                                                    .openActivitySettings(),
+                                                icon: const Icon(
+                                                  Icons.settings,
+                                                  size: 16,
+                                                ),
+                                                label: Text(
+                                                  l10n.stepTrackingPermissionSettings,
+                                                ),
+                                                style: TextButton.styleFrom(
+                                                  minimumSize: const Size(
+                                                    44,
+                                                    44,
+                                                  ),
+                                                  padding: EdgeInsets.zero,
+                                                  tapTargetSize:
+                                                      MaterialTapTargetSize
+                                                          .shrinkWrap,
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                ),
+                                              ),
+                                            ),
+                                          if (trackingStatus ==
+                                              StepTrackingStatus
+                                                  .sensorUnavailable)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 8,
+                                              ),
+                                              child: Text(
+                                                l10n.stepTrackingSensorUnavailable,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: AppColors.oliveDeep,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),

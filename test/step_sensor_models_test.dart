@@ -93,4 +93,28 @@ void main() {
     expect(restored.attested, isTrue);
     expect(restored.expiresAt, source.expiresAt);
   });
+
+  test('parses authoritative daily step totals from backend', () {
+    final session = StepSensorSession.fromJson(const {
+      'stepSessionId': 'session',
+      'nonce': 'nonce',
+      'expiresAt': '2026-07-18T00:00:00Z',
+      'nextSequence': 4,
+      'dailyStepDate': '2026-07-17',
+      'dailyAcceptedTotal': 4321,
+    }, StepSensorMode.counter);
+    final batch = StepSensorBatchResult.fromJson(const {
+      'acceptedSteps': 3,
+      'rejectedSteps': 0,
+      'suspiciousSteps': 0,
+      'nextSequence': 5,
+      'dailyStepDate': '2026-07-17',
+      'dailyAcceptedTotal': 4324,
+    });
+
+    expect(session.dailyStepDate, '2026-07-17');
+    expect(session.dailyAcceptedTotal, 4321);
+    expect(batch.dailyStepDate, '2026-07-17');
+    expect(batch.dailyAcceptedTotal, 4324);
+  });
 }

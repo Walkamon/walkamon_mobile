@@ -135,6 +135,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get todayStepsDesc => 'Số bước chân bạn đã đi trong ngày hôm nay';
 
   @override
+  String get stepTrackingPermissionRequired =>
+      'Hãy cấp quyền nhận diện hoạt động để ghi nhận bước khi chạy nền.';
+
+  @override
+  String get stepTrackingPermissionAction => 'Cấp quyền';
+
+  @override
+  String get stepTrackingPermissionSettings => 'Mở cài đặt';
+
+  @override
+  String get stepTrackingSensorUnavailable =>
+      'Thiết bị này không có cảm biến bước phù hợp.';
+
+  @override
   String get step => 'Bước';
 
   @override

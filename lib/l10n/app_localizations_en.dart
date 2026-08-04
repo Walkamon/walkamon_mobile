@@ -137,6 +137,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todayStepsDesc => 'Steps you\'ve walked today';
 
   @override
+  String get stepTrackingPermissionRequired =>
+      'Allow activity recognition to record steps in the background.';
+
+  @override
+  String get stepTrackingPermissionAction => 'Allow access';
+
+  @override
+  String get stepTrackingPermissionSettings => 'Open settings';
+
+  @override
+  String get stepTrackingSensorUnavailable =>
+      'Step sensors are unavailable on this device.';
+
+  @override
   String get step => 'Steps';
 
   @override

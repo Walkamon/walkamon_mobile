@@ -16,6 +16,18 @@ typedef CurrentTimeProvider = DateTime Function();
 typedef NativeMotionStreamFactory = Stream<NativeMotionEvent> Function();
 typedef ActivityPermissionChecker = Future<bool> Function();
 
+enum StepTrackingStatus {
+  idle,
+  starting,
+  tracking,
+  permissionDenied,
+  permissionPermanentlyDenied,
+  sensorUnavailable,
+  authenticationRequired,
+  error,
+  stopped,
+}
+
 class StepTrackingService extends WidgetsBindingObserver {
   StepTrackingService({
     StepTrackingStore? store,
@@ -48,6 +60,7 @@ class StepTrackingService extends WidgetsBindingObserver {
   final Duration syncInterval;
 
   StreamSubscription<NativeMotionEvent>? _motionSubscription;
+  Timer? _statusSyncTimer;
   Future<void> _operationQueue = Future<void>.value();
 
   String? _activeUserId;
@@ -56,15 +69,19 @@ class StepTrackingService extends WidgetsBindingObserver {
   StepSensorSession? _session;
   bool _backgroundRunning = false;
   bool _disposed = false;
+  StepTrackingStatus _status = StepTrackingStatus.idle;
 
   ValueChanged<int>? onStepsChanged;
+  ValueChanged<StepTrackingStatus>? onStatusChanged;
 
   int get currentStepCount => _dailyTotalSteps;
   String? get activeUserId => _activeUserId;
   bool get isTracking => _backgroundRunning;
+  StepTrackingStatus get status => _status;
 
   Future<void> startForUser(String userId) async {
     if (kIsWeb || _disposed || userId.isEmpty) return;
+    _setStatus(StepTrackingStatus.starting);
     if (_activeUserId == userId) {
       await resumeTracking();
       return;
@@ -83,6 +100,10 @@ class StepTrackingService extends WidgetsBindingObserver {
         _session = storedState.session?.isExpired == false
             ? storedState.session
             : null;
+        if (_session?.dailyStepDate == today &&
+            _session?.dailyAcceptedTotal != null) {
+          _dailyTotalSteps = _session!.dailyAcceptedTotal!;
+        }
       } else {
         await _resetForDate(today);
       }
@@ -91,13 +112,17 @@ class StepTrackingService extends WidgetsBindingObserver {
       await resumeTracking();
     } catch (error) {
       debugPrint('Step tracking start failed: $error');
+      _setStatus(StepTrackingStatus.error);
     }
   }
 
   Future<void> resumeTracking() async {
     if (kIsWeb) return;
     if (_disposed || _activeUserId == null) return;
-    if (!await _activityPermissionChecker()) return;
+    if (!await _activityPermissionChecker()) {
+      _setStatus(StepTrackingStatus.permissionDenied);
+      return;
+    }
 
     await _operationQueue;
     _motionSubscription ??= _motionStreamFactory().listen(
@@ -109,9 +134,14 @@ class StepTrackingService extends WidgetsBindingObserver {
 
     final nativeStatus = await _androidBridge.getTrackingStatus();
     if (nativeStatus.running && nativeStatus.userId == _activeUserId) {
-      _backgroundRunning = true;
-      _dailyTotalSteps = nativeStatus.acceptedTotal;
-      onStepsChanged?.call(_dailyTotalSteps);
+      await _applyNativeStatus(
+        running: nativeStatus.running,
+        userId: nativeStatus.userId,
+        acceptedTotal: nativeStatus.acceptedTotal,
+        nextSequence: nativeStatus.nextSequence,
+        attested: nativeStatus.attested,
+      );
+      _startStatusSync();
       return;
     }
 
@@ -120,7 +150,10 @@ class StepTrackingService extends WidgetsBindingObserver {
     if (session == null) return;
     final preferences = await SharedPreferences.getInstance();
     final accessToken = preferences.getString('access_token');
-    if (accessToken == null || accessToken.isEmpty) return;
+    if (accessToken == null || accessToken.isEmpty) {
+      _setStatus(StepTrackingStatus.authenticationRequired);
+      return;
+    }
 
     await _androidBridge.startCollector(
       userId: _activeUserId!,
@@ -133,7 +166,29 @@ class StepTrackingService extends WidgetsBindingObserver {
       acceptedTotal: _dailyTotalSteps,
     );
     _backgroundRunning = true;
+    _setStatus(StepTrackingStatus.tracking);
+    _startStatusSync();
   }
+
+  Future<void> requestActivityPermission() async {
+    final current = await Permission.activityRecognition.status;
+    if (current.isPermanentlyDenied) {
+      _setStatus(StepTrackingStatus.permissionPermanentlyDenied);
+      return;
+    }
+    final result = await Permission.activityRecognition.request();
+    if (!result.isGranted) {
+      _setStatus(
+        result.isPermanentlyDenied
+            ? StepTrackingStatus.permissionPermanentlyDenied
+            : StepTrackingStatus.permissionDenied,
+      );
+      return;
+    }
+    await resumeTracking();
+  }
+
+  Future<void> openActivitySettings() => openAppSettings();
 
   Future<void> pauseTracking() async {
     if (kIsWeb) return;
@@ -143,6 +198,7 @@ class StepTrackingService extends WidgetsBindingObserver {
   Future<void> stopForUser() async {
     if (kIsWeb) return;
     await _androidBridge.stopCollector();
+    _stopStatusSync();
     await _cancelSensorSubscription();
     await _operationQueue;
 
@@ -151,6 +207,7 @@ class StepTrackingService extends WidgetsBindingObserver {
     _stepDate = null;
     _dailyTotalSteps = 0;
     _session = null;
+    _setStatus(StepTrackingStatus.stopped);
   }
 
   void _enqueue(Future<void> Function() operation) {
@@ -164,15 +221,19 @@ class StepTrackingService extends WidgetsBindingObserver {
   Future<void> _handleNativeEvent(NativeMotionEvent nativeEvent) async {
     switch (nativeEvent) {
       case NativeTrackingStatusEvent():
-        _backgroundRunning = nativeEvent.running;
-        if (nativeEvent.userId == null || nativeEvent.userId == _activeUserId) {
-          _dailyTotalSteps = nativeEvent.acceptedTotal;
-          _session = _session?.copyWith(
-            nextSequence: nativeEvent.nextSequence,
-            attested: nativeEvent.attested,
-          );
-          onStepsChanged?.call(_dailyTotalSteps);
-          await _saveCurrentState();
+        await _applyNativeStatus(
+          running: nativeEvent.running,
+          userId: nativeEvent.userId,
+          acceptedTotal: nativeEvent.acceptedTotal,
+          nextSequence: nativeEvent.nextSequence,
+          attested: nativeEvent.attested,
+        );
+        if (nativeEvent.message == 'activity_permission_required') {
+          _setStatus(StepTrackingStatus.permissionDenied);
+        } else if (nativeEvent.message == 'authentication_required') {
+          _setStatus(StepTrackingStatus.authenticationRequired);
+        } else if (nativeEvent.running) {
+          _setStatus(StepTrackingStatus.tracking);
         }
       case NativeStepEvent():
       case NativeMotionWindowEvent():
@@ -190,13 +251,24 @@ class StepTrackingService extends WidgetsBindingObserver {
         throw StateError('Required Android motion sensors are unavailable.');
       }
       _session = await _repository.createSession(capabilities.preferredMode);
+      if (_session?.dailyStepDate == _stepDate &&
+          _session?.dailyAcceptedTotal != null) {
+        _dailyTotalSteps = _session!.dailyAcceptedTotal!;
+        onStepsChanged?.call(_dailyTotalSteps);
+      }
       await _saveCurrentState();
     } on DioException catch (error) {
       debugPrint(
         'Step session request failed with HTTP ${error.response?.statusCode}.',
       );
+      _setStatus(StepTrackingStatus.error);
     } catch (error) {
       debugPrint('Step session request failed: $error');
+      _setStatus(
+        error is StateError
+            ? StepTrackingStatus.sensorUnavailable
+            : StepTrackingStatus.error,
+      );
     }
   }
 
@@ -220,6 +292,62 @@ class StepTrackingService extends WidgetsBindingObserver {
         pendingWindows: const [],
       ),
     );
+  }
+
+  Future<void> _applyNativeStatus({
+    required bool running,
+    required String? userId,
+    required int acceptedTotal,
+    required int nextSequence,
+    required bool attested,
+  }) async {
+    if (userId != null && userId != _activeUserId) return;
+
+    _backgroundRunning = running;
+    final previousSequence = _session?.nextSequence;
+    final previousAttested = _session?.attested;
+    final sessionChanged =
+        _session != null &&
+        (previousSequence != nextSequence || previousAttested != attested);
+    final changed = _dailyTotalSteps != acceptedTotal || sessionChanged;
+    _dailyTotalSteps = acceptedTotal;
+    _session = _session?.copyWith(
+      nextSequence: nextSequence,
+      attested: attested,
+    );
+    if (changed) {
+      onStepsChanged?.call(_dailyTotalSteps);
+      await _saveCurrentState();
+    }
+    if (running) _setStatus(StepTrackingStatus.tracking);
+  }
+
+  void _startStatusSync() {
+    _statusSyncTimer ??= Timer.periodic(syncInterval, (_) {
+      if (!_disposed && _activeUserId != null) {
+        _enqueue(_syncNativeStatus);
+      }
+    });
+  }
+
+  void _stopStatusSync() {
+    _statusSyncTimer?.cancel();
+    _statusSyncTimer = null;
+  }
+
+  Future<void> _syncNativeStatus() async {
+    try {
+      final nativeStatus = await _androidBridge.getTrackingStatus();
+      await _applyNativeStatus(
+        running: nativeStatus.running,
+        userId: nativeStatus.userId,
+        acceptedTotal: nativeStatus.acceptedTotal,
+        nextSequence: nativeStatus.nextSequence,
+        attested: nativeStatus.attested,
+      );
+    } catch (error) {
+      debugPrint('Background step status sync failed: $error');
+    }
   }
 
   String _formatVietnamDate(DateTime value) {
@@ -246,7 +374,14 @@ class StepTrackingService extends WidgetsBindingObserver {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    _stopStatusSync();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_cancelSensorSubscription());
+  }
+
+  void _setStatus(StepTrackingStatus status) {
+    if (_status == status) return;
+    _status = status;
+    onStatusChanged?.call(status);
   }
 }

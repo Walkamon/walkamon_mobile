@@ -223,16 +223,25 @@ class BackgroundStepService : Service() {
                 config = createDailySession(config) ?: return
             }
             val batch = store.pendingBatch() ?: createPendingBatch(config) ?: return
-            val token = when {
-                config.attested -> ""
-                !batch.attestationToken.isNullOrBlank() -> batch.attestationToken
-                BuildConfig.DEBUG && config.allowDevelopmentBypass ->
-                    "DEV_BYPASS:${batch.payloadHash}"
-                else -> {
-                    requestAttestation(batch)
+            if (batch.attestationToken.isNullOrBlank() ||
+                batch.attestationRequestedAtMs == null ||
+                System.currentTimeMillis() - batch.attestationRequestedAtMs > ATTESTATION_REFRESH_MS
+            ) {
+                if (!batch.attestationToken.isNullOrBlank()) {
+                    store.clearPendingAttestation()
+                }
+                if (BuildConfig.DEBUG && config.allowDevelopmentBypass) {
+                    store.setPendingAttestation(
+                        "DEV_BYPASS:${batch.payloadHash}",
+                        System.currentTimeMillis(),
+                    )
                     return
                 }
+                requestAttestation(batch)
+                return
             }
+            val token = batch.attestationToken
+                ?: error("Pending attestation token is missing.")
             submitBatch(config, batch, token)
         } catch (error: Exception) {
             Log.e(TAG, "Background step upload failed", error)
@@ -253,6 +262,12 @@ class BackgroundStepService : Service() {
             }
             return null
         }
+        val newestEventAtMs = candidates.maxOf { it.recordedAtMs }
+        if (candidates.size < MAX_BATCH_EVENTS &&
+            System.currentTimeMillis() - newestEventAtMs < MIN_BATCH_AGE_MS
+        ) {
+            return null
+        }
 
         val queryStart = candidates.minOf { it.intervalStartedAtMs } - 1000L
         val queryEnd = candidates.maxOf { it.recordedAtMs }
@@ -261,6 +276,19 @@ class BackgroundStepService : Service() {
 
         val events = mutableListOf<StoredSensorEvent>()
         for (event in candidates) {
+            val proposedStart = minOf(
+                events.minOfOrNull { it.intervalStartedAtMs } ?: event.intervalStartedAtMs,
+                event.intervalStartedAtMs,
+            ) - 1000L
+            val proposedEnd = maxOf(
+                events.maxOfOrNull { it.recordedAtMs } ?: event.recordedAtMs,
+                event.recordedAtMs,
+            )
+            val proposedWindowCount = availableWindows.count {
+                it.windowEndedAtMs > proposedStart &&
+                    it.windowStartedAtMs <= proposedEnd
+            }
+            if (proposedWindowCount > MAX_BATCH_MOTION_WINDOWS) break
             val covered = hasCoverage(event, availableWindows)
             val evidencePassed = latestWindowEnd >= event.recordedAtMs + 1000L
             if (!covered && !evidencePassed) break
@@ -290,6 +318,7 @@ class BackgroundStepService : Service() {
             eventIds = events.map(StoredSensorEvent::id),
             windowIds = windows.map(StoredMotionWindow::id),
             attestationToken = null,
+            attestationRequestedAtMs = null,
         ).also {
             store.savePendingBatch(it)
             Log.i(TAG, "Prepared batch sequence=${config.nextSequence}, events=${events.size}, windows=${windows.size}")
@@ -360,7 +389,7 @@ class BackgroundStepService : Service() {
                     requestHash = batch.payloadHash,
                     onSuccess = { token ->
                         executor.execute {
-                            store.setPendingAttestation(token)
+                            store.setPendingAttestation(token, System.currentTimeMillis())
                             uploadTick()
                         }
                     },
@@ -391,7 +420,17 @@ class BackgroundStepService : Service() {
                 val accepted = data.optInt("acceptedSteps", 0)
                 val nextSequence = data.optInt("nextSequence", config.nextSequence + 1)
                 val attestationStatus = data.optString("attestationStatus")
-                val newTotal = config.acceptedTotal + accepted
+                val serverDate = data.optString("dailyStepDate")
+                val serverTotal = if (data.has("dailyAcceptedTotal")) {
+                    data.optInt("dailyAcceptedTotal", -1)
+                } else {
+                    -1
+                }
+                val newTotal = if (serverDate == config.stepDate && serverTotal >= 0) {
+                    serverTotal
+                } else {
+                    config.acceptedTotal + accepted
+                }
                 preferences().edit()
                     .putInt(KEY_NEXT_SEQUENCE, nextSequence)
                     .putInt(KEY_ACCEPTED_TOTAL, newTotal)
@@ -399,7 +438,8 @@ class BackgroundStepService : Service() {
                         KEY_ATTESTED,
                         attestationStatus == "verified" ||
                             attestationStatus == "development_bypass" ||
-                            attestationStatus == "session_cached",
+                            attestationStatus == "session_cached" ||
+                            attestationStatus == "legacy_session_cached",
                     )
                     .apply()
                 store.completeBatch(batch)
@@ -594,6 +634,7 @@ class BackgroundStepService : Service() {
         val apiBaseUrl = prefs.getString(KEY_API_BASE_URL, null) ?: return null
         return ServiceConfig(
             userId = prefs.getString(KEY_USER_ID, "").orEmpty(),
+            stepDate = prefs.getString(KEY_STEP_DATE, "").orEmpty(),
             apiBaseUrl = apiBaseUrl,
             sensorMode = prefs.getString(KEY_SENSOR_MODE, "counter") ?: "counter",
             windowMilliseconds = prefs.getInt(KEY_WINDOW_MS, 1000),
@@ -653,6 +694,7 @@ class BackgroundStepService : Service() {
 
     data class ServiceConfig(
         val userId: String,
+        val stepDate: String,
         val apiBaseUrl: String,
         val sensorMode: String,
         val windowMilliseconds: Int,
@@ -710,7 +752,10 @@ class BackgroundStepService : Service() {
         private const val KEY_ACCEPTED_TOTAL = "accepted_total"
         private const val NOTIFICATION_CHANNEL = "walkamon_background_steps"
         private const val NOTIFICATION_ID = 42017
-        private const val MAX_BATCH_EVENTS = 25
+        private const val MAX_BATCH_EVENTS = 100
+        private const val MAX_BATCH_MOTION_WINDOWS = 130
+        private const val MIN_BATCH_AGE_MS = 30_000L
+        private const val ATTESTATION_REFRESH_MS = 90_000L
         private const val MAX_LOCAL_AGE_MS = 120_000L
         private const val RETRY_DELAY_MS = 15_000L
         private const val AUTH_RETRY_DELAY_MS = 300_000L

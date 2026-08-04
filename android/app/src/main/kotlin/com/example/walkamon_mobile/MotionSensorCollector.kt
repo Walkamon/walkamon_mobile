@@ -172,18 +172,33 @@ class MotionSensorCollector(
         val previousTime = lastCounterTimestampNs
         lastCounterTotal = total
         lastCounterTimestampNs = timestampNs
-        if (previousTotal == null || previousTime == null || total <= previousTotal) return
-        onEvent(
-            mapOf(
-                "eventType" to "step",
-                "sensorMode" to "counter",
-                "intervalStartedAt" to instant(epochMs(previousTime)),
-                "recordedAt" to instant(epochMs(timestampNs)),
-                "stepCount" to (total - previousTotal).coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
-                "sensorStartTotal" to previousTotal,
-                "sensorEndTotal" to total,
-            ),
-        )
+        val previousSensorTotal = previousTotal ?: return
+        val previousSensorTime = previousTime ?: return
+        if (total <= previousSensorTotal) return
+        val stepCount = (total - previousSensorTotal)
+            .coerceAtMost(Int.MAX_VALUE.toLong())
+            .toInt()
+        // TYPE_STEP_COUNTER can stay silent while the user is idle. Split a
+        // large delta into monotonic, cadence-bounded events so the BE can
+        // validate continuity without turning the first callback after a
+        // pause into a stale or >4 steps/sec interval.
+        var sensorStartTotal = previousSensorTotal
+        CounterIntervalMath.intervals(previousSensorTime, timestampNs, stepCount)
+            .forEach { interval ->
+                val sensorEndTotal = sensorStartTotal + interval.stepCount
+                onEvent(
+                    mapOf(
+                        "eventType" to "step",
+                        "sensorMode" to "counter",
+                        "intervalStartedAt" to instant(epochMs(interval.startNs)),
+                        "recordedAt" to instant(epochMs(interval.endNs)),
+                        "stepCount" to interval.stepCount,
+                        "sensorStartTotal" to sensorStartTotal,
+                        "sensorEndTotal" to sensorEndTotal,
+                    ),
+                )
+                sensorStartTotal = sensorEndTotal
+            }
     }
 
     private fun emitMotionWindow(startNs: Long, endNs: Long) {
@@ -285,4 +300,42 @@ class MotionSensorCollector(
     companion object {
         private const val ACTIVITY_ACTION = "com.example.walkamon_mobile.ACTIVITY_UPDATE"
     }
+}
+
+internal object CounterIntervalMath {
+    data class Interval(
+        val startNs: Long,
+        val endNs: Long,
+        val stepCount: Int,
+    )
+
+    fun intervals(previousTimeNs: Long, timestampNs: Long, stepCount: Int): List<Interval> {
+        if (stepCount <= 0 || timestampNs <= previousTimeNs) return emptyList()
+        val chunks = mutableListOf<Int>()
+        var remaining = stepCount
+        while (remaining > 0) {
+            val chunk = remaining.coerceAtMost(MAX_STEPS_PER_EVENT)
+            chunks += chunk
+            remaining -= chunk
+        }
+        val totalDurationNs = chunks.sumOf(::durationNs)
+        var cursorNs = timestampNs - totalDurationNs
+        return chunks.map { chunk ->
+            val endNs = cursorNs + durationNs(chunk)
+            Interval(cursorNs, endNs, chunk).also { cursorNs = endNs }
+        }
+    }
+
+    fun startNs(previousTimeNs: Long, timestampNs: Long, stepCount: Int): Long {
+        return intervals(previousTimeNs, timestampNs, stepCount)
+            .firstOrNull()
+            ?.startNs
+            ?: timestampNs
+    }
+
+    private fun durationNs(stepCount: Int): Long =
+        (stepCount.coerceAtLeast(1) * 250_000_000L)
+            .coerceIn(1_000_000_000L, 10_000_000_000L)
+
+    private const val MAX_STEPS_PER_EVENT = 40
 }

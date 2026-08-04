@@ -48,4 +48,30 @@ class MotionFeatureMathTest {
         assertTrue(result.jerkRms > 30.0)
         assertEquals(8.0, result.gyroscopeRms!!, 0.001)
     }
+
+    @Test
+    fun counterIntervalAfterIdleIsBoundedToOneSecondForOneStep() {
+        val previous = 0L
+        val recorded = 30_000_000_000L
+
+        val start = CounterIntervalMath.startNs(previous, recorded, 1)
+
+        assertEquals(29_000_000_000L, start)
+    }
+
+    @Test
+    fun counterDeltaIsSplitIntoMonotonicCadenceBoundedIntervals() {
+        val previous = 0L
+        val recorded = 30_000_000_000L
+
+        val intervals = CounterIntervalMath.intervals(previous, recorded, 100)
+
+        assertEquals(3, intervals.size)
+        assertEquals(listOf(40, 40, 20), intervals.map { it.stepCount })
+        assertEquals(recorded, intervals.last().endNs)
+        assertTrue(intervals.zipWithNext().all { (left, right) ->
+            left.endNs == right.startNs
+        })
+        assertTrue(intervals.all { it.endNs - it.startNs in 1_000_000_000L..10_000_000_000L })
+    }
 }
