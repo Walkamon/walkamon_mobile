@@ -254,25 +254,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         final spiritName = _petOverview?.nickname ?? gameState.spiritName;
         final isEvolved = _isEvolved || level >= 15;
 
-        final usableItems = <_SupportItemData>[
-          _SupportItemData(
-            name: l10n.spiritRecoveryPotion,
-            count: 3,
-            description: l10n.spiritBondBonus(20),
-            icon: Icons.auto_awesome,
-            iconColor: AppColors.lightBond,
-            bgColor: AppColors.lightBond.withOpacity(0.12),
-          ),
-          _SupportItemData(
-            name: l10n.shopCurrency,
-            count: 15,
-            description: l10n.spiritEnergyBonus(30),
-            icon: Icons.flash_on_rounded,
-            iconColor: AppColors.lightDew,
-            bgColor: AppColors.lightDew.withOpacity(0.12),
-          ),
-        ];
-
         return Scaffold(
           backgroundColor: Colors.transparent,
           body: Stack(
@@ -597,8 +578,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                         maxBond: maxBond,
                                                         exp: exp,
                                                         maxExp: maxExp,
-                                                        usableItems:
-                                                            usableItems,
                                                         isDark: isDark,
                                                       )
                                                     : SpiritEvolutionScreen(
@@ -669,173 +648,82 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     required int maxBond,
     required int exp,
     required int maxExp,
-    required List<_SupportItemData> usableItems,
     required bool isDark,
   }) {
     final l10n = AppLocalizations.of(context);
 
-    return SingleChildScrollView(
-      key: const ValueKey('stats'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _StatRow(
-            title: 'EXP',
-            current: exp,
-            maximum: maxExp,
-            color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
-          ),
-          const SizedBox(height: 7),
-          _StatRow(
-            title: l10n.lifeForce,
-            current: health,
-            maximum: maxLifeForce,
-            color: isDark ? AppColors.darkLife : AppColors.lightLife,
-          ),
-          const SizedBox(height: 7),
-          _StatRow(
-            title: l10n.bonding,
-            current: bonding,
-            maximum: maxBond,
-            color: isDark ? AppColors.darkBond : AppColors.lightBond,
-          ),
-          const SizedBox(height: 7),
-          _StatRow(
-            title: l10n.energy,
-            current: energy,
-            maximum: maxEnergy,
-            color: isDark ? AppColors.darkDew : AppColors.lightDew,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.authCard.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.wood,
-                width: 1.5,
-              ),
-            ),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            key: const ValueKey('stats'),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GameButtonLabel(
-                  l10n.spiritSupportItems,
-                  fontSize: 15,
-                  color: AppColors.woodDeep,
-                  outlineColor: AppColors.authCard,
-                  outlineWidth: 2.5,
+                _StatRow(
+                  title: 'EXP',
+                  current: exp,
+                  maximum: maxExp,
+                  color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
                 ),
-                const SizedBox(height: 8),
-                ...usableItems.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: item.bgColor.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: AppColors.wood.withValues(alpha: 0.55),
-                            ),
-                          ),
-                          child: AppIcon(
-                            item.icon,
-                            color: item.iconColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.inkDark,
-                                ),
-                              ),
-                              Text(
-                                item.description,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.outlineBrown,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: 28,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.leafLight.withValues(alpha: 0.62),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: AppColors.wood.withValues(alpha: 0.55),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'x${item.count}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.oliveDeep,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                const SizedBox(height: 7),
+                _StatRow(
+                  title: l10n.lifeForce,
+                  current: health,
+                  maximum: maxLifeForce,
+                  color: isDark ? AppColors.darkLife : AppColors.lightLife,
+                ),
+                const SizedBox(height: 7),
+                _StatRow(
+                  title: l10n.bonding,
+                  current: bonding,
+                  maximum: maxBond,
+                  color: isDark ? AppColors.darkBond : AppColors.lightBond,
+                ),
+                const SizedBox(height: 7),
+                _StatRow(
+                  title: l10n.energy,
+                  current: energy,
+                  maximum: maxEnergy,
+                  color: isDark ? AppColors.darkDew : AppColors.lightDew,
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _ActionButton(
-                  label: l10n.spiritTapLumina,
-                  icon: Icons.touch_app,
-                  onPressed: _isSubmitting
-                      ? null
-                      : () => _handleAction(
-                          () => context.read<GameStateProvider>().tapSpirit(),
-                          l10n.spiritTapSuccess,
-                          'excited',
-                        ),
-                ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _ActionButton(
+                label: l10n.spiritTapLumina,
+                icon: Icons.touch_app,
+                onPressed: _isSubmitting
+                    ? null
+                    : () => _handleAction(
+                        () => context.read<GameStateProvider>().tapSpirit(),
+                        l10n.spiritTapSuccess,
+                        'excited',
+                      ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ActionButton(
-                  label: l10n.spiritFeed,
-                  icon: Icons.restaurant,
-                  onPressed: _isSubmitting
-                      ? null
-                      : () => _handleAction(
-                          () => context.read<GameStateProvider>().feedSpirit(),
-                          l10n.spiritFeedSuccess,
-                          'feed_eat',
-                        ),
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _ActionButton(
+                label: l10n.spiritFeed,
+                icon: Icons.restaurant,
+                onPressed: _isSubmitting
+                    ? null
+                    : () => _handleAction(
+                        () => context.read<GameStateProvider>().feedSpirit(),
+                        l10n.spiritFeedSuccess,
+                        'feed_eat',
+                      ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -1142,22 +1030,4 @@ class _ActionButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SupportItemData {
-  const _SupportItemData({
-    required this.name,
-    required this.count,
-    required this.description,
-    required this.icon,
-    required this.iconColor,
-    required this.bgColor,
-  });
-
-  final String name;
-  final int count;
-  final String description;
-  final IconData icon;
-  final Color iconColor;
-  final Color bgColor;
 }

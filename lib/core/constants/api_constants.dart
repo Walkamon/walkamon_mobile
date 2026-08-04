@@ -60,6 +60,8 @@ class ApiConstants {
 
   // Challenge Endpoints
   static const String challengeRandom = '/api/challenges/random';
+  static String claimChallenge(String userMissionId) =>
+      '/api/challenges/$userMissionId/claim';
   static String cancelChallenge(String userMissionId) =>
       '/api/challenges/$userMissionId/cancel';
 
