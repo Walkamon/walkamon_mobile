@@ -115,9 +115,15 @@ class ActivityStatsScreenRepository {
   }
 
   Future<StepStatsResponse> getStats(ActivityTimeRange range) async {
-    final response = range == ActivityTimeRange.daily
-        ? await _repository.getStatistic(ActivityStatsRange.daily)
-        : await _getMonthlyResponse();
+    final response = await (switch (range) {
+      ActivityTimeRange.daily => _repository.getStatistic(
+        ActivityStatsRange.daily,
+      ),
+      ActivityTimeRange.weekly => _repository.getStatistic(
+        ActivityStatsRange.weekly,
+      ),
+      ActivityTimeRange.monthly => _getMonthlyResponse(),
+    });
     final chartData = buildChartPointsForRange(
       range: range,
       data: response.data,
@@ -166,7 +172,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       ActivityStatsScreenRepository();
 
   _MainTab _activeTab = _MainTab.stats;
-  ActivityTimeRange _timeRange = ActivityTimeRange.weekly;
+  ActivityTimeRange _timeRange = ActivityTimeRange.monthly;
 
   bool _isStatsLoading = true;
   bool _isHistoryLoading = true;
@@ -195,7 +201,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
       if (!mounted) return;
       setState(() {
         _stats = stats;
-        if (_timeRange != ActivityTimeRange.daily) {
+        if (_timeRange == ActivityTimeRange.monthly) {
           final pages = buildWeeklyChartPages(stats.chartData);
           _selectedWeekIndex = pages.isEmpty ? 0 : pages.length - 1;
         }
@@ -243,7 +249,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   }
 
   StepStatsResponse _visibleStats(StepStatsResponse stats) {
-    if (_timeRange == ActivityTimeRange.daily) return stats;
+    if (_timeRange != ActivityTimeRange.monthly) return stats;
     final pages = _weekPages(stats);
     if (pages.isEmpty) return stats;
     final index = _selectedWeekIndex.clamp(0, pages.length - 1);
@@ -456,21 +462,26 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                 foreground: foreground,
                 onChanged: _onTimeRangeChanged,
               ),
-              if (_timeRange != ActivityTimeRange.daily &&
+              if (_timeRange == ActivityTimeRange.monthly &&
                   weekPages.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      tooltip: 'Tuần trước',
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).previousPageTooltip,
                       onPressed: _selectedWeekIndex > 0
                           ? () => setState(() => _selectedWeekIndex--)
                           : null,
-                      icon: const AppIcon(Icons.chevron_left_rounded),
+                      icon: Transform.flip(
+                        flipX: true,
+                        child: const AppIcon(Icons.chevron_right_rounded),
+                      ),
                     ),
                     Text(
-                      '${l10n.activityStatsWeekBucket(_selectedWeekIndex + 1)}'
+                      '${l10n.activityStatsMonthly} ${_selectedWeekIndex + 1}'
                       '/${weekPages.length}',
                       style: TextStyle(
                         color: foreground,
@@ -478,7 +489,9 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Tuần tiếp theo',
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).nextPageTooltip,
                       onPressed: _selectedWeekIndex < weekPages.length - 1
                           ? () => setState(() => _selectedWeekIndex++)
                           : null,
@@ -896,69 +909,59 @@ class _TimeRangeSelector extends StatelessWidget {
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Row(
-        children: ActivityTimeRange.values
-            .where((range) => range != ActivityTimeRange.monthly)
-            .map((range) {
-              final isActive = timeRange == range;
-              final label = switch (range) {
-                ActivityTimeRange.daily => AppLocalizations.of(
-                  context,
-                ).activityStatsDaily,
-                ActivityTimeRange.weekly => AppLocalizations.of(
-                  context,
-                ).activityStatsWeekly,
-                ActivityTimeRange.monthly => AppLocalizations.of(
-                  context,
-                ).activityStatsMonthly,
-              };
+        children: ActivityTimeRange.values.map((range) {
+          final isActive = timeRange == range;
+          final label = switch (range) {
+            ActivityTimeRange.daily => AppLocalizations.of(
+              context,
+            ).activityStatsDaily,
+            ActivityTimeRange.weekly => AppLocalizations.of(
+              context,
+            ).activityStatsWeekly,
+            ActivityTimeRange.monthly => AppLocalizations.of(
+              context,
+            ).activityStatsMonthly,
+          };
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onChanged(range),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.buttonGreen
-                          : AppColors.parchment,
-                      borderRadius: BorderRadius.circular(12),
-                      border: isActive
-                          ? Border.all(color: AppColors.woodDeep, width: 1.5)
-                          : null,
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? AppColors.buttonText
-                            : AppColors.woodDeep,
-                        shadows: isActive
-                            ? const [
-                                Shadow(
-                                  color: AppColors.woodDeep,
-                                  blurRadius: 1.5,
-                                ),
-                              ]
-                            : null,
-                      ),
-                    ),
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(range),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.buttonGreen : AppColors.parchment,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isActive
+                      ? Border.all(color: AppColors.woodDeep, width: 1.5)
+                      : null,
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? AppColors.buttonText : AppColors.woodDeep,
+                    shadows: isActive
+                        ? const [
+                            Shadow(color: AppColors.woodDeep, blurRadius: 1.5),
+                          ]
+                        : null,
                   ),
                 ),
-              );
-            })
-            .toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

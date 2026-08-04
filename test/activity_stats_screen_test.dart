@@ -1,6 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:walkamon_mobile/data/datasources/remote/activity_stats_datasource.dart';
 import 'package:walkamon_mobile/data/models/daily_step_statistic_response.dart';
+import 'package:walkamon_mobile/data/repositories/activity_stats_repository.dart';
 import 'package:walkamon_mobile/screen/profile/activity_stats_screen.dart';
+
+class _RecordingActivityStatsRepository extends ActivityStatsRepository {
+  final List<ActivityStatsRange> requestedRanges = [];
+
+  @override
+  Future<DailyStepStatisticResponse> getStatistic(
+    ActivityStatsRange range, {
+    DateTime? date,
+  }) async {
+    requestedRanges.add(range);
+    return DailyStepStatisticResponse(
+      type: range.name,
+      fromDate: null,
+      toDate: null,
+      data: const [],
+    );
+  }
+}
 
 void main() {
   group('dynamic chart maximum', () {
@@ -69,5 +89,27 @@ void main() {
           .fold<int>(0, (sum, point) => sum + point.steps),
       136,
     );
+  });
+
+  test('weekly stats use the weekly endpoint range', () async {
+    final repository = _RecordingActivityStatsRepository();
+    final screenRepository = ActivityStatsScreenRepository(
+      repository: repository,
+    );
+
+    await screenRepository.getStats(ActivityTimeRange.weekly);
+
+    expect(repository.requestedRanges, [ActivityStatsRange.weekly]);
+  });
+
+  test('monthly stats use the monthly endpoint range', () async {
+    final repository = _RecordingActivityStatsRepository();
+    final screenRepository = ActivityStatsScreenRepository(
+      repository: repository,
+    );
+
+    await screenRepository.getStats(ActivityTimeRange.monthly);
+
+    expect(repository.requestedRanges, [ActivityStatsRange.monthly]);
   });
 }
