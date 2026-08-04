@@ -33,6 +33,20 @@ class PetScreenRepository {
     );
   }
 
+  Future<bool> getStoryStatus() async {
+    final apiResponse = await _datasource.getStoryStatus();
+
+    if (apiResponse.success && apiResponse.data != null) {
+      return apiResponse.data!;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Không thể tải trạng thái cốt truyện.',
+    );
+  }
+
   Future<PetNameResponse?> getPetName() async {
     final apiResponse = await _datasource.getPetName();
 

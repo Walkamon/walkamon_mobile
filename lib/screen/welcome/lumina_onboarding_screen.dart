@@ -83,7 +83,7 @@ class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen> {
     if (_isFinishing) return;
     _isFinishing = true;
     _autoSlideTimer?.cancel();
-    await context.read<GameStateProvider>().setHasSeenStory(true);
+    context.read<GameStateProvider>().markStoryCompletedForCurrentFlow();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/seed');
   }

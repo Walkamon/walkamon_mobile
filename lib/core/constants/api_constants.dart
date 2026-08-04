@@ -100,6 +100,7 @@ class ApiConstants {
 
   // Pet Endpoints
   static const String petStatus = '/api/Pet/status';
+  static const String petStoryStatus = '/api/Pet/story-status';
   static const String petMe = '/api/Pet/me';
   static const String petName = '/api/Pet/pet-name';
   static const String createStarterPet = '/api/Pet/create-stater-pet';
