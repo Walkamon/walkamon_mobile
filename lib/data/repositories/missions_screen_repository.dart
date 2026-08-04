@@ -30,6 +30,16 @@ class MissionsScreenRepository {
     throw Exception(resp.message);
   }
 
+  Future<ClaimChallengeRewardResponse> claimChallenge(
+    String userMissionId,
+  ) async {
+    final resp = await _remoteDataSource.claimChallenge(userMissionId);
+    if (resp.success && resp.data != null) {
+      return resp.data!;
+    }
+    throw Exception(resp.message);
+  }
+
   Future<ApiResponse<PlayerChallengeStateResponse>> createRandomChallenge() async {
     return await _remoteDataSource.createRandomChallenge();
   }

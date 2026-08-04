@@ -115,6 +115,42 @@ class PlayerChallengeStateResponse {
   }
 }
 
+class ClaimChallengeRewardResponse {
+  final String userMissionId;
+  final int walletAmount;
+  final int walletBalance;
+  final List<PlayerChallengeRewardItemResponse> rewardItems;
+
+  ClaimChallengeRewardResponse({
+    required this.userMissionId,
+    required this.walletAmount,
+    required this.walletBalance,
+    required this.rewardItems,
+  });
+
+  factory ClaimChallengeRewardResponse.fromJson(Map<String, dynamic> json) {
+    final rewards = json['rewardItems'];
+    return ClaimChallengeRewardResponse(
+      userMissionId: json['userMissionId'] as String? ?? '',
+      walletAmount: json['walletAmount'] is int
+          ? json['walletAmount'] as int
+          : int.tryParse('${json['walletAmount']}') ?? 0,
+      walletBalance: json['walletBalance'] is int
+          ? json['walletBalance'] as int
+          : int.tryParse('${json['walletBalance']}') ?? 0,
+      rewardItems: rewards is List
+          ? rewards
+              .map(
+                (e) => PlayerChallengeRewardItemResponse.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
+              .toList()
+          : [],
+    );
+  }
+}
+
 class CancelPlayerChallengeResponse {
   final String userMissionId;
   final String statusCode;

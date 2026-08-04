@@ -11,10 +11,15 @@ void showGameNotificationDialog(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.25),
     barrierDismissible: false,
+    useRootNavigator: true,
     builder: (dialogContext) {
       Future.delayed(const Duration(milliseconds: 1000), () {
-        if (dialogContext.mounted && Navigator.canPop(dialogContext)) {
-          Navigator.pop(dialogContext);
+        if (!dialogContext.mounted) return;
+
+        final navigator = Navigator.of(dialogContext, rootNavigator: true);
+        final isCurrentRoute = ModalRoute.of(dialogContext)?.isCurrent ?? false;
+        if (isCurrentRoute && navigator.canPop()) {
+          navigator.pop();
         }
       });
 
