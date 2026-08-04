@@ -5,11 +5,7 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../core/l10n/locale_helper.dart';
 import '../../core/constants/app_assets.dart';
 
-import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
-import '../../data/datasources/remote/notification_datasource.dart';
-import '../../data/repositories/notification_repository.dart';
-import '../../data/services/fcm_service.dart';
 
 import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
@@ -39,18 +35,6 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _handleLogout() async {
     if (_isLoggingOut) return;
     setState(() => _isLoggingOut = true);
-
-    try {
-      final notificationRepo = NotificationRepositoryImpl(
-        datasource: NotificationDatasourceImpl(ApiClient()),
-      );
-      final fcmService = FCMService(notificationRepo);
-
-      // Báo server ngừng gửi push notification trước khi xóa thông tin user
-      await fcmService.deactivateToken();
-    } catch (e) {
-      debugPrint("Lỗi hủy FCM Token: $e");
-    }
 
     await context.read<StepTrackingProvider>().stopForUser();
     await context.read<GameStateProvider>().logout();
@@ -207,6 +191,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             subtitle: l10n.notificationsSubtitle,
                             icon: Icons.notifications_none_rounded,
                             value: gameState.settings.notifications,
+                            enabled: !gameState.isUpdatingNotifications,
                             onChanged: (newValue) {
                               context
                                   .read<GameStateProvider>()
@@ -706,6 +691,7 @@ class _SettingsSwitch extends StatelessWidget {
     this.subtitle = '',
     required this.value,
     required this.onChanged,
+    this.enabled = true,
   });
 
   final IconData icon;
@@ -714,6 +700,7 @@ class _SettingsSwitch extends StatelessWidget {
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -768,7 +755,7 @@ class _SettingsSwitch extends StatelessWidget {
           ),
           Switch(
             value: value,
-            onChanged: onChanged,
+            onChanged: enabled ? onChanged : null,
             activeThumbColor: AppColors.authCard,
             activeTrackColor: AppColors.buttonGreen,
             inactiveThumbColor: AppColors.authCard,

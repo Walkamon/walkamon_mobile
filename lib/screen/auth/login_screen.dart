@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,12 +8,8 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/constants/app_assets.dart';
-import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/login_screen_error_translator.dart';
-import '../../data/datasources/remote/notification_datasource.dart';
-import '../../data/repositories/notification_repository.dart';
-import '../../data/services/fcm_service.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 
@@ -90,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _handleLogin() async {
     final provider = context.read<GameStateProvider>();
-    if (provider.isLoading) return;
+    if (provider.isLoading || provider.isUpdatingNotifications) return;
 
     setState(() => _inlineErrorMessage = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -109,15 +103,6 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
-    try {
-      final notificationRepository = NotificationRepositoryImpl(
-        datasource: NotificationDatasourceImpl(ApiClient()),
-      );
-      unawaited(FCMService(notificationRepository).setupToken());
-    } catch (error) {
-      debugPrint('Không thể khởi tạo thông báo: $error');
-    }
-
     final userId = provider.user?.id ?? '';
     if (userId.isNotEmpty && mounted) {
       await context.read<StepTrackingProvider>().startForUser(userId);
@@ -130,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isLoading = context.select<GameStateProvider, bool>(
-      (provider) => provider.isLoading,
+      (provider) => provider.isLoading || provider.isUpdatingNotifications,
     );
 
     return Stack(

@@ -1,73 +1,148 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+
 import '../repositories/notification_repository.dart';
 
 class FCMService {
-  final NotificationRepository _notificationRepo;
+  FCMService(this._notificationRepo);
 
-  // Khai báo VAPID Key thành một biến hằng số để dùng chung, dễ quản lý và không bị hardcode lặp lại
+  final NotificationRepository _notificationRepo;
+  StreamSubscription<String>? _tokenRefreshSubscription;
+  bool _isActive = false;
+
   static const String _vapidKey =
       'BMxWbOxZH9lDYXnxLUxI3UwzpetJuohK-CyakFI_AvCiroNhLe2tifo3-J8dKuB5UeftPcT1wL2n5sJn2sITR8c';
 
-  FCMService(this._notificationRepo);
+  /// Requests OS/browser permission and registers this device only if granted.
+  /// The settings toggle must remain off when this method returns false.
+  Future<bool> setupToken() async {
+    debugPrint(
+      '[NotificationFlow][FCM] request_permission '
+      'platform=${kIsWeb ? 'web' : 'native'}',
+    );
 
-  /// Gọi hàm này NGAY SAU KHI đăng nhập thành công
-  Future<void> setupToken() async {
     try {
-      // print("=== ĐÃ CHẠY VÀO HÀM SETUPTOKEN ===");
-      // 1. Xin quyền hiển thị thông báo (Cần thiết cho iOS & Android 13+)
-      NotificationSettings settings = await FirebaseMessaging.instance
-          .requestPermission();
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      debugPrint(
+        '[NotificationFlow][FCM] permission_result='
+        '${settings.authorizationStatus.name}',
+      );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // 2. Lấy Token từ Firebase (Truyền VAPID Key cho Web)
-        String? fcmToken = await FirebaseMessaging.instance.getToken(
-          vapidKey: _vapidKey,
-        );
-
-        if (fcmToken != null && fcmToken.isNotEmpty) {
-          // 3. Gửi Token lên Backend
-          await _notificationRepo.registerDeviceToken(fcmToken);
-          // print("Đã đăng ký FCM Token thành công: $fcmToken");
-        }
-
-        // 4. Lắng nghe nếu Token thay đổi thì tự động gửi lại lên Backend
-        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-          await _notificationRepo.registerDeviceToken(newToken);
-          // print("FCM Token đã được refresh: $newToken");
-        });
+      final granted =
+          settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+      if (!granted) {
+        _isActive = false;
+        await _cancelTokenRefreshListener();
+        debugPrint('[NotificationFlow][FCM] activation_stopped=permission_denied');
+        return false;
       }
-    } catch (e) {
-      print("Lỗi khi setup FCM Token: $e");
+
+      debugPrint('[NotificationFlow][FCM] requesting_device_token');
+      final token = await FirebaseMessaging.instance.getToken(
+        vapidKey: kIsWeb ? _vapidKey : null,
+      );
+      if (token == null || token.isEmpty) {
+        _isActive = false;
+        await _cancelTokenRefreshListener();
+        debugPrint('[NotificationFlow][FCM] activation_stopped=token_empty');
+        return false;
+      }
+
+      debugPrint(
+        '[NotificationFlow][FCM] token_ready length=${token.length}',
+      );
+      await _notificationRepo.registerDeviceToken(token);
+      debugPrint('[NotificationFlow][FCM] backend_token_registered=true');
+
+      _isActive = true;
+      await _listenForTokenRefresh();
+      debugPrint('[NotificationFlow][FCM] activation_complete=true');
+      return true;
+    } catch (error) {
+      _isActive = false;
+      await _cancelTokenRefreshListener();
+      debugPrint('[NotificationFlow][FCM] activation_failed error=$error');
+      return false;
     }
   }
 
-  /// Gọi hàm này TRƯỚC KHI thực hiện xóa dữ liệu local để đăng xuất
+  Future<void> _listenForTokenRefresh() async {
+    await _cancelTokenRefreshListener();
+    _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
+      (newToken) async {
+        if (!_isActive || newToken.isEmpty) return;
+        debugPrint(
+          '[NotificationFlow][FCM] token_refreshed length=${newToken.length}',
+        );
+        try {
+          await _notificationRepo.registerDeviceToken(newToken);
+          debugPrint('[NotificationFlow][FCM] refreshed_token_registered=true');
+        } catch (error) {
+          debugPrint(
+            '[NotificationFlow][FCM] refreshed_token_failed error=$error',
+          );
+        }
+      },
+      onError: (Object error) {
+        debugPrint('[NotificationFlow][FCM] token_stream_failed error=$error');
+      },
+    );
+    debugPrint('[NotificationFlow][FCM] token_refresh_listener=active');
+  }
+
+  Future<void> _cancelTokenRefreshListener() async {
+    final hadListener = _tokenRefreshSubscription != null;
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
+    if (hadListener) {
+      debugPrint('[NotificationFlow][FCM] token_refresh_listener=cancelled');
+    }
+  }
+
+  /// Stops push delivery without displaying a new permission prompt.
   Future<void> deactivateToken() async {
+    debugPrint('[NotificationFlow][FCM] deactivation_started');
+    _isActive = false;
+    await _cancelTokenRefreshListener();
+
     try {
-      // Kiểm tra quyền trên Web, nếu chưa cấp quyền thì không gọi getToken
-      // để tránh việc trình duyệt hiện popup bắt người dùng cho phép thông báo
       if (kIsWeb) {
-        NotificationSettings settings =
+        final settings =
             await FirebaseMessaging.instance.getNotificationSettings();
-        if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-            settings.authorizationStatus != AuthorizationStatus.provisional) {
-          print("Quyền thông báo chưa được cấp, bỏ qua hủy FCM Token.");
+        final granted =
+            settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional;
+        debugPrint(
+          '[NotificationFlow][FCM] deactivation_permission='
+          '${settings.authorizationStatus.name}',
+        );
+        if (!granted) {
+          debugPrint(
+            '[NotificationFlow][FCM] deactivation_skipped=no_browser_permission',
+          );
           return;
         }
-      } 
-
-      // Thêm vapidKey vào đây để Web lấy Token cũ đi hủy không bị lỗi
-      String? fcmToken = await FirebaseMessaging.instance.getToken(
-        vapidKey: _vapidKey,
-      );
-
-      if (fcmToken != null && fcmToken.isNotEmpty) {
-        await _notificationRepo.deactivateDeviceToken(fcmToken);
-        print("Đã hủy kích hoạt FCM Token thành công");
       }
-    } catch (e) {
-      print("Lỗi khi hủy FCM Token: $e");
+
+      final token = await FirebaseMessaging.instance.getToken(
+        vapidKey: kIsWeb ? _vapidKey : null,
+      );
+      if (token == null || token.isEmpty) {
+        debugPrint('[NotificationFlow][FCM] deactivation_skipped=token_empty');
+        return;
+      }
+
+      await _notificationRepo.deactivateDeviceToken(token);
+      debugPrint('[NotificationFlow][FCM] backend_token_deactivated=true');
+    } catch (error) {
+      debugPrint('[NotificationFlow][FCM] deactivation_failed error=$error');
     }
   }
 }
