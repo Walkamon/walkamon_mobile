@@ -1073,7 +1073,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get activityStatsWeekTitle => 'Hoạt động tuần này';
 
   @override
-  String get activityStatsMonthTitle => 'Hoạt động tháng này';
+  String get activityStatsMonthTitle => 'Hoạt động tháng';
 
   @override
   String get activityStatsTotal => 'Tổng';
