@@ -19,6 +19,26 @@ class PetScreenDatasource {
     );
   }
 
+  Future<ApiResponse<bool>> getStoryStatus() async {
+    return _apiClient.get<bool>(
+      ApiConstants.petStoryStatus,
+      fromJsonT: (json) {
+        if (json is bool) return json;
+        if (json is Map) {
+          final map = Map<String, dynamic>.from(json);
+          final value =
+              map['hasSeenStory'] ??
+              map['HasSeenStory'] ??
+              map['hasSeen'] ??
+              map['HasSeen'];
+          if (value is bool) return value;
+          return value?.toString().toLowerCase() == 'true';
+        }
+        return json?.toString().toLowerCase() == 'true';
+      },
+    );
+  }
+
   Future<ApiResponse<PetNameResponse>> getPetName() async {
     return _apiClient.get<PetNameResponse>(
       ApiConstants.petName,

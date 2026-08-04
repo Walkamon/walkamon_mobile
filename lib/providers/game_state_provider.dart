@@ -110,7 +110,6 @@ enum PetFeedFailureReason {
 
 class GameStateProvider extends ChangeNotifier {
   static const _languageCodeKey = 'language_code';
-  static const _storySeenKeyPrefix = 'story_seen_';
   static const _notificationPreferenceKeyPrefix =
       'notifications_enabled_for_user_';
 
@@ -145,6 +144,7 @@ class GameStateProvider extends ChangeNotifier {
   String _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
   bool _hasStarterPet = false;
   bool _hasSeenStory = false;
+  bool _hasCompletedStoryThisSession = false;
   bool _hasLocalLanguagePreference = false;
 
   String _affinityCode = 'sprout';
@@ -174,6 +174,7 @@ class GameStateProvider extends ChangeNotifier {
   String get spiritInfo => _spiritInfo;
   bool get hasStarterPet => _hasStarterPet;
   bool get hasSeenStory => _hasSeenStory;
+  bool get hasCompletedStoryThisSession => _hasCompletedStoryThisSession;
   String get affinityCode => _affinityCode;
   int get petStageNo => _petStageNo;
   String get animationType => _animationType;
@@ -209,6 +210,7 @@ class GameStateProvider extends ChangeNotifier {
     _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
     _hasStarterPet = false;
     _hasSeenStory = false;
+    _hasCompletedStoryThisSession = false;
     _affinityCode = 'sprout';
     _petStageNo = 0;
     _animationType = 'idle';
@@ -405,10 +407,9 @@ class GameStateProvider extends ChangeNotifier {
         languageCode: preferredLanguageCode,
       );
 
-      _hasSeenStory = profileData.hasSeenStory || await _hasSeenStoryLocally();
-      if (profileData.hasSeenStory) {
-        await _saveHasSeenStoryLocally(true);
-      }
+      // The dedicated Pet story-status endpoint is authoritative for routing.
+      // Keep the profile value only as a temporary fallback if that request fails.
+      _hasSeenStory = profileData.hasSeenStory;
 
       notifyListeners();
       return true;
@@ -853,8 +854,26 @@ class GameStateProvider extends ChangeNotifier {
         _spiritName = petName.trim();
       }
 
+      // Creating/naming the starter pet is the final onboarding action. The
+      // backend persists HasSeenStory as part of this successful operation.
       _hasStarterPet = true;
+      _hasSeenStory = true;
+      _hasCompletedStoryThisSession = false;
       notifyListeners();
+
+      try {
+        final serverSeen = await _petRepository.getStoryStatus();
+        debugPrint('[Onboarding] story-status after pet creation: $serverSeen');
+        if (serverSeen && !_hasSeenStory) {
+          _hasSeenStory = true;
+          notifyListeners();
+        }
+      } catch (error) {
+        debugPrint(
+          '[Onboarding] could not confirm story-status after pet creation: '
+          '$error',
+        );
+      }
       return true;
     } catch (e) {
       debugPrint('Lỗi khi tạo thú cưng khởi đầu: $e');
@@ -954,24 +973,6 @@ class GameStateProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> _hasSeenStoryLocally() async {
-    final userId = _user?.id ?? '';
-    if (userId.isEmpty) return false;
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      return preferences.getBool('$_storySeenKeyPrefix$userId') ?? false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _saveHasSeenStoryLocally(bool seen) async {
-    final userId = _user?.id ?? '';
-    if (userId.isEmpty) return;
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool('$_storySeenKeyPrefix$userId', seen);
-  }
-
   Future<void> _persistResolvedUserId(String userId) async {
     if (userId.isEmpty) return;
     final preferences = await SharedPreferences.getInstance();
@@ -979,27 +980,34 @@ class GameStateProvider extends ChangeNotifier {
   }
 
   Future<bool> loadHasSeenStory() async {
-    if (_hasSeenStory) return true;
-    final localSeen = await _hasSeenStoryLocally();
-    if (localSeen != _hasSeenStory) {
-      _hasSeenStory = localSeen;
-      notifyListeners();
+    try {
+      final serverSeen = await _petRepository.getStoryStatus();
+      if (serverSeen != _hasSeenStory) {
+        _hasSeenStory = serverSeen;
+        notifyListeners();
+      }
+      debugPrint(
+        '[Onboarding] GET /api/Pet/story-status => $serverSeen '
+        'account=${_user?.id ?? ''}',
+      );
+      return serverSeen;
+    } catch (error) {
+      debugPrint(
+        '[Onboarding] story-status request failed; using profile fallback '
+        '($_hasSeenStory): $error',
+      );
+      return _hasSeenStory;
     }
-    return _hasSeenStory;
   }
 
-  Future<void> setHasSeenStory(bool seen) async {
-    _hasSeenStory = seen;
+  void markStoryCompletedForCurrentFlow() {
+    if (_hasCompletedStoryThisSession) return;
+    _hasCompletedStoryThisSession = true;
+    debugPrint(
+      '[Onboarding] story completed in this session; waiting for pet name '
+      'before marking it seen',
+    );
     notifyListeners();
-
-    final userId = _user?.id ?? '';
-    if (userId.isEmpty) return;
-    try {
-      await _saveHasSeenStoryLocally(seen);
-      debugPrint('[Onboarding] saved seen=$seen for account=$userId');
-    } catch (error) {
-      debugPrint('Không thể lưu trạng thái onboarding: $error');
-    }
   }
 
   bool canAfford(int price) => _user != null && _user!.coins >= price;

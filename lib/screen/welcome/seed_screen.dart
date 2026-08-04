@@ -60,22 +60,20 @@ class _SeedScreenState extends State<SeedScreen>
   Future<void> _redirectIfPetExists() async {
     final gameState = context.read<GameStateProvider>();
 
-    // Pet data is persisted by the backend after this account completes its
-    // onboarding. Check it first so restarting the app cannot replay the story
-    // when local/browser preferences are unavailable.
-    final hasPet = await gameState.preparePetForHome();
+    // The backend story-status is authoritative for each account. A story
+    // completed in this session may proceed to seed/name-pet, but it is not
+    // marked seen until starter-pet creation succeeds.
+    final hasSeenStory = await gameState.loadHasSeenStory();
     if (!mounted) return;
-    if (hasPet) {
-      await gameState.setHasSeenStory(true);
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
+    if (!hasSeenStory && !gameState.hasCompletedStoryThisSession) {
+      Navigator.pushReplacementNamed(context, '/story');
       return;
     }
 
-    final hasSeenStory = await gameState.loadHasSeenStory();
+    final hasPet = await gameState.preparePetForHome();
     if (!mounted) return;
-    if (!hasSeenStory) {
-      Navigator.pushReplacementNamed(context, '/story');
+    if (hasPet) {
+      Navigator.pushReplacementNamed(context, '/home');
       return;
     }
 
