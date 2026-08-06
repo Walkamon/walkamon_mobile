@@ -31,6 +31,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   String? _requestCode;
   String? _email;
   String? _otp;
+  String? _resetToken;
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
@@ -44,6 +45,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
       _requestCode = args?['requestCode'] as String?;
       _email = args?['email'] as String?;
       _otp = args?['otp'] as String?;
+      _resetToken = args?['resetToken'] as String?;
       if (_otp != null && _otp!.isNotEmpty) {
         _otpController.text = _otp!;
       }
@@ -108,24 +110,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    if (_requestCode == null) {
+    final resetToken = _resetToken?.trim() ?? '';
+    if (resetToken.isEmpty && _requestCode == null) {
       setState(() {
         _errorMessage = 'Không tìm thấy mã yêu cầu đặt lại mật khẩu.';
       });
       return;
     }
 
-    final otp = _otp ?? _otpController.text.trim();
-
     setState(() {
       _isLoading = true;
     });
 
-    final response = await _authRepository.resetForgotPassword(
-      requestCode: _requestCode!,
-      otp: otp,
-      newPassword: _newPasswordController.text,
-    );
+    final response = resetToken.isNotEmpty
+        ? await _authRepository.resetForgotPasswordWithTicket(
+            resetToken: resetToken,
+            newPassword: _newPasswordController.text,
+          )
+        : await _authRepository.resetForgotPassword(
+            requestCode: _requestCode!,
+            otp: _otp ?? _otpController.text.trim(),
+            newPassword: _newPasswordController.text,
+          );
 
     if (!mounted) return;
 
@@ -207,7 +213,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                _otp == null
+                                (_resetToken == null || _resetToken!.isEmpty) &&
+                                        _otp == null
                                     ? (_email == null
                                           ? 'Nhập mã OTP trong email và chọn mật khẩu mới.'
                                           : 'Mã OTP đã được gửi đến $_email. Nhập mã và chọn mật khẩu mới.')
@@ -230,7 +237,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                 const SizedBox(height: 12),
                               ],
 
-                              if (_otp == null) ...[
+                              if ((_resetToken == null ||
+                                      _resetToken!.isEmpty) &&
+                                  _otp == null) ...[
                                 OutlinedField(
                                   controller: _otpController,
                                   hint: 'Mã OTP 6 số',
