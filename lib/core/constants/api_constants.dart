@@ -8,7 +8,11 @@ class ApiConstants {
   static const String verifyOtp = '/api/auth/register/verify';
   static const String resendOtp = '/api/auth/register/resend-otp';
   static const String forgotPassword = '/api/auth/forgot-password';
+  static const String verifyForgotPasswordOtp =
+      '/api/auth/forgot-password/verify';
   static const String resetForgotPassword = '/api/auth/forgot-password/reset';
+  static const String resetForgotPasswordWithTicket =
+      '/api/auth/forgot-password/reset-with-ticket';
   static const String changePassword = '/api/auth/change-password';
   static const String login = '/api/auth/login';
   static const String googleLogin = '/api/auth/google-login';

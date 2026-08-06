@@ -148,15 +148,35 @@ class _OTP_VerificationState extends State<OTP_Verification>
     final otp = _controllers.map((c) => c.text.trim()).join();
 
     if (_isForgotPasswordFlow) {
-      Navigator.pushNamed(
-        context,
-        '/auth/reset-password',
-        arguments: {
-          'requestCode': _currentRequestCode,
-          'email': _email,
-          'otp': otp,
-        },
+      setState(() => _isLoading = true);
+      final response = await _forgotPasswordRepository.verifyForgotPasswordOtp(
+        requestCode: _currentRequestCode!,
+        otp: otp,
       );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      final resetToken = response.data?.resetToken.trim() ?? '';
+      if (response.success && resetToken.isNotEmpty) {
+        setState(() => _successMessage = l10n.otpVerifySuccess);
+        Navigator.pushNamed(
+          context,
+          '/auth/reset-password',
+          arguments: {
+            'requestCode': response.data!.requestCode.isNotEmpty
+                ? response.data!.requestCode
+                : _currentRequestCode,
+            'email': _email,
+            'resetToken': resetToken,
+          },
+        );
+      } else {
+        setState(() {
+          _errorMessage = translateError(
+            response.message.isNotEmpty ? response.message : l10n.otpInvalid,
+          );
+        });
+      }
       return;
     }
 
