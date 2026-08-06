@@ -34,6 +34,7 @@ class SignalRPresenceRealtimeClient implements PresenceRealtimeClient {
     'match.forfeited',
     'match.finished',
     'match.cancelled',
+    'queue.failed',
   ];
 
   final String hubUrl;

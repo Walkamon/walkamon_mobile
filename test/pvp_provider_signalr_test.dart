@@ -74,6 +74,7 @@ class _FakeSignalRService implements PvpSignalRService {
     required void Function(Map<String, dynamic> event) onStarted,
     void Function(Map<String, dynamic> event)? onForfeited,
     void Function(Map<String, dynamic> event)? onPresenceChanged,
+    void Function(Map<String, dynamic> event)? onQueueFailed,
   }) {}
 
   @override

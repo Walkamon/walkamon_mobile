@@ -36,6 +36,7 @@ abstract class PvpSignalRService {
     required void Function(Map<String, dynamic> event) onStarted,
     void Function(Map<String, dynamic> event)? onForfeited,
     void Function(Map<String, dynamic> event)? onPresenceChanged,
+    void Function(Map<String, dynamic> event)? onQueueFailed,
   });
 
   void setReconnectedHandler(Future<void> Function()? onReconnected);
@@ -79,6 +80,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   void Function(Map<String, dynamic> event)? _onStarted;
   void Function(Map<String, dynamic> event)? _onForfeited;
   void Function(Map<String, dynamic> event)? _onPresenceChanged;
+  void Function(Map<String, dynamic> event)? _onQueueFailed;
   Future<void> Function()? _onReconnected;
 
   String _hubPath() => (configuredHubUrl?.isNotEmpty == true
@@ -185,6 +187,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
           'match.settling',
           'match.cancelled',
           'presence.changed',
+          'queue.failed',
         ];
     for (final name in methodNames) {
       _log('Registering SignalR handler: $name');
@@ -287,6 +290,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       case 'presence.changed':
         _onPresenceChanged?.call(data);
         break;
+      case 'queue.failed':
+        _onQueueFailed?.call(data);
+        break;
       default:
         // Fallback: nếu method name là 'presence.changed' nhưng eventType khác
         if (methodName == 'presence.changed') {
@@ -374,6 +380,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     void Function(Map<String, dynamic> event)? onStarted,
     void Function(Map<String, dynamic> event)? onForfeited,
     void Function(Map<String, dynamic> event)? onPresenceChanged,
+    void Function(Map<String, dynamic> event)? onQueueFailed,
   }) {
     _onAssigned = onAssigned;
     _onProgress = onProgress;
@@ -384,6 +391,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     _onStarted = onStarted;
     _onForfeited = onForfeited;
     _onPresenceChanged = onPresenceChanged;
+    _onQueueFailed = onQueueFailed;
   }
 
   @override
@@ -414,6 +422,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         break;
       case 'presence.changed':
         _onPresenceChanged?.call(event);
+        break;
+      case 'queue.failed':
+        _onQueueFailed?.call(event);
         break;
       default:
         break;
@@ -490,6 +501,8 @@ class PvpProvider extends ChangeNotifier {
     String? signalRJoinMethod,
     String? signalRLeaveMethod,
     PresenceProvider? presenceProvider,
+    Duration matchmakingRecoveryDelay = const Duration(seconds: 15),
+    Duration matchmakingRecoveryInterval = const Duration(seconds: 2),
   }) : _pvpDatasource = pvpDatasource ?? PvpSprintDatasource(apiClient),
        _petDatasource = petDatasource ?? PetScreenDatasource(apiClient),
        _activityDatasource =
@@ -497,6 +510,8 @@ class PvpProvider extends ChangeNotifier {
        _friendsDatasource =
            friendsDatasource ?? FriendsDatasource(apiClient ?? ApiClient()),
        _presenceProvider = presenceProvider,
+       _matchmakingRecoveryDelay = matchmakingRecoveryDelay,
+       _matchmakingRecoveryInterval = matchmakingRecoveryInterval,
        _signalRService =
            signalRService ??
            DefaultPvpSignalRService(
@@ -686,6 +701,11 @@ class PvpProvider extends ChangeNotifier {
   Timer? _countdownTicker;
   Timer? _raceTicker;
   Timer? _settlementPollTimer;
+  final Duration _matchmakingRecoveryDelay;
+  final Duration _matchmakingRecoveryInterval;
+  Timer? _matchmakingRecoveryTimer;
+  int _matchmakingSessionGeneration = 0;
+  bool _matchmakingRecoveryInFlight = false;
   Duration? _serverOffset;
   DateTime? _countdownStartsAt;
   DateTime? _countdownEndsAt;
@@ -1037,6 +1057,84 @@ class PvpProvider extends ChangeNotifier {
     _settlementPollTimer = null;
   }
 
+  void _cancelMatchmakingRecoveryTimer() {
+    _matchmakingRecoveryTimer?.cancel();
+    _matchmakingRecoveryTimer = null;
+  }
+
+  int _beginMatchmakingSession() {
+    _cancelMatchmakingRecoveryTimer();
+    return ++_matchmakingSessionGeneration;
+  }
+
+  void _stopMatchmakingRecovery() {
+    _cancelMatchmakingRecoveryTimer();
+    _matchmakingSessionGeneration++;
+  }
+
+  bool _isCurrentMatchmakingSession(int session) =>
+      session == _matchmakingSessionGeneration;
+
+  bool _shouldContinueMatchmakingRecovery(int session) {
+    if (!_isCurrentMatchmakingSession(session)) return false;
+    if (_matchmakingState == PvpMatchmakingState.connecting) return true;
+    if (_matchmakingState == PvpMatchmakingState.waiting) {
+      final status = _currentMatch?.statusCode.toLowerCase();
+      return _currentMatch == null ||
+          status == null ||
+          status == 'waiting' ||
+          (status == 'countdown' && _countdownEndsAt == null);
+    }
+    return _activeMatchId != null &&
+        _activeMatchId!.isNotEmpty &&
+        !_hasMatchRoomJoined &&
+        (_matchmakingState == PvpMatchmakingState.countdown ||
+            _matchmakingState == PvpMatchmakingState.running);
+  }
+
+  void _scheduleMatchmakingRecovery(int session, {required Duration delay}) {
+    if (!_shouldContinueMatchmakingRecovery(session)) return;
+    _cancelMatchmakingRecoveryTimer();
+    _matchmakingRecoveryTimer = Timer(delay, () {
+      _matchmakingRecoveryTimer = null;
+      unawaited(_runMatchmakingRecovery(session));
+    });
+  }
+
+  Future<void> _runMatchmakingRecovery(int session) async {
+    if (!_shouldContinueMatchmakingRecovery(session)) return;
+    if (_matchmakingRecoveryInFlight) {
+      _scheduleMatchmakingRecovery(
+        session,
+        delay: _matchmakingRecoveryInterval,
+      );
+      return;
+    }
+
+    _matchmakingRecoveryInFlight = true;
+    try {
+      final shouldRetry = await _recoverMatchmakingStateFromStatus(
+        session: session,
+      );
+      if (shouldRetry && _shouldContinueMatchmakingRecovery(session)) {
+        _scheduleMatchmakingRecovery(
+          session,
+          delay: _matchmakingRecoveryInterval,
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('[PvP] matchmaking recovery failed: $error\n$stackTrace');
+      if (_shouldContinueMatchmakingRecovery(session)) {
+        _scheduleMatchmakingRecovery(
+          session,
+          delay: _matchmakingRecoveryInterval,
+        );
+      }
+    } finally {
+      _matchmakingRecoveryInFlight = false;
+    }
+  }
+
   void _updateRaceProgress() {
     if (_raceStartedAt == null) return;
 
@@ -1191,6 +1289,7 @@ class PvpProvider extends ChangeNotifier {
   }
 
   void clearMatchState() {
+    _stopMatchmakingRecovery();
     _currentMatch = null;
     _activeMatchId = null;
     _matchResult = null;
@@ -1231,13 +1330,22 @@ class PvpProvider extends ChangeNotifier {
       onStarted: (event) => unawaited(handleSignalREvent(event)),
       onForfeited: (event) => unawaited(handleSignalREvent(event)),
       onPresenceChanged: (event) => _handlePresenceChanged(event),
+      onQueueFailed: (event) => unawaited(handleSignalREvent(event)),
     );
 
     // When SignalR reconnects, recover authoritative matchmaking state
     // và refresh friends + invites để lấy snapshot presence mới nhất.
     _signalRService.setReconnectedHandler(() async {
       _log('SignalR reconnected - recovering matchmaking status');
-      await _recoverMatchmakingStateFromStatus();
+      final shouldRetry = await _recoverMatchmakingStateFromStatus(
+        session: _matchmakingSessionGeneration,
+      );
+      if (shouldRetry) {
+        _scheduleMatchmakingRecovery(
+          _matchmakingSessionGeneration,
+          delay: _matchmakingRecoveryInterval,
+        );
+      }
       // Refresh friends list and pending invites after reconnect.
       await _refreshPresenceSnapshots();
     });
@@ -1282,7 +1390,8 @@ class PvpProvider extends ChangeNotifier {
       return;
     }
 
-    if (eventType == 'match.assigned' ||
+    if (eventType == 'queue.failed' ||
+        eventType == 'match.assigned' ||
         eventType == 'match.forfeited' ||
         eventType == 'match.finished' ||
         eventType == 'match.cancelled') {
@@ -1416,14 +1525,13 @@ class PvpProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _joinAndSyncMatch(String matchId) async {
+  Future<bool> _joinAndSyncMatch(String matchId) async {
     _activeMatchId = matchId;
     _log('GET Match', matchId: matchId);
     final matchResponse = await _pvpDatasource.getMatch(matchId);
     if (!matchResponse.success || matchResponse.data == null) {
       debugPrint('GET match failed after assigned: ${matchResponse.message}');
-      _updateState(PvpMatchmakingState.idle);
-      return;
+      return false;
     }
 
     final match = matchResponse.data!;
@@ -1439,7 +1547,7 @@ class PvpProvider extends ChangeNotifier {
         countdownEndsAt: match.countdownEndsAt!,
         serverTime: match.serverTime ?? DateTime.now().toUtc(),
       );
-      return;
+      return true;
     }
 
     if (normalizedStatus == 'running') {
@@ -1451,7 +1559,7 @@ class PvpProvider extends ChangeNotifier {
         _applyHudFromMatch(match);
         notifyListeners();
       }
-      return;
+      return true;
     }
 
     if (normalizedStatus == 'settling') {
@@ -1460,7 +1568,7 @@ class PvpProvider extends ChangeNotifier {
         PvpMatchmakingState.waiting,
         reason: 'match snapshot settling',
       );
-      return;
+      return true;
     }
 
     if (normalizedStatus == 'finished') {
@@ -1471,7 +1579,7 @@ class PvpProvider extends ChangeNotifier {
         reason: 'match snapshot finished',
       );
       await loadMatchResult(matchId);
-      return;
+      return true;
     }
 
     if (normalizedStatus == 'cancelled') {
@@ -1480,11 +1588,12 @@ class PvpProvider extends ChangeNotifier {
         PvpMatchmakingState.cancelled,
         reason: 'match snapshot cancelled',
       );
-      return;
+      return true;
     }
 
     _stopCountdownSchedule();
     _updateState(PvpMatchmakingState.waiting, reason: 'match snapshot waiting');
+    return true;
   }
 
   PvpMatchmakingState _mapStatusCodeToState(String statusCode) {
@@ -1502,13 +1611,66 @@ class PvpProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _recoverMatchmakingStateFromStatus() async {
+  Future<bool> _joinAndPrepareMatch(String matchId) async {
+    _activeMatchId = matchId;
+    bool joined = false;
+    try {
+      _log('Joining room...', matchId: matchId);
+      joined = await _signalRService.joinMatch(matchId);
+      _log('JoinMatch ${joined ? 'success' : 'failed'}', matchId: matchId);
+    } catch (error, stackTrace) {
+      debugPrint('[PvP] JoinMatch recovery failed: $error\n$stackTrace');
+    }
+    _hasMatchRoomJoined = joined;
+
+    final synced = await _joinAndSyncMatch(matchId);
+    if (!synced) return false;
+
+    if (joined && _currentMatch?.statusCode.toLowerCase() == 'countdown') {
+      try {
+        final readyResponse = await _signalRService.readyMatch(matchId);
+        final allReady = readyResponse['allReady'] as bool? ?? false;
+        final readyStartsAt = readyResponse['countdownStartsAt'] as String?;
+        final readyEndsAt = readyResponse['countdownEndsAt'] as String?;
+        final readyServerTime = readyResponse['serverTime'] as String?;
+        debugPrint(
+          '[PvP] Recovery ReadyMatch allReady=$allReady matchId=$matchId',
+        );
+        if (allReady &&
+            readyStartsAt != null &&
+            readyEndsAt != null &&
+            readyServerTime != null) {
+          _applyCountdownSchedule(
+            countdownStartsAt: DateTime.parse(readyStartsAt).toUtc(),
+            countdownEndsAt: DateTime.parse(readyEndsAt).toUtc(),
+            serverTime: DateTime.parse(readyServerTime).toUtc(),
+          );
+        }
+      } catch (error, stackTrace) {
+        debugPrint('[PvP] Recovery ReadyMatch failed: $error\n$stackTrace');
+      }
+    }
+
+    return joined;
+  }
+
+  Future<bool> _recoverMatchmakingStateFromStatus({int? session}) async {
     _log('GET Matchmaking Status');
     final statusResponse = await _pvpDatasource.getMatchmakingStatus();
-    if (!statusResponse.success || statusResponse.data == null) {
+    if (session != null && !_isCurrentMatchmakingSession(session)) return false;
+    if (!statusResponse.success) {
+      _log(
+        'Matchmaking status request failed; keeping current state for retry '
+        '(status=${statusResponse.status})',
+      );
+      return session != null;
+    }
+    if (statusResponse.data == null) {
+      _stopMatchmakingRecovery();
       _currentMatch = null;
+      _activeMatchId = null;
       _updateState(PvpMatchmakingState.idle);
-      return;
+      return false;
     }
 
     final status = statusResponse.data!;
@@ -1519,56 +1681,20 @@ class PvpProvider extends ChangeNotifier {
       );
 
       final matchId = status.matchId!;
-      final normalized = status.statusCode.toLowerCase();
-      if (normalized == 'countdown') {
-        _log('Recovery detected countdown', matchId: matchId);
-        try {
-          _log('Joining room...', matchId: matchId);
-          final joined = await _signalRService.joinMatch(matchId);
-          _log('JoinMatch ${joined ? 'success' : 'failed'}', matchId: matchId);
-          if (!joined) {
-            _log(
-              'Recovery: JoinMatch failed, aborting recovery',
-              matchId: matchId,
-            );
-            // fall back to syncing via GET only
-            await _joinAndSyncMatch(matchId);
-            return;
-          }
-
-          _log('Fetching match snapshot...', matchId: matchId);
-          await _joinAndSyncMatch(matchId);
-          _log('Snapshot loaded', matchId: matchId);
-          if (_matchmakingState == PvpMatchmakingState.countdown) {
-            _log('State changed to countdown', matchId: matchId);
-          }
-          _log('notifyListeners()', matchId: matchId);
-          notifyListeners();
-          _log('UI navigation triggered', matchId: matchId);
-          return;
-        } catch (e, st) {
-          _log('Recovery failed: $e');
-          debugPrint('$e\n$st');
-          // fallback to normal joinAndSync to try to recover
-          try {
-            await _joinAndSyncMatch(matchId);
-          } catch (e2) {
-            _log('Recovery fallback failed: $e2', matchId: matchId);
-          }
-          return;
-        }
-      }
-
-      // If not countdown, still join and sync to be safe
-      await _joinAndSyncMatch(matchId);
-      return;
+      await _joinAndPrepareMatch(matchId);
+      if (session != null && !_isCurrentMatchmakingSession(session))
+        return false;
+      return session != null && _shouldContinueMatchmakingRecovery(session);
     }
 
     final nextState = _mapStatusCodeToState(status.statusCode);
     if (nextState == PvpMatchmakingState.idle) {
+      _stopMatchmakingRecovery();
       _currentMatch = null;
+      _activeMatchId = null;
     }
     _updateState(nextState);
+    return session != null && _shouldContinueMatchmakingRecovery(session);
   }
 
   Future<void> handleSignalREvent(Map<String, dynamic> event) async {
@@ -1603,47 +1729,34 @@ class PvpProvider extends ChangeNotifier {
 
     _logSignalREvent(event, eventType: eventType);
 
+    if (eventType == 'queue.failed') {
+      if (_matchmakingState == PvpMatchmakingState.waiting ||
+          _matchmakingState == PvpMatchmakingState.connecting) {
+        _log('queue.failed: matchmaking ended without an eligible bot');
+        _stopMatchmakingRecovery();
+        _currentMatch = null;
+        _activeMatchId = null;
+        _hasMatchRoomJoined = false;
+        _updateState(PvpMatchmakingState.idle, reason: 'queue.failed');
+      }
+      return;
+    }
+
     // Handle specific events
     if (eventType == 'match.assigned') {
       _hasReceivedAssignedEvent = true;
       if (matchId != null && matchId.isNotEmpty) {
-        _activeMatchId = matchId;
         _log('match.assigned', matchId: matchId);
-
-        _traceMatchmaking('[8] JoinMatch invoked');
-        _log('Invoking JoinMatch for matchId=$matchId');
-        final joined = await _signalRService.joinMatch(matchId);
-        _log('[9] JoinMatch completed: success=$joined');
-        _hasMatchRoomJoined = joined;
-
-        if (!joined) {
-          _traceMatchmaking('stopped at: JoinMatch failed');
-          _log('JoinMatch failed', matchId: matchId);
-          return;
-        }
-
-        _log('SignalR room verified', matchId: matchId);
-        _traceMatchmaking('[10] GET /matches/$matchId');
-        await _joinAndSyncMatch(matchId);
-
-        final readyResponse = await _signalRService.readyMatch(matchId);
-        final allReady = readyResponse['allReady'] as bool? ?? false;
-        final readyStartsAt = readyResponse['countdownStartsAt'] as String?;
-        final readyEndsAt = readyResponse['countdownEndsAt'] as String?;
-        final readyServerTime = readyResponse['serverTime'] as String?;
-        debugPrint('[PvP] ReadyMatch allReady=$allReady matchId=$matchId');
-        if (allReady &&
-            readyStartsAt != null &&
-            readyEndsAt != null &&
-            readyServerTime != null) {
-          _applyCountdownSchedule(
-            countdownStartsAt: DateTime.parse(readyStartsAt).toUtc(),
-            countdownEndsAt: DateTime.parse(readyEndsAt).toUtc(),
-            serverTime: DateTime.parse(readyServerTime).toUtc(),
+        _traceMatchmaking('[8] Recover assigned match');
+        final joined = await _joinAndPrepareMatch(matchId);
+        if (!joined ||
+            _shouldContinueMatchmakingRecovery(_matchmakingSessionGeneration)) {
+          _scheduleMatchmakingRecovery(
+            _matchmakingSessionGeneration,
+            delay: _matchmakingRecoveryInterval,
           );
         } else {
-          _stopCountdownSchedule();
-          _updateState(PvpMatchmakingState.waiting);
+          _stopMatchmakingRecovery();
         }
       } else {
         _log('match.assigned without matchId');
@@ -1741,31 +1854,6 @@ class PvpProvider extends ChangeNotifier {
       }
       _updateState(PvpMatchmakingState.cancelled, reason: 'match.cancelled');
       return;
-    }
-  }
-
-  Future<void> _verifyBotFallbackTimer() async {
-    if (_matchmakingStartedAt == null) {
-      return;
-    }
-
-    await Future.delayed(const Duration(seconds: 20));
-    if (_matchmakingState == PvpMatchmakingState.waiting) {
-      _log(
-        'Bot fallback check: still waiting after 20s (roomJoined=$_hasMatchRoomJoined)',
-      );
-      _log('Last matchmaking step: $_lastMatchmakingStep');
-      if (!_hasReceivedAssignedEvent) {
-        _log('Bot fallback check: no match.assigned received');
-      }
-      final statusResponse = await _pvpDatasource.getMatchmakingStatus();
-      if (statusResponse.success && statusResponse.data != null) {
-        final status = statusResponse.data!;
-        _log(
-          "Bot fallback check: matchmaking status=${status.statusCode}, matchId=${status.matchId ?? 'null'}",
-          matchId: status.matchId,
-        );
-      }
     }
   }
 
@@ -2090,6 +2178,14 @@ class PvpProvider extends ChangeNotifier {
   }
 
   Future<void> startMatchmaking() async {
+    if (_matchmakingState == PvpMatchmakingState.connecting ||
+        _matchmakingState == PvpMatchmakingState.waiting ||
+        _matchmakingState == PvpMatchmakingState.countdown ||
+        _matchmakingState == PvpMatchmakingState.running) {
+      return;
+    }
+
+    final session = _beginMatchmakingSession();
     _matchmakingStartedAt = DateTime.now();
     _hasReceivedAssignedEvent = false;
     _hasMatchRoomJoined = false;
@@ -2101,9 +2197,11 @@ class PvpProvider extends ChangeNotifier {
       try {
         await initializeSignalR();
       } catch (e, st) {
+        if (!_isCurrentMatchmakingSession(session)) return;
         _log('SignalR initialization failed before matchmaking: $e');
         debugPrint(st.toString());
         // Do not continue matchmaking if SignalR failed to initialize
+        _stopMatchmakingRecovery();
         _updateState(PvpMatchmakingState.idle);
         return;
       }
@@ -2122,32 +2220,37 @@ class PvpProvider extends ChangeNotifier {
       );
     }
 
-    if (_matchmakingState == PvpMatchmakingState.waiting ||
-        _matchmakingState == PvpMatchmakingState.countdown ||
-        _matchmakingState == PvpMatchmakingState.running) {
-      return;
-    }
-
     _updateState(PvpMatchmakingState.connecting);
     _traceMatchmaking('[3] POST /matchmaking');
 
     final response = await _pvpDatasource.startMatchmaking();
+    if (!_isCurrentMatchmakingSession(session)) return;
     _traceMatchmaking('[4] Response from POST /matchmaking');
     _log(
       'POST /matchmaking response: status=${response.status}, success=${response.success}, message=${response.message}',
     );
     if (!response.success) {
       if (response.status == 409) {
-        await _recoverMatchmakingStateFromStatus();
+        final shouldRetry = await _recoverMatchmakingStateFromStatus(
+          session: session,
+        );
+        if (shouldRetry) {
+          _scheduleMatchmakingRecovery(
+            session,
+            delay: _matchmakingRecoveryInterval,
+          );
+        }
         return;
       }
 
       debugPrint('Matchmaking failed: ${response.message}');
+      _stopMatchmakingRecovery();
       _updateState(PvpMatchmakingState.idle);
       return;
     }
 
     if (response.data == null) {
+      _stopMatchmakingRecovery();
       _updateState(PvpMatchmakingState.idle);
       return;
     }
@@ -2159,26 +2262,38 @@ class PvpProvider extends ChangeNotifier {
     if (normalizedStatus == 'waiting' || match.matchId.isEmpty) {
       _updateState(PvpMatchmakingState.waiting);
       _traceMatchmaking('[5] Waiting state entered');
-      unawaited(_verifyBotFallbackTimer());
+      _scheduleMatchmakingRecovery(session, delay: _matchmakingRecoveryDelay);
       return;
     }
 
-    await _joinAndSyncMatch(match.matchId);
+    final joined = await _joinAndPrepareMatch(match.matchId);
+    if (!_isCurrentMatchmakingSession(session)) return;
+    if (joined && !_shouldContinueMatchmakingRecovery(session)) {
+      _stopMatchmakingRecovery();
+    } else {
+      _scheduleMatchmakingRecovery(
+        session,
+        delay: _matchmakingRecoveryInterval,
+      );
+    }
   }
 
   Future<void> cancelMatchmaking() async {
     _log('DELETE Matchmaking');
+    _stopMatchmakingRecovery();
     if (_matchmakingState != PvpMatchmakingState.waiting) {
       return;
     }
 
     final response = await _pvpDatasource.cancelMatchmaking();
     if (response.success) {
+      final activeMatchId = _activeMatchId;
       _currentMatch = null;
+      _activeMatchId = null;
+      _hasMatchRoomJoined = false;
       _updateState(PvpMatchmakingState.idle);
-      if (_activeMatchId != null) {
-        unawaited(_signalRService.leaveMatch(_activeMatchId!));
-        _activeMatchId = null;
+      if (activeMatchId != null) {
+        unawaited(_signalRService.leaveMatch(activeMatchId));
       }
       return;
     }
@@ -2189,6 +2304,8 @@ class PvpProvider extends ChangeNotifier {
     }
 
     _currentMatch = null;
+    _activeMatchId = null;
+    _hasMatchRoomJoined = false;
     _updateState(PvpMatchmakingState.idle);
   }
 
@@ -2324,6 +2441,7 @@ class PvpProvider extends ChangeNotifier {
     _countdownTicker?.cancel();
     _raceTicker?.cancel();
     _settlementPollTimer?.cancel();
+    _stopMatchmakingRecovery();
     unawaited(_presenceEventSubscription?.cancel());
     unawaited(_signalRService.disconnect());
     super.dispose();
