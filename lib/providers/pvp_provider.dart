@@ -221,6 +221,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     }
 
     connection.onclose(({error}) {
+      if (!identical(_connection, connection)) {
+        return;
+      }
       _isConnected = false;
       _isMatchRoomJoined = false;
       _log('SignalR Disconnected: ${error ?? 'no error'}');
@@ -228,6 +231,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     });
 
     connection.onreconnecting(({error}) {
+      if (!identical(_connection, connection)) {
+        return;
+      }
       _isConnected = false;
       _isMatchRoomJoined = false;
       _log('SignalR Reconnecting: ${error ?? 'no error'}');
@@ -235,6 +241,9 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     });
 
     connection.onreconnected(({connectionId}) async {
+      if (!identical(_connection, connection)) {
+        return;
+      }
       _log('SignalR Reconnected connectionId=$connectionId');
       _log('Reconnected');
       _isConnected = true;
