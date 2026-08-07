@@ -121,6 +121,10 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       setState(() {
         _gameState = 'waiting-for-friend';
       });
+    } else {
+      setState(() {
+        _gameState = 'waiting';
+      });
     }
   }
 
@@ -465,6 +469,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             }
             break;
           case PvpMatchmakingState.running:
+            unawaited(context.read<GameStateProvider>().fetchPetStatus());
             setState(() {
               _showMatchSuccessPopup = false;
               _enterRacingAfterPopup = true;
@@ -472,6 +477,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             });
             break;
           case PvpMatchmakingState.finished:
+            unawaited(context.read<GameStateProvider>().fetchPetStatus());
             setState(() {
               _showMatchSuccessPopup = false;
               _gameState = 'finished';
@@ -480,6 +486,15 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                   : _opponentName;
             });
             unawaited(_ensureMatchResultLoaded(pvpProvider));
+            break;
+          case PvpMatchmakingState.cancelled:
+            unawaited(context.read<GameStateProvider>().fetchPetStatus());
+            setState(() {
+              _showMatchSuccessPopup = false;
+              _enterRacingAfterPopup = false;
+              _gameState = 'waiting';
+              _opponentName = '';
+            });
             break;
           case PvpMatchmakingState.idle:
             if (_gameState == 'waiting-for-friend' ||

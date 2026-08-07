@@ -8,6 +8,7 @@ class _FakePvpSignalRService implements PvpSignalRService {
   bool joinResult = true;
   int joinCount = 0;
   int readyCount = 0;
+  int connectCount = 0;
 
   @override
   bool get isConnected => true;
@@ -22,7 +23,9 @@ class _FakePvpSignalRService implements PvpSignalRService {
   String? get connectionId => 'fake-connection';
 
   @override
-  Future<void> connect() async {}
+  Future<void> connect() async {
+    connectCount++;
+  }
 
   @override
   Future<void> disconnect() async {}
@@ -215,6 +218,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 35));
 
         expect(datasource.statusCallCount, greaterThanOrEqualTo(1));
+        expect(signalR.connectCount, greaterThanOrEqualTo(2));
         expect(signalR.joinCount, greaterThanOrEqualTo(1));
         expect(provider.matchmakingState, PvpMatchmakingState.countdown);
         provider.dispose();

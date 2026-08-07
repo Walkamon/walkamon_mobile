@@ -87,6 +87,7 @@ class PvpMatchResponse {
   final String matchTypeCode;
   final String statusCode;
   final String? sourceCode;
+  final String? cancelReasonCode;
   final DateTime? serverTime;
   final DateTime? createdAt;
   final DateTime? countdownStartsAt;
@@ -103,6 +104,7 @@ class PvpMatchResponse {
     required this.matchTypeCode,
     required this.statusCode,
     this.sourceCode,
+    this.cancelReasonCode,
     this.serverTime,
     this.createdAt,
     this.countdownStartsAt,
@@ -159,6 +161,7 @@ class PvpMatchResponse {
       matchTypeCode: json['matchTypeCode'] as String? ?? '',
       statusCode: json['statusCode'] as String? ?? '',
       sourceCode: json['sourceCode'] as String?,
+      cancelReasonCode: json['cancelReasonCode'] as String?,
       serverTime: parsedServerTime,
       createdAt: parsedCreatedAt,
       countdownStartsAt: parsedCountdownStartsAt,

@@ -58,6 +58,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     };
     final isSearchingForOpponent =
         pvpProvider.matchmakingState == PvpMatchmakingState.waiting;
+    final hasEnoughEnergy =
+        pvpProvider.currentEnergy >= PvpProvider.pvpEnergyCost;
     final isCompactHeight = MediaQuery.sizeOf(context).height < 900;
     final bottomNavigationClearance = isCompactHeight ? 88.0 : 100.0;
     final petViewportHeight = isCompactHeight ? 128.0 : 178.0;
@@ -261,6 +263,42 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: isCompactHeight ? 10 : 24),
+              if (pvpProvider.matchmakingErrorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.red.shade300),
+                  ),
+                  child: Text(
+                    pvpProvider.matchmakingErrorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red.shade900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+              if (!hasEnoughEnergy) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text(
+                    'PvP requires ${PvpProvider.pvpEnergyCost} energy.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(
                 width: double.infinity,
                 height: isCompactHeight ? 50 : 56,
@@ -280,7 +318,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                               PvpMatchmakingState.finished ||
                           pvpProvider.matchmakingState ==
                               PvpMatchmakingState.cancelled
-                      ? onStartMatchmaking
+                      ? (hasEnoughEnergy ? onStartMatchmaking : null)
                       : null,
                   child: Text(
                     pvpProvider.matchmakingState ==
@@ -310,7 +348,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  onPressed: onInviteFriend == null
+                  onPressed: onInviteFriend == null || !hasEnoughEnergy
                       ? null
                       : () {
                           final online = pvpProvider.friendsList
@@ -363,17 +401,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(
-    String label,
-    String value, {
-    bool compact = false,
-  }) {
+  Widget _buildStatRow(String label, String value, {bool compact = false}) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: compact ? 5 : 8,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: compact ? 5 : 8),
       decoration: BoxDecoration(
         color: AppColors.creamLight.withValues(alpha: 0.76),
         borderRadius: BorderRadius.circular(13),
@@ -523,10 +554,7 @@ class _PvpPetPanel extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Padding(
-          padding: EdgeInsets.only(
-            top: compact ? 20 : 24,
-            bottom: 4,
-          ),
+          padding: EdgeInsets.only(top: compact ? 20 : 24, bottom: 4),
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
