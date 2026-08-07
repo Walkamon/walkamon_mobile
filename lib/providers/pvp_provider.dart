@@ -61,9 +61,10 @@ class DefaultPvpSignalRService implements PvpSignalRService {
     this.leaveMethodName = 'LeaveMatch',
   });
 
-  late HubConnection _connection;
+  HubConnection? _connection;
   bool _isConnected = false;
   bool _isMatchRoomJoined = false;
+  Future<void>? _connectFuture;
 
   @override
   bool get isConnected => _isConnected;
@@ -93,7 +94,7 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   @override
   String? get connectionId {
     try {
-      return (_connection as dynamic).connectionId as String?;
+      return (_connection as dynamic)?.connectionId as String?;
     } catch (_) {
       return null;
     }
@@ -151,8 +152,32 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   }
 
   @override
-  Future<void> connect() async {
-    if (_isConnected) return;
+  Future<void> connect() {
+    if (_isConnected) return Future<void>.value();
+    final inFlight = _connectFuture;
+    if (inFlight != null) return inFlight;
+    late Future<void> future;
+    future = _connectInternal().whenComplete(() {
+      if (identical(_connectFuture, future)) {
+        _connectFuture = null;
+      }
+    });
+    _connectFuture = future;
+    return future;
+  }
+
+  Future<void> _connectInternal() async {
+    final staleConnection = _connection;
+    _connection = null;
+    _isConnected = false;
+    _isMatchRoomJoined = false;
+    if (staleConnection != null) {
+      try {
+        await staleConnection.stop();
+      } catch (error) {
+        _log('SignalR stale connection stop failed: $error');
+      }
+    }
 
     _log('SignalR Connecting');
 
@@ -168,10 +193,11 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       (options as dynamic).accessTokenFactory = tokenFactory;
     }
 
-    _connection = HubConnectionBuilder()
+    final connection = HubConnectionBuilder()
         .withUrl(_hubPath(), options: options)
         .withAutomaticReconnect()
         .build();
+    _connection = connection;
 
     final methodNames =
         serverMethodNames ??
@@ -191,37 +217,44 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         ];
     for (final name in methodNames) {
       _log('Registering SignalR handler: $name');
-      _connection.on(name, (args) => _onMethodReceived(name, args));
+      connection.on(name, (args) => _onMethodReceived(name, args));
     }
 
-    _connection.onclose(({error}) {
+    connection.onclose(({error}) {
       _isConnected = false;
       _isMatchRoomJoined = false;
       _log('SignalR Disconnected: ${error ?? 'no error'}');
       _log('Disconnected');
     });
 
-    _connection.onreconnecting(({error}) {
+    connection.onreconnecting(({error}) {
+      _isConnected = false;
+      _isMatchRoomJoined = false;
       _log('SignalR Reconnecting: ${error ?? 'no error'}');
       _log('Reconnecting');
     });
 
-    _connection.onreconnected(({connectionId}) async {
+    connection.onreconnected(({connectionId}) async {
       _log('SignalR Reconnected connectionId=$connectionId');
       _log('Reconnected');
       _isConnected = true;
+      _isMatchRoomJoined = false;
       if (_onReconnected != null) {
-        await _onReconnected!();
+        try {
+          await _onReconnected!();
+        } catch (error) {
+          _log('SignalR reconnect recovery failed: $error');
+        }
       }
     });
 
     try {
       _log('Before connection.start()');
-      await _connection.start();
+      await connection.start();
       _log('After connection.start()');
       // Try to read state and connection id for debugging
       try {
-        final state = (_connection as dynamic).state;
+        final state = (connection as dynamic).state;
         _log('Connection state after start: $state');
       } catch (_) {}
       try {
@@ -233,6 +266,10 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       _log('Connected');
     } catch (e, st) {
       _isConnected = false;
+      _isMatchRoomJoined = false;
+      if (identical(_connection, connection)) {
+        _connection = null;
+      }
       _log('SignalR START FAILED');
       _log(e.toString());
       debugPrint(st.toString());
@@ -309,22 +346,36 @@ class DefaultPvpSignalRService implements PvpSignalRService {
 
   @override
   Future<void> disconnect() async {
-    if (!_isConnected) return;
-    await _connection.stop();
+    final connection = _connection;
+    _connection = null;
     _isConnected = false;
     _isMatchRoomJoined = false;
+    _connectFuture = null;
+    if (connection != null) {
+      try {
+        await connection.stop();
+      } catch (error) {
+        _log('SignalR disconnect failed: $error');
+      }
+    }
     _log('SignalR Disconnected');
   }
 
   @override
   Future<bool> joinMatch(String matchId) async {
     if (!_isConnected) {
-      _log('JoinMatch failed: SignalR not connected', matchId: matchId);
-      return false;
+      try {
+        await connect();
+      } catch (error) {
+        _log('JoinMatch reconnect failed: $error', matchId: matchId);
+        return false;
+      }
     }
+    final connection = _connection;
+    if (!_isConnected || connection == null) return false;
 
     try {
-      await _connection.invoke('JoinMatch', args: <Object>[matchId]);
+      await connection.invoke(joinMethodName, args: <Object>[matchId]);
       _isMatchRoomJoined = true;
       _log('JoinMatch Success', matchId: matchId);
       return true;
@@ -336,9 +387,10 @@ class DefaultPvpSignalRService implements PvpSignalRService {
 
   @override
   Future<void> leaveMatch(String matchId) async {
-    if (!_isConnected) return;
+    final connection = _connection;
+    if (!_isConnected || connection == null) return;
     try {
-      await _connection.invoke('LeaveMatch', args: <Object>[matchId]);
+      await connection.invoke(leaveMethodName, args: <Object>[matchId]);
     } catch (e) {
       // ignore invocation errors but log
       _log('LeaveMatch invocation failed: $e', matchId: matchId);
@@ -350,10 +402,19 @@ class DefaultPvpSignalRService implements PvpSignalRService {
   @override
   Future<Map<String, dynamic>> readyMatch(String matchId) async {
     if (!_isConnected) {
+      try {
+        await connect();
+      } catch (error) {
+        _log('ReadyMatch reconnect failed: $error', matchId: matchId);
+        return <String, dynamic>{'matchId': matchId, 'allReady': false};
+      }
+    }
+    final connection = _connection;
+    if (!_isConnected || connection == null) {
       return <String, dynamic>{'matchId': matchId, 'allReady': false};
     }
     try {
-      final result = await _connection.invoke(
+      final result = await connection.invoke(
         'ReadyMatch',
         args: <Object>[matchId],
       );
@@ -694,6 +755,33 @@ class PvpProvider extends ChangeNotifier {
 
   PvpMatchmakingState _matchmakingState = PvpMatchmakingState.idle;
   PvpMatchmakingState get matchmakingState => _matchmakingState;
+  String? _matchmakingErrorMessage;
+  String? get matchmakingErrorMessage => _matchmakingErrorMessage;
+
+  static const int pvpEnergyCost = 15;
+
+  void _setMatchmakingError(String? reasonOrMessage) {
+    final value = reasonOrMessage?.trim();
+    if (value == null || value.isEmpty) {
+      _matchmakingErrorMessage = null;
+      return;
+    }
+    switch (value.toLowerCase()) {
+      case 'bot_unavailable':
+        _matchmakingErrorMessage = 'No suitable bot is available right now.';
+        break;
+      case 'insufficient_energy':
+        _matchmakingErrorMessage =
+            'At least $pvpEnergyCost energy is required to play PvP.';
+        break;
+      case 'ready_timeout':
+        _matchmakingErrorMessage =
+            'The match was cancelled because a player did not ready in time.';
+        break;
+      default:
+        _matchmakingErrorMessage = value;
+    }
+  }
 
   PvpMatchResponse? _currentMatch;
   PvpMatchResponse? get currentMatch => _currentMatch;
@@ -865,6 +953,7 @@ class PvpProvider extends ChangeNotifier {
       matchTypeCode: match.matchTypeCode,
       statusCode: match.statusCode,
       sourceCode: match.sourceCode,
+      cancelReasonCode: match.cancelReasonCode,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
       countdownStartsAt: match.countdownStartsAt,
@@ -1486,6 +1575,20 @@ class PvpProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshPetStatus() async {
+    try {
+      final response = await _petDatasource.getPetStatus();
+      if (response.success && response.data != null) {
+        _currentEnergy = response.data!.currentEnergy;
+        _maxEnergy = response.data!.maxEnergy;
+        _currentBond = response.data!.currentBond;
+        notifyListeners();
+      }
+    } catch (error) {
+      debugPrint('[PvP] refresh pet status failed: $error');
+    }
+  }
+
   void _log(String message, {String? matchId}) {
     // Keep quiet by default; use targeted debugPrint for countdown lifecycle only.
   }
@@ -1521,6 +1624,11 @@ class PvpProvider extends ChangeNotifier {
       _startCountdownTicker();
     } else {
       _stopCountdownTicker();
+    }
+    if (state == PvpMatchmakingState.running ||
+        state == PvpMatchmakingState.finished ||
+        state == PvpMatchmakingState.cancelled) {
+      unawaited(refreshPetStatus());
     }
     notifyListeners();
   }
@@ -1615,6 +1723,7 @@ class PvpProvider extends ChangeNotifier {
     _activeMatchId = matchId;
     bool joined = false;
     try {
+      await _signalRService.connect();
       _log('Joining room...', matchId: matchId);
       joined = await _signalRService.joinMatch(matchId);
       _log('JoinMatch ${joined ? 'success' : 'failed'}', matchId: matchId);
@@ -1730,6 +1839,8 @@ class PvpProvider extends ChangeNotifier {
     _logSignalREvent(event, eventType: eventType);
 
     if (eventType == 'queue.failed') {
+      final reasonCode = payload['reasonCode']?.toString();
+      _setMatchmakingError(reasonCode ?? 'bot_unavailable');
       if (_matchmakingState == PvpMatchmakingState.waiting ||
           _matchmakingState == PvpMatchmakingState.connecting) {
         _log('queue.failed: matchmaking ended without an eligible bot');
@@ -1848,6 +1959,10 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (eventType == 'match.cancelled') {
+      final details = payload['details'] as Map<String, dynamic>?;
+      _setMatchmakingError(
+        details?['reasonCode']?.toString() ?? 'ready_timeout',
+      );
       stopCountdown(reason: 'match.cancelled', matchId: matchId);
       if (matchId != null && matchId.isNotEmpty) {
         await _joinAndSyncMatch(matchId);
@@ -1992,6 +2107,7 @@ class PvpProvider extends ChangeNotifier {
     }
 
     if (normalizedStatus == 'cancelled') {
+      _setMatchmakingError(match.cancelReasonCode);
       _updateState(PvpMatchmakingState.cancelled);
       return;
     }
@@ -2186,6 +2302,7 @@ class PvpProvider extends ChangeNotifier {
     }
 
     final session = _beginMatchmakingSession();
+    _setMatchmakingError(null);
     _matchmakingStartedAt = DateTime.now();
     _hasReceivedAssignedEvent = false;
     _hasMatchRoomJoined = false;
@@ -2230,6 +2347,7 @@ class PvpProvider extends ChangeNotifier {
       'POST /matchmaking response: status=${response.status}, success=${response.success}, message=${response.message}',
     );
     if (!response.success) {
+      _setMatchmakingError(response.message);
       if (response.status == 409) {
         final shouldRetry = await _recoverMatchmakingStateFromStatus(
           session: session,
@@ -2291,6 +2409,7 @@ class PvpProvider extends ChangeNotifier {
       _currentMatch = null;
       _activeMatchId = null;
       _hasMatchRoomJoined = false;
+      _setMatchmakingError(null);
       _updateState(PvpMatchmakingState.idle);
       if (activeMatchId != null) {
         unawaited(_signalRService.leaveMatch(activeMatchId));
@@ -2369,6 +2488,8 @@ class PvpProvider extends ChangeNotifier {
       debugPrint(
         '[PvP] createInvite failed status=${response.status}: ${response.message}',
       );
+      _setMatchmakingError(response.message);
+      _updateState(PvpMatchmakingState.idle, reason: 'invite failed');
       return null;
     }
   }
@@ -2399,6 +2520,8 @@ class PvpProvider extends ChangeNotifier {
       debugPrint(
         '[PvP] respondToInvite failed status=${response.status}: ${response.message}',
       );
+      _setMatchmakingError(response.message);
+      _updateState(PvpMatchmakingState.idle, reason: 'invite response failed');
       return null;
     }
   }

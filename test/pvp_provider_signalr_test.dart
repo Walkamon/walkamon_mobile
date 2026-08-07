@@ -128,6 +128,18 @@ class _FakePresenceRealtimeClient implements PresenceRealtimeClient {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('PvpMatchResponse parses additive cancelReasonCode', () {
+    final match = PvpMatchResponse.fromJson({
+      'matchId': 'cancelled-match',
+      'matchTypeCode': 'ranked',
+      'statusCode': 'cancelled',
+      'cancelReasonCode': 'insufficient_energy',
+      'participants': <dynamic>[],
+    });
+
+    expect(match.cancelReasonCode, 'insufficient_energy');
+  });
+
   test('resolveCountdownPhase keeps a pre-start countdown alive', () {
     final now = DateTime.utc(2026, 7, 27, 3, 0, 29);
     final startsAt = DateTime.utc(2026, 7, 27, 3, 0, 33);
