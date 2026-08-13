@@ -15,6 +15,14 @@ import 'step_tracking_store.dart';
 typedef CurrentTimeProvider = DateTime Function();
 typedef NativeMotionStreamFactory = Stream<NativeMotionEvent> Function();
 typedef ActivityPermissionChecker = Future<bool> Function();
+typedef StepCountChanged = void Function(int acceptedSteps, int pendingSteps);
+typedef StepBreakdownChanged =
+    void Function(
+      int acceptedSteps,
+      int localPendingSteps,
+      int serverPendingSteps,
+      int lastRejectedSteps,
+    );
 
 enum StepTrackingStatus {
   idle,
@@ -36,7 +44,7 @@ class StepTrackingService extends WidgetsBindingObserver {
     NativeMotionStreamFactory? motionStreamFactory,
     ActivityPermissionChecker? activityPermissionChecker,
     CurrentTimeProvider? currentTimeProvider,
-    this.syncInterval = const Duration(seconds: 5),
+    this.syncInterval = const Duration(seconds: 2),
   }) : _store = store ?? StepTrackingStore(),
        _repository = repository ?? DailyStepRepository(),
        _androidBridge = androidBridge ?? AndroidStepBridge(),
@@ -50,6 +58,7 @@ class StepTrackingService extends WidgetsBindingObserver {
   }
 
   static const _vietnamUtcOffset = Duration(hours: 7);
+  static const _v3Enabled = bool.fromEnvironment('STEP_TRACKING_V3');
 
   final StepTrackingStore _store;
   final DailyStepRepository _repository;
@@ -66,15 +75,26 @@ class StepTrackingService extends WidgetsBindingObserver {
   String? _activeUserId;
   String? _stepDate;
   int _dailyTotalSteps = 0;
+  int _pendingSteps = 0;
+  int _localPendingSteps = 0;
+  int _serverPendingSteps = 0;
+  int _lastRejectedSteps = 0;
   StepSensorSession? _session;
   bool _backgroundRunning = false;
   bool _disposed = false;
   StepTrackingStatus _status = StepTrackingStatus.idle;
 
   ValueChanged<int>? onStepsChanged;
+  StepCountChanged? onStepCountChanged;
+  StepBreakdownChanged? onStepBreakdownChanged;
   ValueChanged<StepTrackingStatus>? onStatusChanged;
 
   int get currentStepCount => _dailyTotalSteps;
+  int get pendingStepCount => _pendingSteps;
+  int get localPendingStepCount => _localPendingSteps;
+  int get serverPendingStepCount => _serverPendingSteps;
+  int get lastRejectedStepCount => _lastRejectedSteps;
+  int get displayedStepCount => _dailyTotalSteps + _pendingSteps;
   String? get activeUserId => _activeUserId;
   bool get isTracking => _backgroundRunning;
   StepTrackingStatus get status => _status;
@@ -108,7 +128,7 @@ class StepTrackingService extends WidgetsBindingObserver {
         await _resetForDate(today);
       }
 
-      onStepsChanged?.call(_dailyTotalSteps);
+      _notifyStepCounts();
       await resumeTracking();
     } catch (error) {
       debugPrint('Step tracking start failed: $error');
@@ -138,8 +158,18 @@ class StepTrackingService extends WidgetsBindingObserver {
         running: nativeStatus.running,
         userId: nativeStatus.userId,
         acceptedTotal: nativeStatus.acceptedTotal,
+        pendingSteps: nativeStatus.pendingSteps,
+        localPendingSteps: nativeStatus.localPendingSteps,
+        serverPendingSteps: nativeStatus.serverPendingSteps,
+        lastRejectedSteps: nativeStatus.lastRejectedSteps,
         nextSequence: nativeStatus.nextSequence,
         attested: nativeStatus.attested,
+        nativeSessionId: nativeStatus.sessionId,
+        nativeNonce: nativeStatus.nonce,
+        nativeExpiresAtMs: nativeStatus.expiresAtMs,
+        nativeStepDate: nativeStatus.stepDate,
+        nativeContractVersion: nativeStatus.contractVersion,
+        nativeCaptureMode: nativeStatus.captureMode,
       );
       _startStatusSync();
       return;
@@ -206,7 +236,12 @@ class StepTrackingService extends WidgetsBindingObserver {
     _activeUserId = null;
     _stepDate = null;
     _dailyTotalSteps = 0;
+    _pendingSteps = 0;
+    _localPendingSteps = 0;
+    _serverPendingSteps = 0;
+    _lastRejectedSteps = 0;
     _session = null;
+    _notifyStepCounts();
     _setStatus(StepTrackingStatus.stopped);
   }
 
@@ -225,8 +260,18 @@ class StepTrackingService extends WidgetsBindingObserver {
           running: nativeEvent.running,
           userId: nativeEvent.userId,
           acceptedTotal: nativeEvent.acceptedTotal,
+          pendingSteps: nativeEvent.pendingSteps,
+          localPendingSteps: nativeEvent.localPendingSteps,
+          serverPendingSteps: nativeEvent.serverPendingSteps,
+          lastRejectedSteps: nativeEvent.lastRejectedSteps,
           nextSequence: nativeEvent.nextSequence,
           attested: nativeEvent.attested,
+          nativeSessionId: nativeEvent.sessionId,
+          nativeNonce: nativeEvent.nonce,
+          nativeExpiresAtMs: nativeEvent.expiresAtMs,
+          nativeStepDate: nativeEvent.stepDate,
+          nativeContractVersion: nativeEvent.contractVersion,
+          nativeCaptureMode: nativeEvent.captureMode,
         );
         if (nativeEvent.message == 'activity_permission_required') {
           _setStatus(StepTrackingStatus.permissionDenied);
@@ -250,11 +295,16 @@ class StepTrackingService extends WidgetsBindingObserver {
               !capabilities.stepCounterAvailable)) {
         throw StateError('Required Android motion sensors are unavailable.');
       }
-      _session = await _repository.createSession(capabilities.preferredMode);
+      final captureMode = capabilities.preferredCaptureMode;
+      _session = await _repository.createSession(
+        _v3Enabled ? captureMode.legacyMode : capabilities.preferredMode,
+        contractVersion: _v3Enabled ? 3 : 2,
+        captureMode: _v3Enabled ? captureMode : null,
+      );
       if (_session?.dailyStepDate == _stepDate &&
           _session?.dailyAcceptedTotal != null) {
         _dailyTotalSteps = _session!.dailyAcceptedTotal!;
-        onStepsChanged?.call(_dailyTotalSteps);
+        _notifyStepCounts();
       }
       await _saveCurrentState();
     } on DioException catch (error) {
@@ -275,6 +325,10 @@ class StepTrackingService extends WidgetsBindingObserver {
   Future<void> _resetForDate(String stepDate) async {
     _stepDate = stepDate;
     _dailyTotalSteps = 0;
+    _pendingSteps = 0;
+    _localPendingSteps = 0;
+    _serverPendingSteps = 0;
+    _lastRejectedSteps = 0;
     await _saveCurrentState();
   }
 
@@ -298,25 +352,91 @@ class StepTrackingService extends WidgetsBindingObserver {
     required bool running,
     required String? userId,
     required int acceptedTotal,
+    required int pendingSteps,
+    int? localPendingSteps,
+    int? serverPendingSteps,
+    int? lastRejectedSteps,
     required int nextSequence,
     required bool attested,
+    String? nativeSessionId,
+    String? nativeNonce,
+    int nativeExpiresAtMs = 0,
+    String? nativeStepDate,
+    int nativeContractVersion = 2,
+    String? nativeCaptureMode,
   }) async {
     if (userId != null && userId != _activeUserId) return;
 
     _backgroundRunning = running;
-    final previousSequence = _session?.nextSequence;
-    final previousAttested = _session?.attested;
+    final previousSession = _session;
+    if (nativeSessionId != null &&
+        nativeSessionId.isNotEmpty &&
+        nativeNonce != null &&
+        nativeNonce.isNotEmpty &&
+        nativeExpiresAtMs > 0) {
+      final captureMode = StepCaptureMode.fromCode(
+        nativeCaptureMode,
+        previousSession?.mode ?? StepSensorMode.counter,
+      );
+      _session = StepSensorSession(
+        id: nativeSessionId,
+        nonce: nativeNonce,
+        mode: captureMode.legacyMode,
+        expiresAt: DateTime.fromMillisecondsSinceEpoch(
+          nativeExpiresAtMs,
+          isUtc: true,
+        ),
+        nextSequence: nextSequence,
+        attested: attested,
+        contractVersion: nativeContractVersion,
+        negotiatedCaptureMode: captureMode,
+        motionPolicy: previousSession?.motionPolicy ?? const StepMotionPolicy(),
+        dailyStepDate: nativeStepDate ?? previousSession?.dailyStepDate,
+        dailyAcceptedTotal: acceptedTotal,
+      );
+      if (nativeStepDate != null && nativeStepDate.isNotEmpty) {
+        _stepDate = nativeStepDate;
+      }
+    }
+    final previousSequence = previousSession?.nextSequence;
+    final previousAttested = previousSession?.attested;
     final sessionChanged =
         _session != null &&
-        (previousSequence != nextSequence || previousAttested != attested);
-    final changed = _dailyTotalSteps != acceptedTotal || sessionChanged;
+        (previousSession?.id != _session?.id ||
+            previousSequence != nextSequence ||
+            previousAttested != attested);
+    final normalizedPendingSteps = pendingSteps < 0 ? 0 : pendingSteps;
+    var normalizedLocal = (localPendingSteps ?? normalizedPendingSteps)
+        .clamp(0, normalizedPendingSteps)
+        .toInt();
+    var normalizedServer = (serverPendingSteps ?? 0)
+        .clamp(0, normalizedPendingSteps)
+        .toInt();
+    if (normalizedLocal + normalizedServer != normalizedPendingSteps) {
+      normalizedLocal = normalizedPendingSteps;
+      normalizedServer = 0;
+    }
+    final normalizedRejected = (lastRejectedSteps ?? 0)
+        .clamp(0, 1 << 31)
+        .toInt();
+    final changed =
+        _dailyTotalSteps != acceptedTotal ||
+        _pendingSteps != normalizedPendingSteps ||
+        _localPendingSteps != normalizedLocal ||
+        _serverPendingSteps != normalizedServer ||
+        _lastRejectedSteps != normalizedRejected ||
+        sessionChanged;
     _dailyTotalSteps = acceptedTotal;
+    _pendingSteps = normalizedPendingSteps;
+    _localPendingSteps = normalizedLocal;
+    _serverPendingSteps = normalizedServer;
+    _lastRejectedSteps = normalizedRejected;
     _session = _session?.copyWith(
       nextSequence: nextSequence,
       attested: attested,
     );
     if (changed) {
-      onStepsChanged?.call(_dailyTotalSteps);
+      _notifyStepCounts();
       await _saveCurrentState();
     }
     if (running) _setStatus(StepTrackingStatus.tracking);
@@ -342,8 +462,18 @@ class StepTrackingService extends WidgetsBindingObserver {
         running: nativeStatus.running,
         userId: nativeStatus.userId,
         acceptedTotal: nativeStatus.acceptedTotal,
+        pendingSteps: nativeStatus.pendingSteps,
+        localPendingSteps: nativeStatus.localPendingSteps,
+        serverPendingSteps: nativeStatus.serverPendingSteps,
+        lastRejectedSteps: nativeStatus.lastRejectedSteps,
         nextSequence: nativeStatus.nextSequence,
         attested: nativeStatus.attested,
+        nativeSessionId: nativeStatus.sessionId,
+        nativeNonce: nativeStatus.nonce,
+        nativeExpiresAtMs: nativeStatus.expiresAtMs,
+        nativeStepDate: nativeStatus.stepDate,
+        nativeContractVersion: nativeStatus.contractVersion,
+        nativeCaptureMode: nativeStatus.captureMode,
       );
     } catch (error) {
       debugPrint('Background step status sync failed: $error');
@@ -361,6 +491,17 @@ class StepTrackingService extends WidgetsBindingObserver {
   Future<void> _cancelSensorSubscription() async {
     await _motionSubscription?.cancel();
     _motionSubscription = null;
+  }
+
+  void _notifyStepCounts() {
+    onStepsChanged?.call(_dailyTotalSteps);
+    onStepCountChanged?.call(_dailyTotalSteps, _pendingSteps);
+    onStepBreakdownChanged?.call(
+      _dailyTotalSteps,
+      _localPendingSteps,
+      _serverPendingSteps,
+      _lastRejectedSteps,
+    );
   }
 
   @override

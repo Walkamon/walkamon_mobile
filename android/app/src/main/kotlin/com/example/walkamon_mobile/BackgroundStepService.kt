@@ -1,15 +1,20 @@
 package com.example.walkamon_mobile
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -22,23 +27,38 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BackgroundStepService : Service() {
+    private val serviceInstanceId = UUID.randomUUID().toString()
     private lateinit var collector: MotionSensorCollector
     private lateinit var store: BackgroundStepStore
     private lateinit var tokenStore: SecureTokenStore
     private lateinit var integrityBridge: PlayIntegrityBridge
     private lateinit var executor: ScheduledExecutorService
     private var wakeLock: PowerManager.WakeLock? = null
+    private var activeWakeLockPolicy: StepWakeLockPolicy? = null
     private val uploadInProgress = AtomicBoolean(false)
     private var explicitStop = false
     private var nextAttemptAtMs = 0L
     private var uploadScheduled = false
+    private var screenReceiverRegistered = false
+    private var lastScreenInteractive: Boolean? = null
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_ON,
+                Intent.ACTION_SCREEN_OFF,
+                -> logScreenStateTransition(requireNotNull(intent.action))
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -48,10 +68,27 @@ class BackgroundStepService : Service() {
         tokenStore = SecureTokenStore(applicationContext)
         integrityBridge = PlayIntegrityBridge(applicationContext)
         executor = Executors.newSingleThreadScheduledExecutor()
-        collector = MotionSensorCollector(applicationContext, ::onCollectorEvent)
+        collector = MotionSensorCollector(
+            context = applicationContext,
+            onEvent = ::onCollectorEvent,
+            runtimeSnapshotProvider = ::sensorRuntimeSnapshot,
+        )
+        registerScreenStateReceiver()
+        StepSensorDiagnosticLogger.info(
+            "STEP_SERVICE_CREATED",
+            serviceDiagnosticFields() + mapOf(
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ),
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val startReason = when (intent?.action) {
+            ACTION_START -> "service_start"
+            ACTION_RECOVER -> "restart"
+            else -> "restart"
+        }
         when (intent?.action) {
             ACTION_STOP -> {
                 stopTracking(clearState = true)
@@ -59,6 +96,7 @@ class BackgroundStepService : Service() {
             }
             ACTION_START -> saveIncomingConfiguration(intent)
         }
+        explicitStop = false
 
         val config = loadConfig()
         if (config == null || !preferences().getBoolean(KEY_RUNNING, false)) {
@@ -80,11 +118,30 @@ class BackgroundStepService : Service() {
         }
 
         startAsForeground(config.acceptedTotal)
-        acquireWakeLock()
-        collector.start(config.sensorMode, config.windowMilliseconds, config.targetSampleHz)
+        acquireWakeLock(config.diagnosticContinuousWakeLock, startReason)
+        StepSensorDiagnosticLogger.info(
+            "STEP_SERVICE_START_COMMAND",
+            serviceDiagnosticFields() + mapOf(
+                "action" to intent?.action,
+                "flags" to flags,
+                "startId" to startId,
+                "reason" to startReason,
+                "diagnosticContinuousWakeLock" to config.diagnosticContinuousWakeLock,
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ),
+        )
+        collector.start(
+            config.sensorMode,
+            config.windowMilliseconds,
+            config.targetSampleHz,
+            config.contractVersion,
+            store.currentBootSessionId(),
+            startReason,
+        )
         if (!executor.isShutdown && !uploadScheduled) {
             uploadScheduled = true
-            executor.scheduleWithFixedDelay(::uploadTick, 2, 5, TimeUnit.SECONDS)
+            executor.scheduleWithFixedDelay(::uploadTick, 1, 2, TimeUnit.SECONDS)
         }
         emitStatus(config, "tracking")
         return START_STICKY
@@ -93,11 +150,17 @@ class BackgroundStepService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        val destroyFields = serviceDiagnosticFields() + mapOf(
+            "explicitStop" to explicitStop,
+            "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+            "utcTime" to Instant.now().toString(),
+        )
         serviceAlive = false
-        collector.stop()
+        collector.stop(reason = if (explicitStop) "service_stop" else "restart")
         if (::executor.isInitialized) executor.shutdownNow()
-        wakeLock?.takeIf { it.isHeld }?.release()
-        wakeLock = null
+        releaseWakeLock(if (explicitStop) "service_stop" else "restart")
+        unregisterScreenStateReceiver()
+        StepSensorDiagnosticLogger.info("STEP_SERVICE_DESTROYED", destroyFields)
         if (!explicitStop && preferences().getBoolean(KEY_RUNNING, false)) {
             MotionEventRelay.emit(
                 mapOf(
@@ -114,14 +177,20 @@ class BackgroundStepService : Service() {
         val sessionId = intent.getStringExtra(EXTRA_SESSION_ID) ?: return
         val oldSessionId = preferences().getString(KEY_SESSION_ID, null)
         val sameSession = oldSessionId == sessionId
-        if (!sameSession) store.clear()
+        if (!sameSession) {
+            store.clear()
+            preferences().edit().putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false).apply()
+        }
 
         val incomingSequence = intent.getIntExtra(EXTRA_NEXT_SEQUENCE, 1)
         val savedSequence = if (sameSession) preferences().getInt(KEY_NEXT_SEQUENCE, 1) else 1
         val incomingTotal = intent.getIntExtra(EXTRA_ACCEPTED_TOTAL, 0)
         val incomingStepDate = intent.getStringExtra(EXTRA_STEP_DATE) ?: vietnamDate()
         val sameDate = preferences().getString(KEY_STEP_DATE, null) == incomingStepDate
-        if (!sameDate) store.clear()
+        if (!sameDate) {
+            store.clear()
+            preferences().edit().putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false).apply()
+        }
         val savedTotal = if (sameSession && sameDate) {
             preferences().getInt(KEY_ACCEPTED_TOTAL, 0)
         } else {
@@ -154,6 +223,10 @@ class BackgroundStepService : Service() {
                 },
             )
             .putBoolean(KEY_ALLOW_DEV_BYPASS, intent.getBooleanExtra(EXTRA_ALLOW_DEV_BYPASS, false))
+            .putBoolean(
+                KEY_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK,
+                intent.getBooleanExtra(EXTRA_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK, false),
+            )
             .putInt(KEY_ACCEPTED_TOTAL, maxOf(savedTotal, incomingTotal))
             .apply()
     }
@@ -166,7 +239,37 @@ class BackgroundStepService : Service() {
                     "step" -> {
                         store.addSensorEvent(sensorEventJson(event))
                         val counts = store.pendingCounts()
-                        Log.i(TAG, "Stored step event; pendingEvents=${counts.first}, pendingWindows=${counts.second}")
+                        val config = loadConfig()
+                        Log.i(
+                            TAG,
+                            "Stored step event; pendingSteps=${store.pendingStepTotal()}, " +
+                                "pendingEvents=${counts.first}, pendingWindows=${counts.second}",
+                        )
+                        if (config != null) emitStatus(config, "pending")
+                    }
+                    "detector" -> {
+                        store.addDetectorEvent(detectorEventJson(event))
+                        if (BuildConfig.DEBUG) {
+                            Log.i(
+                                DIAGNOSTIC_TAG,
+                                "detector_persisted clientEventId=${event["clientEventId"]} " +
+                                    "bootSessionId=${event["bootSessionId"]} " +
+                                    "elapsedNs=${event["sensorElapsedRealtimeNs"]}",
+                            )
+                        }
+                        val config = loadConfig()
+                        if (config != null) emitStatus(config, "pending_reconciliation")
+                    }
+                    "counter" -> {
+                        val baseline = store.addCounterSample(counterSampleJson(event))
+                        Log.i(
+                            TAG,
+                            if (baseline) {
+                                "Stored raw counter sample as Walkamon capture baseline"
+                            } else {
+                                "Stored raw counter evidence sample"
+                            },
+                        )
                     }
                     "motion" -> store.addMotionWindow(motionWindowJson(event))
                 }
@@ -187,10 +290,34 @@ class BackgroundStepService : Service() {
             .putNullable("sensorEndTotal", event["sensorEndTotal"])
     }
 
+    private fun detectorEventJson(event: Map<String, Any?>): JSONObject {
+        val recorded = Instant.parse(event["recordedAt"].toString())
+        return JSONObject()
+            .put("clientEventId", event["clientEventId"])
+            .put("bootSessionId", event["bootSessionId"])
+            .put("sensorElapsedRealtimeNs", event["sensorElapsedRealtimeNs"])
+            .put("recordedAt", recorded.toString())
+            .put("recordedAtMs", recorded.toEpochMilli())
+    }
+
+    private fun counterSampleJson(event: Map<String, Any?>): JSONObject {
+        val observed = Instant.parse(event["observedAt"].toString())
+        return JSONObject()
+            .put("clientSampleId", event["clientSampleId"])
+            .put("bootSessionId", event["bootSessionId"])
+            .put("sensorElapsedRealtimeNs", event["sensorElapsedRealtimeNs"])
+            .put("observedAt", observed.toString())
+            .put("observedAtMs", observed.toEpochMilli())
+            .put("counterTotal", event["counterTotal"])
+    }
+
     private fun motionWindowJson(event: Map<String, Any?>): JSONObject {
         val started = Instant.parse(event["windowStartedAt"].toString())
         val ended = Instant.parse(event["windowEndedAt"].toString())
         return JSONObject()
+            .put("bootSessionId", event["bootSessionId"])
+            .put("windowStartElapsedRealtimeNs", event["windowStartElapsedRealtimeNs"])
+            .put("windowEndElapsedRealtimeNs", event["windowEndElapsedRealtimeNs"])
             .put("windowStartedAt", started.toString())
             .put("windowEndedAt", ended.toString())
             .put("windowStartedAtMs", started.toEpochMilli())
@@ -204,7 +331,7 @@ class BackgroundStepService : Service() {
             .put("jerkRmsMilli", event["jerkRmsMilli"])
             .putNullable("gyroscopeRmsMilli", event["gyroscopeRmsMilli"])
             .putNullable("gyroscopePeakMilli", event["gyroscopePeakMilli"])
-            .putNullable("orientationDeltaMilliDegrees", event["orientationDeltaMilliDegrees"])
+            .putNullable("angularTravelMilliDegrees", event["angularTravelMilliDegrees"])
             .put("dominantFrequencyMilliHz", event["dominantFrequencyMilliHz"])
             .put("periodicityBps", event["periodicityBps"])
             .put("gaitCycleCount", event["gaitCycleCount"])
@@ -217,7 +344,17 @@ class BackgroundStepService : Service() {
         if (!uploadInProgress.compareAndSet(false, true)) return
         try {
             rollVietnamDateIfNeeded()
-            store.prune(System.currentTimeMillis() - MAX_LOCAL_AGE_MS)
+            val nowMs = System.currentTimeMillis()
+            val expiredDetectorCount = store.prune(
+                evidenceCutoffMs = nowMs - MAX_EVIDENCE_AGE_MS,
+                motionCutoffMs = nowMs - MOTION_HISTORY_RETENTION_MS,
+            )
+            if (expiredDetectorCount > 0) {
+                preferences().edit().putInt(
+                    KEY_LAST_REJECTED_STEPS,
+                    expiredDetectorCount,
+                ).apply()
+            }
             var config = loadConfig() ?: return
             if (config.expiresAtMs <= System.currentTimeMillis()) {
                 config = createDailySession(config) ?: return
@@ -252,6 +389,7 @@ class BackgroundStepService : Service() {
     }
 
     private fun createPendingBatch(config: ServiceConfig): PendingStepBatch? {
+        if (config.contractVersion >= 3) return createPendingV3Batch(config)
         val latestWindowEnd = store.latestWindowEnd() ?: return null
         val candidates = store.events(MAX_BATCH_EVENTS)
             .takeWhile { it.recordedAtMs < latestWindowEnd }
@@ -262,9 +400,9 @@ class BackgroundStepService : Service() {
             }
             return null
         }
-        val newestEventAtMs = candidates.maxOf { it.recordedAtMs }
+        val oldestEventAtMs = candidates.minOf { it.recordedAtMs }
         if (candidates.size < MAX_BATCH_EVENTS &&
-            System.currentTimeMillis() - newestEventAtMs < MIN_BATCH_AGE_MS
+            System.currentTimeMillis() - oldestEventAtMs < MIN_BATCH_AGE_MS
         ) {
             return null
         }
@@ -325,6 +463,85 @@ class BackgroundStepService : Service() {
         }
     }
 
+    private fun createPendingV3Batch(config: ServiceConfig): PendingStepBatch? {
+        val detectors = store.detectorEvents(MAX_BATCH_EVENTS)
+        val counters = store.counterSamples(MAX_BATCH_COUNTER_SAMPLES)
+        val serverPendingDetectors = store.serverPendingDetectorEvents(MAX_BATCH_EVENTS)
+        val hasServerPending = StepReconciliationHeartbeatPolicy.shouldKeepHeartbeatAlive(
+            hasServerPendingDetector = serverPendingDetectors.isNotEmpty(),
+            serverReconciliationPending = preferences().getBoolean(
+                KEY_SERVER_RECONCILIATION_PENDING,
+                false,
+            ),
+        )
+        if (detectors.isEmpty() && counters.isEmpty() && !hasServerPending) return null
+
+        if (detectors.isNotEmpty() && detectors.size < MAX_BATCH_EVENTS && counters.isEmpty()) {
+            val oldest = detectors.minOf { it.recordedAtMs }
+            if (System.currentTimeMillis() - oldest < MIN_BATCH_AGE_MS) return null
+        }
+
+        val motionAnchors = (detectors + serverPendingDetectors)
+            .distinctBy { it.json.getString("clientEventId") }
+        val windows = motionAnchors
+            .groupBy(StoredDetectorEvent::bootSessionId)
+            .flatMap { (bootSessionId, bootDetectors) ->
+                val firstElapsedNs = bootDetectors.minOf(StoredDetectorEvent::sensorElapsedRealtimeNs)
+                val lastElapsedNs = bootDetectors.maxOf(StoredDetectorEvent::sensorElapsedRealtimeNs)
+                store.v3Windows(
+                    bootSessionId = bootSessionId,
+                    startElapsedNs = (firstElapsedNs - GAIT_CONTEXT_NS).coerceAtLeast(0L),
+                    endElapsedNs = lastElapsedNs,
+                )
+            }
+            .distinctBy {
+                Triple(
+                    it.bootSessionId,
+                    it.windowStartElapsedRealtimeNs,
+                    it.windowEndElapsedRealtimeNs,
+                )
+            }
+            .sortedWith(
+                compareBy<StoredMotionWindow> { it.windowStartElapsedRealtimeNs ?: Long.MAX_VALUE }
+                    .thenBy(StoredMotionWindow::id),
+            )
+            .take(MAX_BATCH_MOTION_WINDOWS)
+        if (detectors.isEmpty() && counters.isEmpty() && windows.isEmpty()) {
+            val lastAttempt = preferences().getLong(KEY_LAST_RECONCILIATION_ATTEMPT_MS, 0L)
+            if (System.currentTimeMillis() - lastAttempt < RECONCILIATION_HEARTBEAT_MS) return null
+        }
+        val hash = canonicalV3Hash(config, detectors, counters, windows)
+        val body = JSONObject()
+            .put("contractVersion", 3)
+            .put("sequence", config.nextSequence)
+            .put("nonce", config.nonce)
+            .put("payloadHash", hash)
+            .put("attestationToken", "")
+            .put("detectorEvents", JSONArray(detectors.map { it.json.forApi() }))
+            .put("counterSamples", JSONArray(counters.map { it.json.forApi() }))
+            .put("motionWindows", JSONArray(windows.map { it.json.forApi() }))
+        return PendingStepBatch(
+            payloadHash = hash,
+            body = body,
+            eventIds = emptyList(),
+            windowIds = windows.map(StoredMotionWindow::id),
+            detectorIds = detectors.map(StoredDetectorEvent::id),
+            counterIds = counters.map(StoredCounterSample::id),
+            attestationToken = null,
+            attestationRequestedAtMs = null,
+        ).also {
+            store.savePendingBatch(it)
+            preferences().edit()
+                .putLong(KEY_LAST_RECONCILIATION_ATTEMPT_MS, System.currentTimeMillis())
+                .apply()
+            Log.i(
+                TAG,
+                "Prepared v3 batch sequence=${config.nextSequence}, " +
+                    "detectors=${detectors.size}, counters=${counters.size}, windows=${windows.size}",
+            )
+        }
+    }
+
     private fun hasCoverage(
         event: StoredSensorEvent,
         windows: List<StoredMotionWindow>,
@@ -381,6 +598,59 @@ class BackgroundStepService : Service() {
             .joinToString("") { "%02X".format(it) }
     }
 
+    private fun canonicalV3Hash(
+        config: ServiceConfig,
+        detectors: List<StoredDetectorEvent>,
+        counters: List<StoredCounterSample>,
+        windows: List<StoredMotionWindow>,
+    ): String {
+        val lines = mutableListOf(
+            "V3",
+            config.sessionId.lowercase(),
+            config.nextSequence.toString(),
+            config.nonce,
+            apiCaptureMode(config.sensorMode),
+        )
+        detectors.forEachIndexed { index, stored ->
+            val value = stored.json
+            lines += "D:$index:${value.getString("clientEventId").lowercase()}:" +
+                "${value.getString("bootSessionId").lowercase()}:" +
+                "${value.getLong("sensorElapsedRealtimeNs")}:${stored.recordedAtMs}"
+        }
+        counters.forEachIndexed { index, stored ->
+            val value = stored.json
+            lines += "C:$index:${value.getString("clientSampleId").lowercase()}:" +
+                "${value.getString("bootSessionId").lowercase()}:" +
+                "${value.getLong("sensorElapsedRealtimeNs")}:${stored.observedAtMs}:" +
+                value.getLong("counterTotal")
+        }
+        windows.forEach { stored ->
+            val value = stored.json
+            lines += "M:${value.getString("bootSessionId").lowercase()}:" +
+                "${value.getLong("windowStartElapsedRealtimeNs")}:" +
+                "${value.getLong("windowEndElapsedRealtimeNs")}:" +
+                "${stored.windowStartedAtMs}:${stored.windowEndedAtMs}:" +
+                "${value.getInt("sampleCount")}:${value.getString("accelerometerSource")}:" +
+                "${value.booleanInt("gyroscopeAvailable")}:${value.booleanInt("activityAvailable")}:" +
+                "${value.getInt("accelerationRmsMilli")}:${value.getInt("accelerationPeakMilli")}:" +
+                "${value.getInt("jerkRmsMilli")}:${value.nullableString("gyroscopeRmsMilli")}:" +
+                "${value.nullableString("gyroscopePeakMilli")}:" +
+                "${value.nullableString("angularTravelMilliDegrees")}:" +
+                "${value.getInt("dominantFrequencyMilliHz")}:${value.getInt("periodicityBps")}:" +
+                "${value.getInt("gaitCycleCount")}:${value.getString("activityCode")}:" +
+                value.getInt("activityConfidence")
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(lines.joinToString("\n").toByteArray(StandardCharsets.UTF_8))
+            .joinToString("") { "%02X".format(it) }
+    }
+
+    private fun apiCaptureMode(mode: String): String = when (mode) {
+        "detector" -> "detector_only"
+        "counter" -> "counter_only"
+        else -> mode
+    }
+
     private fun requestAttestation(batch: PendingStepBatch) {
         uploadInProgress.set(false)
         integrityBridge.prepare(
@@ -431,9 +701,17 @@ class BackgroundStepService : Service() {
                 } else {
                     config.acceptedTotal + accepted
                 }
+                val reconciliationStatus = data.optString(
+                    "reconciliationStatus",
+                    data.optString("motionStatus", "accepted"),
+                )
                 preferences().edit()
                     .putInt(KEY_NEXT_SEQUENCE, nextSequence)
                     .putInt(KEY_ACCEPTED_TOTAL, newTotal)
+                    .putInt(
+                        KEY_LAST_REJECTED_STEPS,
+                        data.optInt("rejectedSteps", 0) + data.optInt("suspiciousSteps", 0),
+                    )
                     .putBoolean(
                         KEY_ATTESTED,
                         attestationStatus == "verified" ||
@@ -441,11 +719,33 @@ class BackgroundStepService : Service() {
                             attestationStatus == "session_cached" ||
                             attestationStatus == "legacy_session_cached",
                     )
+                    .putBoolean(
+                        KEY_SERVER_RECONCILIATION_PENDING,
+                        config.contractVersion >= 3 &&
+                            reconciliationStatus == "pending_reconciliation",
+                    )
                     .apply()
-                store.completeBatch(batch)
+                if (config.contractVersion >= 3) {
+                    store.completeV3Batch(
+                        batch,
+                        data.optJSONArray("detectorResolutions") ?: JSONArray(),
+                    )
+                    if (BuildConfig.DEBUG) {
+                        Log.i(
+                            DIAGNOSTIC_TAG,
+                            "detector_upload_committed count=${batch.detectorIds.size} " +
+                                "sequence=${batch.body.optInt("sequence", -1)}",
+                        )
+                    }
+                } else {
+                    store.completeBatch(batch)
+                }
                 val updated = loadConfig() ?: config
                 updateNotification(updated.acceptedTotal, "Đang ghi nhận bước")
-                emitStatus(updated, data.optString("motionStatus", "accepted"))
+                emitStatus(
+                    updated,
+                    reconciliationStatus,
+                )
             }
             response.status == 429 -> {
                 nextAttemptAtMs = System.currentTimeMillis() +
@@ -453,7 +753,10 @@ class BackgroundStepService : Service() {
             }
             response.status == 404 || response.status == 409 -> {
                 store.discardPendingBatch()
-                preferences().edit().putLong(KEY_EXPIRES_AT_MS, 0L).apply()
+                preferences().edit()
+                    .putLong(KEY_EXPIRES_AT_MS, 0L)
+                    .putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false)
+                    .apply()
                 nextAttemptAtMs = System.currentTimeMillis() + RETRY_DELAY_MS
             }
             response.status == 401 || response.status == 403 -> {
@@ -468,9 +771,23 @@ class BackgroundStepService : Service() {
     private fun createDailySession(current: ServiceConfig): ServiceConfig? {
         val response = postJson(
             "${current.apiBaseUrl}/api/step-sensor/session",
-            JSONObject()
-                .put("platformCode", "android")
-                .put("sensorModeCode", current.sensorMode),
+            if (current.contractVersion >= 3) {
+                JSONObject()
+                    .put("contractVersion", 3)
+                    .put("platformCode", "android")
+                    .put("captureMode", apiCaptureMode(current.sensorMode))
+                    .put(
+                        "captureMetadata",
+                        JSONObject()
+                            .put("recoveredBy", "native_service")
+                            .put("sdkInt", Build.VERSION.SDK_INT),
+                    )
+            } else {
+                JSONObject()
+                    .put("contractVersion", 2)
+                    .put("platformCode", "android")
+                    .put("sensorModeCode", current.sensorMode)
+            },
         )
         if (response.status !in 200..299) {
             if (response.status == 401 || response.status == 403) {
@@ -489,7 +806,10 @@ class BackgroundStepService : Service() {
             .putString(KEY_NONCE, nonce)
             .putLong(KEY_EXPIRES_AT_MS, parseServerUtcMillis(data.getString("expiresAt")))
             .putInt(KEY_NEXT_SEQUENCE, data.optInt("nextSequence", 1))
+            .putInt(KEY_CONTRACT_VERSION, data.optInt("contractVersion", current.contractVersion))
+            .putString(KEY_SENSOR_MODE, data.optString("captureMode", current.sensorMode))
             .putBoolean(KEY_ATTESTED, false)
+            .putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false)
             .apply()
         return loadConfig()
     }
@@ -579,11 +899,143 @@ class BackgroundStepService : Service() {
         )
     }
 
-    private fun acquireWakeLock() {
-        if (wakeLock?.isHeld == true) return
+    private fun registerScreenStateReceiver() {
+        if (screenReceiverRegistered) return
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(screenStateReceiver, filter)
+        }
+        screenReceiverRegistered = true
+        lastScreenInteractive = isScreenInteractive()
+        StepSensorDiagnosticLogger.info(
+            "STEP_SCREEN_STATE",
+            serviceDiagnosticFields() + mapOf(
+                "previousInteractive" to null,
+                "currentInteractive" to lastScreenInteractive,
+                "reason" to "service_create",
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ),
+        )
+    }
+
+    private fun unregisterScreenStateReceiver() {
+        if (!screenReceiverRegistered) return
+        runCatching { unregisterReceiver(screenStateReceiver) }
+            .onFailure { error ->
+                StepSensorDiagnosticLogger.error(
+                    "STEP_SCREEN_RECEIVER_ERROR",
+                    serviceDiagnosticFields() + mapOf("reason" to "service_destroy"),
+                    error,
+                )
+            }
+        screenReceiverRegistered = false
+    }
+
+    private fun logScreenStateTransition(action: String) {
+        val current = isScreenInteractive()
+        val previous = lastScreenInteractive
+        lastScreenInteractive = current
+        val registration = collector.registrationSnapshot()
+        StepSensorDiagnosticLogger.info(
+            "STEP_SCREEN_STATE",
+            serviceDiagnosticFields() + mapOf(
+                "action" to action,
+                "previousInteractive" to previous,
+                "currentInteractive" to current,
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+                "serviceActive" to serviceAlive,
+                "detectorRegistered" to registration.detectorRegistered,
+                "counterRegistered" to registration.counterRegistered,
+            ),
+        )
+    }
+
+    private fun isScreenInteractive(): Boolean =
+        (getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
+
+    private fun sensorRuntimeSnapshot(): StepSensorRuntimeSnapshot = StepSensorRuntimeSnapshot(
+        serviceInstanceId = serviceInstanceId,
+        serviceActive = serviceAlive,
+        screenInteractive = isScreenInteractive(),
+        wakeLockHeld = wakeLock?.isHeld == true,
+    )
+
+    private fun serviceDiagnosticFields(): Map<String, Any?> {
+        val registration = if (::collector.isInitialized) {
+            collector.registrationSnapshot()
+        } else {
+            StepSensorRegistrationSnapshot(
+                running = false,
+                detectorRegistered = false,
+                counterRegistered = false,
+                motionAccelerationRegistered = false,
+                motionGyroscopeRegistered = false,
+            )
+        }
+        return mapOf(
+            "serviceInstanceId" to serviceInstanceId,
+            "serviceActive" to serviceAlive,
+            "screenInteractive" to isScreenInteractive(),
+            "wakeLockHeld" to (wakeLock?.isHeld == true),
+            "collectorRunning" to registration.running,
+            "detectorRegistered" to registration.detectorRegistered,
+            "counterRegistered" to registration.counterRegistered,
+        )
+    }
+
+    private fun acquireWakeLock(diagnosticContinuous: Boolean, reason: String) {
+        val policy = StepWakeLockPolicy.fromDiagnosticFlag(diagnosticContinuous)
+        if (wakeLock?.isHeld == true && activeWakeLockPolicy == policy) return
+        if (wakeLock != null) releaseWakeLock("wake_lock_policy_change")
+
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$packageName:background_steps")
-            .apply { acquire() }
+            .apply {
+                setReferenceCounted(false)
+                if (policy.continuousDiagnostic) {
+                    acquire()
+                } else {
+                    acquire(requireNotNull(policy.timeoutMs))
+                }
+            }
+        activeWakeLockPolicy = policy
+        StepSensorDiagnosticLogger.info(
+            "STEP_WAKELOCK_ACQUIRE",
+            serviceDiagnosticFields() + mapOf(
+                "reason" to reason,
+                "wakeLockType" to "partial",
+                "continuousDiagnostic" to policy.continuousDiagnostic,
+                "timeoutMs" to policy.timeoutMs,
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ),
+        )
+    }
+
+    private fun releaseWakeLock(reason: String) {
+        val lock = wakeLock ?: return
+        val wasHeld = lock.isHeld
+        if (wasHeld) lock.release()
+        StepSensorDiagnosticLogger.info(
+            "STEP_WAKELOCK_RELEASE",
+            serviceDiagnosticFields() + mapOf(
+                "reason" to reason,
+                "wasHeld" to wasHeld,
+                "continuousDiagnostic" to activeWakeLockPolicy?.continuousDiagnostic,
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ),
+        )
+        wakeLock = null
+        activeWakeLockPolicy = null
     }
 
     private fun rollVietnamDateIfNeeded() {
@@ -593,8 +1045,10 @@ class BackgroundStepService : Service() {
         preferences().edit()
             .putString(KEY_STEP_DATE, today)
             .putInt(KEY_ACCEPTED_TOTAL, 0)
+            .putInt(KEY_LAST_REJECTED_STEPS, 0)
             .putLong(KEY_EXPIRES_AT_MS, 0L)
             .putBoolean(KEY_ATTESTED, false)
+            .putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false)
             .apply()
         updateNotification(0, "Đang ghi nhận bước")
     }
@@ -602,16 +1056,14 @@ class BackgroundStepService : Service() {
     private fun vietnamDate(): String =
         Instant.now().atOffset(ZoneOffset.ofHours(7)).toLocalDate().toString()
 
-    private fun parseServerUtcMillis(value: String): Long =
-        runCatching { Instant.parse(value).toEpochMilli() }
-            .getOrElse {
-                LocalDateTime.parse(value).toInstant(ZoneOffset.UTC).toEpochMilli()
-            }
-
     private fun stopTracking(clearState: Boolean) {
         explicitStop = true
-        preferences().edit().putBoolean(KEY_RUNNING, false).apply()
-        collector.stop()
+        preferences().edit()
+            .putBoolean(KEY_RUNNING, false)
+            .putBoolean(KEY_SERVER_RECONCILIATION_PENDING, false)
+            .apply()
+        collector.stop(reason = "service_stop")
+        releaseWakeLock("service_stop")
         if (clearState) {
             store.clear()
             tokenStore.clear()
@@ -646,19 +1098,34 @@ class BackgroundStepService : Service() {
             nextSequence = prefs.getInt(KEY_NEXT_SEQUENCE, 1),
             attested = prefs.getBoolean(KEY_ATTESTED, false),
             allowDevelopmentBypass = prefs.getBoolean(KEY_ALLOW_DEV_BYPASS, false),
+            diagnosticContinuousWakeLock = prefs.getBoolean(
+                KEY_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK,
+                false,
+            ),
             acceptedTotal = prefs.getInt(KEY_ACCEPTED_TOTAL, 0),
         )
     }
 
     private fun emitStatus(config: ServiceConfig, message: String) {
+        val v3Counts = store.v3PendingCounts()
         MotionEventRelay.emit(
             mapOf(
                 "eventType" to "tracking_status",
                 "running" to preferences().getBoolean(KEY_RUNNING, false),
                 "userId" to config.userId,
                 "acceptedTotal" to config.acceptedTotal,
+                "pendingSteps" to store.pendingStepTotal(),
+                "localPendingSteps" to v3Counts.first,
+                "serverPendingSteps" to v3Counts.second,
+                "lastRejectedSteps" to preferences().getInt(KEY_LAST_REJECTED_STEPS, 0),
                 "nextSequence" to config.nextSequence,
                 "attested" to config.attested,
+                "sessionId" to config.sessionId,
+                "nonce" to config.nonce,
+                "expiresAtMs" to config.expiresAtMs,
+                "stepDate" to config.stepDate,
+                "contractVersion" to config.contractVersion,
+                "captureMode" to apiCaptureMode(config.sensorMode),
                 "message" to message,
             ),
         )
@@ -683,6 +1150,7 @@ class BackgroundStepService : Service() {
     private fun JSONObject.forApi(): JSONObject = JSONObject(toString()).apply {
         remove("intervalStartedAtMs")
         remove("recordedAtMs")
+        remove("observedAtMs")
         remove("windowStartedAtMs")
         remove("windowEndedAtMs")
     }
@@ -706,6 +1174,7 @@ class BackgroundStepService : Service() {
         val nextSequence: Int,
         val attested: Boolean,
         val allowDevelopmentBypass: Boolean,
+        val diagnosticContinuousWakeLock: Boolean,
         val acceptedTotal: Int,
     )
 
@@ -718,6 +1187,7 @@ class BackgroundStepService : Service() {
     companion object {
         const val ACTION_START = "com.example.walkamon_mobile.background_steps.START"
         const val ACTION_STOP = "com.example.walkamon_mobile.background_steps.STOP"
+        const val ACTION_RECOVER = "com.example.walkamon_mobile.background_steps.RECOVER"
         const val EXTRA_USER_ID = "userId"
         const val EXTRA_STEP_DATE = "stepDate"
         const val EXTRA_API_BASE_URL = "apiBaseUrl"
@@ -732,6 +1202,7 @@ class BackgroundStepService : Service() {
         const val EXTRA_NEXT_SEQUENCE = "nextSequence"
         const val EXTRA_ATTESTED = "attested"
         const val EXTRA_ALLOW_DEV_BYPASS = "allowDevelopmentBypass"
+        const val EXTRA_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK = "diagnosticContinuousWakeLock"
         const val EXTRA_ACCEPTED_TOTAL = "acceptedTotal"
 
         private const val PREFS_NAME = "walkamon_background_steps"
@@ -749,17 +1220,28 @@ class BackgroundStepService : Service() {
         private const val KEY_NEXT_SEQUENCE = "next_sequence"
         private const val KEY_ATTESTED = "attested"
         private const val KEY_ALLOW_DEV_BYPASS = "allow_dev_bypass"
+        private const val KEY_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK =
+            "diagnostic_continuous_wake_lock"
         private const val KEY_ACCEPTED_TOTAL = "accepted_total"
+        private const val KEY_LAST_REJECTED_STEPS = "last_rejected_steps"
         private const val NOTIFICATION_CHANNEL = "walkamon_background_steps"
         private const val NOTIFICATION_ID = 42017
         private const val MAX_BATCH_EVENTS = 100
+        private const val MAX_BATCH_COUNTER_SAMPLES = 100
         private const val MAX_BATCH_MOTION_WINDOWS = 130
-        private const val MIN_BATCH_AGE_MS = 30_000L
+        private const val MIN_BATCH_AGE_MS = 5_000L
         private const val ATTESTATION_REFRESH_MS = 90_000L
-        private const val MAX_LOCAL_AGE_MS = 120_000L
+        private const val MAX_EVIDENCE_AGE_MS = 120_000L
+        private const val MOTION_HISTORY_RETENTION_MS = 135_000L
+        private const val GAIT_CONTEXT_NS = 3_000_000_000L
         private const val RETRY_DELAY_MS = 15_000L
         private const val AUTH_RETRY_DELAY_MS = 300_000L
+        private const val RECONCILIATION_HEARTBEAT_MS = 15_000L
+        private const val KEY_LAST_RECONCILIATION_ATTEMPT_MS = "last_reconciliation_attempt_ms"
+        private const val KEY_SERVER_RECONCILIATION_PENDING =
+            "server_reconciliation_pending"
         private const val TAG = "WalkamonBackgroundSteps"
+        private const val DIAGNOSTIC_TAG = "WalkamonStepDiag"
         @Volatile
         private var serviceAlive = false
 
@@ -777,15 +1259,63 @@ class BackgroundStepService : Service() {
             )
         }
 
+        fun resumeAfterBoot(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val permitted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACTIVITY_RECOGNITION,
+                ) == PackageManager.PERMISSION_GRANTED
+            if (!prefs.getBoolean(KEY_RUNNING, false) || !permitted) return
+            runCatching {
+                ContextCompat.startForegroundService(
+                    context,
+                    Intent(context, BackgroundStepService::class.java)
+                        .setAction(ACTION_RECOVER),
+                )
+            }.onFailure {
+                Log.w(TAG, "Health FGS recovery after reboot was blocked", it)
+            }
+        }
+
         fun status(context: Context): Map<String, Any?> {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val pendingStepsStore = BackgroundStepStore(context)
+            val pendingSnapshot = try {
+                val v3 = pendingStepsStore.v3PendingCounts()
+                Triple(pendingStepsStore.pendingStepTotal(), v3.first, v3.second)
+            } finally {
+                pendingStepsStore.close()
+            }
             return mapOf(
                 "running" to (serviceAlive && prefs.getBoolean(KEY_RUNNING, false)),
                 "userId" to prefs.getString(KEY_USER_ID, ""),
                 "acceptedTotal" to prefs.getInt(KEY_ACCEPTED_TOTAL, 0),
+                "pendingSteps" to pendingSnapshot.first,
+                "localPendingSteps" to pendingSnapshot.second,
+                "serverPendingSteps" to pendingSnapshot.third,
+                "lastRejectedSteps" to prefs.getInt(KEY_LAST_REJECTED_STEPS, 0),
                 "nextSequence" to prefs.getInt(KEY_NEXT_SEQUENCE, 1),
                 "attested" to prefs.getBoolean(KEY_ATTESTED, false),
+                "sessionId" to prefs.getString(KEY_SESSION_ID, ""),
+                "nonce" to prefs.getString(KEY_NONCE, ""),
+                "expiresAtMs" to prefs.getLong(KEY_EXPIRES_AT_MS, 0L),
+                "stepDate" to prefs.getString(KEY_STEP_DATE, ""),
+                "contractVersion" to prefs.getInt(KEY_CONTRACT_VERSION, 2),
+                "captureMode" to when (val mode = prefs.getString(KEY_SENSOR_MODE, "counter")) {
+                    "detector" -> "detector_only"
+                    "counter" -> "counter_only"
+                    else -> mode
+                },
             )
         }
     }
 }
+
+internal fun parseServerUtcMillis(value: String): Long =
+    runCatching { Instant.parse(value).toEpochMilli() }
+        .recoverCatching { OffsetDateTime.parse(value).toInstant().toEpochMilli() }
+        .recoverCatching {
+            LocalDateTime.parse(value).toInstant(ZoneOffset.UTC).toEpochMilli()
+        }
+        .getOrThrow()

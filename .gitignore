@@ -46,3 +46,6 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
+
+# Local Step Tracking device diagnostics and benchmark captures.
+/diagnostic-logs/

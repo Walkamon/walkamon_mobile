@@ -557,7 +557,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // GiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£ lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡c biÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿n tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nh toÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡n bÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âºc chÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢n giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œng nhÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â° React
     final stepTracking = context.watch<StepTrackingProvider>();
-    final int dailySteps = stepTracking.dailySteps;
+    final int dailySteps = stepTracking.displayedSteps;
+    final int pendingSteps = stepTracking.pendingSteps;
+    final int localPendingSteps = stepTracking.localPendingSteps;
+    final int serverPendingSteps = stepTracking.serverPendingSteps;
+    final int lastRejectedSteps = stepTracking.lastRejectedSteps;
     final trackingStatus = stepTracking.status;
     const int goalSteps = 10000;
     final double stepPct = (dailySteps / goalSteps).clamp(0.0, 1.0);
@@ -801,6 +805,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               color: AppColors.oliveDeep,
                                               fontWeight: FontWeight.w600,
                                             ),
+                                          ),
+                                          if (pendingSteps > 0)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 6,
+                                              ),
+                                              child: Text(
+                                                '+$pendingSteps bước đang xác minh '
+                                                '($localPendingSteps máy, '
+                                                '$serverPendingSteps máy chủ)',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: AppColors.oliveDeep,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            child: lastRejectedSteps > 0
+                                                ? Padding(
+                                                    key: ValueKey(
+                                                      lastRejectedSteps,
+                                                    ),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          top: 6,
+                                                        ),
+                                                    child: Text(
+                                                      '-$lastRejectedSteps bước '
+                                                      'không đủ bằng chứng',
+                                                      style: const TextStyle(
+                                                        fontSize: 10,
+                                                        color:
+                                                            Colors.deepOrange,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : const SizedBox.shrink(),
                                           ),
                                           if (trackingStatus ==
                                               StepTrackingStatus

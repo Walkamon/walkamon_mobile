@@ -9,6 +9,28 @@ enum StepSensorMode {
   String get code => name;
 }
 
+enum StepCaptureMode {
+  dual('dual'),
+  detectorOnly('detector_only'),
+  counterOnly('counter_only');
+
+  const StepCaptureMode(this.code);
+  final String code;
+
+  StepSensorMode get legacyMode => switch (this) {
+    StepCaptureMode.counterOnly => StepSensorMode.counter,
+    _ => StepSensorMode.detector,
+  };
+
+  static StepCaptureMode fromCode(String? code, StepSensorMode fallback) =>
+      StepCaptureMode.values.firstWhere(
+        (value) => value.code == code,
+        orElse: () => fallback == StepSensorMode.detector
+            ? StepCaptureMode.detectorOnly
+            : StepCaptureMode.counterOnly,
+      );
+}
+
 class StepMotionPolicy {
   const StepMotionPolicy({
     this.contractVersion = 2,
@@ -54,6 +76,8 @@ class StepSensorSession {
     required this.expiresAt,
     required this.nextSequence,
     this.attested = false,
+    this.contractVersion = 2,
+    this.negotiatedCaptureMode,
     this.motionPolicy = const StepMotionPolicy(),
     this.dailyStepDate,
     this.dailyAcceptedTotal,
@@ -65,11 +89,18 @@ class StepSensorSession {
   final DateTime expiresAt;
   final int nextSequence;
   final bool attested;
+  final int contractVersion;
+  final StepCaptureMode? negotiatedCaptureMode;
   final StepMotionPolicy motionPolicy;
   final String? dailyStepDate;
   final int? dailyAcceptedTotal;
 
   bool get isExpired => expiresAt.isBefore(DateTime.now().toUtc());
+  StepCaptureMode get captureMode =>
+      negotiatedCaptureMode ??
+      (mode == StepSensorMode.detector
+          ? StepCaptureMode.detectorOnly
+          : StepCaptureMode.counterOnly);
 
   StepSensorSession copyWith({int? nextSequence, bool? attested}) =>
       StepSensorSession(
@@ -79,6 +110,8 @@ class StepSensorSession {
         expiresAt: expiresAt,
         nextSequence: nextSequence ?? this.nextSequence,
         attested: attested ?? this.attested,
+        contractVersion: contractVersion,
+        negotiatedCaptureMode: negotiatedCaptureMode,
         motionPolicy: motionPolicy,
         dailyStepDate: dailyStepDate,
         dailyAcceptedTotal: dailyAcceptedTotal,
@@ -96,6 +129,11 @@ class StepSensorSession {
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     nextSequence: _asInt(json['nextSequence'], 1),
     attested: false,
+    contractVersion: _asInt(json['contractVersion'], 2),
+    negotiatedCaptureMode: StepCaptureMode.fromCode(
+      json['captureMode']?.toString(),
+      mode,
+    ),
     dailyStepDate: json['dailyStepDate']?.toString(),
     dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
     motionPolicy: StepMotionPolicy.fromJson(
@@ -118,6 +156,14 @@ class StepSensorSession {
             DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         nextSequence: _asInt(json['nextSequence'], 1),
         attested: json['attested'] == true,
+        contractVersion: _asInt(json['contractVersion'], 2),
+        negotiatedCaptureMode: StepCaptureMode.fromCode(
+          json['captureMode']?.toString(),
+          StepSensorMode.values.firstWhere(
+            (value) => value.code == json['mode'],
+            orElse: () => StepSensorMode.counter,
+          ),
+        ),
         dailyStepDate: json['dailyStepDate']?.toString(),
         dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
         motionPolicy: StepMotionPolicy.fromJson(
@@ -134,6 +180,8 @@ class StepSensorSession {
     'expiresAt': expiresAt.toUtc().toIso8601String(),
     'nextSequence': nextSequence,
     'attested': attested,
+    'contractVersion': contractVersion,
+    'captureMode': captureMode.code,
     'dailyStepDate': dailyStepDate,
     'dailyAcceptedTotal': dailyAcceptedTotal,
     'motionPolicy': motionPolicy.toJson(),
@@ -281,9 +329,19 @@ sealed class NativeMotionEvent {
         running: json['running'] == true,
         userId: json['userId']?.toString(),
         acceptedTotal: _asInt(json['acceptedTotal']),
+        pendingSteps: _asInt(json['pendingSteps']),
+        localPendingSteps: _asInt(json['localPendingSteps']),
+        serverPendingSteps: _asInt(json['serverPendingSteps']),
+        lastRejectedSteps: _asInt(json['lastRejectedSteps']),
         nextSequence: _asInt(json['nextSequence'], 1),
         attested: json['attested'] == true,
         message: json['message']?.toString(),
+        sessionId: json['sessionId']?.toString(),
+        nonce: json['nonce']?.toString(),
+        expiresAtMs: _asInt(json['expiresAtMs']),
+        stepDate: json['stepDate']?.toString(),
+        contractVersion: _asInt(json['contractVersion'], 2),
+        captureMode: json['captureMode']?.toString(),
       );
     }
     if (json['eventType'] == 'motion') {
@@ -308,17 +366,37 @@ final class NativeTrackingStatusEvent extends NativeMotionEvent {
     required this.running,
     required this.userId,
     required this.acceptedTotal,
+    this.pendingSteps = 0,
+    this.localPendingSteps = 0,
+    this.serverPendingSteps = 0,
+    this.lastRejectedSteps = 0,
     required this.nextSequence,
     required this.attested,
     required this.message,
+    this.sessionId,
+    this.nonce,
+    this.expiresAtMs = 0,
+    this.stepDate,
+    this.contractVersion = 2,
+    this.captureMode,
   });
 
   final bool running;
   final String? userId;
   final int acceptedTotal;
+  final int pendingSteps;
+  final int localPendingSteps;
+  final int serverPendingSteps;
+  final int lastRejectedSteps;
   final int nextSequence;
   final bool attested;
   final String? message;
+  final String? sessionId;
+  final String? nonce;
+  final int expiresAtMs;
+  final String? stepDate;
+  final int contractVersion;
+  final String? captureMode;
 }
 
 class NativeTrackingStatus {
@@ -326,23 +404,53 @@ class NativeTrackingStatus {
     required this.running,
     required this.userId,
     required this.acceptedTotal,
+    this.pendingSteps = 0,
+    this.localPendingSteps = 0,
+    this.serverPendingSteps = 0,
+    this.lastRejectedSteps = 0,
     required this.nextSequence,
     required this.attested,
+    this.sessionId,
+    this.nonce,
+    this.expiresAtMs = 0,
+    this.stepDate,
+    this.contractVersion = 2,
+    this.captureMode,
   });
 
   final bool running;
   final String? userId;
   final int acceptedTotal;
+  final int pendingSteps;
+  final int localPendingSteps;
+  final int serverPendingSteps;
+  final int lastRejectedSteps;
   final int nextSequence;
   final bool attested;
+  final String? sessionId;
+  final String? nonce;
+  final int expiresAtMs;
+  final String? stepDate;
+  final int contractVersion;
+  final String? captureMode;
 
   factory NativeTrackingStatus.fromJson(Map<String, dynamic> json) =>
       NativeTrackingStatus(
         running: json['running'] == true,
         userId: json['userId']?.toString(),
         acceptedTotal: _asInt(json['acceptedTotal']),
+        pendingSteps: _asInt(json['pendingSteps']),
+        localPendingSteps: _asInt(json['localPendingSteps']),
+        serverPendingSteps: _asInt(json['serverPendingSteps']),
+        lastRejectedSteps: _asInt(json['lastRejectedSteps']),
         nextSequence: _asInt(json['nextSequence'], 1),
         attested: json['attested'] == true,
+        sessionId: json['sessionId']?.toString(),
+        nonce: json['nonce']?.toString(),
+        expiresAtMs: _asInt(json['expiresAtMs']),
+        stepDate: json['stepDate']?.toString(),
+        contractVersion: _asInt(json['contractVersion'], 2),
+        captureMode: json['captureMode']?.toString(),
       );
 }
 
@@ -364,6 +472,15 @@ class NativeSensorCapabilities {
   StepSensorMode get preferredMode =>
       stepDetectorAvailable ? StepSensorMode.detector : StepSensorMode.counter;
 
+  StepCaptureMode get preferredCaptureMode {
+    if (stepDetectorAvailable && stepCounterAvailable) {
+      return StepCaptureMode.dual;
+    }
+    return stepDetectorAvailable
+        ? StepCaptureMode.detectorOnly
+        : StepCaptureMode.counterOnly;
+  }
+
   factory NativeSensorCapabilities.fromJson(Map<String, dynamic> json) =>
       NativeSensorCapabilities(
         stepDetectorAvailable: json['stepDetectorAvailable'] == true,
@@ -380,6 +497,7 @@ class NativeSensorCapabilities {
 class StepSensorBatchResult {
   const StepSensorBatchResult({
     required this.acceptedSteps,
+    this.pendingSteps = 0,
     required this.rejectedSteps,
     required this.suspiciousSteps,
     required this.nextSequence,
@@ -390,9 +508,13 @@ class StepSensorBatchResult {
     required this.motionReasons,
     required this.dailyStepDate,
     required this.dailyAcceptedTotal,
+    this.reconciliationStatus = 'unavailable',
+    this.reconciliationReason,
+    this.detectorResolutions = const [],
   });
 
   final int acceptedSteps;
+  final int pendingSteps;
   final int rejectedSteps;
   final int suspiciousSteps;
   final int nextSequence;
@@ -403,25 +525,64 @@ class StepSensorBatchResult {
   final List<String> motionReasons;
   final String? dailyStepDate;
   final int? dailyAcceptedTotal;
+  final String reconciliationStatus;
+  final String? reconciliationReason;
+  final List<StepDetectorResolution> detectorResolutions;
 
-  factory StepSensorBatchResult.fromJson(Map<String, dynamic> json) =>
-      StepSensorBatchResult(
-        acceptedSteps: _asInt(json['acceptedSteps']),
-        rejectedSteps: _asInt(json['rejectedSteps']),
-        suspiciousSteps: _asInt(json['suspiciousSteps']),
-        nextSequence: _asInt(json['nextSequence'], 1),
-        attestationStatus:
-            json['attestationStatus']?.toString() ?? 'unavailable',
-        motionStatus: json['motionStatus']?.toString() ?? 'unavailable',
-        motionScore: _asInt(json['motionScore']),
-        degradedEvidence: json['degradedEvidence'] == true,
-        motionReasons:
-            (json['motionReasons'] as List?)
-                ?.map((value) => value.toString())
-                .toList() ??
-            const [],
-        dailyStepDate: json['dailyStepDate']?.toString(),
-        dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
+  factory StepSensorBatchResult.fromJson(
+    Map<String, dynamic> json,
+  ) => StepSensorBatchResult(
+    acceptedSteps: _asInt(json['acceptedSteps']),
+    pendingSteps: _asInt(json['pendingSteps']),
+    rejectedSteps: _asInt(json['rejectedSteps']),
+    suspiciousSteps: _asInt(json['suspiciousSteps']),
+    nextSequence: _asInt(json['nextSequence'], 1),
+    attestationStatus: json['attestationStatus']?.toString() ?? 'unavailable',
+    motionStatus: json['motionStatus']?.toString() ?? 'unavailable',
+    motionScore: _asInt(json['motionScore']),
+    degradedEvidence: json['degradedEvidence'] == true,
+    motionReasons:
+        (json['motionReasons'] as List?)
+            ?.map((value) => value.toString())
+            .toList() ??
+        const [],
+    dailyStepDate: json['dailyStepDate']?.toString(),
+    dailyAcceptedTotal: _nullableInt(json['dailyAcceptedTotal']),
+    reconciliationStatus:
+        json['reconciliationStatus']?.toString() ?? 'unavailable',
+    reconciliationReason: json['reconciliationReason']?.toString(),
+    detectorResolutions:
+        (json['detectorResolutions'] as List?)
+            ?.whereType<Map>()
+            .map(
+              (value) => StepDetectorResolution.fromJson(
+                Map<String, dynamic>.from(value),
+              ),
+            )
+            .toList() ??
+        const [],
+  );
+}
+
+class StepDetectorResolution {
+  const StepDetectorResolution({
+    required this.clientEventId,
+    required this.status,
+    required this.acceptedStepCount,
+    this.reason,
+  });
+
+  final String clientEventId;
+  final String status;
+  final int acceptedStepCount;
+  final String? reason;
+
+  factory StepDetectorResolution.fromJson(Map<String, dynamic> json) =>
+      StepDetectorResolution(
+        clientEventId: json['clientEventId']?.toString() ?? '',
+        status: json['status']?.toString() ?? 'pending',
+        acceptedStepCount: _asInt(json['acceptedStepCount']),
+        reason: json['reason']?.toString(),
       );
 }
 

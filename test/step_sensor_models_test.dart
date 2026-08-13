@@ -8,9 +8,18 @@ void main() {
       'running': true,
       'userId': 'user-1',
       'acceptedTotal': 321,
+      'pendingSteps': 4,
+      'localPendingSteps': 1,
+      'serverPendingSteps': 3,
+      'lastRejectedSteps': 2,
       'nextSequence': 7,
       'attested': true,
       'message': 'tracking',
+      'sessionId': 'native-session',
+      'nonce': 'native-nonce',
+      'expiresAtMs': 1760000000000,
+      'contractVersion': 3,
+      'captureMode': 'dual',
     });
 
     expect(event, isA<NativeTrackingStatusEvent>());
@@ -18,6 +27,13 @@ void main() {
     expect(status.running, isTrue);
     expect(status.userId, 'user-1');
     expect(status.acceptedTotal, 321);
+    expect(status.pendingSteps, 4);
+    expect(status.localPendingSteps, 1);
+    expect(status.serverPendingSteps, 3);
+    expect(status.lastRejectedSteps, 2);
+    expect(status.sessionId, 'native-session');
+    expect(status.contractVersion, 3);
+    expect(status.captureMode, 'dual');
     expect(status.nextSequence, 7);
     expect(status.attested, isTrue);
   });
@@ -92,6 +108,23 @@ void main() {
     expect(restored.nextSequence, 9);
     expect(restored.attested, isTrue);
     expect(restored.expiresAt, source.expiresAt);
+  });
+
+  test('stored v3 session keeps the negotiated dual capture mode', () {
+    final source = StepSensorSession(
+      id: 'session-v3',
+      nonce: 'nonce',
+      mode: StepSensorMode.detector,
+      expiresAt: DateTime.utc(2026, 8, 10),
+      nextSequence: 3,
+      contractVersion: 3,
+      negotiatedCaptureMode: StepCaptureMode.dual,
+    );
+
+    final restored = StepSensorSession.fromStoredJson(source.toStoredJson());
+
+    expect(restored.contractVersion, 3);
+    expect(restored.captureMode, StepCaptureMode.dual);
   });
 
   test('parses authoritative daily step totals from backend', () {

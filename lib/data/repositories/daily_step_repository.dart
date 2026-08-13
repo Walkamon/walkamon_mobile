@@ -7,8 +7,15 @@ class DailyStepRepository {
 
   final DailyStepDatasource _datasource;
 
-  Future<StepSensorSession> createSession(StepSensorMode mode) =>
-      _datasource.createSession(mode);
+  Future<StepSensorSession> createSession(
+    StepSensorMode mode, {
+    int contractVersion = 2,
+    StepCaptureMode? captureMode,
+  }) => _datasource.createSession(
+    mode,
+    contractVersion: contractVersion,
+    captureMode: captureMode,
+  );
 
   Future<StepSensorBatchResult> submitBatch({
     required StepSensorSession session,

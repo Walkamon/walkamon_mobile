@@ -12,7 +12,7 @@ data class MotionFeatures(
     val jerkRms: Double,
     val gyroscopeRms: Double?,
     val gyroscopePeak: Double?,
-    val orientationDeltaDegrees: Double?,
+    val angularTravelDegrees: Double?,
     val dominantFrequencyHz: Double,
     val periodicity: Double,
     val gaitCycleCount: Int,
@@ -27,19 +27,19 @@ object MotionFeatureMath {
         targetSampleHz: Int,
         windowNs: Long,
     ): MotionFeatures {
-        val spectral = spectralFeatures(acceleration, windowNs)
+        val autocorrelation = autocorrelationFeatures(acceleration, windowNs)
         return MotionFeatures(
             accelerationRms = rms(acceleration),
             accelerationPeak = acceleration.maxOrNull() ?: 0.0,
             jerkRms = jerkRms(acceleration, accelerationTimestamps),
             gyroscopeRms = gyroscope.takeIf { it.isNotEmpty() }?.let(::rms),
             gyroscopePeak = gyroscope.maxOrNull(),
-            orientationDeltaDegrees = orientationDeltaDegrees(
+            angularTravelDegrees = angularTravelDegrees(
                 gyroscope,
                 gyroscopeTimestamps,
             ),
-            dominantFrequencyHz = spectral.first,
-            periodicity = spectral.second,
+            dominantFrequencyHz = autocorrelation.first,
+            periodicity = autocorrelation.second,
             gaitCycleCount = gaitCycleCount(acceleration, targetSampleHz),
         )
     }
@@ -56,7 +56,7 @@ object MotionFeatureMath {
         return if (jerks.isEmpty()) 0.0 else rms(jerks)
     }
 
-    private fun orientationDeltaDegrees(
+    private fun angularTravelDegrees(
         values: List<Double>,
         timestamps: List<Long>,
     ): Double? {
@@ -71,7 +71,7 @@ object MotionFeatureMath {
         return radians * 180.0 / PI
     }
 
-    private fun spectralFeatures(
+    private fun autocorrelationFeatures(
         values: List<Double>,
         windowNs: Long,
     ): Pair<Double, Double> {
@@ -80,8 +80,10 @@ object MotionFeatureMath {
         val centered = values.map { it - mean }
         if (centered.sumOf { it * it } <= 1e-9) return 0.0 to 0.0
         val rate = values.size * 1_000_000_000.0 / windowNs
+        // A one-second window cannot resolve the previously advertised 0.6 Hz
+        // lower bound. Keep autocorrelation in the observable 1-4 Hz range.
         val minLag = max(2, ceil(rate / 4.0).toInt())
-        val maxLag = min(values.size - 2, ceil(rate / 0.6).toInt())
+        val maxLag = min(values.size - 2, ceil(rate / 1.0).toInt())
         if (maxLag < minLag) return 0.0 to 0.0
         var bestLag = minLag
         var best = 0.0

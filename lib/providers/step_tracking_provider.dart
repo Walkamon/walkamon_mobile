@@ -6,14 +6,24 @@ class StepTrackingProvider extends ChangeNotifier {
   StepTrackingProvider({StepTrackingService? service})
     : _service = service ?? StepTrackingService() {
     _service.onStepsChanged = _onSteps;
+    _service.onStepBreakdownChanged = _onStepBreakdownChanged;
     _service.onStatusChanged = _onStatusChanged;
   }
 
   final StepTrackingService _service;
   int _dailySteps = 0;
+  int _pendingSteps = 0;
+  int _localPendingSteps = 0;
+  int _serverPendingSteps = 0;
+  int _lastRejectedSteps = 0;
   StepTrackingStatus _status = StepTrackingStatus.idle;
 
   int get dailySteps => _dailySteps;
+  int get pendingSteps => _pendingSteps;
+  int get localPendingSteps => _localPendingSteps;
+  int get serverPendingSteps => _serverPendingSteps;
+  int get lastRejectedSteps => _lastRejectedSteps;
+  int get displayedSteps => _dailySteps + _pendingSteps;
   bool get isTracking => _service.isTracking;
   StepTrackingStatus get status => _status;
 
@@ -27,6 +37,28 @@ class StepTrackingProvider extends ChangeNotifier {
   void _onSteps(int steps) {
     if (steps == _dailySteps) return;
     _dailySteps = steps;
+    notifyListeners();
+  }
+
+  void _onStepBreakdownChanged(
+    int acceptedSteps,
+    int localPendingSteps,
+    int serverPendingSteps,
+    int lastRejectedSteps,
+  ) {
+    final pendingSteps = localPendingSteps + serverPendingSteps;
+    if (_dailySteps == acceptedSteps &&
+        _pendingSteps == pendingSteps &&
+        _localPendingSteps == localPendingSteps &&
+        _serverPendingSteps == serverPendingSteps &&
+        _lastRejectedSteps == lastRejectedSteps) {
+      return;
+    }
+    _dailySteps = acceptedSteps;
+    _pendingSteps = pendingSteps;
+    _localPendingSteps = localPendingSteps;
+    _serverPendingSteps = serverPendingSteps;
+    _lastRejectedSteps = lastRejectedSteps;
     notifyListeners();
   }
 

@@ -9,6 +9,9 @@ class AndroidStepBridge {
   static const _usePlayIntegrityInDebug = bool.fromEnvironment(
     'USE_PLAY_INTEGRITY_IN_DEBUG',
   );
+  static const _diagnosticContinuousWakeLock = bool.fromEnvironment(
+    'STEP_SENSOR_DIAGNOSTIC_WAKELOCK',
+  );
 
   Future<NativeSensorCapabilities> getCapabilities() async {
     try {
@@ -49,16 +52,19 @@ class AndroidStepBridge {
     'stepDate': stepDate,
     'apiBaseUrl': apiBaseUrl,
     'accessToken': accessToken,
-    'sensorMode': mode.code,
+    'sensorMode': session.contractVersion >= 3
+        ? session.captureMode.code
+        : mode.code,
     'windowMilliseconds': policy.windowMilliseconds,
     'targetSampleHz': policy.targetSampleHz,
-    'contractVersion': policy.contractVersion,
+    'contractVersion': session.contractVersion,
     'sessionId': session.id,
     'nonce': session.nonce,
     'expiresAtMs': session.expiresAt.millisecondsSinceEpoch,
     'nextSequence': session.nextSequence,
     'attested': session.attested,
     'allowDevelopmentBypass': kDebugMode && !_usePlayIntegrityInDebug,
+    'diagnosticContinuousWakeLock': _diagnosticContinuousWakeLock,
     'acceptedTotal': acceptedTotal,
   });
 

@@ -91,6 +91,10 @@ class MainActivity : FlutterActivity() {
                                 call.argument<Boolean>("allowDevelopmentBypass") ?: false,
                             )
                             putExtra(
+                                BackgroundStepService.EXTRA_DIAGNOSTIC_CONTINUOUS_WAKE_LOCK,
+                                call.argument<Boolean>("diagnosticContinuousWakeLock") ?: false,
+                            )
+                            putExtra(
                                 BackgroundStepService.EXTRA_ACCEPTED_TOTAL,
                                 call.argument<Int>("acceptedTotal") ?: 0,
                             )

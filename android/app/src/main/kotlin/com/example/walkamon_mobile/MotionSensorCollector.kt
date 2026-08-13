@@ -10,16 +10,20 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.ActivityRecognition
 import java.time.Instant
+import java.util.UUID
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-class MotionSensorCollector(
+internal class MotionSensorCollector(
     private val context: Context,
     private val onEvent: (Map<String, Any?>) -> Unit = {},
+    private val runtimeSnapshotProvider: (() -> StepSensorRuntimeSnapshot)? = null,
+    private val fullCallbackDiagnostics: Boolean = BuildConfig.DEBUG,
 ) : SensorEventListener {
     private val sensors = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val stepDetector = sensors.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
@@ -41,15 +45,17 @@ class MotionSensorCollector(
             },
     )
 
-    private var running = false
-    private var sensorMode = "counter"
+    private val collectorInstanceId = UUID.randomUUID().toString()
+    private val lifecycle = StepSensorLifecycleState()
+    private val callbackDiagnostics = StepRawCallbackDiagnostics()
+    private var captureMode = "counter_only"
+    private var contractVersion = 2
+    private var bootSessionId = ""
     private var targetSampleHz = 25
     private var windowNs = 1_000_000_000L
     private var windowStartNs: Long? = null
     private var anchorEpochMs = 0L
     private var anchorElapsedNs = 0L
-    private var lastCounterTotal: Long? = null
-    private var lastCounterTimestampNs: Long? = null
     private val gravity = FloatArray(3)
     private var gravityReady = false
     private val accelerationMagnitudes = mutableListOf<Double>()
@@ -67,34 +73,125 @@ class MotionSensorCollector(
         "activityRecognitionAvailable" to hasActivityPermission(),
     )
 
-    fun start(mode: String, requestedWindowMs: Int, requestedSampleHz: Int) {
-        stopSensors(emitFinalWindow = false)
-        sensorMode = if (mode == "detector" && stepDetector != null) "detector" else "counter"
-        targetSampleHz = requestedSampleHz.coerceIn(15, 40)
-        windowNs = requestedWindowMs.coerceIn(800, 1200) * 1_000_000L
+    fun start(
+        mode: String,
+        requestedWindowMs: Int,
+        requestedSampleHz: Int,
+        requestedContractVersion: Int,
+        currentBootSessionId: String,
+        reason: String = "service_start",
+    ) {
+        val normalizedCaptureMode = normalizedCaptureMode(mode)
+        val configuration = StepCollectorConfiguration(
+            captureMode = normalizedCaptureMode,
+            windowMilliseconds = requestedWindowMs.coerceIn(800, 1200),
+            targetSampleHz = requestedSampleHz.coerceIn(15, 40),
+            contractVersion = requestedContractVersion,
+            bootSessionId = currentBootSessionId,
+        )
+        val transition = lifecycle.beginStart(configuration)
+        if (transition.duplicate) {
+            logLifecycle(
+                event = "STEP_COLLECTOR_START_IGNORED",
+                fields = mapOf(
+                    "reason" to reason,
+                    "captureMode" to configuration.captureMode,
+                    "detail" to "duplicate_configuration",
+                ),
+            )
+            return
+        }
+        transition.previousRegistration?.let {
+            unregisterPlatformListeners(it, reason = "restart")
+        }
+
+        contractVersion = requestedContractVersion
+        bootSessionId = currentBootSessionId
+        captureMode = normalizedCaptureMode
+        targetSampleHz = configuration.targetSampleHz
+        windowNs = configuration.windowMilliseconds * 1_000_000L
         anchorEpochMs = System.currentTimeMillis()
         anchorElapsedNs = SystemClock.elapsedRealtimeNanos()
-        running = true
+        callbackDiagnostics.resetCounterTimeline()
+        resetMotionState()
+
+        logLifecycle(
+            event = "STEP_COLLECTOR_START",
+            fields = mapOf(
+                "reason" to reason,
+                "captureMode" to captureMode,
+                "contractVersion" to contractVersion,
+                "bootSessionId" to bootSessionId,
+            ),
+        )
+        logSensorMetadata("step_detector", stepDetector)
+        logSensorMetadata("step_counter", stepCounter)
 
         val samplingPeriodUs = 1_000_000 / targetSampleHz
-        val stepSensor = if (sensorMode == "detector") stepDetector else stepCounter
-        stepSensor?.let { sensors.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) }
-        (linearAcceleration ?: accelerometer)?.let {
-            sensors.registerListener(this, it, samplingPeriodUs)
+        if (captureMode == "dual" || captureMode == "detector_only") {
+            stepDetector?.let {
+                registerSensor(
+                    sensor = it,
+                    trackedSensor = TrackedSensorRegistration.STEP_DETECTOR,
+                    sensorType = "step_detector",
+                    samplingPeriodUs = SensorManager.SENSOR_DELAY_NORMAL,
+                    reason = reason,
+                )
+            }
         }
-        gyroscope?.let { sensors.registerListener(this, it, samplingPeriodUs) }
+        if (captureMode == "dual" || captureMode == "counter_only") {
+            stepCounter?.let {
+                registerSensor(
+                    sensor = it,
+                    trackedSensor = TrackedSensorRegistration.STEP_COUNTER,
+                    sensorType = "step_counter",
+                    samplingPeriodUs = SensorManager.SENSOR_DELAY_NORMAL,
+                    reason = reason,
+                )
+            }
+        }
+        (linearAcceleration ?: accelerometer)?.let {
+            registerSensor(
+                sensor = it,
+                trackedSensor = TrackedSensorRegistration.MOTION_ACCELERATION,
+                sensorType = if (it.type == Sensor.TYPE_LINEAR_ACCELERATION) {
+                    "linear_acceleration"
+                } else {
+                    "accelerometer"
+                },
+                samplingPeriodUs = samplingPeriodUs,
+                reason = reason,
+            )
+        }
+        gyroscope?.let {
+            registerSensor(
+                sensor = it,
+                trackedSensor = TrackedSensorRegistration.MOTION_GYROSCOPE,
+                sensorType = "gyroscope",
+                samplingPeriodUs = samplingPeriodUs,
+                reason = reason,
+            )
+        }
         startActivityRecognition()
     }
 
-    fun stop() {
-        stopSensors(emitFinalWindow = false)
+    fun stop(reason: String = "service_stop") {
+        stopSensors(emitFinalWindow = false, reason = reason)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (!running) return
+        if (!lifecycle.snapshot().running) return
+        val callbackElapsedRealtimeNs = SystemClock.elapsedRealtimeNanos()
         when (event.sensor.type) {
-            Sensor.TYPE_STEP_DETECTOR -> emitDetectorStep(event.timestamp)
-            Sensor.TYPE_STEP_COUNTER -> emitCounterStep(event.timestamp, event.values[0].toLong())
+            Sensor.TYPE_STEP_DETECTOR -> {
+                logDetectorCallback(event.timestamp, callbackElapsedRealtimeNs)
+                emitDetectorStep(event.timestamp)
+            }
+            Sensor.TYPE_STEP_COUNTER -> {
+                val total = event.values[0].toLong()
+                logCounterCallback(event.timestamp, callbackElapsedRealtimeNs, total)
+                emitCounterStep(event.timestamp, total)
+            }
             Sensor.TYPE_LINEAR_ACCELERATION -> collectAcceleration(
                 event.timestamp,
                 event.values[0].toDouble(),
@@ -115,6 +212,8 @@ class MotionSensorCollector(
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    fun registrationSnapshot(): StepSensorRegistrationSnapshot = lifecycle.snapshot()
 
     private fun collectAcceleration(timestampNs: Long, x: Double, y: Double, z: Double) {
         ensureWindow(timestampNs)
@@ -154,6 +253,19 @@ class MotionSensorCollector(
 
     private fun emitDetectorStep(timestampNs: Long) {
         val time = epochMs(timestampNs)
+        if (contractVersion >= 3) {
+            val clientEventId = UUID.randomUUID().toString()
+            onEvent(
+                mapOf(
+                    "eventType" to "detector",
+                    "clientEventId" to clientEventId,
+                    "bootSessionId" to bootSessionId,
+                    "sensorElapsedRealtimeNs" to timestampNs,
+                    "recordedAt" to instant(time),
+                ),
+            )
+            return
+        }
         onEvent(
             mapOf(
                 "eventType" to "step",
@@ -168,37 +280,17 @@ class MotionSensorCollector(
     }
 
     private fun emitCounterStep(timestampNs: Long, total: Long) {
-        val previousTotal = lastCounterTotal
-        val previousTime = lastCounterTimestampNs
-        lastCounterTotal = total
-        lastCounterTimestampNs = timestampNs
-        val previousSensorTotal = previousTotal ?: return
-        val previousSensorTime = previousTime ?: return
-        if (total <= previousSensorTotal) return
-        val stepCount = (total - previousSensorTotal)
-            .coerceAtMost(Int.MAX_VALUE.toLong())
-            .toInt()
-        // TYPE_STEP_COUNTER can stay silent while the user is idle. Split a
-        // large delta into monotonic, cadence-bounded events so the BE can
-        // validate continuity without turning the first callback after a
-        // pause into a stale or >4 steps/sec interval.
-        var sensorStartTotal = previousSensorTotal
-        CounterIntervalMath.intervals(previousSensorTime, timestampNs, stepCount)
-            .forEach { interval ->
-                val sensorEndTotal = sensorStartTotal + interval.stepCount
-                onEvent(
-                    mapOf(
-                        "eventType" to "step",
-                        "sensorMode" to "counter",
-                        "intervalStartedAt" to instant(epochMs(interval.startNs)),
-                        "recordedAt" to instant(epochMs(interval.endNs)),
-                        "stepCount" to interval.stepCount,
-                        "sensorStartTotal" to sensorStartTotal,
-                        "sensorEndTotal" to sensorEndTotal,
-                    ),
-                )
-                sensorStartTotal = sensorEndTotal
-            }
+        if (contractVersion < 3) return
+        onEvent(
+            mapOf(
+                "eventType" to "counter",
+                "clientSampleId" to UUID.randomUUID().toString(),
+                "bootSessionId" to bootSessionId,
+                "sensorElapsedRealtimeNs" to timestampNs,
+                "observedAt" to instant(epochMs(timestampNs)),
+                "counterTotal" to total,
+            ),
+        )
     }
 
     private fun emitMotionWindow(startNs: Long, endNs: Long) {
@@ -218,6 +310,9 @@ class MotionSensorCollector(
         onEvent(
             mapOf(
                 "eventType" to "motion",
+                "bootSessionId" to bootSessionId,
+                "windowStartElapsedRealtimeNs" to startNs,
+                "windowEndElapsedRealtimeNs" to endNs,
                 "windowStartedAt" to instant(epochMs(startNs)),
                 "windowEndedAt" to instant(epochMs(endNs)),
                 "sampleCount" to accelerationMagnitudes.size,
@@ -229,7 +324,7 @@ class MotionSensorCollector(
                 "jerkRmsMilli" to (features.jerkRms * 1000.0).roundToInt(),
                 "gyroscopeRmsMilli" to features.gyroscopeRms?.let { (it * 1000.0).roundToInt() },
                 "gyroscopePeakMilli" to features.gyroscopePeak?.let { (it * 1000.0).roundToInt() },
-                "orientationDeltaMilliDegrees" to features.orientationDeltaDegrees?.let {
+                "angularTravelMilliDegrees" to features.angularTravelDegrees?.let {
                     (it * 1000.0).roundToInt()
                 },
                 "dominantFrequencyMilliHz" to (features.dominantFrequencyHz * 1000.0).roundToInt(),
@@ -277,65 +372,277 @@ class MotionSensorCollector(
         if (!hasActivityPermission()) return
         try {
             activityClient.requestActivityUpdates(1000L, activityIntent)
-        } catch (_: SecurityException) {
+        } catch (error: SecurityException) {
             ActivityRecognitionReceiver.latest = null
+            logLifecycle(
+                event = "STEP_ACTIVITY_RECOGNITION_ERROR",
+                fields = mapOf("reason" to "permission"),
+                throwable = error,
+            )
         }
     }
 
-    private fun stopSensors(emitFinalWindow: Boolean) {
+    private fun stopSensors(emitFinalWindow: Boolean, reason: String) {
+        val registration = lifecycle.stop() ?: return
+        logLifecycle(
+            event = "STEP_COLLECTOR_STOP",
+            fields = mapOf(
+                "reason" to reason,
+                "detectorWasRegistered" to registration.detectorRegistered,
+                "counterWasRegistered" to registration.counterRegistered,
+            ),
+        )
         if (emitFinalWindow) {
             val start = windowStartNs
             if (start != null) emitMotionWindow(start, start + windowNs)
         }
-        sensors.unregisterListener(this)
-        activityClient.removeActivityUpdates(activityIntent)
-        running = false
+        unregisterPlatformListeners(registration, reason)
+        resetMotionState()
+    }
+
+    private fun normalizedCaptureMode(mode: String): String = when (mode) {
+        "dual" -> if (stepDetector != null && stepCounter != null) {
+            "dual"
+        } else if (stepDetector != null) {
+            "detector_only"
+        } else {
+            "counter_only"
+        }
+        "detector", "detector_only" -> if (stepDetector != null) {
+            "detector_only"
+        } else {
+            "counter_only"
+        }
+        else -> "counter_only"
+    }
+
+    private fun registerSensor(
+        sensor: Sensor,
+        trackedSensor: TrackedSensorRegistration,
+        sensorType: String,
+        samplingPeriodUs: Int,
+        reason: String,
+    ) {
+        val runtime = runtimeSnapshot()
+        val result = runCatching {
+            sensors.registerListener(this, sensor, samplingPeriodUs)
+        }
+        val success = result.getOrDefault(false)
+        val outcome = lifecycle.recordRegistration(trackedSensor, success)
+        val errorCode = if (result.isFailure) {
+            "register_listener_exception"
+        } else {
+            outcome.errorCode
+        }
+        val fields = runtimeFields(runtime) + mapOf(
+            "sensorType" to sensorType,
+            "success" to success,
+            "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+            "utcTime" to Instant.now().toString(),
+            "reason" to reason,
+            "errorCode" to errorCode,
+        )
+        if (success) {
+            StepSensorDiagnosticLogger.info("STEP_SENSOR_REGISTER", fields)
+        } else {
+            StepSensorDiagnosticLogger.error(
+                event = "STEP_SENSOR_REGISTER",
+                fields = fields,
+                throwable = result.exceptionOrNull(),
+            )
+        }
+    }
+
+    private fun unregisterPlatformListeners(
+        registration: StepSensorRegistrationSnapshot,
+        reason: String,
+    ) {
+        val runtimeBefore = runtimeSnapshot()
+        val unregisterResult = runCatching { sensors.unregisterListener(this) }
+        val success = unregisterResult.isSuccess
+        if (registration.detectorRegistered) {
+            logUnregister("step_detector", success, reason, runtimeBefore, unregisterResult.exceptionOrNull())
+        }
+        if (registration.counterRegistered) {
+            logUnregister("step_counter", success, reason, runtimeBefore, unregisterResult.exceptionOrNull())
+        }
+        runCatching { activityClient.removeActivityUpdates(activityIntent) }
+            .onFailure { error ->
+                logLifecycle(
+                    event = "STEP_ACTIVITY_RECOGNITION_ERROR",
+                    fields = mapOf("reason" to reason),
+                    throwable = error,
+                )
+            }
+    }
+
+    private fun logUnregister(
+        sensorType: String,
+        success: Boolean,
+        reason: String,
+        runtime: StepSensorRuntimeSnapshot,
+        throwable: Throwable?,
+    ) {
+        val fields = runtimeFields(runtime) + mapOf(
+            "sensorType" to sensorType,
+            "success" to success,
+            "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+            "utcTime" to Instant.now().toString(),
+            "reason" to reason,
+        )
+        if (success) {
+            StepSensorDiagnosticLogger.info("STEP_SENSOR_UNREGISTER", fields)
+        } else {
+            StepSensorDiagnosticLogger.error(
+                event = "STEP_SENSOR_UNREGISTER",
+                fields = fields,
+                throwable = throwable,
+            )
+        }
+    }
+
+    private fun logDetectorCallback(sensorTimestampNs: Long, callbackElapsedNs: Long) {
+        val diagnostic = callbackDiagnostics.detector(sensorTimestampNs, callbackElapsedNs)
+        if (!StepDiagnosticLogSampling.shouldLogRawCallback(
+                diagnostic.rawDetectorCallbackIndex,
+                fullCallbackDiagnostics,
+            )
+        ) {
+            return
+        }
+        val runtime = runtimeSnapshot()
+        StepSensorDiagnosticLogger.info(
+            "STEP_DETECTOR_RAW_CALLBACK",
+            runtimeFields(runtime) + mapOf(
+                "rawDetectorCallbackIndex" to diagnostic.rawDetectorCallbackIndex,
+                "sensorTimestampNs" to diagnostic.sensorTimestampNs,
+                "callbackElapsedRealtimeNs" to diagnostic.callbackElapsedRealtimeNs,
+                "deliveryDelayNs" to diagnostic.deliveryDelayNs,
+                "bootSessionId" to bootSessionId,
+            ),
+        )
+    }
+
+    private fun logCounterCallback(
+        sensorTimestampNs: Long,
+        callbackElapsedNs: Long,
+        total: Long,
+    ) {
+        val diagnostic = callbackDiagnostics.counter(total, sensorTimestampNs, callbackElapsedNs)
+        if (!StepDiagnosticLogSampling.shouldLogRawCallback(
+                diagnostic.rawCounterCallbackIndex,
+                fullCallbackDiagnostics,
+            )
+        ) {
+            return
+        }
+        val runtime = runtimeSnapshot()
+        StepSensorDiagnosticLogger.info(
+            "STEP_COUNTER_RAW_CALLBACK",
+            runtimeFields(runtime) + mapOf(
+                "rawCounterCallbackIndex" to diagnostic.rawCounterCallbackIndex,
+                "counterRawTotal" to diagnostic.counterRawTotal,
+                "sensorTimestampNs" to diagnostic.sensorTimestampNs,
+                "callbackElapsedRealtimeNs" to diagnostic.callbackElapsedRealtimeNs,
+                "deliveryDelayNs" to diagnostic.deliveryDelayNs,
+                "previousCounter" to diagnostic.previousCounter,
+                "derivedDelta" to diagnostic.derivedDelta,
+                "bootSessionId" to bootSessionId,
+            ),
+        )
+    }
+
+    private fun logSensorMetadata(sensorType: String, sensor: Sensor?) {
+        val runtime = runtimeSnapshot()
+        if (sensor == null) {
+            StepSensorDiagnosticLogger.info(
+                "STEP_SENSOR_METADATA",
+                runtimeFields(runtime) + mapOf(
+                    "sensorType" to sensorType,
+                    "available" to false,
+                ),
+            )
+            return
+        }
+        StepSensorDiagnosticLogger.info(
+            "STEP_SENSOR_METADATA",
+            runtimeFields(runtime) + mapOf(
+                "sensorType" to sensorType,
+                "sensorTypeCode" to sensor.type,
+                "available" to true,
+                "sensorName" to sensor.name,
+                "vendor" to sensor.vendor,
+                "version" to sensor.version,
+                "isWakeUpSensor" to api21OrUnsupported { sensor.isWakeUpSensor },
+                "reportingMode" to api21OrUnsupported { reportingMode(sensor.reportingMode) },
+                "fifoMaxEventCount" to api19OrUnsupported { sensor.fifoMaxEventCount },
+                "fifoReservedEventCount" to api19OrUnsupported {
+                    sensor.fifoReservedEventCount
+                },
+                "minDelayUs" to sensor.minDelay,
+                "maxDelayUs" to api21OrUnsupported { sensor.maxDelay },
+                "powerMilliAmp" to sensor.power,
+                "resolution" to sensor.resolution,
+            ),
+        )
+    }
+
+    private fun reportingMode(mode: Int): String = when (mode) {
+        Sensor.REPORTING_MODE_CONTINUOUS -> "continuous($mode)"
+        Sensor.REPORTING_MODE_ON_CHANGE -> "on_change($mode)"
+        Sensor.REPORTING_MODE_ONE_SHOT -> "one_shot($mode)"
+        Sensor.REPORTING_MODE_SPECIAL_TRIGGER -> "special_trigger($mode)"
+        else -> "unknown($mode)"
+    }
+
+    private fun api19OrUnsupported(value: () -> Any): Any =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) value() else "unsupported"
+
+    private fun api21OrUnsupported(value: () -> Any): Any =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) value() else "unsupported"
+
+    private fun resetMotionState() {
         windowStartNs = null
-        lastCounterTotal = null
-        lastCounterTimestampNs = null
         gravityReady = false
         clearWindow()
+    }
+
+    private fun runtimeSnapshot(): StepSensorRuntimeSnapshot =
+        runtimeSnapshotProvider?.invoke() ?: StepSensorRuntimeSnapshot(
+            serviceInstanceId = "standalone",
+            serviceActive = lifecycle.snapshot().running,
+            screenInteractive = (
+                context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            ).isInteractive,
+            wakeLockHeld = false,
+        )
+
+    private fun runtimeFields(runtime: StepSensorRuntimeSnapshot): Map<String, Any?> = mapOf(
+        "serviceInstanceId" to runtime.serviceInstanceId,
+        "collectorInstanceId" to collectorInstanceId,
+        "serviceActive" to runtime.serviceActive,
+        "screenInteractive" to runtime.screenInteractive,
+        "wakeLockHeld" to runtime.wakeLockHeld,
+    )
+
+    private fun logLifecycle(
+        event: String,
+        fields: Map<String, Any?>,
+        throwable: Throwable? = null,
+    ) {
+        val allFields = runtimeFields(runtimeSnapshot()) +
+            mapOf(
+                "elapsedRealtimeNs" to SystemClock.elapsedRealtimeNanos(),
+                "utcTime" to Instant.now().toString(),
+            ) + fields
+        if (throwable == null) {
+            StepSensorDiagnosticLogger.info(event, allFields)
+        } else {
+            StepSensorDiagnosticLogger.error(event, allFields, throwable)
+        }
     }
 
     companion object {
         private const val ACTIVITY_ACTION = "com.example.walkamon_mobile.ACTIVITY_UPDATE"
     }
-}
-
-internal object CounterIntervalMath {
-    data class Interval(
-        val startNs: Long,
-        val endNs: Long,
-        val stepCount: Int,
-    )
-
-    fun intervals(previousTimeNs: Long, timestampNs: Long, stepCount: Int): List<Interval> {
-        if (stepCount <= 0 || timestampNs <= previousTimeNs) return emptyList()
-        val chunks = mutableListOf<Int>()
-        var remaining = stepCount
-        while (remaining > 0) {
-            val chunk = remaining.coerceAtMost(MAX_STEPS_PER_EVENT)
-            chunks += chunk
-            remaining -= chunk
-        }
-        val totalDurationNs = chunks.sumOf(::durationNs)
-        var cursorNs = timestampNs - totalDurationNs
-        return chunks.map { chunk ->
-            val endNs = cursorNs + durationNs(chunk)
-            Interval(cursorNs, endNs, chunk).also { cursorNs = endNs }
-        }
-    }
-
-    fun startNs(previousTimeNs: Long, timestampNs: Long, stepCount: Int): Long {
-        return intervals(previousTimeNs, timestampNs, stepCount)
-            .firstOrNull()
-            ?.startNs
-            ?: timestampNs
-    }
-
-    private fun durationNs(stepCount: Int): Long =
-        (stepCount.coerceAtLeast(1) * 250_000_000L)
-            .coerceIn(1_000_000_000L, 10_000_000_000L)
-
-    private const val MAX_STEPS_PER_EVENT = 40
 }

@@ -9,10 +9,26 @@ class DailyStepDatasource {
 
   final Dio _dio;
 
-  Future<StepSensorSession> createSession(StepSensorMode mode) async {
+  Future<StepSensorSession> createSession(
+    StepSensorMode mode, {
+    int contractVersion = 2,
+    StepCaptureMode? captureMode,
+  }) async {
+    final useV3 = contractVersion >= 3;
     final response = await _dio.post<Map<String, dynamic>>(
       ApiConstants.stepSensorSession,
-      data: {'platformCode': 'android', 'sensorModeCode': mode.code},
+      data: useV3
+          ? {
+              'contractVersion': 3,
+              'platformCode': 'android',
+              'captureMode': (captureMode ?? StepCaptureMode.counterOnly).code,
+              'captureMetadata': {'createdBy': 'flutter'},
+            }
+          : {
+              'contractVersion': 2,
+              'platformCode': 'android',
+              'sensorModeCode': mode.code,
+            },
     );
     return StepSensorSession.fromJson(_data(response.data), mode);
   }
@@ -27,7 +43,7 @@ class DailyStepDatasource {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiConstants.stepSensorBatches(session.id),
       data: {
-        'contractVersion': session.motionPolicy.contractVersion,
+        'contractVersion': session.contractVersion,
         'sequence': session.nextSequence,
         'nonce': session.nonce,
         'payloadHash': payloadHash,
