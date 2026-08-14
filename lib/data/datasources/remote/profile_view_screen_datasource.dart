@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../models/profile_view_response.dart';
 
 class ProfileViewScreenDatasource {
@@ -16,6 +17,14 @@ class ProfileViewScreenDatasource {
       '/api/auth/profile',
       fromJsonT: (json) =>
           ProfileViewResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+
+  Future<ApiResponse<void>> updateTheme(String themeCode) async {
+    return await _apiClient.patch<void>(
+      ApiConstants.profileTheme,
+      data: {'themeCode': themeCode},
     );
   }
 

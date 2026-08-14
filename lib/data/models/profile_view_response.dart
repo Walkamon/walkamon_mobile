@@ -35,7 +35,7 @@ class ProfileViewResponse {
       dob: json['dob'] != null ? DateTime.parse(json['dob']) : null,
       avatarUrl: json['avatarUrl'] ?? '',
       languageCode: json['languageCode'] ?? 'vi-VN',
-      themeCode: json['themeCode'] ?? 'dark',
+      themeCode: (json['themeCode'] ?? 'light').toString().toLowerCase(),
       hasSeenStory: json['hasSeenStory'] ?? false,
       notificationsEnabled: json['notificationsEnabled'] ?? true,
       createdAt: json['createdAt'] as String? ?? '',

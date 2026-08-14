@@ -198,10 +198,15 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       useSafeArea: true,
       builder: (sheetContext) {
         final l10n = AppLocalizations.of(sheetContext);
-        final cardColor = AppColors.authCard.withValues(alpha: 0.98);
-        const primary = AppColors.buttonGreen;
-        const borderColor = AppColors.wood;
-        const mutedForeground = AppColors.outlineBrown;
+        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+        final cardColor = isDark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.98);
+        final primary = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
+        final borderColor = isDark ? AppColors.darkBorder : AppColors.wood;
+        final mutedForeground = isDark
+            ? AppColors.darkMutedForeground
+            : AppColors.outlineBrown;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -371,12 +376,17 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = AppColors.authCard.withValues(alpha: 0.97);
-    const primary = AppColors.buttonGreen;
-    const muted = AppColors.parchment;
-    const mutedForeground = AppColors.outlineBrown;
-    const borderColor = AppColors.wood;
-    const foreground = AppColors.woodDeep;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? AppColors.darkCard
+        : AppColors.authCard.withValues(alpha: 0.97);
+    final primary = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
+    final muted = isDark ? AppColors.darkMuted : AppColors.parchment;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.wood;
+    final foreground = isDark ? AppColors.darkForeground : AppColors.woodDeep;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -770,10 +780,10 @@ class _PresetGoalButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.buttonGreen : cardColor,
+          color: selected ? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkPrimary : AppColors.buttonGreen) : cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.woodDeep : borderColor,
+            color: selected ? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkBorder : AppColors.woodDeep) : borderColor,
             width: selected ? 2 : 1.5,
           ),
         ),
@@ -839,6 +849,7 @@ class _StreakRewardCard extends StatelessWidget {
     final reward = currentStreak * 10;
     final canClaim = currentStreak > 0;
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -953,10 +964,13 @@ class _StreakRewardCard extends StatelessWidget {
                 ),
               ),
               Material(
-                color: AppColors.buttonGreen,
+                color: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
-                  side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                    width: 2,
+                  ),
                 ),
                 child: InkWell(
                   onTap: canClaim && !isClaiming ? onClaim : null,
@@ -985,12 +999,14 @@ class _StreakRewardCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           if (isClaiming) ...[
-                            const SizedBox(
+                            SizedBox(
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: AppColors.buttonText,
+                                color: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.buttonText,
                               ),
                             ),
                             const SizedBox(width: 7),
@@ -1000,8 +1016,12 @@ class _StreakRewardCard extends StatelessWidget {
                                 ? l10n.stepGoalClaiming
                                 : l10n.missionsClaim,
                             fontSize: 14,
-                            color: AppColors.buttonText,
-                            outlineColor: AppColors.woodDeep,
+                            color: isDark
+                                ? AppColors.darkForeground
+                                : AppColors.buttonText,
+                            outlineColor: isDark
+                                ? AppColors.darkTextOutline
+                                : AppColors.woodDeep,
                             outlineWidth: 2.4,
                           ),
                           const SizedBox(width: 6),

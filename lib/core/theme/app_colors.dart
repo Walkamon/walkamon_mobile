@@ -74,21 +74,34 @@ abstract final class AppColors {
   static const lightIconButtonBackground = authCard;
 
   // Dark mode — muted version of the same garden palette
-  static const darkBackground = Color(0xFF2F2921);
-  static const darkForeground = creamLight;
-  static const darkCard = Color(0xFF493D30);
-  static const darkPrimary = leafBright;
-  static const darkPrimaryForeground = Color(0xFF27301D);
-  static const darkAccent = gold;
-  static const darkMuted = Color(0xFF574938);
-  static const darkMutedForeground = Color(0xFFD8C59D);
-  static const darkBorder = outlineBrown;
+  static const darkBackground = Color(0xFF0B081A);
+  static const darkForeground = Color(0xFFFFF5FA);
+  static const darkTextOutline = Color(0xFF342B50);
+  static const darkCard = Color(0xFF665B8F);
+  // Raised surface for child cards inside dark panels.
+  static const darkNestedCard = Color(0xFF8279A8);
+  // Dark interactive/tab surface: purple-lavender, matching the profile cards.
+  static const darkPrimary = Color(0xFF7A6EA3);
+  static const darkPrimaryForeground = Color(0xFFFFF5FA);
+  static const darkAccent = Color(0xFFEF5DA8);
+  static const darkMuted = Color(0xFF777B9D);
+  static const darkMutedForeground = Color(0xFFA5B4FC);
+  // Dark-theme outlines use the soft ivory/lavender edge from the reference
+  // instead of the warm gold used by the light theme.
+  // Pastel-gold highlight used for primary dark-theme card/button outlines.
+  static const darkBorder = Color(0xFFF3D98B);
+  // Warm wood outline for cards nested inside a larger panel.
+  static const darkCardBorder = woodDeep;
+  // Subtle frame for icon containers nested inside cards.
+  // Icon tiles should recede into the dark card instead of competing with
+  // the bright outer card border.
+  static const darkIconBorder = Color(0xFF4B476A);
   static const darkLuminaGlow = leafBright;
-  static const darkLife = amber;
-  static const darkBond = leaf;
-  static const darkDew = aqua;
-  static const darkNavigation = Color(0xFF473C30);
-  static const darkNavigationActive = Color(0xFF62533F);
-  static const darkNavigationIcon = creamDeep;
-  static const darkIconButtonBackground = Color(0xFF584938);
+  static const darkLife = Color(0xFFFBBF24);
+  static const darkBond = Color(0xFFEF5DA8);
+  static const darkDew = Color(0xFF38BDF8);
+  static const darkNavigation = Color(0xFF665B8F);
+  static const darkNavigationActive = Color(0xFF7A6EA3);
+  static const darkNavigationIcon = Color(0xFFFFF5FA);
+  static const darkIconButtonBackground = Color(0xFF312858);
 }

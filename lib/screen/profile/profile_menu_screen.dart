@@ -69,6 +69,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
+    final cardColor = isDark ? AppColors.darkNestedCard : AppColors.authCard;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
     final l10n = AppLocalizations.of(context);
     // ── Lấy trực tiếp màu nền Scaffold tối từ hệ thống Theme ──
     final backgroundColor = theme.scaffoldBackgroundColor;
@@ -115,9 +120,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.leafLight.withValues(alpha: 0.96),
+                    color: panelColor.withValues(alpha: 0.96),
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: AppColors.oliveDeep, width: 2),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.woodDeep.withValues(alpha: 0.22),
@@ -129,9 +137,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
-                        color: AppColors.authCard.withValues(alpha: 0.97),
+                        color: cardColor.withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(21),
-                        border: Border.all(color: AppColors.wood, width: 1.5),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                          width: 1.5,
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -148,10 +159,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                               height: 88,
                               margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
-                                color: AppColors.leafLight,
+                                color: isDark ? AppColors.darkMuted : AppColors.leafLight,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.woodDeep,
+                              color: textColor,
                                   width: 3,
                                 ),
                                 boxShadow: [
@@ -189,7 +200,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                       style: TextStyle(
                                         fontSize: 32,
                                         fontWeight: FontWeight.w900,
-                                        color: AppColors.woodDeep,
+                                      color: textColor,
                                       ),
                                     ),
                             ),
@@ -199,10 +210,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                               (user?.name.isNotEmpty ?? false)
                                   ? user!.name
                                   : l10n.loading,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.woodDeep,
+                                color: textColor,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -211,7 +222,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.outlineBrown,
+                                color: mutedColor,
                               ),
                             ),
                           ],
@@ -227,17 +238,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     child: GameButtonLabel(
                       l10n.managementStats,
                       fontSize: 16,
-                      color: AppColors.woodDeep,
-                      outlineColor: AppColors.authCard,
+                      color: textColor,
+                      outlineColor: cardColor,
                       outlineWidth: 3.5,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.leafLight.withValues(alpha: 0.94),
+                      color: panelColor.withValues(alpha: 0.94),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.oliveDeep, width: 2),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.woodDeep.withValues(alpha: 0.18),
@@ -289,17 +303,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     child: GameButtonLabel(
                       l10n.achievements,
                       fontSize: 16,
-                      color: AppColors.woodDeep,
-                      outlineColor: AppColors.authCard,
+                      color: textColor,
+                      outlineColor: cardColor,
                       outlineWidth: 3.5,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.leafLight.withValues(alpha: 0.94),
+                      color: panelColor.withValues(alpha: 0.94),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.oliveDeep, width: 2),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        width: 2,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.woodDeep.withValues(alpha: 0.18),
@@ -371,17 +388,23 @@ class _MenuItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const mutedColor = AppColors.outlineBrown;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Material(
-        color: AppColors.authCard.withValues(alpha: 0.96),
+        color: cardColor.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(17),
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: AppColors.wood, width: 1.35),
+            border: Border.all(
+                          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+              width: 1.35,
+            ),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(17),
@@ -394,9 +417,14 @@ class _MenuItemRow extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.creamLight,
+                      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.wood, width: 1.4),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkIconBorder
+                            : AppColors.wood,
+                        width: 1.0,
+                      ),
                     ),
                     child: AppIcon(
                       icon,
@@ -413,17 +441,17 @@ class _MenuItemRow extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.woodDeep,
+                            color: textColor,
                           ),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 3),
                           Text(
                             subtitle!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: mutedColor,
@@ -433,10 +461,10 @@ class _MenuItemRow extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const AppIcon(
+                  AppIcon(
                     Icons.chevron_right_rounded,
                     size: 24,
-                    color: AppColors.woodDeep,
+                    color: textColor,
                   ),
                 ],
               ),

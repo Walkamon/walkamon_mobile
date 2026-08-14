@@ -33,16 +33,22 @@ Widget _assetIcon(String path, {double size = 20, Color? color}) {
   );
 }
 
-String _homeBackgroundForAffinity(String affinityCode) {
+String _homeBackgroundForAffinity(String affinityCode, {required bool isDark}) {
   switch (affinityCode.trim().toLowerCase()) {
+    case 'sprout':
+    case 'mam_non':
+      return isDark ? AppAssets.homeSproutDark : AppAssets.homeSprout;
     case 'dawn':
-      return AppAssets.homeDawn;
+    case 'binh_minh':
+      return isDark ? AppAssets.homeDawnDark : AppAssets.homeDawn;
     case 'warm_sun':
-      return AppAssets.homeWarmSun;
+    case 'nang_am':
+      return isDark ? AppAssets.homeWarmSunDark : AppAssets.homeWarmSun;
     case 'moonlight':
-      return AppAssets.homeMoonlight;
+    case 'anh_trang':
+      return isDark ? AppAssets.homeMoonlight : AppAssets.homeMoonlightLight;
     default:
-      return AppAssets.homeSprout;
+      return isDark ? AppAssets.homeSproutDark : AppAssets.homeSprout;
   }
 }
 
@@ -70,17 +76,21 @@ class _StatBar extends StatelessWidget {
   const _StatBar({
     required this.label,
     required this.value,
+    required this.maximum,
     required this.barColor,
   });
 
   final String label;
   final int value;
+  final int maximum;
   final Color barColor;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final safeValue = value.clamp(0, 100);
+    final safeMaximum = maximum <= 0 ? 1 : maximum;
+    final safeValue = value.clamp(0, safeMaximum);
+    final progress = (safeValue / safeMaximum).clamp(0.0, 1.0);
     final mutedFg = isDark
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
@@ -89,27 +99,29 @@ class _StatBar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 24,
+          // Keep the compact Home bars proportional to the full Spirit Detail
+          // bars: 17px track, 29px leaf and centered value text.
+          height: 30,
           child: Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
               Positioned(
                 left: 0,
-                right: 7,
+                right: 14,
                 child: Container(
-                  height: 12,
+                  height: 17,
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkMuted : AppColors.creamLight,
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
                       color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-                      width: 1,
+                      width: 1.5,
                     ),
                   ),
                   child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: safeValue / 100.0),
+                    tween: Tween<double>(begin: 0, end: progress),
                     duration: const Duration(milliseconds: 700),
                     curve: Curves.easeOutCubic,
                     builder: (context, animatedValue, child) => Align(
@@ -129,14 +141,16 @@ class _StatBar extends StatelessWidget {
                 ),
               ),
               Positioned.fill(
-                right: 7,
+                right: 14,
                 child: Center(
                   child: Text(
-                    '$safeValue/100',
-                    style: const TextStyle(
-                      fontSize: 8,
+                    '$safeValue/$safeMaximum',
+                    style: TextStyle(
+                      fontSize: 9,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.inkDark,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.inkDark,
                       height: 1,
                     ),
                   ),
@@ -145,20 +159,20 @@ class _StatBar extends StatelessWidget {
               const Positioned(
                 right: -2,
                 child: CustomPaint(
-                  size: Size(22, 22),
+                  size: Size(29, 29),
                   painter: _HomeProgressLeafPainter(),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 1),
         Text(
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 8,
+            fontSize: 9,
             fontWeight: FontWeight.w800,
             color: mutedFg,
           ),
@@ -581,8 +595,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final int spiritExp = gameState.spiritExp;
     final int spiritEnergy = gameState.spiritEnergy;
     final int spiritHealth = gameState.spiritHealth;
+    final int spiritExpMax = gameState.spiritExpMax;
+    final int spiritExpMaxSafe = spiritExpMax <= 0 ? 1 : spiritExpMax;
     final String spiritName = gameState.spiritName;
-    final homeBg = _homeBackgroundForAffinity(gameState.affinityCode);
+    final homeBg = _homeBackgroundForAffinity(
+      gameState.affinityCode,
+      isDark: isDark,
+    );
     final viewport = MediaQuery.sizeOf(context);
     final petScale = _responsivePetScale(viewport);
     final petVerticalOffset = _responsivePetVerticalOffset(
@@ -1041,7 +1060,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isDark
-                                          ? AppColors.darkBorder
+                                          ? AppColors.darkIconBorder
                                           : AppColors.lightBorder,
                                       width: 2,
                                     ),
@@ -1281,7 +1300,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   right: 0,
                                                   top: 7,
                                                   child: Container(
-                                                    height: 15,
+                                                    height: 17,
                                                     clipBehavior:
                                                         Clip.antiAlias,
                                                     decoration: BoxDecoration(
@@ -1312,7 +1331,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           child: FractionallySizedBox(
                                                             widthFactor:
                                                                 (spiritExp /
-                                                                        100)
+                                                                        spiritExpMaxSafe)
                                                                     .clamp(
                                                                       0.0,
                                                                       1.0,
@@ -1335,7 +1354,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           ),
                                                         ),
                                                         Text(
-                                                          '${spiritExp.clamp(0, 100)}/100',
+                                                          '${spiritExp.clamp(0, spiritExpMaxSafe)}/$spiritExpMaxSafe',
                                                           style:
                                                               const TextStyle(
                                                                 fontSize: 8,
@@ -1398,6 +1417,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 child: _StatBar(
                                                   label: l10n.energy,
                                                   value: spiritEnergy,
+                                                  maximum:
+                                                      gameState.spiritEnergyMax,
                                                   barColor: energyColor,
                                                 ),
                                               ),
@@ -1406,6 +1427,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 child: _StatBar(
                                                   label: l10n.lifeForce,
                                                   value: spiritHealth,
+                                                  maximum:
+                                                      gameState.spiritHealthMax,
                                                   barColor:
                                                       AppColors.buttonYellow,
                                                 ),
@@ -1415,6 +1438,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 child: _StatBar(
                                                   label: l10n.bonding,
                                                   value: bondingLevel,
+                                                  maximum: gameState.bondingMax,
                                                   barColor: AppColors.leaf,
                                                 ),
                                               ),
@@ -1456,8 +1480,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         : const Color(0xFFA1D4B1),
                                     border: Border.all(
                                       color: _isFeedButtonPressed
-                                          ? AppColors.woodDeep
-                                          : AppColors.sky,
+                                          ? (isDark ? AppColors.darkCardBorder : AppColors.woodDeep)
+                                          : (isDark ? AppColors.darkBorder : AppColors.sky),
                                       width: 2.5,
                                     ),
                                     boxShadow: _isFeedButtonPressed

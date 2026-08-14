@@ -113,6 +113,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       context: context,
       barrierColor: Colors.black45,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 18,
@@ -126,13 +127,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               maxHeight: MediaQuery.sizeOf(context).height * 0.78,
             ),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(38, 34, 38, 52),
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 32),
               decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.authCard,
                 borderRadius: BorderRadius.circular(28),
-                image: const DecorationImage(
-                  image: AssetImage(AppAssets.notificationModalFrame),
-                  fit: BoxFit.fill,
-                  filterQuality: FilterQuality.medium,
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.wood,
+                  width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -148,22 +149,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-
                       GameButtonLabel(
                         item.title,
                         fontSize: 21,
-                        color: AppColors.woodDeep,
-                        outlineColor: AppColors.creamLight,
+                        color: isDark
+                            ? AppColors.darkForeground
+                            : AppColors.woodDeep,
+                        outlineColor: isDark
+                            ? AppColors.darkTextOutline
+                            : AppColors.creamLight,
                         outlineWidth: 3,
                         maxLines: 2,
                       ),
                       const SizedBox(height: 6),
                       Text(
                         _formatTimeAgo(item.createdAt),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.outlineBrown,
+                          color: isDark
+                              ? AppColors.darkMutedForeground
+                              : AppColors.outlineBrown,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -182,8 +188,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               context,
                             ).notificationsDetailError,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: AppColors.inkBrown,
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppColors.darkForeground
+                                  : AppColors.inkBrown,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -215,9 +223,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.leafLight.withValues(
-                                        alpha: 0.5,
-                                      ),
+                                      color: isDark
+                                          ? AppColors.darkPrimary.withValues(
+                                              alpha: 0.7,
+                                            )
+                                          : AppColors.leafLight.withValues(
+                                              alpha: 0.5,
+                                            ),
                                       borderRadius: BorderRadius.circular(999),
                                       border: Border.all(
                                         color: AppColors.wood.withValues(
@@ -229,23 +241,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       _translateTypeCode(
                                         snapshot.data!.typeCode,
                                       ),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w800,
-                                        color: AppColors.oliveDeep,
+                                        color: isDark
+                                            ? AppColors.darkForeground
+                                            : AppColors.oliveDeep,
                                       ),
                                     ),
                                   ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 12),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    4,
+                                    2,
+                                    4,
+                                    12,
+                                  ),
                                   child: SizedBox(
                                     width: double.infinity,
                                     child: Text(
                                       snapshot.data!.body,
                                       textAlign: TextAlign.left,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 14,
-                                        color: AppColors.inkBrown,
+                                        color: isDark
+                                            ? AppColors.darkForeground
+                                            : AppColors.inkBrown,
                                         fontWeight: FontWeight.w600,
                                         height: 1.55,
                                       ),
@@ -418,6 +439,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -433,7 +455,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               backgroundColor: theme.cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: theme.dividerColor),
+                side: BorderSide(
+                  color: isDark ? AppColors.darkBorder : theme.dividerColor,
+                ),
               ),
             ),
             onPressed: () => Navigator.of(context).pop(),
@@ -470,12 +494,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: item.isRead
+                    color: isDark
+                        ? AppColors.darkNestedCard.withValues(
+                            alpha: item.isRead ? 0.72 : 0.9,
+                          )
+                        : item.isRead
                         ? AppColors.authCard.withValues(alpha: 0.82)
                         : AppColors.authCard.withValues(alpha: 0.96),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: item.isRead
+                      color: isDark
+                          ? AppColors.darkCardBorder.withValues(
+                              alpha: item.isRead ? 0.55 : 0.95,
+                            )
+                          : item.isRead
                           ? AppColors.wood.withValues(alpha: 0.65)
                           : AppColors.oliveDeep,
                       width: item.isRead ? 1.5 : 2,
@@ -508,14 +540,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     height: 48,
                                     padding: const EdgeInsets.all(7),
                                     decoration: BoxDecoration(
-                                      color: AppColors.leafLight.withValues(
-                                        alpha: 0.48,
-                                      ),
+                                      color: isDark
+                                          ? AppColors.darkMuted
+                                          : AppColors.leafLight.withValues(
+                                              alpha: 0.48,
+                                            ),
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: AppColors.wood.withValues(
-                                          alpha: 0.55,
-                                        ),
+                                        color: isDark
+                                            ? AppColors.darkBorder.withValues(
+                                                alpha: 0.35,
+                                              )
+                                            : AppColors.wood.withValues(
+                                                alpha: 0.55,
+                                              ),
                                       ),
                                     ),
                                     child: AppIcon(
@@ -524,7 +562,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         item.typeCode,
                                       ),
                                       size: 34,
-                                      color: item.isRead
+                                      color: isDark
+                                          ? AppColors.darkForeground
+                                          : item.isRead
                                           ? AppColors.outlineBrown
                                           : AppColors.oliveDeep,
                                     ),
@@ -556,7 +596,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
-                                      color: item.isRead
+                                      color: isDark
+                                          ? AppColors.darkForeground
+                                          : item.isRead
                                           ? AppColors.outlineBrown
                                           : AppColors.inkDark,
                                     ),
@@ -570,7 +612,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       fontSize: 13,
                                       height: 1.4,
                                       fontWeight: FontWeight.w600,
-                                      color: item.isRead
+                                      color: isDark
+                                          ? AppColors.darkForeground
+                                          : item.isRead
                                           ? AppColors.outlineBrown
                                           : AppColors.inkBrown,
                                     ),
@@ -578,10 +622,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   const SizedBox(height: 6),
                                   Text(
                                     _formatTimeAgo(item.createdAt),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.outlineBrown,
+                                      color: isDark
+                                          ? AppColors.darkMutedForeground
+                                          : AppColors.outlineBrown,
                                     ),
                                   ),
                                 ],
@@ -604,10 +650,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 height: 40,
                               ),
                               padding: EdgeInsets.zero,
-                              icon: const AppIcon(
+                              icon: AppIcon(
                                 Icons.delete_outline,
                                 size: 26,
-                                color: AppColors.woodDeep,
+                                color: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.woodDeep,
                               ),
                             ),
                           ],

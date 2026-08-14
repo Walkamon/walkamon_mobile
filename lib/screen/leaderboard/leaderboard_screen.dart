@@ -125,6 +125,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     final sortedUsers = _sortedUsers;
 
     return Padding(
@@ -181,7 +184,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           margin: const EdgeInsets.only(top: 16),
                           padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
                           decoration: BoxDecoration(
-                            color: AppColors.leafLight.withValues(alpha: 0.96),
+                            color: panelColor.withValues(alpha: 0.96),
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: AppColors.woodDeep,
@@ -260,6 +263,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildCompactPeriodSelector(AppLocalizations l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.inkBrown;
+    final activeColor = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
     final frames = [
       ('daily', l10n.leaderboardToday),
       ('weekly', l10n.leaderboardThisWeek),
@@ -270,7 +277,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       height: 34,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.9),
+        color: cardColor.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.wood, width: 1.4),
       ),
@@ -289,10 +296,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 duration: const Duration(milliseconds: 180),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: active ? AppColors.buttonGreen : Colors.transparent,
+                  color: active ? activeColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(9),
                   border: Border.all(
-                    color: active ? AppColors.woodDeep : Colors.transparent,
+                    color: active ? (isDark ? AppColors.darkBorder : AppColors.woodDeep) : Colors.transparent,
                     width: 1.2,
                   ),
                 ),
@@ -306,8 +313,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         frame.$2,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.inkBrown,
+                        style: TextStyle(
+                          color: textColor,
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                         ),
@@ -338,13 +345,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             width: 50,
             child: Text(
               isVietnamese ? 'Hạng' : 'Rank',
-              style: _tableHeaderStyle,
+              style: _tableHeaderStyle(context),
             ),
           ),
           Expanded(
             child: Text(
               isVietnamese ? 'Người chơi' : 'Player',
-              style: _tableHeaderStyle,
+              style: _tableHeaderStyle(context),
             ),
           ),
           SizedBox(
@@ -352,7 +359,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: Text(
               isVietnamese ? 'Điểm số' : 'Score',
               textAlign: TextAlign.right,
-              style: _tableHeaderStyle,
+              style: _tableHeaderStyle(context),
             ),
           ),
         ],
@@ -360,13 +367,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  TextStyle get _tableHeaderStyle => const TextStyle(
-    color: AppColors.inkBrown,
+  TextStyle _tableHeaderStyle(BuildContext context) => TextStyle(
+    color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.inkBrown,
     fontSize: 11,
     fontWeight: FontWeight.w900,
   );
 
   Widget _buildMetricDropdown(AppLocalizations l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.inkBrown;
     final selectedLabel = _metric == 'steps'
         ? l10n.leaderboardSteps
         : l10n.leaderboardLevel;
@@ -381,7 +390,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               initialValue: _metric,
               position: PopupMenuPosition.under,
               offset: const Offset(0, 6),
-              color: AppColors.authCard,
+              color: isDark ? AppColors.darkCard : AppColors.authCard,
               surfaceTintColor: Colors.transparent,
               elevation: 7,
               constraints: BoxConstraints.tightFor(width: constraints.maxWidth),
@@ -411,7 +420,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.creamLight,
+                  color: isDark ? AppColors.darkMuted : AppColors.creamLight,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AppColors.wood, width: 1.8),
                 ),
@@ -421,9 +430,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       child: Text(
                         selectedLabel,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.inkBrown,
+                          color: textColor,
                           fontSize: 13.5,
                         ),
                       ),
@@ -449,6 +458,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     required String label,
     required bool selected,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopupMenuItem<String>(
       value: value,
       height: 50,
@@ -458,8 +468,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 11),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.leafLight
-              : AppColors.creamLight.withValues(alpha: 0.72),
+              ? (isDark ? AppColors.darkPrimary : AppColors.leafLight)
+              : (isDark ? AppColors.darkMuted : AppColors.creamLight.withValues(alpha: 0.72)),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: selected ? AppColors.oliveDeep : AppColors.creamDeep,
@@ -472,18 +482,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               child: Text(
                 label,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.woodDeep,
+                style: TextStyle(
+                  color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
             if (selected)
-              const AppIcon(
+              AppIcon(
                 Icons.check_rounded,
                 size: 22,
-                color: AppColors.oliveDeep,
+                color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
               ),
           ],
         ),

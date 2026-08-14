@@ -13,6 +13,7 @@ import '../../providers/step_tracking_provider.dart';
 import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
+import '../../widgets/common/game_notification_dialog.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -121,6 +122,9 @@ class _SettingScreenState extends State<SettingScreen> {
     final l10n = AppLocalizations.of(context);
     final isVi = LocaleHelper.isVietnamese(gameState.settings.languageCode);
     final languageLabel = isVi ? l10n.languageVi : l10n.languageEn;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final outlineColor = isDark ? AppColors.darkBorder : AppColors.authCard;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -147,8 +151,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         GameButtonLabel(
                           l10n.gameSettings,
                           fontSize: 20,
-                          color: AppColors.woodDeep,
-                          outlineColor: AppColors.authCard,
+                          color: textColor,
+                          outlineColor: outlineColor,
                           outlineWidth: 4,
                         ),
                         const SizedBox(width: GameBackButton.buttonSize),
@@ -159,8 +163,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     GameButtonLabel(
                       l10n.system,
                       fontSize: 17,
-                      color: AppColors.woodDeep,
-                      outlineColor: AppColors.authCard,
+                      color: textColor,
+                      outlineColor: outlineColor,
                       outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
@@ -186,16 +190,35 @@ class _SettingScreenState extends State<SettingScreen> {
                                 .read<GameStateProvider>()
                                 .updateSettings(soundEnabled: value),
                           ),
+                          _ThemeModeSetting(
+                            value: gameState.settings.themeCode,
+                            onChanged: (value) {
+                              if (value != null) context.read<GameStateProvider>().setThemeCode(value);
+                            },
+                          ),
                           _SettingsSwitch(
                             label: l10n.notificationsRemind,
                             subtitle: l10n.notificationsSubtitle,
                             icon: Icons.notifications_none_rounded,
                             value: gameState.settings.notifications,
                             enabled: !gameState.isUpdatingNotifications,
-                            onChanged: (newValue) {
-                              context
+                            onChanged: (newValue) async {
+                              final enabled = await context
                                   .read<GameStateProvider>()
                                   .setNotificationsEnabled(newValue);
+                              if (!enabled && newValue && mounted) {
+                                final isVietnamese =
+                                    Localizations.localeOf(context)
+                                        .languageCode ==
+                                    'vi';
+                                showGameNotificationDialog(
+                                  context,
+                                  isSuccess: false,
+                                  message: isVietnamese
+                                      ? 'Trình duyệt đang chặn thông báo. Hãy mở cài đặt cạnh địa chỉ trang và cho phép Thông báo, rồi bật lại công tắc.'
+                                      : 'Notifications are blocked by the browser. Open the site settings beside the address bar, allow Notifications, then turn the switch on again.',
+                                );
+                              }
                             },
                           ),
                         ],
@@ -207,8 +230,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     GameButtonLabel(
                       l10n.featuresSupport,
                       fontSize: 17,
-                      color: AppColors.woodDeep,
-                      outlineColor: AppColors.authCard,
+                      color: textColor,
+                      outlineColor: outlineColor,
                       outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
@@ -222,10 +245,10 @@ class _SettingScreenState extends State<SettingScreen> {
                             onPressed: _toggleLanguage,
                             trailing: Text(
                               languageLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.oliveDeep,
+                                color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
                               ),
                             ),
                           ),
@@ -246,8 +269,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     GameButtonLabel(
                       l10n.accountSecurity,
                       fontSize: 17,
-                      color: AppColors.woodDeep,
-                      outlineColor: AppColors.authCard,
+                      color: textColor,
+                      outlineColor: outlineColor,
                       outlineWidth: 3.5,
                     ),
                     const SizedBox(height: 18),
@@ -289,6 +312,9 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Widget _buildFeedbackPopup(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
 
     return Positioned.fill(
       child: GestureDetector(
@@ -306,9 +332,12 @@ class _SettingScreenState extends State<SettingScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.authCard,
+                  color: isDark ? AppColors.darkCard : AppColors.authCard,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: AppColors.wood, width: 2),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.wood,
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.woodDeep.withValues(alpha: 0.28),
@@ -355,7 +384,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                   GameButtonLabel(
                                     l10n.feedbackTitle,
                                     fontSize: 17,
-                                    color: AppColors.woodDeep,
+                                    color: textColor,
                                     outlineColor: AppColors.creamLight,
                                     outlineWidth: 2.5,
                                   ),
@@ -397,8 +426,8 @@ class _SettingScreenState extends State<SettingScreen> {
                               const SizedBox(height: 18),
                               Text(
                                 l10n.feedbackDetail,
-                                style: const TextStyle(
-                                  color: AppColors.woodDeep,
+                                style: TextStyle(
+                                  color: textColor,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.4,
@@ -416,12 +445,12 @@ class _SettingScreenState extends State<SettingScreen> {
                                   hintText: _feedbackType == 'suggestion'
                                       ? l10n.feedbackHintSuggestion
                                       : l10n.feedbackHintBug,
-                                  hintStyle: const TextStyle(
-                                    color: AppColors.outlineBrown,
+                                  hintStyle: TextStyle(
+                                    color: mutedColor,
                                     fontSize: 14,
                                   ),
                                   filled: true,
-                                  fillColor: AppColors.creamLight,
+                                  fillColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
                                   suffixIcon: const Padding(
                                     padding: EdgeInsets.only(
                                       right: 10,
@@ -521,6 +550,7 @@ class _FeedbackTypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -551,6 +581,74 @@ class _FeedbackTypeButton extends StatelessWidget {
   }
 }
 
+class _ThemeModeSetting extends StatelessWidget {
+  const _ThemeModeSetting({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep;
+    final isDark = value == 'dark';
+    final appDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: appDark ? AppColors.darkNestedCard : AppColors.authCard,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(
+          color: appDark ? AppColors.darkCardBorder : AppColors.wood,
+          width: 1.35,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: appDark ? AppColors.darkMuted : AppColors.creamLight,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: appDark ? AppColors.darkIconBorder : AppColors.wood,
+                width: 1.3,
+              ),
+            ),
+            child: Image.asset(
+              isDark ? AppAssets.iconMoon : AppAssets.iconSun,
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).darkMode,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: appDark ? AppColors.darkForeground : AppColors.woodDeep,
+              ),
+            ),
+          ),
+          Switch(
+            value: isDark,
+            onChanged: (enabled) => onChanged(enabled ? 'dark' : 'light'),
+            activeThumbColor: appDark ? AppColors.darkForeground : AppColors.authCard,
+            activeTrackColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
+            inactiveThumbColor: appDark ? AppColors.darkForeground : AppColors.authCard,
+            inactiveTrackColor: AppColors.creamDeep,
+            trackOutlineColor: WidgetStatePropertyAll(
+              appDark ? AppColors.darkBorder : AppColors.woodDeep,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 class _SettingsPanel extends StatelessWidget {
   const _SettingsPanel({required this.child});
 
@@ -558,12 +656,16 @@ class _SettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: AppColors.leafLight.withValues(alpha: 0.95),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.oliveDeep, width: 2),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.woodDeep.withValues(alpha: 0.18),
@@ -605,6 +707,12 @@ class _SettingsButtonState extends State<_SettingsButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final warningColor = isDark ? AppColors.blossom : AppColors.danger;
+    final buttonBackground = isDark
+        ? AppColors.darkNestedCard
+        : AppColors.authCard.withValues(alpha: 0.97);
     return GestureDetector(
       onTapDown: widget.isLoading
           ? null
@@ -621,9 +729,12 @@ class _SettingsButtonState extends State<_SettingsButton> {
           margin: const EdgeInsets.symmetric(vertical: 3),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.97),
+            color: buttonBackground,
             borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: AppColors.wood, width: 1.35),
+            border: Border.all(
+              color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+              width: 1.35,
+            ),
           ),
           child: Row(
             children: [
@@ -631,16 +742,21 @@ class _SettingsButtonState extends State<_SettingsButton> {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: AppColors.creamLight,
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.creamLight,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.wood, width: 1.3),
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.darkIconBorder
+                        : AppColors.wood,
+                    width: 1.0,
+                  ),
                 ),
                 child: AppIcon(
                   widget.icon,
                   size: 25,
-                  color: widget.isWarning
-                      ? AppColors.danger
-                      : AppColors.woodDeep,
+                        color: widget.isWarning
+                        ? warningColor
+                        : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep),
                 ),
               ),
               const SizedBox(width: 14),
@@ -650,9 +766,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: widget.isWarning
-                        ? AppColors.danger
-                        : AppColors.woodDeep,
+                    color: widget.isWarning ? warningColor : textColor,
                   ),
                 ),
               ),
@@ -673,7 +787,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
                 AppIcon(
                   Icons.chevron_right_rounded,
                   size: 24,
-                  color: AppColors.woodDeep,
+                  color: textColor,
                 ),
             ],
           ),
@@ -704,13 +818,19 @@ class _SettingsSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: AppColors.wood, width: 1.35),
+        border: Border.all(
+          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+          width: 1.35,
+        ),
       ),
       child: Row(
         children: [
@@ -718,13 +838,18 @@ class _SettingsSwitch extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
+              color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.creamLight,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.wood, width: 1.3),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkIconBorder
+                    : AppColors.wood,
+                width: 1.0,
+              ),
             ),
             child: asset != null
                 ? Image.asset(asset!, width: 30, height: 30)
-                : AppIcon(icon, size: 25, color: AppColors.woodDeep),
+                : AppIcon(icon, size: 25, color: textColor),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -733,10 +858,10 @@ class _SettingsSwitch extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.woodDeep,
+                    color: textColor,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
@@ -746,7 +871,7 @@ class _SettingsSwitch extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.outlineBrown.withValues(alpha: 0.9),
+                      color: mutedColor.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -756,11 +881,11 @@ class _SettingsSwitch extends StatelessWidget {
           Switch(
             value: value,
             onChanged: enabled ? onChanged : null,
-            activeThumbColor: AppColors.authCard,
-            activeTrackColor: AppColors.buttonGreen,
-            inactiveThumbColor: AppColors.authCard,
-            inactiveTrackColor: AppColors.creamDeep,
-            trackOutlineColor: const WidgetStatePropertyAll(AppColors.woodDeep),
+            activeThumbColor: isDark ? AppColors.darkForeground : AppColors.authCard,
+            activeTrackColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
+            inactiveThumbColor: isDark ? AppColors.darkForeground : AppColors.authCard,
+            inactiveTrackColor: isDark ? AppColors.darkMuted : AppColors.creamDeep,
+            trackOutlineColor: WidgetStatePropertyAll(isDark ? AppColors.darkBorder : AppColors.woodDeep),
           ),
         ],
       ),

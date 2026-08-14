@@ -153,8 +153,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                           child: GameButtonLabel(
                             l10n.achievementVault,
                             fontSize: 20,
-                            color: AppColors.woodDeep,
-                            outlineColor: AppColors.authCard,
+                            color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                            outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                             outlineWidth: 4,
                           ),
                         ),
@@ -171,20 +171,20 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: AppColors.authCard.withValues(
-                                  alpha: 0.97,
-                                ),
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.authCard.withValues(alpha: 0.97),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: AppColors.wood,
+                                  color: isDark ? AppColors.darkBorder : AppColors.wood,
                                   width: 2,
                                 ),
                               ),
                               child: Text(
                                 _errorMessage!,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: AppColors.woodDeep,
+                                style: TextStyle(
+                                  color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -438,16 +438,20 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                                       null,
                                                 ),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.buttonGreen,
-                                            foregroundColor:
-                                                AppColors.buttonText,
+                                            backgroundColor: isDark
+                                                ? AppColors.darkLife
+                                                : AppColors.buttonGreen,
+                                            foregroundColor: isDark
+                                                ? AppColors.darkTextOutline
+                                                : AppColors.buttonText,
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 14,
                                             ),
-                                            shape: const StadiumBorder(
+                                            shape: StadiumBorder(
                                               side: BorderSide(
-                                                color: AppColors.woodDeep,
+                                                color: isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.woodDeep,
                                                 width: 2,
                                               ),
                                             ),
@@ -500,6 +504,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
 
   Widget _buildUnlockedView(ThemeData theme) {
     final l10n = AppLocalizations.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final slotCount = _claimedAchievements.length < 20
         ? 20
         : _claimedAchievements.length;
@@ -510,9 +515,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.97),
+            color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.wood, width: 2),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2),
           ),
           child: Column(
             children: [
@@ -526,15 +531,15 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               GameButtonLabel(
                 l10n.achievementsCollection,
                 fontSize: 19,
-                color: AppColors.woodDeep,
-                outlineColor: AppColors.authCard,
+                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                 outlineWidth: 3,
               ),
               const SizedBox(height: 3),
               Text(
                 l10n.achievementsCollected(_claimedAchievements.length),
-                style: const TextStyle(
-                  color: AppColors.outlineBrown,
+                style: TextStyle(
+                  color: isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -546,9 +551,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.leafLight.withValues(alpha: 0.94),
+            color: isDark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.94),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.oliveDeep, width: 2),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.oliveDeep, width: 2),
           ),
           child: GridView.builder(
             shrinkWrap: true,
@@ -564,7 +569,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               final hasItem = index < _claimedAchievements.length;
               final item = hasItem ? _claimedAchievements[index] : null;
               return Material(
-                color: AppColors.authCard.withValues(
+                color: (isDark ? AppColors.darkNestedCard : AppColors.authCard).withValues(
                   alpha: hasItem ? 0.97 : 0.55,
                 ),
                 borderRadius: BorderRadius.circular(14),
@@ -590,8 +595,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: hasItem
-                            ? AppColors.wood
-                            : AppColors.wood.withValues(alpha: 0.38),
+                            ? (isDark ? AppColors.darkBorder : AppColors.wood)
+                            : (isDark ? AppColors.darkBorder.withValues(alpha: 0.38) : AppColors.wood.withValues(alpha: 0.38)),
                         width: hasItem ? 1.5 : 1,
                       ),
                     ),
@@ -635,9 +640,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.leafLight.withValues(alpha: 0.96),
+              color: isDark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.oliveDeep, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.woodDeep.withValues(alpha: 0.2),
@@ -649,9 +654,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 40, 12, 10),
               decoration: BoxDecoration(
-                color: AppColors.authCard.withValues(alpha: 0.97),
+                color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.wood, width: 1.5),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
               ),
               child: ListView.separated(
                 padding: EdgeInsets.zero,

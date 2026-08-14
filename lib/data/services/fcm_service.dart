@@ -40,7 +40,11 @@ class FCMService {
       if (!granted) {
         _isActive = false;
         await _cancelTokenRefreshListener();
-        debugPrint('[NotificationFlow][FCM] activation_stopped=permission_denied');
+        debugPrint(
+          '[NotificationFlow][FCM] activation_stopped=permission_denied '
+          'browserPermission=${settings.authorizationStatus.name} '
+          '${kIsWeb ? '(reset permission from the browser site settings)' : ''}',
+        );
         return false;
       }
 

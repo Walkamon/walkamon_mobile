@@ -21,12 +21,18 @@ class GameBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark ? AppColors.darkCard : AppColors.authCard;
+    final iconColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
     return SizedBox.square(
       dimension: buttonSize,
       child: Material(
-        color: AppColors.authCard,
-        shape: const CircleBorder(
-          side: BorderSide(color: AppColors.woodDeep, width: 2),
+        color: background,
+        shape: CircleBorder(
+          side: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+            width: 2,
+          ),
         ),
         elevation: 3,
         shadowColor: Colors.black26,
@@ -36,10 +42,10 @@ class GameBackButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           onPressed: onPressed,
           iconSize: iconSize,
-          icon: const AppIcon(
+          icon: AppIcon(
             Icons.arrow_back_rounded,
             size: iconSize,
-            color: AppColors.inkDark,
+            color: iconColor,
           ),
         ),
       ),

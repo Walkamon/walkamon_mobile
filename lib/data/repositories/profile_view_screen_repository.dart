@@ -23,6 +23,16 @@ class ProfileViewScreenRepository {
     }
   }
 
+
+  Future<void> updateTheme(String themeCode) async {
+    final normalized = themeCode.trim().toLowerCase();
+    if (!{'light', 'dark', 'system'}.contains(normalized)) {
+      throw ArgumentError.value(themeCode, 'themeCode');
+    }
+    final response = await _remoteDatasource.updateTheme(normalized);
+    if (!response.success) throw Exception(response.message);
+  }
+
   /// Xử lý cập nhật thông tin và kiểm tra trạng thái thành công/thất bại
   Future<void> updateUserProfile({
     required String username,

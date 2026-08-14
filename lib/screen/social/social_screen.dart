@@ -18,6 +18,9 @@ class _SocialScreenState extends State<SocialScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+    final activeColor = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
 
     return Scaffold(
       backgroundColor: Colors.transparent, // Bắt buộc để kế thừa MainLayout
@@ -31,8 +34,8 @@ class _SocialScreenState extends State<SocialScreen> {
                 GameButtonLabel(
                   l10n.socialTitle,
                   fontSize: 20,
-                  color: AppColors.woodDeep,
-                  outlineColor: AppColors.authCard,
+                  color: textColor,
+                  outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                   outlineWidth: 4,
                 ),
                 const SizedBox(height: 16),
@@ -41,7 +44,7 @@ class _SocialScreenState extends State<SocialScreen> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppColors.authCard.withOpacity(0.92),
+                    color: (isDark ? AppColors.darkCard : AppColors.authCard).withOpacity(0.92),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.wood, width: 2),
                   ),
@@ -59,7 +62,7 @@ class _SocialScreenState extends State<SocialScreen> {
                           child: Container(
                             height: 40,
                             decoration: BoxDecoration(
-                              color: AppColors.buttonGreen,
+                              color: activeColor,
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
@@ -137,10 +140,10 @@ class _SocialScreenState extends State<SocialScreen> {
               ? GameButtonLabel(label, fontSize: 14, outlineWidth: 2.4)
               : Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.woodDeep,
+                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep,
                   ),
                 ),
         ),

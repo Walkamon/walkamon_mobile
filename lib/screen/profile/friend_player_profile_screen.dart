@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
@@ -416,7 +416,7 @@ class _ProfileCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.wood, width: 1.5),
         boxShadow: [
@@ -532,7 +532,7 @@ class _SpiritCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.97),
+            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: AppColors.woodDeep, width: 1.8),
           ),
@@ -673,7 +673,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
@@ -736,7 +736,7 @@ class _AchievementsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.woodDeep, width: 1.8),
       ),
@@ -785,7 +785,7 @@ class _SpiritHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
@@ -840,7 +840,7 @@ class _SpiritMetricBar extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),

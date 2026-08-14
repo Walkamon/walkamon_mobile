@@ -37,6 +37,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     final l10n = AppLocalizations.of(context);
     final numberFormat = NumberFormat.decimalPattern(l10n.localeName);
     final mapAsset = PvpAssetResolver.mapForNow(
@@ -106,7 +108,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         children: [
                           IconButton.filledTonal(
                             style: IconButton.styleFrom(
-                              backgroundColor: AppColors.authCard,
+                              backgroundColor: cardColor,
                               side: const BorderSide(
                                 color: AppColors.woodDeep,
                                 width: 2,
@@ -149,7 +151,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       IconButton.filledTonal(
                         style: IconButton.styleFrom(
-                          backgroundColor: AppColors.authCard,
+                          backgroundColor: cardColor,
                           side: const BorderSide(
                             color: AppColors.woodDeep,
                             width: 2,
@@ -184,7 +186,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                                 width: double.infinity,
                                 height: petViewportHeight,
                                 decoration: BoxDecoration(
-                                  color: AppColors.creamLight.withValues(
+                                  color: cardColor.withValues(
                                     alpha: 0.52,
                                   ),
                                   borderRadius: BorderRadius.circular(16),
@@ -304,9 +306,12 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 height: isCompactHeight ? 50 : 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF6C95D),
-                    foregroundColor: AppColors.woodDeep,
-                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    backgroundColor: isDark ? AppColors.darkLife : const Color(0xFFF6C95D),
+                    foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                      width: 2,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
@@ -341,8 +346,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 height: isCompactHeight ? 50 : 56,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.authCard,
-                    foregroundColor: AppColors.woodDeep,
+                    backgroundColor: cardColor,
+                    foregroundColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                     side: const BorderSide(color: AppColors.woodDeep, width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
@@ -457,6 +462,8 @@ class _PvpSearchingModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 360),
       child: Material(
@@ -465,7 +472,7 @@ class _PvpSearchingModal extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
           decoration: BoxDecoration(
-            color: AppColors.authCard,
+            color: cardColor,
             borderRadius: BorderRadius.circular(26),
             border: Border.all(color: AppColors.woodDeep, width: 2),
             boxShadow: [
@@ -550,6 +557,9 @@ class _PvpPetPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -558,7 +568,7 @@ class _PvpPetPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.leafLight.withValues(alpha: 0.96),
+              color: panelColor.withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.oliveDeep, width: 2),
               boxShadow: [
@@ -578,7 +588,7 @@ class _PvpPetPanel extends StatelessWidget {
                 compact ? 9 : 12,
               ),
               decoration: BoxDecoration(
-                color: AppColors.authCard.withValues(alpha: 0.97),
+                color: cardColor.withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: AppColors.wood, width: 1.5),
               ),

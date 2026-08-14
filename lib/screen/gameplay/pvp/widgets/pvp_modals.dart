@@ -51,6 +51,7 @@ class _IncomingChallengesContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final providerInvites = context.watch<PvpProvider>().incomingInvites;
     final activeChallenges = providerInvites.isNotEmpty
@@ -60,9 +61,12 @@ class _IncomingChallengesContent extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.authCard,
+        color: isDark ? AppColors.darkCard : AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(color: AppColors.woodDeep, width: 2),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+          width: 2,
+        ),
       ),
       padding: const EdgeInsets.all(24),
       constraints: BoxConstraints(
@@ -242,10 +246,16 @@ class _IncomingChallengesContent extends StatelessWidget {
                                 icon: const AppIcon(Icons.check, size: 16),
                                 label: Text(l10n.pvpAccept),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.buttonGreen,
-                                  foregroundColor: AppColors.buttonText,
-                                  side: const BorderSide(
-                                    color: AppColors.woodDeep,
+                                  backgroundColor: isDark
+                                      ? AppColors.darkLife
+                                      : AppColors.buttonGreen,
+                                  foregroundColor: isDark
+                                      ? AppColors.darkTextOutline
+                                      : AppColors.buttonText,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppColors.darkBorder
+                                        : AppColors.woodDeep,
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -258,10 +268,16 @@ class _IncomingChallengesContent extends StatelessWidget {
                             Expanded(
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  backgroundColor: AppColors.buttonSecondary,
-                                  foregroundColor: AppColors.woodDeep,
-                                  side: const BorderSide(
-                                    color: AppColors.woodDeep,
+                                  backgroundColor: isDark
+                                      ? AppColors.darkMuted
+                                      : AppColors.buttonSecondary,
+                                  foregroundColor: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.woodDeep,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppColors.darkBorder
+                                        : AppColors.woodDeep,
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -363,6 +379,7 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final alwaysUse24HourFormat = MediaQuery.alwaysUse24HourFormatOf(context);
@@ -371,9 +388,12 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.authCard,
+        color: isDark ? AppColors.darkCard : AppColors.authCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(color: AppColors.woodDeep, width: 2),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+          width: 2,
+        ),
       ),
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       constraints: BoxConstraints(
@@ -411,8 +431,11 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
               const SizedBox(width: 14),
               IconButton(
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.creamLight,
-                  side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
+                  backgroundColor: isDark ? AppColors.darkNestedCard : AppColors.creamLight,
+                  side: BorderSide(
+                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                    width: 1.6,
+                  ),
                   shape: const CircleBorder(),
                 ),
                 tooltip: l10n.pvpRefresh,
@@ -581,7 +604,9 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.creamLight.withValues(alpha: 0.82),
+                          color: isDark
+                              ? AppColors.darkNestedCard.withValues(alpha: 0.98)
+                              : AppColors.creamLight.withValues(alpha: 0.82),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: theme.dividerColor.withValues(alpha: 0.5),
@@ -594,8 +619,8 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                               height: 48,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isWin
-                                    ? Colors.amber.withValues(alpha: 0.2)
+                            color: isWin
+                                    ? (isDark ? AppColors.darkLife.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.2))
                                     : theme.colorScheme.surfaceContainerHighest,
                                 border: isWin
                                     ? null
@@ -734,20 +759,26 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
         onSelected: (_) => onSelected(),
-        selectedColor: AppColors.buttonGreen,
-        backgroundColor: AppColors.buttonSecondary,
-        side: const BorderSide(color: AppColors.woodDeep, width: 1.5),
+        selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
+        backgroundColor: isDark ? AppColors.darkNestedCard : AppColors.buttonSecondary,
+        side: BorderSide(
+          color: isDark ? AppColors.darkCardBorder : AppColors.woodDeep,
+          width: 1.5,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         showCheckmark: selected,
-        checkmarkColor: AppColors.oliveDeep,
+        checkmarkColor: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
         labelStyle: TextStyle(
-          color: selected ? AppColors.buttonText : AppColors.woodDeep,
+          color: selected
+              ? (isDark ? AppColors.darkForeground : AppColors.buttonText)
+              : (isDark ? AppColors.darkForeground : AppColors.woodDeep),
           fontWeight: FontWeight.w800,
           fontSize: 13,
         ),

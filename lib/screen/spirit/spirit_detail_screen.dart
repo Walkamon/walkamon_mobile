@@ -288,8 +288,8 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                               child: GameButtonLabel(
                                 l10n.spiritDetailTitle(spiritName),
                                 fontSize: 17,
-                                color: AppColors.woodDeep,
-                                outlineColor: AppColors.authCard,
+                                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                                outlineColor: isDark ? AppColors.darkBorder : AppColors.authCard,
                                 outlineWidth: 4,
                               ),
                             ),
@@ -351,7 +351,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                               GameButtonLabel(
                                                 spiritName,
                                                 fontSize: 16,
-                                                color: AppColors.woodDeep,
+                                                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                                                 outlineColor:
                                                     AppColors.authCard,
                                                 outlineWidth: 3.5,
@@ -412,14 +412,12 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                           child: Align(
                                                             alignment: Alignment
                                                                 .centerLeft,
-                                                            child: GameButtonLabel(
+                                                    child: GameButtonLabel(
                                                               spiritName,
                                                               fontSize: 19,
-                                                              color: AppColors
-                                                                  .woodDeep,
+                                                              color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                                                               outlineColor:
-                                                                  AppColors
-                                                                      .creamLight,
+                                                                  isDark ? AppColors.darkBorder : AppColors.creamLight,
                                                               outlineWidth: 3,
                                                             ),
                                                           ),
@@ -510,9 +508,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                 width: 1.5,
                                               ),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
                                                   child: _TabButton(
                                                     label: l10n.spiritStatsTab,
                                                     active:
@@ -521,9 +519,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       () =>
                                                           _activeTab = 'stats',
                                                     ),
-                                                  ),
-                                                ),
-                                                Expanded(
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Expanded(
                                                   child: _TabButton(
                                                     label:
                                                         l10n.spiritEvolutionTab,
@@ -742,19 +741,25 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: active ? AppColors.buttonGreen : Colors.transparent,
+      color: active
+          ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
+          : (isDark ? AppColors.darkCard : Colors.transparent),
       borderRadius: BorderRadius.circular(13),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(13),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          height: 46,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
             border: Border.all(
-              color: active ? AppColors.woodDeep : Colors.transparent,
+              color: active
+                  ? (isDark ? AppColors.woodDeep : AppColors.woodDeep)
+                  : (isDark ? AppColors.darkCardBorder : Colors.transparent),
               width: 1.5,
             ),
           ),
@@ -763,16 +768,16 @@ class _TabButton extends StatelessWidget {
                 ? GameButtonLabel(
                     label,
                     fontSize: 13,
-                    color: AppColors.buttonText,
-                    outlineColor: AppColors.woodDeep,
+                    color: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
+                    outlineColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                     outlineWidth: 2.5,
                   )
                 : Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.woodDeep,
+                      color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                     ),
                   ),
           ),
@@ -789,10 +794,11 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.creamLight.withValues(alpha: 0.78),
+        color: isDark ? AppColors.darkMuted : AppColors.creamLight.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: AppColors.wood.withValues(alpha: 0.65),
@@ -801,10 +807,10 @@ class _TagChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w800,
-          color: AppColors.inkBrown,
+          color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
         ),
       ),
     );
@@ -827,6 +833,7 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final safeMaximum = maximum <= 0 ? 1 : maximum;
     final progress = (current / safeMaximum).clamp(0.0, 1.0);
 
@@ -838,10 +845,10 @@ class _StatRow extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: AppColors.inkBrown,
+              color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
             ),
           ),
         ),
@@ -860,7 +867,7 @@ class _StatRow extends StatelessWidget {
                     height: 17,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: AppColors.creamLight,
+                      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(color: AppColors.woodDeep, width: 1.5),
                     ),
@@ -889,10 +896,10 @@ class _StatRow extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '$current/$maximum',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.inkDark,
+                        color: isDark ? AppColors.darkForeground : AppColors.inkDark,
                         height: 1,
                       ),
                     ),

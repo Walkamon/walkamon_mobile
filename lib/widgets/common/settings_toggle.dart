@@ -16,7 +16,8 @@ class SettingsToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
-    final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final muted = isDark ? AppColors.darkCard : AppColors.lightMuted;
+    final activeColor = isDark ? AppColors.darkLife : primary;
 
     return GestureDetector(
       onTap: onChanged,
@@ -26,7 +27,11 @@ class SettingsToggle extends StatelessWidget {
         height: 24,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: active ? primary : muted,
+          color: active ? activeColor : muted,
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+            width: 1.2,
+          ),
           borderRadius: BorderRadius.circular(999),
         ),
         child: AnimatedAlign(

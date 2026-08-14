@@ -14,8 +14,8 @@ abstract final class AppTheme {
   }
 
   static ButtonStyle _filledButtonStyle(bool isDark) {
-    final background = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
-    final foreground = AppColors.buttonText;
+    final background = isDark ? AppColors.darkLife : AppColors.buttonGreen;
+    final foreground = isDark ? AppColors.darkTextOutline : AppColors.buttonText;
     return ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(48, 50)),
       padding: const WidgetStatePropertyAll(
@@ -36,8 +36,13 @@ abstract final class AppTheme {
       textStyle: const WidgetStatePropertyAll(
         TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
       ),
-      shape: const WidgetStatePropertyAll(
-        StadiumBorder(side: BorderSide(color: AppColors.woodDeep, width: 2)),
+      shape: WidgetStatePropertyAll(
+        StadiumBorder(
+          side: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+            width: 2,
+          ),
+        ),
       ),
       backgroundBuilder: (context, states, child) => CustomPaint(
         painter: _LeafButtonPainter(
@@ -52,7 +57,7 @@ abstract final class AppTheme {
   }
 
   static ButtonStyle _elevatedButtonStyle(bool isDark) {
-    final background = isDark ? AppColors.darkAccent : AppColors.buttonYellow;
+    final background = isDark ? AppColors.darkLife : AppColors.buttonYellow;
     return ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(48, 50)),
       padding: const WidgetStatePropertyAll(
@@ -63,8 +68,9 @@ abstract final class AppTheme {
         disabled: background.withValues(alpha: 0.46),
       ),
       foregroundColor: _stateColor(
-        enabled: AppColors.buttonText,
-        disabled: AppColors.buttonText.withValues(alpha: 0.65),
+        enabled: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
+        disabled: (isDark ? AppColors.darkTextOutline : AppColors.buttonText)
+            .withValues(alpha: 0.65),
       ),
       overlayColor: WidgetStatePropertyAll(
         AppColors.woodDeep.withValues(alpha: 0.12),
@@ -73,8 +79,13 @@ abstract final class AppTheme {
       textStyle: const WidgetStatePropertyAll(
         TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
       ),
-      shape: const WidgetStatePropertyAll(
-        StadiumBorder(side: BorderSide(color: AppColors.woodDeep, width: 2)),
+      shape: WidgetStatePropertyAll(
+        StadiumBorder(
+          side: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+            width: 2,
+          ),
+        ),
       ),
     );
   }
@@ -105,7 +116,7 @@ abstract final class AppTheme {
         (states) => BorderSide(
           color: states.contains(WidgetState.disabled)
               ? AppColors.wood.withValues(alpha: 0.45)
-              : AppColors.woodDeep,
+              : (isDark ? AppColors.darkBorder : AppColors.woodDeep),
           width: 2,
         ),
       ),

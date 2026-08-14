@@ -177,14 +177,18 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       pageBuilder: (context, anim1, anim2) => const SizedBox(),
       transitionBuilder: (dialogContext, anim, anim2, child) {
         final l10n = AppLocalizations.of(dialogContext);
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
 
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
           child: AlertDialog(
-            backgroundColor: AppColors.authCard,
+            backgroundColor: isDark ? AppColors.darkCard : AppColors.authCard,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(28),
-              side: const BorderSide(color: AppColors.wood, width: 2),
+              side: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.wood,
+                width: 2,
+              ),
             ),
             contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             content: Column(
@@ -194,12 +198,18 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: (isSuccess
-                        ? AppColors.leafLight
-                        : AppColors.blossom),
+                    color: isDark
+                        ? (isSuccess
+                              ? AppColors.darkPrimary
+                              : AppColors.darkMuted)
+                        : (isSuccess ? AppColors.leafLight : AppColors.blossom),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSuccess ? AppColors.oliveDeep : AppColors.danger,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : (isSuccess
+                                ? AppColors.oliveDeep
+                                : AppColors.danger),
                       width: 2,
                     ),
                   ),
@@ -208,7 +218,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         ? Icons.check_circle_rounded
                         : Icons.error_rounded,
                     size: 36,
-                    color: isSuccess ? AppColors.oliveDeep : AppColors.danger,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : (isSuccess ? AppColors.oliveDeep : AppColors.danger),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -216,20 +228,24 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   isSuccess
                       ? l10n.dailyLoginSuccessTitle
                       : l10n.profileEditFailureTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.woodDeep,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.outlineBrown,
+                    color: isDark
+                        ? AppColors.darkMutedForeground
+                        : AppColors.outlineBrown,
                     height: 1.4,
                   ),
                 ),
@@ -238,14 +254,25 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isSuccess
-                          ? AppColors.buttonGreen
-                          : AppColors.buttonYellow,
-                      foregroundColor: AppColors.buttonText,
+                      backgroundColor: isDark
+                          ? (isSuccess
+                                ? AppColors.darkPrimary
+                                : AppColors.darkBorder)
+                          : (isSuccess
+                                ? AppColors.buttonGreen
+                                : AppColors.buttonYellow),
+                      foregroundColor: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.buttonText,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: const StadiumBorder(
-                        side: BorderSide(color: AppColors.woodDeep, width: 2),
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.woodDeep,
+                          width: 2,
+                        ),
                       ),
                     ),
                     onPressed: () {
@@ -265,8 +292,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     child: GameButtonLabel(
                       l10n.profileEditConfirm,
                       fontSize: 15,
-                      color: AppColors.buttonText,
-                      outlineColor: AppColors.woodDeep,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.buttonText,
+                      outlineColor: isDark
+                          ? AppColors.darkTextOutline
+                          : AppColors.woodDeep,
                       outlineWidth: 2.5,
                     ),
                   ),
@@ -325,7 +356,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const backgroundColor = Colors.transparent;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = Colors.transparent;
 
     final isProfileLoading = context
         .watch<GameStateProvider>()
@@ -358,8 +390,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         GameButtonLabel(
                           l10n.profileEditTitle,
                           fontSize: 20,
-                          color: AppColors.woodDeep,
-                          outlineColor: AppColors.authCard,
+                          color: isDark
+                              ? AppColors.darkForeground
+                              : AppColors.woodDeep,
+                          outlineColor: isDark
+                              ? AppColors.darkTextOutline
+                              : AppColors.authCard,
                           outlineWidth: 4,
                         ),
                         const SizedBox(width: 48),
@@ -376,10 +412,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: AppColors.leafLight.withValues(alpha: 0.96),
+                          color:
+                              (isDark
+                                      ? AppColors.darkMuted
+                                      : AppColors.leafLight)
+                                  .withValues(alpha: 0.96),
                           borderRadius: BorderRadius.circular(26),
                           border: Border.all(
-                            color: AppColors.oliveDeep,
+                            color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
                             width: 2,
                           ),
                           boxShadow: [
@@ -393,10 +433,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         child: Container(
                           padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
                           decoration: BoxDecoration(
-                            color: AppColors.authCard.withValues(alpha: 0.97),
+                            color:
+                                (isDark
+                                        ? AppColors.darkCard
+                                        : AppColors.authCard)
+                                    .withValues(alpha: 0.97),
                             borderRadius: BorderRadius.circular(19),
                             border: Border.all(
-                              color: AppColors.wood,
+                              color: isDark ? AppColors.darkBorder : AppColors.wood,
                               width: 1.5,
                             ),
                           ),
@@ -413,11 +457,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                         width: 110,
                                         height: 110,
                                         decoration: BoxDecoration(
-                                          color: AppColors.leafLight,
+                                          color: isDark
+                                              ? AppColors.darkMuted
+                                              : AppColors.leafLight,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: AppColors.woodDeep,
-                                            width: 3,
+                                            color: isDark
+                                                ? AppColors.darkBorder.withValues(alpha: 0.45)
+                                                : AppColors.woodDeep,
+                                            width: 2,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
@@ -476,8 +524,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                             fontSize: 48,
                                                             fontWeight:
                                                                 FontWeight.w800,
-                                                            color: AppColors
-                                                                .woodDeep,
+                                                            color: isDark
+                                                                ? AppColors.darkForeground
+                                                                : AppColors.woodDeep,
                                                           ),
                                                         ),
                                                   )
@@ -493,7 +542,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                       fontSize: 48,
                                                       fontWeight:
                                                           FontWeight.w800,
-                                                      color: AppColors.woodDeep,
+                                                      color: isDark
+                                                          ? AppColors.darkForeground
+                                                          : AppColors.woodDeep,
                                                     ),
                                                   ),
                                           ),
@@ -506,11 +557,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                           width: 36,
                                           height: 36,
                                           decoration: BoxDecoration(
-                                            color: AppColors.authCard,
+                                            color: isDark
+                                                ? AppColors.darkCard
+                                                : AppColors.authCard,
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: AppColors.woodDeep,
-                                              width: 2,
+                                              color: isDark
+                                                  ? AppColors.darkIconBorder
+                                                  : AppColors.woodDeep,
+                                              width: 1.2,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
@@ -526,7 +581,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                             icon: AppIcon(
                                               Icons.camera_alt_rounded,
                                               size: 21,
-                                              color: AppColors.woodDeep,
+                                              color: isDark
+                                                  ? AppColors.darkForeground
+                                                  : AppColors.woodDeep,
                                             ),
                                             onPressed: isProfileLoading
                                                 ? null
@@ -622,9 +679,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 _TapScaleButton(
                                   onPressed: _handleSave,
                                   backgroundColor: isProfileLoading
-                                      ? AppColors.panelMuted
-                                      : AppColors.buttonGreen,
-                                  foregroundColor: AppColors.buttonText,
+                                      ? (isDark
+                                            ? AppColors.darkMuted
+                                            : AppColors.panelMuted)
+                                      : (isDark
+                                            ? AppColors.darkPrimary
+                                            : AppColors.buttonGreen),
+                                  foregroundColor: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.buttonText,
                                   label: isProfileLoading
                                       ? l10n.profileEditSaveLoading
                                       : l10n.profileEditSave,
@@ -672,6 +735,7 @@ class _FieldWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -679,10 +743,10 @@ class _FieldWrapper extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8, bottom: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: AppColors.woodDeep,
+              color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
             ),
           ),
         ),
@@ -719,6 +783,7 @@ class _PillInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 14,
@@ -726,10 +791,15 @@ class _PillInput extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: enabled
-            ? AppColors.creamLight
-            : AppColors.panelMuted.withValues(alpha: 0.58),
+            ? (isDark ? AppColors.darkCard : AppColors.creamLight)
+            : (isDark ? AppColors.darkMuted : AppColors.panelMuted).withValues(
+                alpha: 0.58,
+              ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.wood, width: 1.8),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.wood,
+          width: 1.8,
+        ),
       ),
       child: Row(
         crossAxisAlignment: isTextArea
@@ -743,7 +813,7 @@ class _PillInput extends StatelessWidget {
               asset: asset,
               size: 22,
               color: enabled
-                  ? AppColors.woodDeep
+                  ? (isDark ? AppColors.darkForeground : AppColors.woodDeep)
                   : AppColors.outlineBrown.withValues(alpha: 0.55),
             ),
           ),
@@ -759,13 +829,17 @@ class _PillInput extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
                 color: enabled
-                    ? AppColors.inkBrown
-                    : AppColors.outlineBrown.withValues(alpha: 0.65),
+                    ? (isDark ? AppColors.darkForeground : AppColors.inkBrown)
+                    : (isDark
+                        ? AppColors.darkMutedForeground
+                        : AppColors.outlineBrown.withValues(alpha: 0.65)),
               ),
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: TextStyle(
-                  color: AppColors.outlineBrown.withValues(alpha: 0.68),
+                  color: isDark
+                      ? AppColors.darkMutedForeground
+                      : AppColors.outlineBrown.withValues(alpha: 0.68),
                   fontWeight: FontWeight.w500,
                   fontSize: 15,
                 ),
@@ -782,8 +856,10 @@ class _PillInput extends StatelessWidget {
               enabled ? Icons.edit_rounded : Icons.lock_rounded,
               size: enabled ? 23 : 19,
               color: enabled
-                  ? AppColors.woodLight
-                  : AppColors.outlineBrown.withValues(alpha: 0.55),
+                  ? (isDark ? AppColors.darkBorder : AppColors.woodLight)
+                  : (isDark
+                      ? AppColors.darkMutedForeground
+                      : AppColors.outlineBrown.withValues(alpha: 0.55)),
             ),
           ),
         ],
@@ -814,6 +890,7 @@ class _PillDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return LayoutBuilder(
       builder: (context, constraints) {
         final selectedOption = items.firstWhere(
@@ -825,13 +902,16 @@ class _PillDropdown extends StatelessWidget {
           initialValue: value,
           position: PopupMenuPosition.under,
           offset: const Offset(0, 6),
-          color: AppColors.authCard,
+          color: isDark ? AppColors.darkCard : AppColors.authCard,
           surfaceTintColor: Colors.transparent,
           elevation: 7,
           constraints: BoxConstraints.tightFor(width: constraints.maxWidth),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: const BorderSide(color: AppColors.wood, width: 2),
+            side: BorderSide(
+              color: isDark ? AppColors.darkBorder : AppColors.wood,
+              width: 2,
+            ),
           ),
           onSelected: (selected) => onChanged(selected),
           itemBuilder: (context) => items.map((option) {
@@ -845,11 +925,14 @@ class _PillDropdown extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 11),
                 decoration: BoxDecoration(
                   color: selected
-                      ? AppColors.leafLight
-                      : AppColors.creamLight.withValues(alpha: 0.72),
+                      ? (isDark ? AppColors.darkPrimary : AppColors.leafLight)
+                      : (isDark ? AppColors.darkMuted : AppColors.creamLight)
+                            .withValues(alpha: 0.72),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: selected ? AppColors.oliveDeep : AppColors.creamDeep,
+                    color: selected
+                        ? (isDark ? AppColors.darkBorder : AppColors.oliveDeep)
+                        : (isDark ? AppColors.darkBorder : AppColors.creamDeep),
                     width: selected ? 1.6 : 1,
                   ),
                 ),
@@ -859,18 +942,22 @@ class _PillDropdown extends StatelessWidget {
                       child: Text(
                         option.label,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.woodDeep,
+                        style: TextStyle(
+                          color: isDark
+                              ? AppColors.darkForeground
+                              : AppColors.woodDeep,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     if (selected)
-                      const AppIcon(
+                      AppIcon(
                         Icons.check_rounded,
                         size: 22,
-                        color: AppColors.oliveDeep,
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.oliveDeep,
                       ),
                   ],
                 ),
@@ -881,10 +968,14 @@ class _PillDropdown extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
               color: enabled
-                  ? AppColors.creamLight
-                  : AppColors.panelMuted.withValues(alpha: 0.58),
+                  ? (isDark ? AppColors.darkCard : AppColors.creamLight)
+                  : (isDark ? AppColors.darkMuted : AppColors.panelMuted)
+                        .withValues(alpha: 0.58),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.wood, width: 1.8),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.wood,
+                width: 1.8,
+              ),
             ),
             child: Row(
               children: [
@@ -895,7 +986,9 @@ class _PillDropdown extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: enabled
-                          ? AppColors.inkBrown
+                          ? (isDark
+                                ? AppColors.darkForeground
+                                : AppColors.inkBrown)
                           : AppColors.outlineBrown.withValues(alpha: 0.65),
                       fontSize: 15,
                     ),
@@ -906,7 +999,7 @@ class _PillDropdown extends StatelessWidget {
                   Icons.keyboard_arrow_down_rounded,
                   size: 23,
                   color: enabled
-                      ? AppColors.woodDeep
+                      ? (isDark ? AppColors.darkForeground : AppColors.woodDeep)
                       : AppColors.outlineBrown.withValues(alpha: 0.55),
                 ),
               ],
@@ -926,6 +1019,7 @@ class _PillDatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -934,32 +1028,37 @@ class _PillDatePicker extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           decoration: BoxDecoration(
-            color: AppColors.creamLight,
+            color: isDark ? AppColors.darkCard : AppColors.creamLight,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.wood, width: 1.8),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.wood,
+              width: 1.8,
+            ),
           ),
           child: Row(
             children: [
               AppIcon(
                 Icons.calendar_month_rounded,
                 size: 20,
-                color: AppColors.woodDeep,
+                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   dateText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.inkBrown,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.inkBrown,
                     fontSize: 15,
                   ),
                 ),
               ),
-              const AppIcon(
+              AppIcon(
                 Icons.edit_rounded,
                 size: 23,
-                color: AppColors.woodLight,
+                color: isDark ? AppColors.darkBorder : AppColors.woodLight,
               ),
             ],
           ),
@@ -993,6 +1092,7 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTapDown: (_) => widget.isLoading ? null : setState(() => _scale = 0.95),
       onTapUp: (_) => widget.isLoading ? null : setState(() => _scale = 1.0),
@@ -1003,7 +1103,10 @@ class _TapScaleButtonState extends State<_TapScaleButton> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: AppColors.woodDeep, width: 2),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: widget.backgroundColor.withValues(alpha: 0.25),

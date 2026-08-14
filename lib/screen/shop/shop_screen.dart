@@ -897,7 +897,7 @@ class _ShopPanel extends StatelessWidget {
           bottom: 4,
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.leafLight.withValues(alpha: 0.96),
+              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.oliveDeep, width: 2),
               boxShadow: [
@@ -918,7 +918,7 @@ class _ShopPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 42, 14, 14),
             decoration: BoxDecoration(
-              color: AppColors.authCard.withValues(alpha: 0.96),
+              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(19),
               border: Border.all(color: AppColors.wood, width: 1.5),
             ),
@@ -1124,7 +1124,7 @@ class _ShopGrid extends StatelessWidget {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.authCard.withValues(alpha: 0.94),
+                    color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.94),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.wood),
                   ),
