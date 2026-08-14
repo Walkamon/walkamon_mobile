@@ -411,7 +411,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
     final mutedForeground = isDark
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    // Completed/claim actions use the warm wood/gold palette in dark mode so
+    // they remain readable and consistent with the inventory title treatment.
+    final accent = isDark ? AppColors.darkBorder : AppColors.lightAccent;
     final muted = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final dewColor = isDark ? AppColors.darkDew : AppColors.lightDew;
     final energyColor = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
@@ -773,11 +775,15 @@ class _MissionTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tabCard = isDark ? AppColors.darkCard : AppColors.authCard;
+    final tabActive = isDark ? AppColors.woodLight : AppColors.buttonGreen;
+    final tabText = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     Widget buildTab(String label, MissionTab tab) {
       final isActive = activeTab == tab;
       return Expanded(
         child: Material(
-          color: isActive ? AppColors.buttonGreen : Colors.transparent,
+          color: isActive ? tabActive : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: () => onChanged(tab),
@@ -789,7 +795,7 @@ class _MissionTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isActive ? AppColors.woodDeep : Colors.transparent,
+                  color: isActive ? (isDark ? AppColors.darkBorder : AppColors.woodDeep) : Colors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -797,16 +803,16 @@ class _MissionTabs extends StatelessWidget {
                   ? GameButtonLabel(
                       label,
                       fontSize: 13,
-                      color: AppColors.buttonText,
-                      outlineColor: AppColors.woodDeep,
+                      color: isDark ? AppColors.darkForeground : AppColors.buttonText,
+                      outlineColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
                       outlineWidth: 2.5,
                     )
                   : Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.woodDeep,
+                      style: TextStyle(
+                        color: tabText,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
@@ -820,9 +826,12 @@ class _MissionTabs extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.9),
+        color: tabCard.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.wood, width: 2),
+        border: Border.all(
+          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+          width: 2,
+        ),
       ),
       child: Row(
         children: [
@@ -850,6 +859,10 @@ class _MissionListTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedColor = isDark ? AppColors.woodLight : AppColors.woodLight;
+    final unselectedColor = isDark ? AppColors.darkCard : AppColors.parchment;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     Widget tab(String label, MissionListTab tab) {
       final selected = activeTab == tab;
       return Expanded(
@@ -864,10 +877,12 @@ class _MissionListTabs extends StatelessWidget {
               height: 46,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppColors.woodLight : AppColors.parchment,
+                color: selected ? selectedColor : unselectedColor,
                 borderRadius: BorderRadius.circular(11),
                 border: Border.all(
-                  color: AppColors.woodDeep,
+                  color: isDark
+                      ? (selected ? AppColors.darkBorder : AppColors.darkCardBorder)
+                      : AppColors.woodDeep,
                   width: selected ? 2 : 1.4,
                 ),
                 boxShadow: selected
@@ -884,16 +899,16 @@ class _MissionListTabs extends StatelessWidget {
                   ? GameButtonLabel(
                       label,
                       fontSize: 14,
-                      color: AppColors.buttonText,
-                      outlineColor: AppColors.woodDeep,
+                      color: isDark ? AppColors.darkForeground : AppColors.buttonText,
+                      outlineColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
                       outlineWidth: 3,
                     )
                   : Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.woodDeep,
+                      style: TextStyle(
+                        color: textColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
@@ -925,6 +940,7 @@ class _MissionListPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -933,9 +949,12 @@ class _MissionListPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.leafLight.withValues(alpha: 0.96),
+              color: (isDark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.woodDeep.withValues(alpha: 0.2),
@@ -948,9 +967,12 @@ class _MissionListPanel extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(12, 42, 12, 4),
               decoration: BoxDecoration(
-                color: AppColors.authCard.withValues(alpha: 0.97),
+                color: (isDark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.wood, width: 1.5),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.wood,
+                  width: 1.5,
+                ),
               ),
               child: child,
             ),
@@ -1072,7 +1094,7 @@ class _EmptySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Text(
+            child: Text(
         message,
         style: TextStyle(fontSize: 13, color: mutedForeground),
       ),
@@ -1124,12 +1146,32 @@ class _QuestItemCard extends StatelessWidget {
         : (safeCurrent / quest.target).clamp(0.0, 1.0);
     final isCompleted = quest.isCompleted;
     final showClaim = quest.canClaim && !quest.isClaimed;
-    final resolvedCardColor = isCompleted
-        ? AppColors.leafLight.withValues(alpha: 0.94)
-        : AppColors.authCard.withValues(alpha: 0.94);
-    final resolvedBorderColor = isCompleted
-        ? AppColors.oliveDeep
-        : AppColors.wood;
+    final isClaimed = quest.isClaimed;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final resolvedCardColor = isDark
+        ? (isClaimed
+              ? AppColors.darkMuted.withValues(alpha: 0.58)
+              : showClaim
+              ? AppColors.darkPrimary.withValues(alpha: 0.98)
+              : AppColors.darkNestedCard.withValues(alpha: 0.98))
+        : (isClaimed
+              ? AppColors.panelMuted.withValues(alpha: 0.78)
+              : isCompleted
+              ? AppColors.leafLight.withValues(alpha: 0.94)
+              : AppColors.authCard.withValues(alpha: 0.94));
+    final resolvedBorderColor = isDark
+        ? (isClaimed
+              ? AppColors.darkCardBorder.withValues(alpha: 0.55)
+              : showClaim
+              ? AppColors.darkLife
+              : AppColors.darkCardBorder)
+        : (isClaimed ? AppColors.wood.withValues(alpha: 0.55) : isCompleted ? AppColors.oliveDeep : AppColors.wood);
+    final resolvedForeground = isDark && isClaimed
+        ? AppColors.darkMutedForeground
+        : foreground;
+    final resolvedMutedForeground = isDark && isClaimed
+        ? AppColors.darkMutedForeground.withValues(alpha: 0.72)
+        : mutedForeground;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -1173,8 +1215,10 @@ class _QuestItemCard extends StatelessWidget {
                           : Icons.star_border_rounded,
                       size: isCompleted ? 38 : 35,
                       color: isCompleted
-                          ? AppColors.success
-                          : AppColors.woodLight,
+                            ? (isDark
+                                  ? (isClaimed ? AppColors.darkMutedForeground : AppColors.darkForeground)
+                                  : AppColors.success)
+                          : (isDark ? AppColors.darkBorder : AppColors.woodLight),
                       shadows: [
                         Shadow(
                           color: isCompleted
@@ -1198,7 +1242,7 @@ class _QuestItemCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: foreground,
+                          color: resolvedForeground,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1209,7 +1253,7 @@ class _QuestItemCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: mutedForeground,
+                          color: resolvedMutedForeground,
                         ),
                       ),
                     ],
@@ -1236,12 +1280,14 @@ class _QuestItemCard extends StatelessWidget {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(
+                            : GameButtonLabel(
                                 l10n.missionsClaim,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                                fontSize: 12,
+                                color: resolvedForeground,
+                                outlineColor: isDark
+                                    ? AppColors.darkTextOutline
+                                    : AppColors.woodDeep,
+                                outlineWidth: 2,
                               ),
                       ),
                     ),
@@ -1253,7 +1299,9 @@ class _QuestItemCard extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: muted,
+                      color: isDark
+                          ? AppColors.woodLight.withValues(alpha: 0.72)
+                          : muted,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: borderColor.withValues(alpha: 0.5),
@@ -1264,7 +1312,7 @@ class _QuestItemCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: mutedForeground,
+                        color: resolvedMutedForeground,
                       ),
                     ),
                   )
@@ -1289,7 +1337,7 @@ class _QuestItemCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: foreground,
+                            color: resolvedForeground,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -1358,7 +1406,7 @@ class _QuestItemCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          color: foreground,
+                          color: resolvedForeground,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -1387,7 +1435,9 @@ class _QuestItemCard extends StatelessWidget {
                           .surfaceContainerHighest
                           .withValues(alpha: 0.5),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isCompleted ? AppColors.buttonGreen : energyColor,
+                        isClaimed
+                            ? AppColors.darkMutedForeground.withValues(alpha: 0.55)
+                            : isCompleted ? AppColors.buttonGreen : energyColor,
                       ),
                     ),
                   ),
@@ -1398,7 +1448,7 @@ class _QuestItemCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: mutedForeground,
+                    color: resolvedMutedForeground,
                   ),
                 ),
               ],

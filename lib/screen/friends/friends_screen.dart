@@ -111,7 +111,7 @@ class _FriendsScreenState extends State<FriendsScreen>
       builder: (ctx) {
         final colorScheme = Theme.of(ctx).colorScheme;
         return AlertDialog(
-          shape: RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
@@ -244,6 +244,8 @@ class _FriendsScreenState extends State<FriendsScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
     final presence = context.watch<PresenceProvider>();
     final effectiveFriends = friends.map(presence.applyPresence).toList();
     final filteredFriends = effectiveFriends
@@ -289,7 +291,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                           margin: const EdgeInsets.only(top: 16),
                           padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
                           decoration: BoxDecoration(
-                            color: AppColors.leafLight.withValues(alpha: 0.96),
+                            color: panelColor.withValues(alpha: 0.96),
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: AppColors.woodDeep,
@@ -367,6 +369,9 @@ class _FriendsScreenState extends State<FriendsScreen>
   }
 
   Widget _buildHeaderActions(AppLocalizations l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     return Padding(
       padding: EdgeInsets.zero,
       child: Row(
@@ -381,9 +386,9 @@ class _FriendsScreenState extends State<FriendsScreen>
                 child: OutlinedButton(
                   onPressed: () => _showFriendRequestsPopup(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.woodDeep,
-                    backgroundColor: AppColors.authCard,
-                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    foregroundColor: textColor,
+                    backgroundColor: cardColor,
+                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2),
                     minimumSize: const Size(48, 48),
                     padding: const EdgeInsets.all(6),
                     shape: const CircleBorder(),
@@ -405,7 +410,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                     decoration: BoxDecoration(
                       color: AppColors.danger,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.authCard, width: 2),
+                      border: Border.all(color: cardColor, width: 2),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.woodDeep.withValues(alpha: 0.3),
@@ -424,10 +429,10 @@ class _FriendsScreenState extends State<FriendsScreen>
             child: OutlinedButton(
               onPressed: () => _showAddFriendPopup(context),
               style: OutlinedButton.styleFrom(
-                backgroundColor: AppColors.authCard,
-                foregroundColor: AppColors.woodDeep,
+                backgroundColor: cardColor,
+                foregroundColor: textColor,
                 elevation: 0,
-                side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2),
                 minimumSize: const Size(48, 48),
                 padding: const EdgeInsets.all(6),
                 shape: const CircleBorder(),
@@ -449,6 +454,7 @@ class _FriendsScreenState extends State<FriendsScreen>
     List<FriendsResponse> filteredFriends,
   ) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (isLoading) {
       return const Center(
@@ -498,8 +504,8 @@ class _FriendsScreenState extends State<FriendsScreen>
       return Center(
         child: Text(
           l10n.friendsNoResult,
-          style: const TextStyle(
-            color: AppColors.inkBrown,
+          style: TextStyle(
+            color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -520,6 +526,9 @@ class _FriendsScreenState extends State<FriendsScreen>
     final hasAvatar = friend.avatarUrl?.trim().isNotEmpty == true;
     final isVietnamese =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
+    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.inkBrown;
 
     void openProfile() {
       Navigator.pushNamed(
@@ -534,10 +543,10 @@ class _FriendsScreenState extends State<FriendsScreen>
     }
 
     return Material(
-      color: AppColors.authCard.withValues(alpha: 0.98),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(13),
-        side: const BorderSide(color: AppColors.wood, width: 1.6),
+      color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.98),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                  side: BorderSide(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.6),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -554,7 +563,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                   decoration: BoxDecoration(
                     color: AppColors.creamDeep,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.wood, width: 1.5),
+                    border: Border.all(color: isDark ? AppColors.darkIconBorder : AppColors.wood, width: 1.5),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: hasAvatar
@@ -575,8 +584,8 @@ class _FriendsScreenState extends State<FriendsScreen>
                         friend.username,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.inkDark,
+                        style: TextStyle(
+                          color: textColor,
                           fontWeight: FontWeight.w900,
                           fontSize: 15,
                           height: 1.05,
@@ -603,7 +612,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                               style: TextStyle(
                                 color: friend.isOnline
                                     ? AppColors.oliveDeep
-                                    : AppColors.inkBrown,
+                                    : mutedColor,
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -637,8 +646,10 @@ class _FriendsScreenState extends State<FriendsScreen>
     return Center(
       child: Text(
         friend.username.isNotEmpty ? friend.username[0].toUpperCase() : '?',
-        style: const TextStyle(
-          color: AppColors.woodDeep,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkForeground
+              : AppColors.woodDeep,
           fontWeight: FontWeight.w900,
           fontSize: 21,
         ),
@@ -669,6 +680,7 @@ class _FriendsScreenState extends State<FriendsScreen>
   }
 
   Widget _buildSearchBar(AppLocalizations l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isVietnamese =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
 
@@ -721,9 +733,9 @@ class _FriendsScreenState extends State<FriendsScreen>
             style: FilledButton.styleFrom(
               minimumSize: const Size(66, 42),
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              backgroundColor: AppColors.buttonGreen,
-              foregroundColor: AppColors.buttonText,
-              side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
+              backgroundColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
+              foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
+              side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 1.6),
               shape: const StadiumBorder(),
             ),
             child: GameButtonLabel(
@@ -1019,15 +1031,18 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     final l10n = AppLocalizations.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(24, 24, 24, bottomInset + 24),
       decoration: BoxDecoration(
-        color: AppColors.authCard,
+        color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: const Border(top: BorderSide(color: AppColors.wood, width: 2)),
+        border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1039,8 +1054,8 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
               GameButtonLabel(
                 l10n.friendsAddNew,
                 fontSize: 18,
-                color: AppColors.woodDeep,
-                outlineColor: AppColors.creamLight,
+                color: textColor,
+                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.creamLight,
                 outlineWidth: 3,
               ),
               IconButton(
@@ -1110,7 +1125,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                   decoration: BoxDecoration(
                     color: AppColors.buttonGreen,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.woodDeep, width: 1.5),
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 1.5),
                   ),
                   child: _isLoading
                       ? SizedBox(
@@ -1178,11 +1193,11 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.authCard,
+                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard,
                             borderRadius: BorderRadius.circular(
                               16,
                             ), // Thẻ bo tròn
-                            border: Border.all(color: AppColors.wood, width: 2),
+                            border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 2),
                           ),
                           child: Row(
                             children: [
@@ -1262,16 +1277,16 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                               FilledButton(
                                 onPressed: () => _sendRequest(player),
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: AppColors.buttonGreen,
-                                  foregroundColor: AppColors.buttonText,
+                                  backgroundColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
+                                  foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                     vertical: 0,
                                   ),
                                   minimumSize: const Size(0, 36), // Thu gọn nút
                                   shape: const StadiumBorder(),
-                                  side: const BorderSide(
-                                    color: AppColors.woodDeep,
+                                  side: BorderSide(
+                                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
                                     width: 1.5,
                                   ),
                                 ),
@@ -1481,6 +1496,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
+    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
 
     final currentList = _isSentTab ? _sentRequests : _receivedRequests;
     final l10n = AppLocalizations.of(context);
@@ -1488,9 +1506,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
       decoration: BoxDecoration(
-        color: AppColors.authCard,
+        color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: const Border(top: BorderSide(color: AppColors.wood, width: 2)),
+        border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1502,8 +1520,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
               GameButtonLabel(
                 l10n.friendsInbox,
                 fontSize: 18,
-                color: AppColors.woodDeep,
-                outlineColor: AppColors.creamLight,
+                color: textColor,
+                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.creamLight,
                 outlineWidth: 3,
               ),
               IconButton(
@@ -1531,8 +1549,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: !_isSentTab,
-                  selectedColor: AppColors.buttonGreen,
-                  backgroundColor: AppColors.creamLight,
+                  selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
+                  backgroundColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: !_isSentTab
                         ? colorScheme.onPrimary
@@ -1541,7 +1559,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppColors.wood, width: 1.5),
+                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
                   ),
                   onSelected: (val) {
                     if (_isSentTab) {
@@ -1562,8 +1580,8 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: _isSentTab,
-                  selectedColor: AppColors.buttonGreen,
-                  backgroundColor: AppColors.creamLight,
+                  selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
+                  backgroundColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: _isSentTab
                         ? colorScheme.onPrimary
@@ -1572,7 +1590,7 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppColors.wood, width: 1.5),
+                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
                   ),
                   onSelected: (val) {
                     if (!_isSentTab) {
@@ -1626,9 +1644,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           // Đồng bộ màu nền thẻ giống Thêm Bạn
-                          color: AppColors.authCard,
+                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.wood, width: 2),
+                          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2),
                         ),
                         child: Row(
                           children: [

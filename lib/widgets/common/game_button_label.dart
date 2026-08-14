@@ -9,8 +9,8 @@ class GameButtonLabel extends StatelessWidget {
     super.key,
     this.fontSize = 17,
     this.letterSpacing = 0.2,
-    this.color = AppColors.buttonText,
-    this.outlineColor = AppColors.buttonBorder,
+    this.color,
+    this.outlineColor,
     this.outlineWidth = 3,
     this.maxLines = 1,
   });
@@ -18,8 +18,8 @@ class GameButtonLabel extends StatelessWidget {
   final String text;
   final double fontSize;
   final double letterSpacing;
-  final Color color;
-  final Color outlineColor;
+  final Color? color;
+  final Color? outlineColor;
   final double outlineWidth;
   final int maxLines;
 
@@ -36,6 +36,13 @@ class GameButtonLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final resolvedColor = isDark
+        ? AppColors.darkForeground
+        : (color ?? AppColors.buttonText);
+    final resolvedOutline = isDark
+        ? AppColors.darkTextOutline
+        : (outlineColor ?? AppColors.buttonBorder);
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -50,7 +57,7 @@ class GameButtonLabel extends StatelessWidget {
                 ..style = PaintingStyle.stroke
                 ..strokeJoin = StrokeJoin.round
                 ..strokeWidth = outlineWidth
-                ..color = outlineColor,
+                ..color = resolvedOutline,
             ),
           ),
         ),
@@ -59,7 +66,7 @@ class GameButtonLabel extends StatelessWidget {
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: _style(color: color),
+          style: _style(color: resolvedColor),
         ),
       ],
     );

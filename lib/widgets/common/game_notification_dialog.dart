@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_icon.dart';
+import '../../core/theme/app_colors.dart';
 
 void showGameNotificationDialog(
   BuildContext context, {
@@ -23,13 +24,12 @@ void showGameNotificationDialog(
         }
       });
 
-      final colorScheme = Theme.of(context).colorScheme;
+      final theme = Theme.of(context);
+      final isDark = theme.brightness == Brightness.dark;
       final backgroundColor = isSuccess
-          ? colorScheme.primary
-          : colorScheme.error;
-      final contentColor = isSuccess
-          ? colorScheme.onPrimary
-          : colorScheme.onError;
+          ? (isDark ? AppColors.darkPrimary : AppColors.lightPrimary)
+          : (isDark ? AppColors.darkAccent : AppColors.danger);
+      final contentColor = isDark ? AppColors.darkForeground : AppColors.buttonText;
 
       return Align(
         alignment: Alignment.center,
@@ -41,7 +41,7 @@ void showGameNotificationDialog(
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: contentColor, width: 3),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.35),

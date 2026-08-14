@@ -180,8 +180,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
             // ── Theme ──────────────────────────────────────────────────
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            themeMode: gameState.settings.darkMode
+            themeMode: gameState.settings.themeCode == 'dark'
                 ? ThemeMode.dark
+                : gameState.settings.themeCode == 'system'
+                ? ThemeMode.system
                 : ThemeMode.light,
 
             scaffoldMessengerKey: RootLayout.messengerKey,
@@ -202,10 +204,13 @@ class _WalkamonAppState extends State<WalkamonApp> {
               }) {
                 return (context) {
                   final page = pageBuilder(context);
-                  if (targetRoute == '/pvp' ||
-                      targetRoute == '/' ||
+                  if (targetRoute == '/pvp') return page;
+                  if (targetRoute == '/' ||
+                      targetRoute == '/story' ||
+                      targetRoute == '/seed' ||
+                      targetRoute == '/name-pet' ||
                       (targetRoute?.startsWith('/auth/') ?? false)) {
-                    return page;
+                    return Theme(data: AppTheme.light(), child: page);
                   }
 
                   return HomePageBackdrop(

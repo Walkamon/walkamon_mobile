@@ -60,6 +60,7 @@ class _StreakScreenState extends State<StreakScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     final currentStreak = _currentStreak?.currentStreak ?? 0;
@@ -71,8 +72,8 @@ class _StreakScreenState extends State<StreakScreen> {
         title: GameButtonLabel(
           l10n.streakTitle,
           fontSize: 20,
-          color: AppColors.woodDeep,
-          outlineColor: AppColors.authCard,
+          color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+          outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
           outlineWidth: 4,
         ),
         backgroundColor: Colors.transparent,
@@ -95,15 +96,18 @@ class _StreakScreenState extends State<StreakScreen> {
                 margin: const EdgeInsets.all(24),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.authCard.withValues(alpha: 0.97),
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.wood, width: 2),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.wood,
+                    width: 2,
+                  ),
                 ),
                 child: Text(
                   _errorMessage!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.woodDeep,
+                  style: TextStyle(
+                    color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -138,9 +142,14 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.wood, width: 2),
+        border: Border.all(
+          color: colorScheme.brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : AppColors.wood,
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.woodDeep.withValues(alpha: 0.2),
@@ -155,9 +164,16 @@ class _StreakScreenState extends State<StreakScreen> {
             width: 84,
             height: 84,
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkMuted
+                  : AppColors.creamLight,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.wood, width: 1.5),
+              border: Border.all(
+                color: colorScheme.brightness == Brightness.dark
+                    ? AppColors.darkIconBorder
+                    : AppColors.wood,
+                width: 1.5,
+              ),
             ),
             child: AppIcon(
               Icons.local_fire_department_rounded,
@@ -169,10 +185,12 @@ class _StreakScreenState extends State<StreakScreen> {
           const SizedBox(height: 16),
           Text(
             '$currentStreak',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w800,
-              color: AppColors.woodDeep,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkForeground
+                  : AppColors.woodDeep,
             ),
           ),
           Text(
@@ -180,7 +198,9 @@ class _StreakScreenState extends State<StreakScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.oliveDeep,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkForeground
+                  : AppColors.oliveDeep,
             ),
           ),
           const SizedBox(height: 8),
@@ -189,7 +209,9 @@ class _StreakScreenState extends State<StreakScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.outlineBrown,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkMutedForeground
+                  : AppColors.outlineBrown,
               fontWeight: FontWeight.w600,
               height: 1.4,
             ),
@@ -209,9 +231,14 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.wood, width: 2),
+        border: Border.all(
+          color: colorScheme.brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : AppColors.wood,
+          width: 2,
+        ),
       ),
       child: Row(
         children: [
@@ -219,9 +246,16 @@ class _StreakScreenState extends State<StreakScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkMuted
+                  : AppColors.creamLight,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.wood, width: 1.3),
+              border: Border.all(
+                color: colorScheme.brightness == Brightness.dark
+                    ? AppColors.darkBorder
+                    : AppColors.wood,
+                width: 1.3,
+              ),
             ),
             child: AppIcon(
               Icons.card_giftcard_rounded,
@@ -236,9 +270,11 @@ class _StreakScreenState extends State<StreakScreen> {
               children: [
                 Text(
                   l10n.streakThirtyDays,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.woodDeep,
+                    color: colorScheme.brightness == Brightness.dark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -256,7 +292,9 @@ class _StreakScreenState extends State<StreakScreen> {
                   '$currentStreak/30',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.outlineBrown,
+                    color: colorScheme.brightness == Brightness.dark
+                        ? AppColors.darkMutedForeground
+                        : AppColors.outlineBrown,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -309,9 +347,14 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.wood, width: 2),
+        border: Border.all(
+          color: colorScheme.brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : AppColors.wood,
+          width: 2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,9 +363,16 @@ class _StreakScreenState extends State<StreakScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkMuted
+                  : AppColors.creamLight,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.wood, width: 1.2),
+              border: Border.all(
+                color: colorScheme.brightness == Brightness.dark
+                    ? AppColors.darkBorder
+                    : AppColors.wood,
+                width: 1.2,
+              ),
             ),
             child: AppIcon(icon, color: accent, size: 18),
           ),
@@ -332,16 +382,20 @@ class _StreakScreenState extends State<StreakScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: AppColors.outlineBrown,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkMutedForeground
+                  : AppColors.outlineBrown,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: AppColors.woodDeep,
+              color: colorScheme.brightness == Brightness.dark
+                  ? AppColors.darkForeground
+                  : AppColors.woodDeep,
             ),
           ),
         ],

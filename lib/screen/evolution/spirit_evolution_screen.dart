@@ -128,6 +128,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
     final primary = theme.colorScheme.primary;
     final mutedFg = theme.brightness == Brightness.dark
@@ -186,9 +187,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             decoration: BoxDecoration(
-              color: AppColors.authCard.withValues(alpha: 0.94),
+              color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.wood, width: 1.5),
+              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +238,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                                 widget.bonding,
                               ),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: mutedFg,
+                          color: isDark ? AppColors.darkForeground : mutedFg,
                           height: 1.4,
                         ),
                       ),
@@ -259,13 +260,13 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                             AppIcon(
                               Icons.bolt_rounded,
                               size: 12,
-                              color: primary,
+                              color: isDark ? AppColors.darkTextOutline : primary,
                             ),
                             const SizedBox(width: 3),
                             Text(
                               l10n.spiritReady,
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: primary,
+                                color: isDark ? AppColors.darkTextOutline : primary,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.3,
                               ),
@@ -288,9 +289,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.authCard.withValues(alpha: 0.94),
+              color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.wood, width: 1.5),
+              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
             ),
             child: widget.isLoading
                 ? const Center(
@@ -472,6 +473,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     required bool canEvolve,
     required bool hasNextStage,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEnabled =
         !widget.isSubmitting &&
         canEvolve &&
@@ -479,9 +481,14 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
         widget.onEvolve != null;
 
     return Material(
-      color: isEnabled ? AppColors.buttonGreen : AppColors.buttonSecondary,
-      shape: const StadiumBorder(
-        side: BorderSide(color: AppColors.woodDeep, width: 2),
+      color: isEnabled
+          ? (isDark ? AppColors.darkLife : AppColors.buttonGreen)
+          : (isDark ? AppColors.darkCard.withValues(alpha: 0.9) : AppColors.buttonSecondary),
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: isDark ? AppColors.darkCardBorder : AppColors.woodDeep,
+          width: 2,
+        ),
       ),
       child: InkWell(
         onTap: isEnabled ? _handleEvolveClick : null,
@@ -503,12 +510,12 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
               else
                 AppIcon(
                   Icons.auto_awesome_rounded,
-                  asset: AppAssets.iconUpgrade,
+                  asset: isEnabled ? AppAssets.iconUpgrade : null,
                   size: 21,
                   color: isEnabled
-                      ? AppColors.buttonText
-                      : AppColors.outlineBrown,
-                  tintAsset: !isEnabled,
+                      ? (isDark ? AppColors.darkTextOutline : AppColors.buttonText)
+                      : (isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown),
+                  tintAsset: false,
                 ),
               const SizedBox(width: 8),
               GameButtonLabel(
@@ -517,11 +524,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                     : l10n.spiritEvolveNow,
                 fontSize: 14,
                 color: isEnabled
-                    ? AppColors.buttonText
-                    : AppColors.outlineBrown,
-                outlineColor: isEnabled
-                    ? AppColors.woodDeep
-                    : AppColors.authCard,
+                    ? (isDark ? AppColors.darkTextOutline : AppColors.buttonText)
+                    : (isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown),
+                outlineColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
                 outlineWidth: 2.5,
               ),
             ],
@@ -781,15 +786,20 @@ class _ConditionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: ok
-            ? AppColors.leafLight.withValues(alpha: 0.65)
-            : AppColors.authCard.withValues(alpha: 0.92),
+        color: isDark
+            ? (ok ? AppColors.darkPrimary : AppColors.darkNestedCard)
+            : (ok
+                ? AppColors.leafLight.withValues(alpha: 0.65)
+                : AppColors.authCard.withValues(alpha: 0.92)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ok ? AppColors.oliveDeep : AppColors.wood,
+          color: isDark
+              ? (ok ? AppColors.darkLife : AppColors.darkCardBorder)
+              : (ok ? AppColors.oliveDeep : AppColors.wood),
           width: 1.5,
         ),
       ),
@@ -804,26 +814,26 @@ class _ConditionCard extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.inkBrown,
+                color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
               ),
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.creamLight,
+              color: isDark ? AppColors.darkMuted : AppColors.creamLight,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: AppColors.wood.withValues(alpha: 0.65)),
+              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood.withValues(alpha: 0.65)),
             ),
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
-                color: AppColors.oliveDeep,
+                color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
               ),
             ),
           ),
@@ -992,9 +1002,9 @@ class _PreviewSection extends StatelessWidget {
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: AppColors.authCard.withValues(alpha: 0.9),
+            color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.wood, width: 1.5),
+            border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1011,7 +1021,7 @@ class _PreviewSection extends StatelessWidget {
                         pet.petName,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: primary,
+                          color: isDark ? AppColors.darkForeground : primary,
                         ),
                       ),
                     ),
@@ -1032,10 +1042,10 @@ class _PreviewSection extends StatelessWidget {
                             width: 54,
                             height: 54,
                             decoration: BoxDecoration(
-                              color: AppColors.creamLight,
+                                  color: isDark ? AppColors.darkMuted : AppColors.creamLight,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.wood,
+                                color: isDark ? AppColors.darkCardBorder : AppColors.wood,
                                 width: 1.6,
                               ),
                               boxShadow: [
@@ -1067,13 +1077,16 @@ class _PreviewSection extends StatelessWidget {
                                   stage.stageName,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
+                                    color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   l10n.spiritRequiredLevel(stage.requiredLevel),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: mutedFg,
+                                    color: isDark
+                                        ? AppColors.darkForeground.withValues(alpha: 0.82)
+                                        : mutedFg,
                                   ),
                                 ),
                               ],

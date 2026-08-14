@@ -74,6 +74,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
             }
 
             final data = provider.calendarData;
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             if (data == null) {
               return Center(child: Text(l10n.dailyLoginNoData));
             }
@@ -95,8 +96,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                       GameButtonLabel(
                         l10n.dailyLoginTitle,
                         fontSize: 20,
-                        color: AppColors.woodDeep,
-                        outlineColor: AppColors.authCard,
+                        color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                        outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                         outlineWidth: 4,
                       ),
                       const SizedBox(width: GameBackButton.buttonSize),
@@ -110,9 +111,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     width: 78,
                     height: 78,
                     decoration: BoxDecoration(
-                      color: AppColors.authCard.withValues(alpha: 0.92),
+                      color: isDark ? AppColors.darkMuted : AppColors.authCard.withValues(alpha: 0.92),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.wood, width: 2),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkIconBorder : AppColors.wood,
+                        width: 2,
+                      ),
                     ),
                     child: Center(
                       child: Image.asset(
@@ -127,16 +131,16 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                   GameButtonLabel(
                     l10n.dailyLoginRewardTitle,
                     fontSize: 22,
-                    color: AppColors.woodDeep,
-                    outlineColor: AppColors.authCard,
+                    color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                    outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                     outlineWidth: 4,
                   ),
                   const SizedBox(height: 12),
                   GameButtonLabel(
                     l10n.dailyLoginRewardSubtitle,
                     fontSize: 14,
-                    color: AppColors.oliveDeep,
-                    outlineColor: AppColors.authCard,
+                    color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
+                    outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
                     outlineWidth: 3.5,
                     maxLines: 2,
                   ),
@@ -193,6 +197,9 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                       alpha: 0.45,
                                     ),
                                     builder: (dialogContext) {
+                                      final isDark =
+                                          Theme.of(dialogContext).brightness ==
+                                          Brightness.dark;
                                       return Dialog(
                                         insetPadding:
                                             const EdgeInsets.symmetric(
@@ -213,11 +220,15 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                               22,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: AppColors.authCard,
+                                              color: isDark
+                                                  ? AppColors.darkCard
+                                                  : AppColors.authCard,
                                               borderRadius:
                                                   BorderRadius.circular(28),
                                               border: Border.all(
-                                                color: AppColors.woodDeep,
+                                                color: isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.woodDeep,
                                                 width: 2,
                                               ),
                                               boxShadow: [
@@ -235,9 +246,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                 GameButtonLabel(
                                                   l10n.dailyLoginSuccessTitle,
                                                   fontSize: 24,
-                                                  color: AppColors.woodDeep,
-                                                  outlineColor:
-                                                      AppColors.creamLight,
+                                                  color: isDark
+                                                      ? AppColors.darkForeground
+                                                      : AppColors.woodDeep,
+                                                  outlineColor: isDark
+                                                      ? AppColors.darkTextOutline
+                                                      : AppColors.creamLight,
                                                   outlineWidth: 3,
                                                 ),
                                                 const SizedBox(height: 14),
@@ -246,8 +260,10 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                     result.claimedDay,
                                                   ),
                                                   textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    color: AppColors.inkBrown,
+                                                  style: TextStyle(
+                                                    color: isDark
+                                                        ? AppColors.darkForeground
+                                                        : AppColors.inkBrown,
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w600,
                                                     height: 1.4,
@@ -262,14 +278,17 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                         vertical: 14,
                                                       ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.creamLight,
+                                                    color: isDark
+                                                        ? AppColors.darkMuted
+                                                        : AppColors.creamLight,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           18,
                                                         ),
                                                     border: Border.all(
-                                                      color: AppColors
-                                                          .outlineBrown,
+                                                      color: isDark
+                                                          ? AppColors.darkBorder
+                                                          : AppColors.outlineBrown,
                                                       width: 1.5,
                                                     ),
                                                   ),
@@ -292,9 +311,10 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                               l10n.dailyLoginSuccessReward(
                                                                 result.reward,
                                                               ),
-                                                              style: const TextStyle(
-                                                                color: AppColors
-                                                                    .woodDeep,
+                                                              style: TextStyle(
+                                                                color: isDark
+                                                                    ? AppColors.darkForeground
+                                                                    : AppColors.woodDeep,
                                                                 fontSize: 15,
                                                                 fontWeight:
                                                                     FontWeight
@@ -308,9 +328,10 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                               l10n.dailyLoginSuccessBalance(
                                                                 result.balance,
                                                               ),
-                                                              style: const TextStyle(
-                                                                color: AppColors
-                                                                    .outlineBrown,
+                                                              style: TextStyle(
+                                                                color: isDark
+                                                                    ? AppColors.darkMutedForeground
+                                                                    : AppColors.outlineBrown,
                                                                 fontSize: 13,
                                                                 fontWeight:
                                                                     FontWeight
@@ -355,13 +376,14 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: !data.canClaimToday
-                              ? AppColors.panelMuted
-                              : AppColors.buttonGreen,
-                          disabledBackgroundColor: AppColors.panelMuted,
+                              ? (isDark ? AppColors.darkMuted : AppColors.panelMuted)
+                              : (isDark ? AppColors.darkLife : AppColors.buttonGreen),
+                          disabledBackgroundColor:
+                              isDark ? AppColors.darkMuted : AppColors.panelMuted,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(32),
-                            side: const BorderSide(
-                              color: AppColors.buttonBorder,
+                            side: BorderSide(
+                              color: isDark ? AppColors.darkBorder : AppColors.buttonBorder,
                               width: 2,
                             ),
                           ),
@@ -376,7 +398,9 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                     ? l10n.dailyLoginClaimedToday
                                     : l10n.dailyLoginClaimNow,
                                 fontSize: 17,
-                                color: AppColors.buttonText,
+                                color: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.buttonText,
                               ),
                       ),
                     ),

@@ -408,8 +408,16 @@ abstract final class AppAssets {
 
   // Home
   static const homeSprout = '$root/HomeBackgrounds/home_mam_non_portrait.png';
+  static const homeSproutDark =
+      '$root/HomeBackgrounds/home_mam_non_dark_portrait.png';
   static const homeDawn = '$root/HomeBackgrounds/home_binh_minh_portrait.png';
+  static const homeDawnDark =
+      '$root/HomeBackgrounds/home_binh_minh_dark_portrait.png';
   static const homeWarmSun = '$root/HomeBackgrounds/home_nang_am_portrait.png';
+  static const homeWarmSunDark =
+      '$root/HomeBackgrounds/home_nang_am_dark_portrait.png';
+  static const homeMoonlightLight =
+      '$root/HomeBackgrounds/home_anh_trang_light_portrait.png';
   static const homeMoonlight =
       '$root/HomeBackgrounds/home_anh_trang_portrait.png';
 
@@ -448,8 +456,12 @@ abstract final class AppAssets {
     iconClose,
     iconPvpBattle,
     homeSprout,
+    homeSproutDark,
     homeDawn,
+    homeDawnDark,
     homeWarmSun,
+    homeWarmSunDark,
+    homeMoonlightLight,
     homeMoonlight,
   ];
 

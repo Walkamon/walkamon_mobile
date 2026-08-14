@@ -54,13 +54,16 @@ class _FriendSpiritScreenContentState
   Color get bondColor => isDark ? AppColors.darkBond : AppColors.lightBond;
   Color get energyColor => isDark ? AppColors.darkDew : AppColors.lightDew;
   Color get expColor => isDark ? AppColors.darkAccent : AppColors.lightAccent;
-  Color get primaryColor => Theme.of(context).colorScheme.primary;
+  Color get primaryColor =>
+      isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
   Color get mutedColor => isDark ? AppColors.darkMuted : AppColors.lightMuted;
   Color get mutedFgColor =>
       isDark ? AppColors.darkMutedForeground : AppColors.lightMutedForeground;
-  Color get borderColor => Theme.of(context).colorScheme.outline;
-  Color get cardColor => Theme.of(context).colorScheme.surface;
-  Color get fgColor => Theme.of(context).colorScheme.onSurface;
+  Color get borderColor =>
+      isDark ? AppColors.darkBorder : AppColors.lightBorder;
+  Color get cardColor => isDark ? AppColors.darkCard : AppColors.authCard;
+  Color get fgColor =>
+      isDark ? AppColors.darkForeground : AppColors.lightForeground;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +115,10 @@ class _FriendSpiritScreenContentState
             padding: const EdgeInsets.all(16.0),
             child: Text(
               provider.errorMessage,
-              style: const TextStyle(color: Colors.red, fontSize: 16),
+              style: TextStyle(
+                color: isDark ? AppColors.darkForeground : AppColors.danger,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
@@ -192,8 +198,8 @@ class _FriendSpiritScreenContentState
         GameButtonLabel(
           AppLocalizations.of(context).friendSpiritOfName(spiritData.userName),
           fontSize: 17,
-          color: AppColors.woodDeep,
-          outlineColor: AppColors.authCard,
+          color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+          outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
           outlineWidth: 4,
         ),
         const SizedBox(width: GameBackButton.buttonSize),
@@ -241,8 +247,12 @@ class _FriendSpiritScreenContentState
                   child: GameButtonLabel(
                     displayName,
                     fontSize: 19,
-                    color: AppColors.woodDeep,
-                    outlineColor: AppColors.creamLight,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
+                    outlineColor: isDark
+                        ? AppColors.darkTextOutline
+                        : AppColors.creamLight,
                     outlineWidth: 3,
                   ),
                 ),
@@ -253,7 +263,9 @@ class _FriendSpiritScreenContentState
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.leafLight.withValues(alpha: 0.62),
+                  color: isDark
+                      ? AppColors.darkPrimary.withValues(alpha: 0.82)
+                      : AppColors.leafLight.withValues(alpha: 0.62),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                     color: AppColors.wood.withValues(alpha: 0.65),
@@ -261,10 +273,12 @@ class _FriendSpiritScreenContentState
                 ),
                 child: Text(
                   l10n.friendSpiritLevel(spiritData.level),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.oliveDeep,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.oliveDeep,
                   ),
                 ),
               ),
@@ -281,7 +295,9 @@ class _FriendSpiritScreenContentState
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.creamLight.withValues(alpha: 0.78),
+                  color: isDark
+                      ? AppColors.darkMuted
+                      : AppColors.creamLight.withValues(alpha: 0.78),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                     color: AppColors.wood.withValues(alpha: 0.65),
@@ -290,10 +306,12 @@ class _FriendSpiritScreenContentState
                 ),
                 child: Text(
                   _localizedStageName(spiritData.stageName, l10n),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.inkBrown,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.inkBrown,
                   ),
                 ),
               ),
@@ -350,8 +368,11 @@ class _FriendSpiritScreenContentState
     required bool active,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: active ? AppColors.buttonGreen : Colors.transparent,
+      color: active
+          ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(13),
       child: InkWell(
         onTap: onTap,
@@ -362,7 +383,9 @@ class _FriendSpiritScreenContentState
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
             border: Border.all(
-              color: active ? AppColors.woodDeep : Colors.transparent,
+              color: active
+                  ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                  : Colors.transparent,
               width: 1.5,
             ),
           ),
@@ -371,16 +394,22 @@ class _FriendSpiritScreenContentState
               ? GameButtonLabel(
                   label,
                   fontSize: 13,
-                  color: AppColors.buttonText,
-                  outlineColor: AppColors.woodDeep,
+                  color: isDark
+                      ? AppColors.darkForeground
+                      : AppColors.buttonText,
+                  outlineColor: isDark
+                      ? AppColors.darkTextOutline
+                      : AppColors.woodDeep,
                   outlineWidth: 2.5,
                 )
               : Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.woodDeep,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                   ),
                 ),
         ),
@@ -440,7 +469,7 @@ class _FriendSpiritScreenContentState
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: AppColors.inkBrown,
+              color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
               letterSpacing: 1.2,
             ),
           ),
@@ -448,7 +477,9 @@ class _FriendSpiritScreenContentState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.authCard.withValues(alpha: 0.88),
+              color: isDark
+                  ? AppColors.darkCard.withValues(alpha: 0.96)
+                  : AppColors.authCard.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: AppColors.wood.withValues(alpha: 0.7),
@@ -462,7 +493,9 @@ class _FriendSpiritScreenContentState
                   height: 64,
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: AppColors.creamLight.withValues(alpha: 0.78),
+                    color: isDark
+                        ? AppColors.darkMuted
+                        : AppColors.creamLight.withValues(alpha: 0.78),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: AppColors.wood.withValues(alpha: 0.65),
@@ -485,7 +518,9 @@ class _FriendSpiritScreenContentState
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.inkDark,
+                          color: isDark
+                              ? AppColors.darkForeground
+                              : AppColors.inkDark,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -494,7 +529,9 @@ class _FriendSpiritScreenContentState
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.inkBrown,
+                          color: isDark
+                              ? AppColors.darkMutedForeground
+                              : AppColors.inkBrown,
                         ),
                       ),
                     ],
@@ -528,10 +565,10 @@ class _FriendSpiritScreenContentState
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: AppColors.inkBrown,
+              color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
             ),
           ),
         ),
@@ -550,9 +587,16 @@ class _FriendSpiritScreenContentState
                     height: 17,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: AppColors.creamLight,
+                      color: isDark
+                          ? AppColors.darkMuted
+                          : AppColors.creamLight,
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.woodDeep, width: 1.5),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.woodDeep,
+                        width: 1.5,
+                      ),
                     ),
                     child: TweenAnimationBuilder<double>(
                       tween: Tween<double>(begin: 0, end: progress),
@@ -579,10 +623,12 @@ class _FriendSpiritScreenContentState
                   child: Center(
                     child: Text(
                       '$current/$maximum',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.inkDark,
+                        color: isDark
+                            ? AppColors.darkForeground
+                            : AppColors.inkDark,
                         height: 1,
                       ),
                     ),
@@ -611,19 +657,24 @@ class _FriendSpiritScreenContentState
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.authCard.withValues(alpha: 0.88),
+          color: isDark
+              ? AppColors.darkCard.withValues(alpha: 0.96)
+              : AppColors.authCard.withValues(alpha: 0.88),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.wood, width: 1.5),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.wood,
+            width: 1.5,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.friendSpiritEvolutionStages.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
-                color: AppColors.inkBrown,
+                color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
                 letterSpacing: 1.1,
               ),
             ),
@@ -633,14 +684,17 @@ class _FriendSpiritScreenContentState
               children: _buildDynamicEvolutionStages(spiritData),
             ),
             const SizedBox(height: 22),
-            const Divider(color: AppColors.wood, height: 1),
+            Divider(
+              color: isDark ? AppColors.darkBorder : AppColors.wood,
+              height: 1,
+            ),
             const SizedBox(height: 16),
             Text(
               l10n.friendSpiritMilestones.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
-                color: AppColors.inkBrown,
+                color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
                 letterSpacing: 1.1,
               ),
             ),
@@ -720,7 +774,9 @@ class _FriendSpiritScreenContentState
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.inkDark,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.inkDark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -729,7 +785,9 @@ class _FriendSpiritScreenContentState
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.inkBrown,
+                      color: isDark
+                          ? AppColors.darkMutedForeground
+                          : AppColors.inkBrown,
                     ),
                   ),
                 ],
@@ -797,8 +855,10 @@ class _FriendSpiritScreenContentState
             margin: const EdgeInsets.only(top: 32),
             decoration: BoxDecoration(
               color: index < currentIndex
-                  ? AppColors.buttonGreen
-                  : AppColors.wood.withValues(alpha: 0.35),
+                  ? (isDark ? AppColors.darkBorder : AppColors.buttonGreen)
+                  : (isDark
+                        ? AppColors.darkMutedForeground
+                        : AppColors.wood.withValues(alpha: 0.35)),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -825,11 +885,17 @@ class _FriendSpiritScreenContentState
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: active
-                ? AppColors.leafLight.withValues(alpha: 0.72)
-                : AppColors.creamLight.withValues(alpha: 0.86),
+                ? (isDark
+                      ? AppColors.darkPrimary
+                      : AppColors.leafLight.withValues(alpha: 0.72))
+                : (isDark
+                      ? AppColors.darkMuted
+                      : AppColors.creamLight.withValues(alpha: 0.86)),
             shape: BoxShape.circle,
             border: Border.all(
-              color: active ? AppColors.woodDeep : AppColors.wood,
+              color: active
+                  ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                  : (isDark ? AppColors.darkBorder : AppColors.wood),
               width: active ? 2.2 : 1.2,
             ),
             boxShadow: active
@@ -862,7 +928,9 @@ class _FriendSpiritScreenContentState
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: active ? FontWeight.w900 : FontWeight.w700,
-            color: active ? AppColors.oliveDeep : AppColors.inkBrown,
+            color: active
+                ? (isDark ? AppColors.darkForeground : AppColors.oliveDeep)
+                : (isDark ? AppColors.darkMutedForeground : AppColors.inkBrown),
           ),
         ),
       ],

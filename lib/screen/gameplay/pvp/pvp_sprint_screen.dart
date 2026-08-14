@@ -206,9 +206,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
           decoration: BoxDecoration(
-            color: AppColors.authCard,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkCard
+                : AppColors.authCard,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: AppColors.wood, width: 2),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkBorder
+                  : AppColors.wood,
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.woodDeep.withValues(alpha: 0.3),
@@ -244,12 +251,18 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.woodDeep,
-                        side: const BorderSide(
-                          color: AppColors.woodDeep,
+                        foregroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkForeground
+                            : AppColors.woodDeep,
+                        side: BorderSide(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkBorder
+                              : AppColors.woodDeep,
                           width: 2,
                         ),
-                        backgroundColor: AppColors.buttonSecondary,
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkMuted
+                            : AppColors.buttonSecondary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: const StadiumBorder(),
                       ),
@@ -261,10 +274,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context, true),
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: AppColors.buttonText,
-                        backgroundColor: AppColors.buttonGreen,
-                        side: const BorderSide(
-                          color: AppColors.woodDeep,
+                        foregroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkTextOutline
+                            : AppColors.buttonText,
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkLife
+                            : AppColors.buttonGreen,
+                        side: BorderSide(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkBorder
+                              : AppColors.woodDeep,
                           width: 2,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -426,10 +445,16 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: AppColors.buttonText,
-                          backgroundColor: AppColors.buttonGreen,
-                          side: const BorderSide(
-                            color: AppColors.woodDeep,
+                          foregroundColor: Theme.of(dialogContext).brightness == Brightness.dark
+                              ? AppColors.darkTextOutline
+                              : AppColors.buttonText,
+                          backgroundColor: Theme.of(dialogContext).brightness == Brightness.dark
+                              ? AppColors.darkLife
+                              : AppColors.buttonGreen,
+                          side: BorderSide(
+                            color: Theme.of(dialogContext).brightness == Brightness.dark
+                                ? AppColors.darkBorder
+                                : AppColors.woodDeep,
                             width: 2,
                           ),
                           minimumSize: const Size.fromHeight(52),

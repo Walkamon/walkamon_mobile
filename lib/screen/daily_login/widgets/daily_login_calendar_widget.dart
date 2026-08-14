@@ -71,6 +71,7 @@ class _RewardCard extends StatelessWidget {
     final isClaimed = rewardInfo.status == 'claimed';
     final isCurrent = rewardInfo.status == 'claimable';
     final isSpecial = rewardInfo.day == 7;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Thiết lập phong cách (Style) theo trạng thái
     Color bgColor;
@@ -82,10 +83,10 @@ class _RewardCard extends StatelessWidget {
     double borderWidth = isCurrent || isSpecial ? 2.2 : 1.5;
 
     if (isClaimed) {
-      bgColor = AppColors.panelMuted.withValues(alpha: 0.82);
-      borderColor = AppColors.wood;
-      textDayColor = AppColors.outlineBrown;
-      textAmountColor = AppColors.outlineBrown;
+      bgColor = isDark ? AppColors.darkMuted : AppColors.panelMuted.withValues(alpha: 0.82);
+      borderColor = isDark ? AppColors.darkCardBorder : AppColors.wood;
+      textDayColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+      textAmountColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
       iconWidget = Container(
         width: 40,
         height: 40,
@@ -100,10 +101,10 @@ class _RewardCard extends StatelessWidget {
         ),
       );
     } else if (isCurrent) {
-      bgColor = AppColors.authCard.withValues(alpha: 0.94);
-      borderColor = AppColors.woodDeep;
-      textDayColor = AppColors.oliveDeep;
-      textAmountColor = AppColors.inkDark;
+      bgColor = isDark ? AppColors.darkPrimary : AppColors.authCard.withValues(alpha: 0.94);
+      borderColor = isDark ? AppColors.darkCardBorder : AppColors.woodDeep;
+      textDayColor = isDark ? AppColors.darkForeground : AppColors.oliveDeep;
+      textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
       iconWidget = Image.asset(
         AppAssets.iconDewDrop,
         width: 42,
@@ -111,10 +112,10 @@ class _RewardCard extends StatelessWidget {
         fit: BoxFit.contain,
       );
     } else if (isSpecial) {
-      bgColor = AppColors.creamLight.withValues(alpha: 0.95);
-      borderColor = AppColors.woodDeep;
-      textDayColor = AppColors.woodDeep;
-      textAmountColor = AppColors.inkBrown;
+      bgColor = isDark ? AppColors.darkNestedCard : AppColors.creamLight.withValues(alpha: 0.95);
+      borderColor = isDark ? AppColors.darkCardBorder : AppColors.woodDeep;
+      textDayColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
+      textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkBrown;
       iconWidget = Image.asset(
         AppAssets.iconDailyRewardRes,
         width: 46,
@@ -122,10 +123,10 @@ class _RewardCard extends StatelessWidget {
         fit: BoxFit.contain,
       );
     } else {
-      bgColor = AppColors.authCard.withValues(alpha: 0.9);
-      borderColor = AppColors.wood;
-      textDayColor = AppColors.outlineBrown;
-      textAmountColor = AppColors.inkDark;
+      bgColor = isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.9);
+      borderColor = isDark ? AppColors.darkCardBorder : AppColors.wood;
+      textDayColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+      textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
       iconWidget = Opacity(
         opacity: 0.72,
         child: Image.asset(

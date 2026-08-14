@@ -10,16 +10,22 @@ class HomePageBackdrop extends StatelessWidget {
 
   final Widget child;
 
-  String _backgroundForAffinity(String affinityCode) {
+  String _backgroundForAffinity(String affinityCode, bool isDark) {
     switch (affinityCode.trim().toLowerCase()) {
+      case 'sprout':
+      case 'mam_non':
+        return isDark ? AppAssets.homeSproutDark : AppAssets.homeSprout;
       case 'dawn':
-        return AppAssets.homeDawn;
+      case 'binh_minh':
+        return isDark ? AppAssets.homeDawnDark : AppAssets.homeDawn;
       case 'warm_sun':
-        return AppAssets.homeWarmSun;
+      case 'nang_am':
+        return isDark ? AppAssets.homeWarmSunDark : AppAssets.homeWarmSun;
       case 'moonlight':
-        return AppAssets.homeMoonlight;
+      case 'anh_trang':
+        return isDark ? AppAssets.homeMoonlight : AppAssets.homeMoonlightLight;
       default:
-        return AppAssets.homeSprout;
+        return isDark ? AppAssets.homeSproutDark : AppAssets.homeSprout;
     }
   }
 
@@ -34,7 +40,7 @@ class HomePageBackdrop extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          _backgroundForAffinity(affinityCode),
+          _backgroundForAffinity(affinityCode, isDark),
           fit: BoxFit.cover,
           alignment: Alignment.center,
           filterQuality: FilterQuality.medium,
@@ -46,7 +52,7 @@ class HomePageBackdrop extends StatelessWidget {
         ),
         ColoredBox(
           color: isDark
-              ? Colors.black.withValues(alpha: 0.28)
+              ? Colors.black.withValues(alpha: 0.18)
               : AppColors.authCard.withValues(alpha: 0.18),
         ),
         child,

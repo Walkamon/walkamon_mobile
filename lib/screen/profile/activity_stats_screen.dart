@@ -320,13 +320,20 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final cardColor = AppColors.authCard.withValues(alpha: 0.97);
-    const primary = AppColors.buttonGreen;
-    const onPrimary = AppColors.buttonText;
-    const muted = AppColors.parchment;
-    const mutedForeground = AppColors.outlineBrown;
-    const borderColor = AppColors.wood;
-    const foreground = AppColors.woodDeep;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark
+        ? AppColors.darkCard
+        : AppColors.authCard.withValues(alpha: 0.97);
+    final primary = isDark ? AppColors.darkPrimary : AppColors.buttonGreen;
+    final onPrimary = isDark
+        ? AppColors.darkPrimaryForeground
+        : AppColors.buttonText;
+    final muted = isDark ? AppColors.darkMuted : AppColors.parchment;
+    final mutedForeground = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.wood;
+    final foreground = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     final compactLayout = MediaQuery.sizeOf(context).height < 850;
 
     return Scaffold(
@@ -715,9 +722,14 @@ class _ActivityHistoryPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.leafLight.withValues(alpha: 0.96),
+              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.oliveDeep, width: 2),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkBorder
+                    : AppColors.oliveDeep,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.woodDeep.withValues(alpha: 0.2),
@@ -729,9 +741,14 @@ class _ActivityHistoryPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 38, 12, 10),
               decoration: BoxDecoration(
-                color: AppColors.authCard.withValues(alpha: 0.97),
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.wood, width: 1.5),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkBorder
+                      : AppColors.wood,
+                  width: 1.5,
+                ),
               ),
               child: child,
             ),
@@ -746,7 +763,12 @@ class _ActivityHistoryPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.woodLight,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.woodDeep, width: 2),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkBorder
+                    : AppColors.woodDeep,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.woodDeep.withValues(alpha: 0.18),
@@ -758,8 +780,12 @@ class _ActivityHistoryPanel extends StatelessWidget {
             child: GameButtonLabel(
               title,
               fontSize: 15,
-              color: AppColors.buttonText,
-              outlineColor: AppColors.woodDeep,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkForeground
+                  : AppColors.buttonText,
+              outlineColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkTextOutline
+                  : AppColors.woodDeep,
               outlineWidth: 2.5,
             ),
           ),
@@ -919,9 +945,14 @@ class _TimeRangeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.authCard.withValues(alpha: 0.96),
+        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.wood, width: 1.5),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkBorder
+              : AppColors.wood,
+          width: 1.5,
+        ),
       ),
       child: Row(
         children: ActivityTimeRange.values.map((range) {
@@ -1356,7 +1387,7 @@ class _ErrorState extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.authCard.withValues(alpha: 0.97),
+          color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.wood, width: 2),
         ),

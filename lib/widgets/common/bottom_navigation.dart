@@ -33,10 +33,10 @@ class BottomNavigation extends StatelessWidget {
         ? AppColors.darkNavigationActive
         : AppColors.lightNavigationActive;
     final barColor = isDark
-        ? AppColors.olive.withValues(alpha: 0.9)
+        ? AppColors.darkNavigation.withValues(alpha: 0.96)
         : AppColors.leafLight.withValues(alpha: 0.9);
     final barInnerColor = isDark
-        ? AppColors.leafShadow.withValues(alpha: 0.72)
+        ? AppColors.darkNavigationActive.withValues(alpha: 0.9)
         : AppColors.leafBright.withValues(alpha: 0.52);
 
     final items = <({String route, String asset, IconData fallback})>[
@@ -79,7 +79,7 @@ class BottomNavigation extends StatelessWidget {
         decoration: BoxDecoration(
           color: barColor,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.woodDeep, width: 2.4),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2.4),
           boxShadow: [
             BoxShadow(
               color: AppColors.woodDeep.withValues(alpha: 0.28),
@@ -122,7 +122,7 @@ class BottomNavigation extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: active
-                                ? AppColors.woodDeep
+                                ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
                                 : Colors.transparent,
                             width: 2,
                           ),

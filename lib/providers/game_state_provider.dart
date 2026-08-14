@@ -68,14 +68,16 @@ class GameUser {
 
 class GameSettings {
   const GameSettings({
-    this.darkMode = false,
+    this.themeCode = 'light',
     this.soundEnabled = true,
     this.backgroundMusicEnabled = true,
     this.notifications = false,
     this.languageCode = 'vi-VN',
   });
 
-  final bool darkMode;
+  final String themeCode;
+  bool get darkMode => themeCode == 'dark';
+  bool get systemMode => themeCode == 'system';
   final bool soundEnabled;
   final bool backgroundMusicEnabled;
   final bool notifications;
@@ -83,13 +85,16 @@ class GameSettings {
 
   GameSettings copyWith({
     bool? darkMode,
+    String? themeCode,
     bool? soundEnabled,
     bool? backgroundMusicEnabled,
     bool? notifications,
     String? languageCode,
   }) {
     return GameSettings(
-      darkMode: darkMode ?? this.darkMode,
+      themeCode:
+          themeCode ??
+          (darkMode == null ? this.themeCode : (darkMode ? 'dark' : 'light')),
       soundEnabled: soundEnabled ?? this.soundEnabled,
       backgroundMusicEnabled:
           backgroundMusicEnabled ?? this.backgroundMusicEnabled,
@@ -140,6 +145,10 @@ class GameStateProvider extends ChangeNotifier {
   int _spiritExp = 25;
   int _spiritEnergy = 62;
   int _spiritHealth = 70;
+  int _spiritExpMax = 100;
+  int _spiritEnergyMax = 100;
+  int _spiritHealthMax = 100;
+  int _bondingMax = 100;
   String _spiritName = 'Lumina';
   String _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
   bool _hasStarterPet = false;
@@ -170,6 +179,10 @@ class GameStateProvider extends ChangeNotifier {
   int get spiritExp => _spiritExp;
   int get spiritEnergy => _spiritEnergy;
   int get spiritHealth => _spiritHealth;
+  int get spiritExpMax => _spiritExpMax;
+  int get spiritEnergyMax => _spiritEnergyMax;
+  int get spiritHealthMax => _spiritHealthMax;
+  int get bondingMax => _bondingMax;
   String get spiritName => _spiritName;
   String get spiritInfo => _spiritInfo;
   bool get hasStarterPet => _hasStarterPet;
@@ -200,12 +213,16 @@ class GameStateProvider extends ChangeNotifier {
       '[AccountState] Resetting pet/profile state before account swap',
     );
     _user = null;
-    _settings = _settings.copyWith(notifications: false);
+    _settings = _settings.copyWith(notifications: false, themeCode: 'light');
     _bondingLevel = 50;
     _spiritLevel = 1;
     _spiritExp = 25;
     _spiritEnergy = 62;
     _spiritHealth = 70;
+    _spiritExpMax = 100;
+    _spiritEnergyMax = 100;
+    _spiritHealthMax = 100;
+    _bondingMax = 100;
     _spiritName = 'Lumina';
     _spiritInfo = 'Lumina Spirit đang sẵn sàng khám phá.';
     _hasStarterPet = false;
@@ -405,6 +422,9 @@ class GameStateProvider extends ChangeNotifier {
       _settings = _settings.copyWith(
         notifications: profileData.notificationsEnabled,
         languageCode: preferredLanguageCode,
+        themeCode: {'light', 'dark', 'system'}.contains(profileData.themeCode)
+            ? profileData.themeCode
+            : 'light',
       );
 
       // The dedicated Pet story-status endpoint is authoritative for routing.
@@ -545,7 +565,9 @@ class GameStateProvider extends ChangeNotifier {
           '[NotificationFlow][State] device_activation=$permissionGranted',
         );
         if (!permissionGranted) {
-          _settings = _settings.copyWith(notifications: false);
+          _settings = _settings.copyWith(
+            notifications: false,
+          );
           await _saveNotificationPreference(false);
           try {
             await _notificationRepository.updateNotification(false);
@@ -569,7 +591,9 @@ class GameStateProvider extends ChangeNotifier {
           return true;
         } catch (error) {
           await _fcmService.deactivateToken();
-          _settings = _settings.copyWith(notifications: false);
+          _settings = _settings.copyWith(
+            notifications: false,
+          );
           await _saveNotificationPreference(false);
           debugPrint('Cannot enable notifications on server: $error');
           return false;
@@ -583,7 +607,9 @@ class GameStateProvider extends ChangeNotifier {
           'reason=user_toggle',
         );
         await _fcmService.deactivateToken();
-        _settings = _settings.copyWith(notifications: false);
+        _settings = _settings.copyWith(
+          notifications: false,
+        );
         await _saveNotificationPreference(false);
         return true;
       } catch (error) {
@@ -701,17 +727,37 @@ class GameStateProvider extends ChangeNotifier {
 
   void updateSettings({
     bool? darkMode,
+    String? themeCode,
     bool? soundEnabled,
     bool? backgroundMusicEnabled,
     bool? notifications,
   }) {
     _settings = _settings.copyWith(
       darkMode: darkMode,
+      themeCode: themeCode,
       soundEnabled: soundEnabled,
       backgroundMusicEnabled: backgroundMusicEnabled,
       notifications: notifications,
     );
     notifyListeners();
+  }
+
+  Future<bool> setThemeCode(String themeCode) async {
+    final normalized = themeCode.trim().toLowerCase();
+    if (!{'light', 'dark', 'system'}.contains(normalized)) return false;
+    final previous = _settings.themeCode;
+    _settings = _settings.copyWith(themeCode: normalized);
+    notifyListeners();
+    try {
+      await _profileRepository.updateTheme(normalized);
+      debugPrint('[Theme] updated server themeCode=' + normalized);
+      return true;
+    } catch (error) {
+      _settings = _settings.copyWith(themeCode: previous);
+      notifyListeners();
+      debugPrint('[Theme] update failed: ' + error.toString());
+      return false;
+    }
   }
 
   void increaseBonding() {
@@ -730,6 +776,11 @@ class GameStateProvider extends ChangeNotifier {
       _spiritEnergy = petStatus.currentEnergy;
       _spiritHealth = petStatus.currentLifeForce;
       _bondingLevel = petStatus.currentBond;
+      _spiritEnergyMax = petStatus.maxEnergy > 0 ? petStatus.maxEnergy : 100;
+      _spiritHealthMax = petStatus.maxLifeForce > 0
+          ? petStatus.maxLifeForce
+          : 100;
+      _bondingMax = petStatus.maxBond > 0 ? petStatus.maxBond : 100;
 
       notifyListeners();
       return true;
@@ -762,9 +813,15 @@ class GameStateProvider extends ChangeNotifier {
         _spiritLevel = overview.level;
       }
       _spiritExp = overview.currentExp;
+      _spiritExpMax = overview.maxExp > 0 ? overview.maxExp : 100;
       _spiritEnergy = overview.currentEnergy;
+      _spiritEnergyMax = overview.maxEnergy > 0 ? overview.maxEnergy : 100;
       _spiritHealth = overview.currentLifeForce;
+      _spiritHealthMax = overview.maxLifeForce > 0
+          ? overview.maxLifeForce
+          : 100;
       _bondingLevel = overview.currentBond;
+      _bondingMax = overview.maxBond > 0 ? overview.maxBond : 100;
 
       try {
         final anim = await _petRepository.getCurrentAnimation();
