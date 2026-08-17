@@ -326,6 +326,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         key.contains('failed') ||
         key.contains('warning') ||
         key.contains('info') ||
+        key.contains('footprint') ||
+        key.contains('step_goal') ||
         key.contains('calendar') ||
         key.contains('event');
   }
@@ -374,6 +376,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
     if (key.contains('warning')) return AppAssets.notificationWarning;
     if (key.contains('info')) return AppAssets.notificationInfo;
+    if (key.contains('footprint') || key.contains('step_goal')) {
+      return AppAssets.iconStep;
+    }
     if (key.contains('calendar') || key.contains('event')) {
       return AppAssets.notificationEvent;
     }
@@ -385,6 +390,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (typeCode) {
       case 'daily_reward':
         return AppLocalizations.of(context).notificationsTypeDailyReward;
+      case 'daily_step_goal_reminder':
+        return AppLocalizations.of(
+          context,
+        ).notificationsTypeDailyStepGoalReminder;
       case 'streak_reward':
         return AppLocalizations.of(context).notificationsTypeStreakReward;
       case 'mission_complete':

@@ -926,6 +926,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTypeDailyReward => 'Daily login reward';
 
   @override
+  String get notificationsTypeDailyStepGoalReminder =>
+      'Daily activity reminder';
+
+  @override
   String get notificationsTypeStreakReward => 'Streak reward';
 
   @override

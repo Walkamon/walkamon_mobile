@@ -923,6 +923,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notificationsTypeDailyReward => 'Quà đăng nhập hàng ngày';
 
   @override
+  String get notificationsTypeDailyStepGoalReminder =>
+      'Nhắc mục tiêu vận động hằng ngày';
+
+  @override
   String get notificationsTypeStreakReward => 'Quà chuỗi điểm danh';
 
   @override
