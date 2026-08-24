@@ -22,7 +22,9 @@ class GameDualBottomTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedColor = isDark ? AppColors.darkNavigationActive : AppColors.buttonGreen;
+    final selectedColor = isDark
+        ? AppColors.darkNavigationActive
+        : AppColors.buttonGreen;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     Widget tab(String label, bool selected, VoidCallback onTap) {
       return Expanded(
@@ -39,7 +41,9 @@ class GameDualBottomTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: selected ? (isDark ? AppColors.darkBorder : AppColors.woodDeep) : Colors.transparent,
+                  color: selected
+                      ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                      : Colors.transparent,
                   width: 1.7,
                 ),
               ),
@@ -47,8 +51,12 @@ class GameDualBottomTabs extends StatelessWidget {
                   ? GameButtonLabel(
                       label,
                       fontSize: 13,
-                      color: isDark ? AppColors.darkForeground : AppColors.buttonText,
-                      outlineColor: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.buttonText,
+                      outlineColor: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.woodDeep,
                       outlineWidth: 2.5,
                     )
                   : Text(
@@ -73,9 +81,14 @@ class GameDualBottomTabs extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard.withValues(alpha: 0.96) : AppColors.authCard.withValues(alpha: 0.94),
+          color: isDark
+              ? AppColors.darkCard.withValues(alpha: 0.96)
+              : AppColors.authCard.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(19),
-          border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 2),
+          border: Border.all(
+            color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.woodDeep.withValues(alpha: 0.2),

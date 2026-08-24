@@ -125,11 +125,15 @@ class ApiClient {
   ) {
     if (response.data is Map<String, dynamic>) {
       final json = response.data as Map<String, dynamic>;
-      final hasSuccess = json.containsKey('success') || json.containsKey('Success');
-      final hasStatus = json.containsKey('status') || json.containsKey('Status');
-      final hasMessage = json.containsKey('message') || json.containsKey('Message');
+      final hasSuccess =
+          json.containsKey('success') || json.containsKey('Success');
+      final hasStatus =
+          json.containsKey('status') || json.containsKey('Status');
+      final hasMessage =
+          json.containsKey('message') || json.containsKey('Message');
       final hasData = json.containsKey('data') || json.containsKey('Data');
-      final hasTraceId = json.containsKey('traceId') || json.containsKey('TraceId');
+      final hasTraceId =
+          json.containsKey('traceId') || json.containsKey('TraceId');
       final isWrappedResponse =
           hasSuccess || hasStatus || hasMessage || hasTraceId;
 
@@ -142,11 +146,8 @@ class ApiClient {
         );
       }
 
-      final hasOnlySuccessMessage = hasMessage &&
-          !hasSuccess &&
-          !hasStatus &&
-          !hasData &&
-          !hasTraceId;
+      final hasOnlySuccessMessage =
+          hasMessage && !hasSuccess && !hasStatus && !hasData && !hasTraceId;
       final statusCode = response.statusCode ?? 0;
 
       if (hasOnlySuccessMessage && statusCode >= 200 && statusCode < 300) {

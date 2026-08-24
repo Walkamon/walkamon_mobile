@@ -21,7 +21,8 @@ class FriendsResponse {
   });
 
   factory FriendsResponse.fromJson(Map<String, dynamic> json) {
-    final online = json['isOnline'] == true ||
+    final online =
+        json['isOnline'] == true ||
         json['is_online'] == true ||
         json['online'] == true ||
         json['status'] == 'online' ||
@@ -30,7 +31,8 @@ class FriendsResponse {
 
     // pvpAvailabilityCode do backend trả, fallback theo isOnline nếu field chưa có
     final rawCode =
-        json['pvpAvailabilityCode'] as String? ?? json['pvp_availability_code'] as String?;
+        json['pvpAvailabilityCode'] as String? ??
+        json['pvp_availability_code'] as String?;
     final pvpCode = rawCode?.isNotEmpty == true
         ? rawCode!
         : (online ? 'available' : 'offline');
@@ -47,12 +49,10 @@ class FriendsResponse {
   }
 
   /// Bạn bè có thể bị thách đấu: online và không bận
-  bool get isPvpAvailable =>
-      isOnline && pvpAvailabilityCode == 'available';
+  bool get isPvpAvailable => isOnline && pvpAvailabilityCode == 'available';
 
   /// Bạn bè online nhưng đang bận (trong trận hoặc invite đang pending)
-  bool get isPvpBusy =>
-      isOnline && pvpAvailabilityCode == 'busy';
+  bool get isPvpBusy => isOnline && pvpAvailabilityCode == 'busy';
 
   /// Tạo bản sao với presence mới (để cập nhật từ SignalR presence.changed)
   FriendsResponse copyWithPresence({

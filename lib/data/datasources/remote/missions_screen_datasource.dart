@@ -43,7 +43,8 @@ class MissionsScreenDatasource {
     );
   }
 
-  Future<ApiResponse<PlayerChallengeStateResponse>> createRandomChallenge() async {
+  Future<ApiResponse<PlayerChallengeStateResponse>>
+  createRandomChallenge() async {
     return await _apiClient.post<PlayerChallengeStateResponse>(
       ApiConstants.challengeRandom,
       fromJsonT: (json) =>

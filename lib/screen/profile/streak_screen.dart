@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/common/game_async_state.dart';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({super.key});
@@ -51,7 +52,7 @@ class _StreakScreenState extends State<StreakScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = AppLocalizations.of(context).streakLoadFailed;
         _isLoading = false;
       });
     }
@@ -89,29 +90,13 @@ class _StreakScreenState extends State<StreakScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: GameLoadingIndicator(label: l10n.loading))
           : _errorMessage != null
-          ? Center(
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.wood,
-                    width: 2,
-                  ),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+          ? GameAsyncStatePanel(
+              message: _errorMessage!,
+              isError: true,
+              onRetry: _loadStreakData,
+              retryLabel: l10n.retry,
             )
           : RefreshIndicator(
               onRefresh: _loadStreakData,
@@ -142,7 +127,9 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: colorScheme.brightness == Brightness.dark
@@ -160,25 +147,13 @@ class _StreakScreenState extends State<StreakScreen> {
       ),
       child: Column(
         children: [
-          Container(
+          SizedBox(
             width: 84,
             height: 84,
-            decoration: BoxDecoration(
-              color: colorScheme.brightness == Brightness.dark
-                  ? AppColors.darkMuted
-                  : AppColors.creamLight,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: colorScheme.brightness == Brightness.dark
-                    ? AppColors.darkIconBorder
-                    : AppColors.wood,
-                width: 1.5,
-              ),
-            ),
             child: AppIcon(
               Icons.local_fire_department_rounded,
               asset: AppAssets.iconStreak,
-              size: 42,
+              size: 76,
               color: AppColors.amber,
             ),
           ),
@@ -231,7 +206,9 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: colorScheme.brightness == Brightness.dark
@@ -242,25 +219,14 @@ class _StreakScreenState extends State<StreakScreen> {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 46,
             height: 46,
-            decoration: BoxDecoration(
-              color: colorScheme.brightness == Brightness.dark
-                  ? AppColors.darkMuted
-                  : AppColors.creamLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: colorScheme.brightness == Brightness.dark
-                    ? AppColors.darkBorder
-                    : AppColors.wood,
-                width: 1.3,
-              ),
-            ),
             child: AppIcon(
               Icons.card_giftcard_rounded,
               asset: AppAssets.iconRewardChest,
               color: AppColors.gold,
+              size: 42,
             ),
           ),
           const SizedBox(width: 12),
@@ -347,7 +313,9 @@ class _StreakScreenState extends State<StreakScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: colorScheme.brightness == Brightness.dark

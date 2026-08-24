@@ -33,8 +33,9 @@ class ApiResponse<T> {
     // 2. Xử lý trường hợp backend C# trả về lỗi FluentValidation (RFC 7807 ProblemDetails)
     final errors = read('errors', 'Errors');
     if (parsedMessage.isEmpty && errors is Map) {
-      final Map<String, dynamic> validationErrors =
-          Map<String, dynamic>.from(errors);
+      final Map<String, dynamic> validationErrors = Map<String, dynamic>.from(
+        errors,
+      );
       List<String> allMessages = [];
 
       validationErrors.forEach((key, value) {
@@ -56,21 +57,22 @@ class ApiResponse<T> {
     final rawSuccess = read('success', 'Success');
     final rawStatus = read('status', 'Status');
     final rawData = read('data', 'Data');
-    final statusValue = int.tryParse(rawStatus?.toString() ?? '') ??
-        defaultStatus ??
-        0;
+    final statusValue =
+        int.tryParse(rawStatus?.toString() ?? '') ?? defaultStatus ?? 0;
 
-    final successValue = rawSuccess == true ||
+    final successValue =
+        rawSuccess == true ||
         rawSuccess?.toString() == 'true' ||
-        (rawSuccess == null && rawStatus == null && statusValue >= 200 && statusValue < 300);
+        (rawSuccess == null &&
+            rawStatus == null &&
+            statusValue >= 200 &&
+            statusValue < 300);
 
     return ApiResponse<T>(
       success: successValue,
       status: statusValue,
       message: parsedMessage,
-      data: (rawData != null && fromJsonT != null)
-          ? fromJsonT(rawData)
-          : null,
+      data: (rawData != null && fromJsonT != null) ? fromJsonT(rawData) : null,
       traceId: read('traceId', 'TraceId')?.toString(),
     );
   }

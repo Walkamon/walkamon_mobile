@@ -59,9 +59,7 @@ class FCMService {
         return false;
       }
 
-      debugPrint(
-        '[NotificationFlow][FCM] token_ready length=${token.length}',
-      );
+      debugPrint('[NotificationFlow][FCM] token_ready length=${token.length}');
       await _notificationRepo.registerDeviceToken(token);
       debugPrint('[NotificationFlow][FCM] backend_token_registered=true');
 
@@ -118,8 +116,8 @@ class FCMService {
 
     try {
       if (kIsWeb) {
-        final settings =
-            await FirebaseMessaging.instance.getNotificationSettings();
+        final settings = await FirebaseMessaging.instance
+            .getNotificationSettings();
         final granted =
             settings.authorizationStatus == AuthorizationStatus.authorized ||
             settings.authorizationStatus == AuthorizationStatus.provisional;

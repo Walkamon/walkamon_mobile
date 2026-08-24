@@ -71,12 +71,12 @@ class PlayerMissionItemResponse {
           : int.tryParse('${json['walletAmount']}') ?? 0,
       rewardItems: rewards is List
           ? rewards
-              .map(
-                (e) => PlayerMissionRewardItemResponse.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList()
+                .map(
+                  (e) => PlayerMissionRewardItemResponse.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : [],
       statusCode: json['statusCode'] as String? ?? '',
       canClaim: json['canClaim'] as bool? ?? false,
@@ -99,7 +99,8 @@ class PlayerMissionListResponse {
       if (value is! List) return [];
       return value
           .map(
-            (e) => PlayerMissionItemResponse.fromJson(e as Map<String, dynamic>),
+            (e) =>
+                PlayerMissionItemResponse.fromJson(e as Map<String, dynamic>),
           )
           .toList();
     }

@@ -86,6 +86,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sfx => 'Hiệu ứng (SFX)';
 
   @override
+  String get haptics => 'Phản hồi khi chạm';
+
+  @override
+  String get hapticsSubtitle => 'Rung nhẹ khi chăm pet, nhận thưởng và thi đấu';
+
+  @override
   String get darkMode => 'Chế độ tối';
 
   @override
@@ -133,6 +139,24 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get todayStepsDesc => 'Số bước chân bạn đã đi trong ngày hôm nay';
+
+  @override
+  String get petActionBusy =>
+      'Pet đang hoàn tất một hành động khác. Bạn chờ một chút nhé.';
+
+  @override
+  String get petLifeForceFull => 'Sinh Mệnh Lực của pet đã đạt giới hạn rồi.';
+
+  @override
+  String get petFeedLimitReached =>
+      'Bạn đã đạt giới hạn cho pet ăn. Hãy quay lại sau nhé.';
+
+  @override
+  String get petFeedInsufficientDew => 'Bạn không đủ Giọt Sương để cho pet ăn.';
+
+  @override
+  String get petFeedUnavailable =>
+      'Chưa thể cho pet ăn lúc này. Vui lòng thử lại.';
 
   @override
   String get stepTrackingPermissionRequired =>
@@ -567,6 +591,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get achievementsLockedTab => 'Chưa Nhận';
 
   @override
+  String achievementClaimSuccess(int amount) {
+    return 'Đã nhận thưởng: +$amount';
+  }
+
+  @override
+  String get achievementClaimFailed =>
+      'Không thể nhận thưởng. Vui lòng thử lại.';
+
+  @override
   String get achievementsCurrentProgress => 'Tiến độ hiện tại';
 
   @override
@@ -889,6 +922,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notificationsEmpty => 'Không có thông báo nào.';
+
+  @override
+  String get notificationsLoadFailed => 'Không thể tải thông báo.';
+
+  @override
+  String get streakLoadFailed => 'Không thể tải chuỗi ngày hoạt động.';
 
   @override
   String get notificationsDeleted => 'Đã xóa thông báo';
@@ -1531,6 +1570,23 @@ class AppLocalizationsVi extends AppLocalizations {
       'Bạn đã gửi lời mời cho người này rồi!';
 
   @override
+  String get friendsRequestCanceled => 'Đã thu hồi lời mời kết bạn.';
+
+  @override
+  String get friendsRequestCancelFailed =>
+      'Không thể thu hồi lời mời. Vui lòng thử lại.';
+
+  @override
+  String get friendsRequestAccepted => 'Đã chấp nhận lời mời kết bạn!';
+
+  @override
+  String get friendsRequestDeclined => 'Đã từ chối lời mời kết bạn.';
+
+  @override
+  String get friendsRequestActionFailed =>
+      'Không thể hoàn tất thao tác. Vui lòng thử lại.';
+
+  @override
   String get friendsAlreadyFriend => 'Hai bạn đã là bạn bè rồi!';
 
   @override
@@ -1706,6 +1762,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get pvpBondLabel => 'Độ gắn kết:';
+
+  @override
+  String pvpEnergyRequired(int amount) {
+    return 'Cần ít nhất $amount năng lượng để tham gia PvP.';
+  }
+
+  @override
+  String get petDataLoadError =>
+      'Không thể tải chỉ số tinh linh mới nhất. Vui lòng thử lại.';
 
   @override
   String get pvpSearchingOpponent => 'Đang tìm đối thủ...';
@@ -2006,10 +2071,43 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String pvpRaceTimeRemaining(int seconds) {
+    return 'Còn ${seconds}s';
+  }
+
+  @override
+  String get pvpRaceSegmentStart => 'Xuất phát';
+
+  @override
+  String get pvpRaceSegmentTrail => 'Đường rừng';
+
+  @override
+  String get pvpRaceSegmentFinish => 'Về đích';
+
+  @override
   String get pvpRaceGo => 'CHẠY!';
 
   @override
   String get pvpCloseRace => 'Thoát đường đua';
+
+  @override
+  String get pvpItemOnlyDuringRace =>
+      'Vật phẩm chỉ dùng được khi trận đang chạy';
+
+  @override
+  String get pvpItemSlotUnavailable => 'Ô vật phẩm này không còn khả dụng';
+
+  @override
+  String get pvpItemUseFailed => 'Không thể dùng vật phẩm';
+
+  @override
+  String get pvpItemBlocked => 'Khiên đã chặn hiệu ứng';
+
+  @override
+  String get pvpItemCleansed => 'Đã tẩy hiệu ứng bất lợi';
+
+  @override
+  String get pvpItemUsed => 'Đã dùng vật phẩm';
 
   @override
   String get pvpMatchStatusWaiting => 'Đang chờ';
@@ -2049,4 +2147,120 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get pvpTierUnknown => 'Chưa xác định';
+
+  @override
+  String get tutorialSettingsTitle => 'Hướng dẫn';
+
+  @override
+  String get tutorialReplayHome => 'Xem lại hướng dẫn Home';
+
+  @override
+  String get tutorialReplayPvp => 'Xem lại hướng dẫn PvP';
+
+  @override
+  String get tutorialReplayStarted => 'Hướng dẫn đã sẵn sàng để xem lại.';
+
+  @override
+  String get tutorialSkip => 'Bỏ qua hướng dẫn';
+
+  @override
+  String get tutorialNext => 'Tiếp';
+
+  @override
+  String get tutorialGotIt => 'Đã hiểu';
+
+  @override
+  String tutorialStepLabel(int current, int total) {
+    return 'Bước $current/$total';
+  }
+
+  @override
+  String get tutorialHomePetTitle => 'Làm quen với bé';
+
+  @override
+  String get tutorialHomePetBody =>
+      'Chạm vào Lumina để chào bé và vun đắp độ gắn kết.';
+
+  @override
+  String get tutorialHomeFeedTitle => 'Chăm sóc Lumina';
+
+  @override
+  String get tutorialHomeFeedBody =>
+      'Chạm Giọt Sương để thử cho ăn. Nếu bé đã no, game vẫn giải thích rõ lý do.';
+
+  @override
+  String get tutorialHomeStatsTitle => 'Hiểu nhu cầu của bé';
+
+  @override
+  String get tutorialHomeStatsBody =>
+      'Năng Lượng dùng cho hoạt động, Sinh Mệnh Lực thể hiện sức khỏe, còn Gắn Kết tăng khi bạn chăm bé.';
+
+  @override
+  String get tutorialHomeStepsTitle => 'Bước chân thật cũng có ý nghĩa';
+
+  @override
+  String get tutorialHomeStepsBody =>
+      'Mở Bước để xem tiến độ hôm nay và xử lý quyền hoạt động khi cần.';
+
+  @override
+  String get tutorialHomeMissionsTitle => 'Mục tiêu nhỏ tiếp theo';
+
+  @override
+  String get tutorialHomeMissionsBody =>
+      'Mở Nhiệm Vụ để xem mục tiêu hằng ngày và phần thưởng.';
+
+  @override
+  String get tutorialPvpLobbyTitle => 'Trước khi đua';
+
+  @override
+  String get tutorialPvpLobbyBody =>
+      'Kiểm tra pet, Năng Lượng và Gắn Kết tại đây. Mỗi trận tốn Năng Lượng; trận Bạn bè không có thưởng xếp hạng.';
+
+  @override
+  String get tutorialPvpMatchTitle => 'Chọn đối thủ';
+
+  @override
+  String get tutorialPvpMatchBody =>
+      'Ghép trận ngẫu nhiên hoặc thách đấu bạn bè. Bạn có thể hủy an toàn trong lúc tìm.';
+
+  @override
+  String get tutorialPvpRaceTitle => 'Hành trình 30 giây';
+
+  @override
+  String get tutorialPvpRaceBody =>
+      'Pet tự chạy. Cảnh đường và tiến độ trực tiếp cho biết cả hai còn cách đích bao xa.';
+
+  @override
+  String get tutorialPvpItemsTitle => 'Vật phẩm là tùy chọn';
+
+  @override
+  String get tutorialPvpItemsBody =>
+      'Chạm ô có vật phẩm để dùng hiệu ứng. Không dùng vật phẩm vẫn đua bình thường.';
+
+  @override
+  String get tutorialPvpItemsEmptyBody =>
+      'Túi vật phẩm đang trống. Không sao cả—pet vẫn đua bình thường và không bắt buộc phải dùng vật phẩm.';
+
+  @override
+  String get tutorialPvpFinishTitle => 'Khoảnh khắc cán đích';
+
+  @override
+  String get tutorialPvpFinishBody =>
+      'Qua vạch đích, pet sẽ dừng lại và phản ứng thắng hoặc thua trước khi bảng kết quả xuất hiện.';
+
+  @override
+  String get tutorialPvpResultTitle => 'Cán đích rồi mới chốt kết quả';
+
+  @override
+  String get tutorialPvpResultBody =>
+      'Sau phản ứng thắng/thua, hãy so sánh điểm cuối. Thưởng xếp hạng chỉ hiện khi máy chủ trao thưởng.';
+
+  @override
+  String get pvpRaceCountdownReady => 'Sẵn sàng';
+
+  @override
+  String get pvpRaceCountdownSet => 'Vào vị trí';
+
+  @override
+  String get pvpRaceCountdownGo => 'Chạy!';
 }

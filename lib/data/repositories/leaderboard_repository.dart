@@ -3,7 +3,8 @@ import '../../core/network/api_response.dart';
 import '../models/leaderboard_response.dart';
 
 class LeaderboardRepository {
-  LeaderboardRepository({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  LeaderboardRepository({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

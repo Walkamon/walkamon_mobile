@@ -36,7 +36,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   intl: any
   provider: ^6.1.2
-  google_fonts: ^6.2.1
   flutter_svg: ^2.0.17
   dio: ^5.4.3
   crypto: ^3.0.7
@@ -49,10 +48,12 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   signalr_netcore: ^1.4.4
   audioplayers: 6.5.1
+  flame: ^1.38.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flame_test: ^2.3.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -77,8 +78,15 @@ flutter:
   # recursively, so every directory containing files is listed explicitly.
   assets:
     - assets/Mobile/
-    - assets/Mobile/Auth/
-    - assets/Mobile/HomeBackgrounds/
+    - assets/Mobile/Auth/auth_garden_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_anh_trang_light_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_anh_trang_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_binh_minh_dark_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_binh_minh_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_mam_non_dark_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_mam_non_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_nang_am_dark_portrait.webp
+    - assets/Mobile/HomeBackgrounds/home_nang_am_portrait.webp
     - assets/Mobile/icon/action_button/basic_actions/
     - assets/Mobile/icon/action_button/item_reward_actions/
     - assets/Mobile/icon/action_button/progress_sharing_actions/
@@ -97,24 +105,31 @@ flutter:
     - assets/Mobile/icon/profile/
     - assets/Mobile/icon/resources/
     - assets/Mobile/icon/system/
-    - assets/Mobile/Mầm Non/excited/
-    - assets/Mobile/Mầm Non/feed_eat/
-    - assets/Mobile/Mầm Non/happy/
-    - assets/Mobile/Mầm Non/hunggry/
-    - assets/Mobile/Mầm Non/idle/
     - assets/Mobile/Mầm Non/pvp/lose/
     - assets/Mobile/Mầm Non/pvp/race/
     - assets/Mobile/Mầm Non/pvp/win/
-    - assets/Mobile/Mầm Non/run/
-    - assets/Mobile/Mầm Non/sad/
-    - assets/Mobile/Mầm Non/sleep/
-    - assets/Mobile/Mầm Non/tap_hello/
-    - assets/Mobile/Menu/
+    - assets/Mobile/Menu/menu_backdrop_portrait.webp
     - assets/Mobile/Notifications/
-    - assets/Mobile/Onboarding/
+    - assets/Mobile/Onboarding/daily_reward_portrait.webp
+    - assets/Mobile/Onboarding/onboarding_01_luminara_alive-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_02_silent_night-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_03_last_seed-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_04_waiting_device-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_05_first_step-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_06_lumina_awakens-qa1.webp
+    - assets/Mobile/Onboarding/onboarding_name_pet_portrait.webp
+    - assets/Mobile/Onboarding/onboarding_seed_portrait.webp
+    - assets/Mobile/Onboarding/welcome_portrait.webp
     - assets/Mobile/PVP/
     - assets/Mobile/PVP/items/
-    - assets/Mobile/PVP/Maps/
+    # Only maps used by the current scrolling race contract are packaged.
+    # The superseded finish crops remain in source control for reference.
+    - assets/Mobile/PVP/Maps/pvp_map_morning_start_portrait.png
+    - assets/Mobile/PVP/Maps/pvp_map_morning_loop_portrait.png
+    - assets/Mobile/PVP/Maps/pvp_map_morning_finish_runout_portrait.png
+    - assets/Mobile/PVP/Maps/pvp_map_night_start_portrait.png
+    - assets/Mobile/PVP/Maps/pvp_map_night_loop_portrait.png
+    - assets/Mobile/PVP/Maps/pvp_map_night_finish_runout_portrait.png
     - assets/Mobile/PVP/passives/
     - assets/Mobile/PVP/ranks/
     - assets/Mobile/PVP/status/
@@ -124,105 +139,63 @@ flutter:
     - assets/Mobile/PVP/vfx/shield_bubble/
     - assets/Mobile/PVP/vfx/slow_mist/
     - assets/Mobile/PVP/vfx/speed_trail/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/excited/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/base/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/feed_eat/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/happy/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/hunggry/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/idle/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/lose/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/race/
     - assets/Mobile/TInh Linh Ánh Trăng/stage1/pvp/win/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/run/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/sad/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/sleep/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage1/tap_hello/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/excited/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/feed_eat/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/happy/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/hunggry/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/idle/
     - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/lose/
     - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/race/
     - assets/Mobile/TInh Linh Ánh Trăng/stage2/pvp/win/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/sad/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/sleep/
-    - assets/Mobile/TInh Linh Ánh Trăng/stage2/tap_hello/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/excited/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/feed_eat/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/fly/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/happy/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/hunggry/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/idle/
     - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/lose/
     - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/race/
     - assets/Mobile/Tinh Linh Bình Minh/stage1/pvp/win/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/sad/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/sleep/
-    - assets/Mobile/Tinh Linh Bình Minh/stage1/tap_hello/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/excited/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/base/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/feed_eat/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/happy/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/hunggry/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/idle/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/lose/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/race/
     - assets/Mobile/Tinh Linh Bình Minh/stage2/pvp/win/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/sad/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/sleep/
-    - assets/Mobile/Tinh Linh Bình Minh/stage2/tap_hello/
-    - assets/Mobile/TinhLinhNangAm/Stage1/excited/
-    - assets/Mobile/TinhLinhNangAm/Stage1/base/
-    - assets/Mobile/TinhLinhNangAm/Stage1/feed_eat/
-    - assets/Mobile/TinhLinhNangAm/Stage1/happy/
-    - assets/Mobile/TinhLinhNangAm/Stage1/hunggry/
-    - assets/Mobile/TinhLinhNangAm/Stage1/idle/
     - assets/Mobile/TinhLinhNangAm/Stage1/pvp/lose/
     - assets/Mobile/TinhLinhNangAm/Stage1/pvp/race/
     - assets/Mobile/TinhLinhNangAm/Stage1/pvp/win/
-    - assets/Mobile/TinhLinhNangAm/Stage1/run/
-    - assets/Mobile/TinhLinhNangAm/Stage1/sad/
-    - assets/Mobile/TinhLinhNangAm/Stage1/sleep/
-    - assets/Mobile/TinhLinhNangAm/Stage1/tap_hello/
-    - assets/Mobile/TinhLinhNangAm/stage2/excited/
-    - assets/Mobile/TinhLinhNangAm/stage2/base/
-    - assets/Mobile/TinhLinhNangAm/stage2/feed_eat/
-    - assets/Mobile/TinhLinhNangAm/stage2/happy/
-    - assets/Mobile/TinhLinhNangAm/stage2/hunggry/
-    - assets/Mobile/TinhLinhNangAm/stage2/idle/
     - assets/Mobile/TinhLinhNangAm/stage2/pvp/lose/
     - assets/Mobile/TinhLinhNangAm/stage2/pvp/race/
     - assets/Mobile/TinhLinhNangAm/stage2/pvp/win/
-    - assets/Mobile/TinhLinhNangAm/stage2/sad/
-    - assets/Mobile/TinhLinhNangAm/stage2/sleep/
-    - assets/Mobile/TinhLinhNangAm/stage2/tap_hello/
-    # Pet runtime V7.2: catalog/manifests/fallbacks only.
-    # Do NOT bundle the full master atlas folder (~2.36 GiB / 856 pages).
-    # See docs/PET_ANIMATION_FLAME_IMPLEMENTATION_GUIDE.md section 6.
-    - assets/Mobile/flame/pet_runtime_v7_2/pet_runtime_catalog_v1.json
-    - assets/Mobile/flame/pet_runtime_v7_2/pet_animations_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_sprout_stage0_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage1_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_warm_sun_stage2_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage1_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_dawn_stage2_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage1_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/manifest_moonlight_stage2_v4.json
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_sprout_stage0_eef089f06193e311.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage1_e2992a6362d2f2f0.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_warm_sun_stage2_854ad2fb82016339.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage1_d1a28f0045a3211e.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_dawn_stage2_83a65898a5d2f264.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage1_892833fec78f85bb.png
-    - assets/Mobile/flame/pet_runtime_v7_2/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png
-    # Default atlas previews: only these reviewed master pages are bundled.
-    - assets/Mobile/flame/pet_runtime_v7_2/atlas_dd7071c64cc0f0ba6ecc554d.png
+    # Curated production pet runtime. Each form directory contains exact
+    # semantic sprite sheets; source/candidate atlases remain unbundled.
+    - assets/Mobile/pet_runtime_prod_v1/
+    - assets/Mobile/pet_runtime_prod_v1/sprout_stage0/
+    # Warm Sun Stage 1 has many superseded research atlases in its source
+    # directory. Package only sheets referenced by the production manifest.
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_enter_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_exit_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_loop_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_0_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_1_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_2_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_3_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_enter_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_exit_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_loop_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_enter_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_exit_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_loop_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/idle_loop_idle_front.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_enter_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_exit_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_loop_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_enter_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_exit_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_loop_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/tap_hello_action_0_authored_pilot_v1.webp
+    - assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/
+    - assets/Mobile/pet_runtime_prod_v1/dawn_stage1/
+    - assets/Mobile/pet_runtime_prod_v1/dawn_stage2/
+    - assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/
+    - assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/
     - assets/Mobile/ui_frames/
     - assets/audio/Home/feed/
     - assets/audio/Home/level-up/
     - assets/audio/Home/music/
     - assets/audio/Pvp/battle_music/
+    - assets/audio/Pvp/Win/
+    - assets/audio/Pvp/Lose/
     - assets/audio/Reward/
     - assets/audio/Tab/
     - assets/audio/UseItem/
@@ -232,6 +205,11 @@ flutter:
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
+
+  fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand/Quicksand-VariableFont_wght.ttf
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

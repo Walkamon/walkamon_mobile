@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_assets.dart';
 import '../pvp_asset_resolver.dart';
 
 class PvpHudSlot {
@@ -8,16 +7,24 @@ class PvpHudSlot {
     required this.itemCode,
     this.cooldownProgress = 0,
     this.enabled = true,
+    this.used = false,
+    this.pending = false,
+    this.quantity,
     this.onTap,
   });
 
   final String itemCode;
   final double cooldownProgress;
   final bool enabled;
+  final bool used;
+  final bool pending;
+  final int? quantity;
   final VoidCallback? onTap;
 }
 
-/// Two-slot item HUD using the 9-slice frame from the PvP asset pack.
+/// Compact floating item controls. The old 9-slice board was intentionally
+/// removed because it covered the race track and made two items look like a
+/// second status bar.
 class PvpTwoSlotHud extends StatelessWidget {
   const PvpTwoSlotHud({
     super.key,
@@ -31,29 +38,14 @@ class PvpTwoSlotHud extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 96,
-      child: Stack(
-        alignment: Alignment.center,
+      height: 72,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              AppAssets.pvpTwoSlotHud,
-              scale: PvpAssetResolver.hudAssetScale,
-              fit: BoxFit.fill,
-              centerSlice: PvpAssetResolver.hudCenterSlice,
-              filterQuality: FilterQuality.medium,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(child: _SlotButton(slot: left)),
-                const SizedBox(width: 20),
-                Expanded(child: _SlotButton(slot: right)),
-              ],
-            ),
-          ),
+          _SlotButton(slot: left),
+          const SizedBox(width: 12),
+          _SlotButton(slot: right),
         ],
       ),
     );
@@ -70,47 +62,117 @@ class _SlotButton extends StatelessWidget {
     final icon = PvpAssetResolver.itemIcon(slot.itemCode);
     final cooldown = slot.cooldownProgress.clamp(0.0, 1.0);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: slot.enabled && cooldown <= 0 ? slot.onTap : null,
-        borderRadius: BorderRadius.circular(18),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (icon != null)
-                Opacity(
-                  opacity: slot.enabled ? 1 : 0.45,
-                  child: Image.asset(
-                    icon,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              if (cooldown > 0)
-                Positioned.fill(
-                  child: DecoratedBox(
+    return Semantics(
+      button: true,
+      enabled: slot.enabled && !slot.used && !slot.pending,
+      label: 'PvP item ${slot.itemCode}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: slot.enabled && !slot.used && !slot.pending && cooldown <= 0
+              ? slot.onTap
+              : null,
+          customBorder: const CircleBorder(),
+          child: SizedBox.square(
+            dimension: 72,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (icon != null)
+                  DecoratedBox(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.45),
-                      borderRadius: BorderRadius.circular(18),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 7,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
+                    child: Opacity(
+                      opacity: slot.enabled && !slot.used ? 1 : 0.42,
+                      child: Image.asset(
+                        icon,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                if (cooldown > 0)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(
+                            value: cooldown,
+                            strokeWidth: 3,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (slot.pending)
+                  const Positioned.fill(
                     child: Center(
                       child: SizedBox(
-                        width: 36,
-                        height: 36,
+                        width: 25,
+                        height: 25,
                         child: CircularProgressIndicator(
-                          value: cooldown,
-                          strokeWidth: 3,
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
+                if (slot.used)
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.48),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (slot.quantity != null && !slot.used)
+                  Positioned(
+                    right: 3,
+                    bottom: 2,
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Text(
+                          '${slot.quantity}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

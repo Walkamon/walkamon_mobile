@@ -3,7 +3,7 @@ import '../models/wallet_balance_response.dart';
 
 class WalletRepository {
   WalletRepository({WalletDatasource? datasource})
-      : _datasource = datasource ?? WalletDatasource();
+    : _datasource = datasource ?? WalletDatasource();
 
   final WalletDatasource _datasource;
 

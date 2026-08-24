@@ -3,7 +3,7 @@ import '../models/step_goal_response.dart';
 
 class StepGoalRepository {
   StepGoalRepository({StepGoalDatasource? datasource})
-      : _datasource = datasource ?? StepGoalDatasource();
+    : _datasource = datasource ?? StepGoalDatasource();
 
   final StepGoalDatasource _datasource;
 

@@ -248,6 +248,18 @@ abstract class AppLocalizations {
   /// **'Sound effects (SFX)'**
   String get sfx;
 
+  /// No description provided for @haptics.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch feedback'**
+  String get haptics;
+
+  /// No description provided for @hapticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle vibration for care actions, rewards and races'**
+  String get hapticsSubtitle;
+
   /// No description provided for @darkMode.
   ///
   /// In en, this message translates to:
@@ -343,6 +355,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Steps you\'ve walked today'**
   String get todayStepsDesc;
+
+  /// No description provided for @petActionBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet is finishing another action. Please wait a moment.'**
+  String get petActionBusy;
+
+  /// No description provided for @petLifeForceFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet has reached its Life Force limit.'**
+  String get petLifeForceFull;
+
+  /// No description provided for @petFeedLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached the feeding limit. Please come back later.'**
+  String get petFeedLimitReached;
+
+  /// No description provided for @petFeedInsufficientDew.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have enough Dewdrops to feed your pet.'**
+  String get petFeedInsufficientDew;
+
+  /// No description provided for @petFeedUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to feed your pet right now. Please try again.'**
+  String get petFeedUnavailable;
 
   /// No description provided for @stepTrackingPermissionRequired.
   ///
@@ -1160,6 +1202,18 @@ abstract class AppLocalizations {
   /// **'Unclaimed'**
   String get achievementsLockedTab;
 
+  /// No description provided for @achievementClaimSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward claimed: +{amount}'**
+  String achievementClaimSuccess(int amount);
+
+  /// No description provided for @achievementClaimFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not claim the reward. Please try again.'**
+  String get achievementClaimFailed;
+
   /// No description provided for @achievementsCurrentProgress.
   ///
   /// In en, this message translates to:
@@ -1717,6 +1771,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No notifications yet.'**
   String get notificationsEmpty;
+
+  /// No description provided for @notificationsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications.'**
+  String get notificationsLoadFailed;
+
+  /// No description provided for @streakLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your streak.'**
+  String get streakLoadFailed;
 
   /// No description provided for @notificationsDeleted.
   ///
@@ -2858,6 +2924,36 @@ abstract class AppLocalizations {
   /// **'You already sent this player an invite!'**
   String get friendsRequestAlreadySent;
 
+  /// No description provided for @friendsRequestCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend invite withdrawn.'**
+  String get friendsRequestCanceled;
+
+  /// No description provided for @friendsRequestCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not withdraw the invite. Please try again.'**
+  String get friendsRequestCancelFailed;
+
+  /// No description provided for @friendsRequestAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend invite accepted!'**
+  String get friendsRequestAccepted;
+
+  /// No description provided for @friendsRequestDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend invite declined.'**
+  String get friendsRequestDeclined;
+
+  /// No description provided for @friendsRequestActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That action could not be completed. Please try again.'**
+  String get friendsRequestActionFailed;
+
   /// No description provided for @friendsAlreadyFriend.
   ///
   /// In en, this message translates to:
@@ -3181,6 +3277,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bond:'**
   String get pvpBondLabel;
+
+  /// No description provided for @pvpEnergyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP requires at least {amount} energy.'**
+  String pvpEnergyRequired(int amount);
+
+  /// No description provided for @petDataLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the latest spirit stats. Please try again.'**
+  String get petDataLoadError;
 
   /// No description provided for @pvpSearchingOpponent.
   ///
@@ -3740,6 +3848,30 @@ abstract class AppLocalizations {
   /// **'Race progress: {percent}%'**
   String pvpRaceProgress(int percent);
 
+  /// No description provided for @pvpRaceTimeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s left'**
+  String pvpRaceTimeRemaining(int seconds);
+
+  /// No description provided for @pvpRaceSegmentStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get pvpRaceSegmentStart;
+
+  /// No description provided for @pvpRaceSegmentTrail.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest trail'**
+  String get pvpRaceSegmentTrail;
+
+  /// No description provided for @pvpRaceSegmentFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get pvpRaceSegmentFinish;
+
   /// No description provided for @pvpRaceGo.
   ///
   /// In en, this message translates to:
@@ -3751,6 +3883,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave race'**
   String get pvpCloseRace;
+
+  /// No description provided for @pvpItemOnlyDuringRace.
+  ///
+  /// In en, this message translates to:
+  /// **'Items can only be used while the race is running'**
+  String get pvpItemOnlyDuringRace;
+
+  /// No description provided for @pvpItemSlotUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This item slot is no longer available'**
+  String get pvpItemSlotUnavailable;
+
+  /// No description provided for @pvpItemUseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to use this item'**
+  String get pvpItemUseFailed;
+
+  /// No description provided for @pvpItemBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The shield blocked the effect'**
+  String get pvpItemBlocked;
+
+  /// No description provided for @pvpItemCleansed.
+  ///
+  /// In en, this message translates to:
+  /// **'Negative effects were cleansed'**
+  String get pvpItemCleansed;
+
+  /// No description provided for @pvpItemUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Item used'**
+  String get pvpItemUsed;
 
   /// No description provided for @pvpMatchStatusWaiting.
   ///
@@ -3829,6 +3997,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown rank'**
   String get pvpTierUnknown;
+
+  /// No description provided for @tutorialSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guides'**
+  String get tutorialSettingsTitle;
+
+  /// No description provided for @tutorialReplayHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay Home guide'**
+  String get tutorialReplayHome;
+
+  /// No description provided for @tutorialReplayPvp.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay PvP guide'**
+  String get tutorialReplayPvp;
+
+  /// No description provided for @tutorialReplayStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'The guide is ready to replay.'**
+  String get tutorialReplayStarted;
+
+  /// No description provided for @tutorialSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip guide'**
+  String get tutorialSkip;
+
+  /// No description provided for @tutorialNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tutorialNext;
+
+  /// No description provided for @tutorialGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get tutorialGotIt;
+
+  /// No description provided for @tutorialStepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String tutorialStepLabel(int current, int total);
+
+  /// No description provided for @tutorialHomePetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello'**
+  String get tutorialHomePetTitle;
+
+  /// No description provided for @tutorialHomePetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap your Lumina to greet it and build your bond.'**
+  String get tutorialHomePetBody;
+
+  /// No description provided for @tutorialHomeFeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Care for your Lumina'**
+  String get tutorialHomeFeedTitle;
+
+  /// No description provided for @tutorialHomeFeedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the Dew Drop to try feeding. Even when your pet is full, the game will explain why.'**
+  String get tutorialHomeFeedBody;
+
+  /// No description provided for @tutorialHomeStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read its needs'**
+  String get tutorialHomeStatsTitle;
+
+  /// No description provided for @tutorialHomeStatsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy powers activities, Life Force shows wellbeing, and Bond grows as you care for your Lumina.'**
+  String get tutorialHomeStatsBody;
+
+  /// No description provided for @tutorialHomeStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your real steps matter'**
+  String get tutorialHomeStepsTitle;
+
+  /// No description provided for @tutorialHomeStepsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Steps to see today\'s progress and fix activity permission when needed.'**
+  String get tutorialHomeStepsBody;
+
+  /// No description provided for @tutorialHomeMissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle next goal'**
+  String get tutorialHomeMissionsTitle;
+
+  /// No description provided for @tutorialHomeMissionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Missions to find small daily goals and rewards.'**
+  String get tutorialHomeMissionsBody;
+
+  /// No description provided for @tutorialPvpLobbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before the race'**
+  String get tutorialPvpLobbyTitle;
+
+  /// No description provided for @tutorialPvpLobbyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your pet, Energy and Bond here. A race costs Energy; Friendly races do not grant ranked rewards.'**
+  String get tutorialPvpLobbyBody;
+
+  /// No description provided for @tutorialPvpMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an opponent'**
+  String get tutorialPvpMatchTitle;
+
+  /// No description provided for @tutorialPvpMatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use random matchmaking or challenge a friend. You can cancel safely while searching.'**
+  String get tutorialPvpMatchBody;
+
+  /// No description provided for @tutorialPvpRaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A 30-second journey'**
+  String get tutorialPvpRaceTitle;
+
+  /// No description provided for @tutorialPvpRaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet runs automatically. The route and live progress show how close both racers are to the finish.'**
+  String get tutorialPvpRaceBody;
+
+  /// No description provided for @tutorialPvpItemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional race items'**
+  String get tutorialPvpItemsTitle;
+
+  /// No description provided for @tutorialPvpItemsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Items are optional. Tap an available slot for an effect; an empty loadout never blocks the race.'**
+  String get tutorialPvpItemsBody;
+
+  /// No description provided for @tutorialPvpItemsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your loadout is empty. That is okay—your pet still races normally and no item is required.'**
+  String get tutorialPvpItemsEmptyBody;
+
+  /// No description provided for @tutorialPvpFinishTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The finish moment'**
+  String get tutorialPvpFinishTitle;
+
+  /// No description provided for @tutorialPvpFinishBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After crossing the line, your pet stops and reacts to winning or losing before the result card appears.'**
+  String get tutorialPvpFinishBody;
+
+  /// No description provided for @tutorialPvpResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The finish tells the story'**
+  String get tutorialPvpResultTitle;
+
+  /// No description provided for @tutorialPvpResultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After the finish reaction, compare the final scores. Ranked rewards appear only when the server grants them.'**
+  String get tutorialPvpResultBody;
+
+  /// No description provided for @pvpRaceCountdownReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get pvpRaceCountdownReady;
+
+  /// No description provided for @pvpRaceCountdownSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get pvpRaceCountdownSet;
+
+  /// No description provided for @pvpRaceCountdownGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Go!'**
+  String get pvpRaceCountdownGo;
 }
 
 class _AppLocalizationsDelegate

@@ -59,7 +59,7 @@ class PetScreenRepository {
     throw Exception(
       apiResponse.message.isNotEmpty
           ? apiResponse.message
-          : 'KhÃ´ng thá»ƒ táº£i tÃªn thÃº cÆ°ng.',
+          : 'Không thể tải tên thú cưng.',
     );
   }
 
@@ -78,7 +78,7 @@ class PetScreenRepository {
     throw Exception(
       apiResponse.message.isNotEmpty
           ? apiResponse.message
-          : 'KhÃ´ng thá»ƒ táº¡o thÃº cÆ°ng khá»Ÿi Ä‘áº§u.',
+          : 'Không thể tạo thú cưng khởi đầu.',
     );
   }
 

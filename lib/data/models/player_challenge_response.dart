@@ -9,7 +9,9 @@ class PlayerChallengeRewardItemResponse {
     required this.quantity,
   });
 
-  factory PlayerChallengeRewardItemResponse.fromJson(Map<String, dynamic> json) {
+  factory PlayerChallengeRewardItemResponse.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return PlayerChallengeRewardItemResponse(
       itemId: json['itemId'] as String? ?? '',
       itemName: json['itemName'] as String? ?? '',
@@ -68,12 +70,12 @@ class PlayerChallengeResponse {
           : int.tryParse('${json['walletAmount']}') ?? 0,
       rewardItems: rewards is List
           ? rewards
-              .map(
-                (e) => PlayerChallengeRewardItemResponse.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList()
+                .map(
+                  (e) => PlayerChallengeRewardItemResponse.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : [],
       isCancelable: json['isCancelable'] as bool? ?? false,
       statusCode: json['statusCode'] as String? ?? '',
@@ -140,12 +142,12 @@ class ClaimChallengeRewardResponse {
           : int.tryParse('${json['walletBalance']}') ?? 0,
       rewardItems: rewards is List
           ? rewards
-              .map(
-                (e) => PlayerChallengeRewardItemResponse.fromJson(
-                  e as Map<String, dynamic>,
-                ),
-              )
-              .toList()
+                .map(
+                  (e) => PlayerChallengeRewardItemResponse.fromJson(
+                    e as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : [],
     );
   }

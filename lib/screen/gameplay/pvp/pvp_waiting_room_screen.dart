@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/pvp_provider.dart';
+import '../../../widgets/common/asset_only_icon_button.dart';
 import '../../../widgets/common/game_back_button.dart';
 import '../../../widgets/common/game_button_label.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
@@ -21,6 +22,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
   final void Function(String userId, String username)? onInviteFriend;
   final VoidCallback onShowIncomingChallenges;
   final VoidCallback onShowMatchHistory;
+  final GlobalKey? lobbyTutorialKey;
+  final GlobalKey? matchmakingTutorialKey;
 
   const PvPWaitingRoomScreen({
     super.key,
@@ -33,6 +36,8 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     required this.onInviteFriend,
     required this.onShowIncomingChallenges,
     required this.onShowMatchHistory,
+    this.lobbyTutorialKey,
+    this.matchmakingTutorialKey,
   });
 
   @override
@@ -76,7 +81,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
           alignment: Alignment.center,
           filterQuality: FilterQuality.medium,
         ),
-        Container(color: Colors.black.withValues(alpha: 0.28)),
+        Container(color: Colors.black.withValues(alpha: 0.18)),
         Padding(
           padding: EdgeInsets.fromLTRB(
             20,
@@ -106,23 +111,12 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          IconButton.filledTonal(
-                            style: IconButton.styleFrom(
-                              backgroundColor: cardColor,
-                              side: const BorderSide(
-                                color: AppColors.woodDeep,
-                                width: 2,
-                              ),
-                              shape: const CircleBorder(),
-                              padding: const EdgeInsets.all(8),
-                            ),
-                            tooltip: l10n.pvpInvites,
+                          AssetOnlyIconButton(
+                            semanticLabel: l10n.pvpInvites,
                             onPressed: onShowIncomingChallenges,
-                            icon: Image.asset(
-                              AppAssets.pvpIconInviteFriend,
-                              width: 32,
-                              height: 32,
-                            ),
+                            asset: AppAssets.pvpIconInviteFriend,
+                            buttonSize: 48,
+                            assetSize: 44,
                           ),
                           if (pvpProvider.incomingInvites.isNotEmpty)
                             Positioned(
@@ -149,23 +143,12 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        style: IconButton.styleFrom(
-                          backgroundColor: cardColor,
-                          side: const BorderSide(
-                            color: AppColors.woodDeep,
-                            width: 2,
-                          ),
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(8),
-                        ),
-                        tooltip: l10n.pvpHistory,
+                      AssetOnlyIconButton(
+                        semanticLabel: l10n.pvpHistory,
                         onPressed: onShowMatchHistory,
-                        icon: Image.asset(
-                          AppAssets.pvpIconBattleHistory,
-                          width: 32,
-                          height: 32,
-                        ),
+                        asset: AppAssets.pvpIconBattleHistory,
+                        buttonSize: 48,
+                        assetSize: 44,
                       ),
                     ],
                   ),
@@ -177,86 +160,109 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _PvpPetPanel(
-                          title: pvpProvider.petName,
-                          compact: isCompactHeight,
-                          child: Column(
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                height: petViewportHeight,
-                                decoration: BoxDecoration(
-                                  color: cardColor.withValues(
-                                    alpha: 0.52,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: AppColors.woodLight,
-                                    width: 1.2,
-                                  ),
-                                ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    PetRuntimePreview(
-                                      affinityCode: affinityCode,
-                                      stageNo: stageNo,
-                                      animationType:
-                                          activePetAnimationType.trim().isEmpty
-                                          ? 'idle'
-                                          : activePetAnimationType.trim(),
-                                      compact: true,
-                                      height: petPreviewHeight,
+                        KeyedSubtree(
+                          key: lobbyTutorialKey,
+                          child: _PvpPetPanel(
+                            title: pvpProvider.petName,
+                            compact: isCompactHeight,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: petViewportHeight,
+                                  decoration: BoxDecoration(
+                                    color: cardColor.withValues(alpha: 0.52),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: AppColors.woodLight,
+                                      width: 1.2,
                                     ),
-                                    Positioned(
-                                      right: 10,
-                                      bottom: 8,
-                                      child: Image.asset(
-                                        PvpAssetResolver.rankAsset(),
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.contain,
+                                  ),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      PetRuntimePreview(
+                                        affinityCode: affinityCode,
+                                        stageNo: stageNo,
+                                        animationType:
+                                            activePetAnimationType
+                                                .trim()
+                                                .isEmpty
+                                            ? 'idle'
+                                            : activePetAnimationType.trim(),
+                                        compact: true,
+                                        height: petPreviewHeight,
                                       ),
-                                    ),
-                                    if (passiveAsset != null)
                                       Positioned(
-                                        left: 10,
-                                        top: 8,
+                                        right: 10,
+                                        bottom: 8,
                                         child: Image.asset(
-                                          passiveAsset,
-                                          width: 44,
-                                          height: 44,
+                                          PvpAssetResolver.rankAsset(),
+                                          width: 50,
+                                          height: 50,
                                           fit: BoxFit.contain,
                                         ),
                                       ),
+                                      if (passiveAsset != null)
+                                        Positioned(
+                                          left: 10,
+                                          top: 8,
+                                          child: Image.asset(
+                                            passiveAsset,
+                                            width: 44,
+                                            height: 44,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: isCompactHeight ? 6 : 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildStatTile(
+                                        l10n.pvpTodayStepsLabel,
+                                        numberFormat.format(
+                                          pvpProvider.todaySteps,
+                                        ),
+                                        compact: isCompactHeight,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 7),
+                                    Expanded(
+                                      child: _buildStatTile(
+                                        l10n.pvpSpiritAffinityLabel,
+                                        displayAffinityLabel,
+                                        compact: isCompactHeight,
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              SizedBox(height: isCompactHeight ? 5 : 9),
-                              _buildStatRow(
-                                l10n.pvpTodayStepsLabel,
-                                numberFormat.format(pvpProvider.todaySteps),
-                                compact: isCompactHeight,
-                              ),
-                              SizedBox(height: isCompactHeight ? 4 : 6),
-                              _buildStatRow(
-                                l10n.pvpSpiritAffinityLabel,
-                                displayAffinityLabel,
-                                compact: isCompactHeight,
-                              ),
-                              SizedBox(height: isCompactHeight ? 4 : 6),
-                              _buildStatRow(
-                                l10n.pvpEnergyLabel,
-                                '${numberFormat.format(pvpProvider.currentEnergy)}/${numberFormat.format(pvpProvider.maxEnergy)}',
-                                compact: isCompactHeight,
-                              ),
-                              SizedBox(height: isCompactHeight ? 4 : 6),
-                              _buildStatRow(
-                                l10n.pvpBondLabel,
-                                numberFormat.format(pvpProvider.currentBond),
-                                compact: isCompactHeight,
-                              ),
-                            ],
+                                const SizedBox(height: 7),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildStatTile(
+                                        l10n.pvpEnergyLabel,
+                                        '${numberFormat.format(pvpProvider.currentEnergy)}/${numberFormat.format(pvpProvider.maxEnergy)}',
+                                        compact: isCompactHeight,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 7),
+                                    Expanded(
+                                      child: _buildStatTile(
+                                        l10n.pvpBondLabel,
+                                        numberFormat.format(
+                                          pvpProvider.currentBond,
+                                        ),
+                                        compact: isCompactHeight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -292,7 +298,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Text(
-                    'PvP requires ${PvpProvider.pvpEnergyCost} energy.',
+                    l10n.pvpEnergyRequired(PvpProvider.pvpEnergyCost),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.95),
@@ -305,9 +311,14 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 width: double.infinity,
                 height: isCompactHeight ? 50 : 56,
                 child: ElevatedButton(
+                  key: matchmakingTutorialKey,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? AppColors.darkLife : const Color(0xFFF6C95D),
-                    foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
+                    backgroundColor: isDark
+                        ? AppColors.darkLife
+                        : const Color(0xFFF6C95D),
+                    foregroundColor: isDark
+                        ? AppColors.darkTextOutline
+                        : AppColors.woodDeep,
                     side: BorderSide(
                       color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
                       width: 2,
@@ -347,7 +358,9 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     backgroundColor: cardColor,
-                    foregroundColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                    foregroundColor: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                     side: const BorderSide(color: AppColors.woodDeep, width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
@@ -387,7 +400,7 @@ class PvPWaitingRoomScreen extends StatelessWidget {
               children: [
                 const ModalBarrier(
                   dismissible: false,
-                  color: Color(0x990F1A12),
+                  color: Color(0x660F1A12),
                 ),
                 SafeArea(
                   child: Padding(
@@ -406,41 +419,41 @@ class PvPWaitingRoomScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, {bool compact = false}) {
+  Widget _buildStatTile(String label, String value, {bool compact = false}) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: compact ? 5 : 8),
+      constraints: BoxConstraints(minHeight: compact ? 47 : 54),
+      padding: EdgeInsets.symmetric(horizontal: 11, vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
         color: AppColors.creamLight.withValues(alpha: 0.76),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: AppColors.woodLight, width: 1.1),
+        border: Border.all(
+          color: AppColors.woodLight.withValues(alpha: 0.72),
+          width: 1,
+        ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.inkBrown,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.inkBrown,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.woodDeep,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w900,
-              ),
+          const SizedBox(height: 1),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.woodDeep,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -465,16 +478,19 @@ class _PvpSearchingModal extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360),
+      constraints: const BoxConstraints(maxWidth: 320),
       child: Material(
         color: Colors.transparent,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: AppColors.woodDeep, width: 2),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.woodDeep.withValues(alpha: 0.7),
+              width: 1.4,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
@@ -487,42 +503,45 @@ class _PvpSearchingModal extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 76,
-                height: 76,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: AppColors.leafLight,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.oliveDeep, width: 2),
+                  border: Border.all(color: AppColors.oliveDeep, width: 1.4),
                 ),
                 alignment: Alignment.center,
                 child: const SizedBox(
-                  width: 38,
-                  height: 38,
+                  width: 28,
+                  height: 28,
                   child: CircularProgressIndicator(
-                    strokeWidth: 4,
+                    strokeWidth: 3,
                     color: AppColors.oliveDeep,
                     backgroundColor: AppColors.creamLight,
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               GameButtonLabel(
                 title,
-                fontSize: 20,
+                fontSize: 18,
                 color: AppColors.woodDeep,
                 outlineColor: AppColors.creamLight,
                 outlineWidth: 3.5,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 48,
                 child: OutlinedButton(
                   onPressed: onCancel,
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppColors.creamLight,
                     foregroundColor: AppColors.woodDeep,
-                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
+                    side: const BorderSide(
+                      color: AppColors.woodDeep,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(26),
                     ),

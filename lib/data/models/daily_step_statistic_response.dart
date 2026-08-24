@@ -35,12 +35,12 @@ class DailyStepStatisticResponse {
       toDate: DateTime.tryParse(json['toDate']?.toString() ?? ''),
       data: json['data'] is List
           ? (json['data'] as List)
-              .map(
-                (item) => DailyStepStatisticItemResponse.fromJson(
-                  Map<String, dynamic>.from(item as Map),
-                ),
-              )
-              .toList()
+                .map(
+                  (item) => DailyStepStatisticItemResponse.fromJson(
+                    Map<String, dynamic>.from(item as Map),
+                  ),
+                )
+                .toList()
           : const [],
     );
   }

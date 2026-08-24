@@ -5,16 +5,15 @@ import '../../models/step_goal_response.dart';
 
 class StepGoalDatasource {
   StepGoalDatasource({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 
   Future<ApiResponse<GoalProgressResponse>> getProgress() {
     return _apiClient.get<GoalProgressResponse>(
       ApiConstants.stepGoalProgress,
-      fromJsonT: (json) => GoalProgressResponse.fromJson(
-        Map<String, dynamic>.from(json as Map),
-      ),
+      fromJsonT: (json) =>
+          GoalProgressResponse.fromJson(Map<String, dynamic>.from(json as Map)),
     );
   }
 

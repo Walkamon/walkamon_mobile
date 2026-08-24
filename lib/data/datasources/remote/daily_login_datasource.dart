@@ -1,5 +1,5 @@
 import '../../../core/network/api_client.dart';
-import '../../../core/constants/api_constants.dart'; 
+import '../../../core/constants/api_constants.dart';
 
 abstract class DailyLoginDatasource {
   Future<Map<String, dynamic>> getDailyLoginStatus();
@@ -27,7 +27,7 @@ class DailyLoginDatasourceImpl implements DailyLoginDatasource {
         ApiConstants.claimDailyReward, // Sử dụng hằng số thay vì chuỗi cứng
         fromJsonT: (json) {
           // Log này giúp bạn nhìn thấy chính xác Server trả về ruột "data" là gì trước khi qua ApiClient
-      
+
           return json as Map<String, dynamic>;
         },
       );

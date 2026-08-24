@@ -18,8 +18,6 @@ class OtpScreenRepository {
   Future<ApiResponse<RegisterResponse>> resendOtp({
     required String requestCode,
   }) async {
-    return await _remoteDataSource.resendOtp(
-      requestCode: requestCode,
-    );
+    return await _remoteDataSource.resendOtp(requestCode: requestCode);
   }
 }

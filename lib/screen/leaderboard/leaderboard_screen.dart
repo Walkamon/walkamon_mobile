@@ -4,22 +4,28 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
+import '../../widgets/common/game_async_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../profile/friend_player_profile_screen.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final bool isEmbedded;
+  final LeaderboardRepository? repository;
 
-  const LeaderboardScreen({super.key, this.isEmbedded = false});
+  const LeaderboardScreen({
+    super.key,
+    this.isEmbedded = false,
+    this.repository,
+  });
 
   @override
   State<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  final LeaderboardRepository _repository = LeaderboardRepository();
+  late final LeaderboardRepository _repository;
 
-  String _scope = 'global';
+  final String _scope = 'global';
   String _timeFrame = 'daily';
   String _metric = 'steps';
   bool _isLoading = true;
@@ -30,6 +36,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? LeaderboardRepository();
     _loadLeaderboard();
   }
 
@@ -127,7 +134,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
-    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     final sortedUsers = _sortedUsers;
 
     return Padding(
@@ -299,7 +305,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   color: active ? activeColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(9),
                   border: Border.all(
-                    color: active ? (isDark ? AppColors.darkBorder : AppColors.woodDeep) : Colors.transparent,
+                    color: active
+                        ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                        : Colors.transparent,
                     width: 1.2,
                   ),
                 ),
@@ -368,7 +376,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   TextStyle _tableHeaderStyle(BuildContext context) => TextStyle(
-    color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.inkBrown,
+    color: Theme.of(context).brightness == Brightness.dark
+        ? AppColors.darkForeground
+        : AppColors.inkBrown,
     fontSize: 11,
     fontWeight: FontWeight.w900,
   );
@@ -469,7 +479,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         decoration: BoxDecoration(
           color: selected
               ? (isDark ? AppColors.darkPrimary : AppColors.leafLight)
-              : (isDark ? AppColors.darkMuted : AppColors.creamLight.withValues(alpha: 0.72)),
+              : (isDark
+                    ? AppColors.darkMuted
+                    : AppColors.creamLight.withValues(alpha: 0.72)),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: selected ? AppColors.oliveDeep : AppColors.creamDeep,
@@ -505,61 +517,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final l10n = AppLocalizations.of(context);
 
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.oliveDeep),
-      );
+      return Center(child: GameLoadingIndicator(label: l10n.loading));
     }
 
     if (_errorMessage != null) {
-      final isVietnamese =
-          Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.inkDark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: _loadLeaderboard,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(120, 40),
-                  backgroundColor: AppColors.buttonGreen,
-                  side: const BorderSide(color: AppColors.woodDeep, width: 1.6),
-                  shape: const StadiumBorder(),
-                ),
-                child: GameButtonLabel(
-                  isVietnamese ? 'Thử lại' : 'Retry',
-                  fontSize: 12,
-                  outlineWidth: 2,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return GameAsyncStatePanel(
+        message: _errorMessage!,
+        isError: true,
+        onRetry: _loadLeaderboard,
+        retryLabel: l10n.retry,
       );
     }
 
     if (sortedUsers.isEmpty) {
-      return Center(
-        child: Text(
-          l10n.leaderboardCouldNotLoad,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: AppColors.inkBrown,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
+      return GameAsyncStatePanel(message: l10n.leaderboardCouldNotLoad);
     }
 
     return ListView.separated(
@@ -719,15 +690,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final rest = _rest;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: GameLoadingIndicator(label: l10n.loading));
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(_errorMessage!, textAlign: TextAlign.center),
-        ),
+      return GameAsyncStatePanel(
+        message: _errorMessage!,
+        isError: true,
+        onRetry: _loadLeaderboard,
+        retryLabel: l10n.retry,
       );
     }
 

@@ -1,0 +1,2374 @@
+{
+  "version": 1,
+  "production": true,
+  "candidateOnly": false,
+  "runtimeSize": 384,
+  "bundleBudgetMiB": 130.0,
+  "baselineNormalized": 0.9895833333333334,
+  "semanticAliases": {
+    "hunggry": "hungry"
+  },
+  "forms": {
+    "sprout_stage0": {
+      "motionMode": "ground",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 35,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.13333334,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "sprout_stage0_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "sprout_stage0_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "sprout_stage0_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "sprout_stage0_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "sprout_stage0_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "sprout_stage0_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/sprout_stage0/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 339,
+      "homeCanvasScale": 1.2083,
+      "artRevision": "sprout_stage0_authored_acting_v1"
+    },
+    "warm_sun_stage1": {
+      "motionMode": "ground",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 35,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.13333334,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "enter": {
+            "id": "happy_enter_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_enter_authored_pilot_v1.webp",
+            "columns": 3,
+            "rows": 2,
+            "frameCount": 5,
+            "durations": [
+              0.12,
+              0.12,
+              0.08,
+              0.07,
+              0.15
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "happy_loop_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_loop_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.75,
+              0.18,
+              0.45,
+              0.18
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "happy_exit_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/happy_exit_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.12,
+              0.13,
+              0.19
+            ],
+            "loop": false
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_enter_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.22
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_loop_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.42,
+              0.65,
+              0.42,
+              0.65
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "hungry_exit_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/hungry_exit_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 1,
+            "frameCount": 2,
+            "durations": [
+              0.18,
+              0.22
+            ],
+            "loop": false
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_enter_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.28,
+              0.34
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_loop_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.55,
+              0.85,
+              0.55,
+              0.85
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sad_exit_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 1,
+            "frameCount": 2,
+            "durations": [
+              0.32,
+              0.48
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_enter_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.07,
+              0.15
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_loop_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.18,
+              0.22,
+              0.18,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/excited_exit_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.09,
+              0.08,
+              0.1,
+              0.13
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_authored_pilot_v1",
+              "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_0_authored_pilot_v1.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_authored_pilot_v1",
+              "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_1_authored_pilot_v1.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_authored_pilot_v1",
+              "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_2_authored_pilot_v1.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.22,
+                0.3,
+                0.4
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_authored_pilot_v1",
+              "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/feed_eat_action_3_authored_pilot_v1.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.12,
+                0.14,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_enter_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.35,
+              0.55,
+              0.9
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_loop_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_authored_pilot_v1",
+            "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/sleep_exit_authored_pilot_v1.webp",
+            "columns": 2,
+            "rows": 1,
+            "frameCount": 2,
+            "durations": [
+              0.6,
+              0.6
+            ],
+            "loop": false
+          }
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_authored_pilot_v1",
+              "sourceClip": "warm_sun_stage1_authored_pilot_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage1/tap_hello_action_0_authored_pilot_v1.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 409,
+      "homeCanvasScale": 1.0015,
+      "artRevision": "authored_acting_pilot_v1"
+    },
+    "warm_sun_stage2": {
+      "motionMode": "ground",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 35,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.13333334,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "warm_sun_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "warm_sun_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "warm_sun_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "warm_sun_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "warm_sun_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "warm_sun_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/warm_sun_stage2/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 364,
+      "homeCanvasScale": 1.1253,
+      "artRevision": "warm_sun_stage2_authored_acting_v1"
+    },
+    "dawn_stage1": {
+      "motionMode": "hover",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 36,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "dawn_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "dawn_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "dawn_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "dawn_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "dawn_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "dawn_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage1/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 422,
+      "homeCanvasScale": 0.9706,
+      "artRevision": "dawn_stage1_authored_acting_v1"
+    },
+    "dawn_stage2": {
+      "motionMode": "hover",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 36,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "dawn_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "dawn_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "dawn_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "dawn_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "dawn_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "dawn_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/dawn_stage2/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 412,
+      "homeCanvasScale": 0.9942,
+      "artRevision": "dawn_stage2_authored_acting_v1"
+    },
+    "moonlight_stage1": {
+      "motionMode": "ground",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 35,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.13333334,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "moonlight_stage1_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "moonlight_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "moonlight_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "moonlight_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "moonlight_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "moonlight_stage1_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage1/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 426,
+      "homeCanvasScale": 0.9615,
+      "artRevision": "moonlight_stage1_authored_acting_v1"
+    },
+    "moonlight_stage2": {
+      "motionMode": "ground",
+      "states": {
+        "idle": {
+          "loop": {
+            "id": "idle_loop_idle_front",
+            "sourceClip": "idle_front",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/idle_loop_idle_front.webp",
+            "columns": 6,
+            "rows": 6,
+            "frameCount": 35,
+            "durations": [
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.13333334,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667,
+              0.06666667
+            ],
+            "loop": true
+          }
+        },
+        "happy": {
+          "loop": {
+            "id": "happy_loop_happy",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/happy_loop_happy.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.22,
+              0.58,
+              0.42,
+              0.48
+            ],
+            "loop": true
+          }
+        },
+        "hungry": {
+          "enter": {
+            "id": "hungry_enter_hungry_enter",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/hungry_enter_hungry_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.18,
+              0.22,
+              0.28
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "hungry_loop_hungry_loop",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/hungry_loop_hungry_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.62,
+              0.78,
+              0.58,
+              0.3
+            ],
+            "loop": true
+          }
+        },
+        "sad": {
+          "enter": {
+            "id": "sad_enter_sad_enter",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sad_enter_sad_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.2,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sad_loop_sad_loop",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sad_loop_sad_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.72,
+              0.95,
+              0.72,
+              0.34
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sad_exit_sad_recover",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sad_exit_sad_recover.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.26,
+              0.3,
+              0.42
+            ],
+            "loop": false
+          }
+        },
+        "sleep": {
+          "enter": {
+            "id": "sleep_enter_sleep_enter",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sleep_enter_sleep_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.38,
+              0.58,
+              0.92
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "sleep_loop_sleep_loop",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sleep_loop_sleep_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              1.05,
+              1.05,
+              1.05
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "sleep_exit_sleep_wakeup",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/sleep_exit_sleep_wakeup.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 3,
+            "durations": [
+              0.5,
+              0.55,
+              0.65
+            ],
+            "loop": false
+          }
+        },
+        "excited": {
+          "enter": {
+            "id": "excited_enter_excited_enter",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/excited_enter_excited_enter.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.14,
+              0.13,
+              0.08,
+              0.16
+            ],
+            "loop": false
+          },
+          "loop": {
+            "id": "excited_loop_excited_loop",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/excited_loop_excited_loop.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.2,
+              0.24,
+              0.2,
+              0.42
+            ],
+            "loop": true
+          },
+          "exit": {
+            "id": "excited_exit_excited_exit",
+            "sourceClip": "moonlight_stage2_authored_acting_v1",
+            "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/excited_exit_excited_exit.webp",
+            "columns": 2,
+            "rows": 2,
+            "frameCount": 4,
+            "durations": [
+              0.1,
+              0.09,
+              0.11,
+              0.16
+            ],
+            "loop": false
+          }
+        },
+        "feed_eat": {
+          "action": [
+            {
+              "id": "feed_eat_action_0_feed_notice",
+              "sourceClip": "moonlight_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/feed_eat_action_0_feed_notice.webp",
+              "columns": 3,
+              "rows": 2,
+              "frameCount": 5,
+              "durations": [
+                0.15,
+                0.18,
+                0.16,
+                0.14,
+                0.2
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_1_feed_eat_loop",
+              "sourceClip": "moonlight_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/feed_eat_action_1_feed_eat_loop.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.24,
+                0.35,
+                0.32
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_2_feed_delicious",
+              "sourceClip": "moonlight_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/feed_eat_action_2_feed_delicious.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.18,
+                0.2,
+                0.32,
+                0.42
+              ],
+              "loop": false
+            },
+            {
+              "id": "feed_eat_action_3_feed_finish",
+              "sourceClip": "moonlight_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/feed_eat_action_3_feed_finish.webp",
+              "columns": 2,
+              "rows": 2,
+              "frameCount": 4,
+              "durations": [
+                0.14,
+                0.16,
+                0.16,
+                0.22
+              ],
+              "loop": false
+            }
+          ]
+        },
+        "tap_hello": {
+          "action": [
+            {
+              "id": "tap_hello_action_0_tap_hello",
+              "sourceClip": "moonlight_stage2_authored_acting_v1",
+              "sheet": "assets/Mobile/pet_runtime_prod_v1/moonlight_stage2/tap_hello_action_0_tap_hello.webp",
+              "columns": 4,
+              "rows": 3,
+              "frameCount": 11,
+              "durations": [
+                0.2,
+                0.18,
+                0.16,
+                0.12,
+                0.32,
+                0.18,
+                0.42,
+                0.16,
+                0.16,
+                0.22,
+                0.38
+              ],
+              "loop": false
+            }
+          ]
+        }
+      },
+      "sourceVisibleHeight": 402,
+      "homeCanvasScale": 1.0189,
+      "artRevision": "moonlight_stage2_authored_acting_v1"
+    }
+  }
+}

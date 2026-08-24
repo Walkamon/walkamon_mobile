@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -15,7 +14,9 @@ abstract final class AppTheme {
 
   static ButtonStyle _filledButtonStyle(bool isDark) {
     final background = isDark ? AppColors.darkLife : AppColors.buttonGreen;
-    final foreground = isDark ? AppColors.darkTextOutline : AppColors.buttonText;
+    final foreground = isDark
+        ? AppColors.darkTextOutline
+        : AppColors.buttonText;
     return ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(48, 50)),
       padding: const WidgetStatePropertyAll(
@@ -147,6 +148,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: 'Quicksand',
       scaffoldBackgroundColor: AppColors.lightBackground,
       colorScheme: const ColorScheme.light(
         primary: AppColors.lightPrimary,
@@ -168,11 +170,10 @@ abstract final class AppTheme {
         style: _outlinedButtonStyle(false),
       ),
       textButtonTheme: TextButtonThemeData(style: _textButtonStyle(false)),
-      textTheme: GoogleFonts.quicksandTextTheme(
-        ThemeData.light().textTheme.apply(
-          bodyColor: AppColors.lightForeground,
-          displayColor: AppColors.lightForeground,
-        ),
+      textTheme: ThemeData.light().textTheme.apply(
+        fontFamily: 'Quicksand',
+        bodyColor: AppColors.lightForeground,
+        displayColor: AppColors.lightForeground,
       ),
     );
   }
@@ -181,6 +182,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'Quicksand',
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.darkPrimary,
@@ -200,11 +202,10 @@ abstract final class AppTheme {
         style: _outlinedButtonStyle(true),
       ),
       textButtonTheme: TextButtonThemeData(style: _textButtonStyle(true)),
-      textTheme: GoogleFonts.quicksandTextTheme(
-        ThemeData.dark().textTheme.apply(
-          bodyColor: AppColors.darkForeground,
-          displayColor: AppColors.darkForeground,
-        ),
+      textTheme: ThemeData.dark().textTheme.apply(
+        fontFamily: 'Quicksand',
+        bodyColor: AppColors.darkForeground,
+        displayColor: AppColors.darkForeground,
       ),
     );
   }

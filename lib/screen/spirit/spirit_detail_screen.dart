@@ -64,19 +64,46 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       final petRepository = gameState.petRepository;
 
       final overview = await petRepository.getPetOverview();
-      final stages = await petRepository.getEvolutionStages();
-      final history = await petRepository.getEvolutionHistory();
-      final animation = await petRepository.getCurrentAnimation();
-      List<PetEvolutionOptionResponse> options = <PetEvolutionOptionResponse>[];
+      if (!mounted) return;
+      setState(() {
+        _petOverview = overview;
+        _isEvolved = overview.stageNo > 1;
+      });
+
+      var stages = _evolutionStages;
+      try {
+        stages = await petRepository.getEvolutionStages();
+      } catch (error) {
+        debugPrint('[SpiritDetail] evolution stages unavailable: $error');
+      }
+
+      var history = _evolutionHistory;
+      try {
+        history = await petRepository.getEvolutionHistory();
+      } catch (error) {
+        debugPrint('[SpiritDetail] evolution history unavailable: $error');
+      }
+
+      var animation = _currentAnimation;
+      try {
+        animation = await petRepository.getCurrentAnimation();
+      } catch (error) {
+        debugPrint('[SpiritDetail] current animation unavailable: $error');
+      }
+
+      var options = _evolutionOptions;
       try {
         options = await petRepository.getEvolutionOptions();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[SpiritDetail] evolution options unavailable: $error');
+      }
 
-      List<PetEvolutionPreviewResponse> previews =
-          <PetEvolutionPreviewResponse>[];
+      var previews = _evolutionPreviews;
       try {
         previews = await petRepository.getEvolutionPreviews();
-      } catch (_) {}
+      } catch (error) {
+        debugPrint('[SpiritDetail] evolution previews unavailable: $error');
+      }
 
       if (!mounted) return;
 
@@ -93,19 +120,17 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         });
 
       setState(() {
-        _petOverview = overview;
         _evolutionStages = sortedStages;
         _evolutionHistory = sortedHistory;
         _evolutionOptions = options;
         _evolutionPreviews = previews;
         _currentAnimation = animation;
-        _isEvolved = overview.stageNo > 1;
       });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(AppLocalizations.of(context).petDataLoadError),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -253,6 +278,36 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         );
         final spiritName = _petOverview?.nickname ?? gameState.spiritName;
         final isEvolved = _isEvolved || level >= 15;
+        final affinityCode =
+            (_petOverview?.affinityCode ?? gameState.affinityCode)
+                .trim()
+                .toLowerCase();
+        final formLabel = switch (affinityCode) {
+          'dawn' => l10n.seedPath1Name,
+          'moonlight' => l10n.seedPath2Name,
+          'warm_sun' => l10n.seedPath3Name,
+          'sprout' =>
+            (_petOverview?.formName.trim().isNotEmpty ?? false)
+                ? _petOverview!.formName.trim()
+                : 'Lumina',
+          _ =>
+            (_petOverview?.formName.trim().isNotEmpty ?? false)
+                ? _petOverview!.formName.trim()
+                : spiritName,
+        };
+        final affinityLabel = switch (affinityCode) {
+          'dawn' => l10n.pvpAffinityDawn,
+          'moonlight' => l10n.pvpAffinityMoonlight,
+          'warm_sun' => l10n.pvpAffinityWarmSun,
+          'sprout' => l10n.pvpAffinitySprout,
+          _ => l10n.pvpAffinityUnknown,
+        };
+        final overviewStageName = _petOverview?.stageName.trim() ?? '';
+        final stageLabel = overviewStageName.isNotEmpty
+            ? overviewStageName
+            : (gameState.petStageName.trim().isNotEmpty
+                  ? gameState.petStageName.trim()
+                  : l10n.spiritStageSprout);
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -288,8 +343,12 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                               child: GameButtonLabel(
                                 l10n.spiritDetailTitle(spiritName),
                                 fontSize: 17,
-                                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                                outlineColor: isDark ? AppColors.darkBorder : AppColors.authCard,
+                                color: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.woodDeep,
+                                outlineColor: isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.authCard,
                                 outlineWidth: 4,
                               ),
                             ),
@@ -351,7 +410,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                               GameButtonLabel(
                                                 spiritName,
                                                 fontSize: 16,
-                                                color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                                                color: isDark
+                                                    ? AppColors.darkForeground
+                                                    : AppColors.woodDeep,
                                                 outlineColor:
                                                     AppColors.authCard,
                                                 outlineWidth: 3.5,
@@ -412,12 +473,20 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                           child: Align(
                                                             alignment: Alignment
                                                                 .centerLeft,
-                                                    child: GameButtonLabel(
+                                                            child: GameButtonLabel(
                                                               spiritName,
                                                               fontSize: 19,
-                                                              color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                                                              color: isDark
+                                                                  ? AppColors
+                                                                        .darkForeground
+                                                                  : AppColors
+                                                                        .woodDeep,
                                                               outlineColor:
-                                                                  isDark ? AppColors.darkBorder : AppColors.creamLight,
+                                                                  isDark
+                                                                  ? AppColors
+                                                                        .darkBorder
+                                                                  : AppColors
+                                                                        .creamLight,
                                                               outlineWidth: 3,
                                                             ),
                                                           ),
@@ -472,17 +541,13 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       runSpacing: 8,
                                                       children: [
                                                         _TagChip(
-                                                          label: l10n
-                                                              .seedPath3Name,
+                                                          label: formLabel,
                                                         ),
                                                         _TagChip(
-                                                          label: l10n
-                                                              .spiritPlantType,
+                                                          label: affinityLabel,
                                                         ),
                                                         _TagChip(
-                                                          label: isEvolved
-                                                              ? l10n.spiritStageLeaf
-                                                              : l10n.spiritStageSprout,
+                                                          label: stageLabel,
                                                         ),
                                                       ],
                                                     ),
@@ -508,9 +573,9 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                 width: 1.5,
                                               ),
                                             ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
+                                            child: Row(
+                                              children: [
+                                                Expanded(
                                                   child: _TabButton(
                                                     label: l10n.spiritStatsTab,
                                                     active:
@@ -519,10 +584,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                       () =>
                                                           _activeTab = 'stats',
                                                     ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 5),
-                                                    Expanded(
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Expanded(
                                                   child: _TabButton(
                                                     label:
                                                         l10n.spiritEvolutionTab,
@@ -768,8 +833,12 @@ class _TabButton extends StatelessWidget {
                 ? GameButtonLabel(
                     label,
                     fontSize: 13,
-                    color: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
-                    outlineColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                    color: isDark
+                        ? AppColors.darkTextOutline
+                        : AppColors.buttonText,
+                    outlineColor: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                     outlineWidth: 2.5,
                   )
                 : Text(
@@ -777,7 +846,9 @@ class _TabButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.woodDeep,
                     ),
                   ),
           ),
@@ -798,7 +869,9 @@ class _TagChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkMuted : AppColors.creamLight.withValues(alpha: 0.78),
+        color: isDark
+            ? AppColors.darkMuted
+            : AppColors.creamLight.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: AppColors.wood.withValues(alpha: 0.65),
@@ -867,7 +940,9 @@ class _StatRow extends StatelessWidget {
                     height: 17,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
+                      color: isDark
+                          ? AppColors.darkMuted
+                          : AppColors.creamLight,
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(color: AppColors.woodDeep, width: 1.5),
                     ),
@@ -899,7 +974,9 @@ class _StatRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: isDark ? AppColors.darkForeground : AppColors.inkDark,
+                        color: isDark
+                            ? AppColors.darkForeground
+                            : AppColors.inkDark,
                         height: 1,
                       ),
                     ),

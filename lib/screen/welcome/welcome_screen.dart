@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
@@ -25,42 +26,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _showSettings = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Tạo một khoảng hoãn nhỏ (100ms) để Flutter Web ổn định Engine rồi mới quét dữ liệu
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _checkAutoLogin();
-      }
-    });
-  }
-
-  Future<void> _checkAutoLogin() async {
-    try {
-      final authProvider = context.read<GameStateProvider>();
-      bool isLoggedIn = await authProvider.tryAutoLogin();
-
-      if (!mounted) return;
-
-      if (isLoggedIn) {
-        final userId = authProvider.user?.id ?? '';
-
-        if (userId.isNotEmpty && mounted) {
-          context.read<StepTrackingProvider>().startForUser(userId);
-        }
-
-        if (!mounted) return;
-
-        // Chuyển trang trực tiếp
-        Navigator.pushReplacementNamed(context, '/seed');
-      }
-    } catch (e) {
-      // Bọc catch để nếu có lỗi ngầm xảy ra, app không bị đứng hình trắng xóa
-      debugPrint("Lỗi AutoLogin ngầm: $e");
-    }
-  }
 
   Future<void> _handleGoogleLogin() async {
     final provider = context.read<GameStateProvider>();
@@ -154,6 +119,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       icon: Icons.explore_outlined,
                       asset: AppAssets.iconSettingsSystem,
                       color: primary,
+                      semanticLabel: l10n.gameSettings,
                       onPressed: () => setState(() => _showSettings = true),
                     ),
                   ),
@@ -323,30 +289,26 @@ class _TopIconButton extends StatelessWidget {
     required this.icon,
     this.asset,
     required this.color,
+    required this.semanticLabel,
     required this.onPressed,
   });
 
   final IconData icon;
   final String? asset;
   final Color color;
+  final String semanticLabel;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.authCard,
-      shape: const CircleBorder(
-        side: BorderSide(color: AppColors.woodDeep, width: 2),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: AppIcon(icon, asset: asset, size: 32, color: color),
-        ),
-      ),
+    return AssetOnlyIconButton(
+      onPressed: onPressed,
+      semanticLabel: semanticLabel,
+      icon: icon,
+      asset: asset,
+      color: color,
+      buttonSize: 48,
+      assetSize: 44,
     );
   }
 }
@@ -820,18 +782,14 @@ class _WelcomeSettingIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 46,
       height: 46,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.creamLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.wood, width: 1.3),
+      child: Center(
+        child: asset != null
+            ? Image.asset(asset!, width: 42, height: 42)
+            : AppIcon(icon, size: 38, color: AppColors.woodDeep),
       ),
-      child: asset != null
-          ? Image.asset(asset!, width: 30, height: 30)
-          : AppIcon(icon, size: 25, color: AppColors.woodDeep),
     );
   }
 }

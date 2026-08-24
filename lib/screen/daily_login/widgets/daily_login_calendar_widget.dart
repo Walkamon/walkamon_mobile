@@ -83,10 +83,16 @@ class _RewardCard extends StatelessWidget {
     double borderWidth = isCurrent || isSpecial ? 2.2 : 1.5;
 
     if (isClaimed) {
-      bgColor = isDark ? AppColors.darkMuted : AppColors.panelMuted.withValues(alpha: 0.82);
+      bgColor = isDark
+          ? AppColors.darkMuted
+          : AppColors.panelMuted.withValues(alpha: 0.82);
       borderColor = isDark ? AppColors.darkCardBorder : AppColors.wood;
-      textDayColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
-      textAmountColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+      textDayColor = isDark
+          ? AppColors.darkMutedForeground
+          : AppColors.outlineBrown;
+      textAmountColor = isDark
+          ? AppColors.darkMutedForeground
+          : AppColors.outlineBrown;
       iconWidget = Container(
         width: 40,
         height: 40,
@@ -101,7 +107,9 @@ class _RewardCard extends StatelessWidget {
         ),
       );
     } else if (isCurrent) {
-      bgColor = isDark ? AppColors.darkPrimary : AppColors.authCard.withValues(alpha: 0.94);
+      bgColor = isDark
+          ? AppColors.darkPrimary
+          : AppColors.authCard.withValues(alpha: 0.94);
       borderColor = isDark ? AppColors.darkCardBorder : AppColors.woodDeep;
       textDayColor = isDark ? AppColors.darkForeground : AppColors.oliveDeep;
       textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
@@ -112,7 +120,9 @@ class _RewardCard extends StatelessWidget {
         fit: BoxFit.contain,
       );
     } else if (isSpecial) {
-      bgColor = isDark ? AppColors.darkNestedCard : AppColors.creamLight.withValues(alpha: 0.95);
+      bgColor = isDark
+          ? AppColors.darkNestedCard
+          : AppColors.creamLight.withValues(alpha: 0.95);
       borderColor = isDark ? AppColors.darkCardBorder : AppColors.woodDeep;
       textDayColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
       textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkBrown;
@@ -123,9 +133,13 @@ class _RewardCard extends StatelessWidget {
         fit: BoxFit.contain,
       );
     } else {
-      bgColor = isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.9);
+      bgColor = isDark
+          ? AppColors.darkNestedCard
+          : AppColors.authCard.withValues(alpha: 0.9);
       borderColor = isDark ? AppColors.darkCardBorder : AppColors.wood;
-      textDayColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+      textDayColor = isDark
+          ? AppColors.darkMutedForeground
+          : AppColors.outlineBrown;
       textAmountColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
       iconWidget = Opacity(
         opacity: 0.72,

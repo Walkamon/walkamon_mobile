@@ -187,9 +187,14 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.94),
+              color: isDark
+                  ? AppColors.darkNestedCard
+                  : AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
+              border: Border.all(
+                color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                width: 1.5,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,13 +265,17 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                             AppIcon(
                               Icons.bolt_rounded,
                               size: 12,
-                              color: isDark ? AppColors.darkTextOutline : primary,
+                              color: isDark
+                                  ? AppColors.darkTextOutline
+                                  : primary,
                             ),
                             const SizedBox(width: 3),
                             Text(
                               l10n.spiritReady,
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: isDark ? AppColors.darkTextOutline : primary,
+                                color: isDark
+                                    ? AppColors.darkTextOutline
+                                    : primary,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.3,
                               ),
@@ -289,9 +298,14 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.94),
+              color: isDark
+                  ? AppColors.darkNestedCard
+                  : AppColors.authCard.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
+              border: Border.all(
+                color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                width: 1.5,
+              ),
             ),
             child: widget.isLoading
                 ? const Center(
@@ -483,7 +497,9 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     return Material(
       color: isEnabled
           ? (isDark ? AppColors.darkLife : AppColors.buttonGreen)
-          : (isDark ? AppColors.darkCard.withValues(alpha: 0.9) : AppColors.buttonSecondary),
+          : (isDark
+                ? AppColors.darkCard.withValues(alpha: 0.9)
+                : AppColors.buttonSecondary),
       shape: StadiumBorder(
         side: BorderSide(
           color: isDark ? AppColors.darkCardBorder : AppColors.woodDeep,
@@ -513,8 +529,12 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                   asset: isEnabled ? AppAssets.iconUpgrade : null,
                   size: 21,
                   color: isEnabled
-                      ? (isDark ? AppColors.darkTextOutline : AppColors.buttonText)
-                      : (isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown),
+                      ? (isDark
+                            ? AppColors.darkTextOutline
+                            : AppColors.buttonText)
+                      : (isDark
+                            ? AppColors.darkMutedForeground
+                            : AppColors.outlineBrown),
                   tintAsset: false,
                 ),
               const SizedBox(width: 8),
@@ -524,9 +544,15 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                     : l10n.spiritEvolveNow,
                 fontSize: 14,
                 color: isEnabled
-                    ? (isDark ? AppColors.darkTextOutline : AppColors.buttonText)
-                    : (isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown),
-                outlineColor: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+                    ? (isDark
+                          ? AppColors.darkTextOutline
+                          : AppColors.buttonText)
+                    : (isDark
+                          ? AppColors.darkMutedForeground
+                          : AppColors.outlineBrown),
+                outlineColor: isDark
+                    ? AppColors.darkForeground
+                    : AppColors.woodDeep,
                 outlineWidth: 2.5,
               ),
             ],
@@ -793,8 +819,8 @@ class _ConditionCard extends StatelessWidget {
         color: isDark
             ? (ok ? AppColors.darkPrimary : AppColors.darkNestedCard)
             : (ok
-                ? AppColors.leafLight.withValues(alpha: 0.65)
-                : AppColors.authCard.withValues(alpha: 0.92)),
+                  ? AppColors.leafLight.withValues(alpha: 0.65)
+                  : AppColors.authCard.withValues(alpha: 0.92)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
@@ -826,7 +852,11 @@ class _ConditionCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkMuted : AppColors.creamLight,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood.withValues(alpha: 0.65)),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkCardBorder
+                    : AppColors.wood.withValues(alpha: 0.65),
+              ),
             ),
             child: Text(
               value,
@@ -1002,9 +1032,14 @@ class _PreviewSection extends StatelessWidget {
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.9),
+            color: isDark
+                ? AppColors.darkNestedCard
+                : AppColors.authCard.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.5),
+            border: Border.all(
+              color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+              width: 1.5,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,10 +1077,14 @@ class _PreviewSection extends StatelessWidget {
                             width: 54,
                             height: 54,
                             decoration: BoxDecoration(
-                                  color: isDark ? AppColors.darkMuted : AppColors.creamLight,
+                              color: isDark
+                                  ? AppColors.darkMuted
+                                  : AppColors.creamLight,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                                color: isDark
+                                    ? AppColors.darkCardBorder
+                                    : AppColors.wood,
                                 width: 1.6,
                               ),
                               boxShadow: [
@@ -1077,7 +1116,9 @@ class _PreviewSection extends StatelessWidget {
                                   stage.stageName,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppColors.darkForeground : AppColors.inkBrown,
+                                    color: isDark
+                                        ? AppColors.darkForeground
+                                        : AppColors.inkBrown,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -1085,7 +1126,9 @@ class _PreviewSection extends StatelessWidget {
                                   l10n.spiritRequiredLevel(stage.requiredLevel),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: isDark
-                                        ? AppColors.darkForeground.withValues(alpha: 0.82)
+                                        ? AppColors.darkForeground.withValues(
+                                            alpha: 0.82,
+                                          )
                                         : mutedFg,
                                   ),
                                 ),

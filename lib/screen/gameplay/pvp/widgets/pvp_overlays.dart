@@ -147,7 +147,7 @@ class PvPRoomCountdownOverlay extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const AppIcon(
@@ -233,48 +233,62 @@ class PvPMatchSuccessOverlay extends StatelessWidget {
                   outlineWidth: 4,
                 ),
                 const SizedBox(height: 14),
-                AspectRatio(
-                  aspectRatio: 2,
-                  child: Stack(
-                    alignment: Alignment.center,
+                Container(
+                  height: 178,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.authCard.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: AppColors.woodDeep.withValues(alpha: 0.5),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
                     children: [
-                      Positioned.fill(
-                        child: Image.asset(
-                          AppAssets.pvpTwoSlotHud,
-                          scale: PvpAssetResolver.hudAssetScale,
-                          fit: BoxFit.fill,
-                          centerSlice: PvpAssetResolver.hudCenterSlice,
-                          filterQuality: FilterQuality.medium,
+                      Expanded(
+                        child: _PvpVersusPetSlot(
+                          affinityCode: myAffinityCode,
+                          stageNo: myStageNo,
+                          isLeft: true,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(34, 22, 34, 24),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _PvpVersusPetSlot(
-                                affinityCode: myAffinityCode,
-                                stageNo: myStageNo,
-                                isLeft: true,
-                              ),
-                            ),
-                            const SizedBox(width: 52),
-                            Expanded(
-                              child: _PvpVersusPetSlot(
-                                affinityCode: opponentAffinityCode,
-                                stageNo: opponentStageNo,
-                                isLeft: false,
-                              ),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.leafLight,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.woodDeep.withValues(alpha: 0.18),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
+                        child: GameButtonLabel(
+                          'VS',
+                          fontSize: 22,
+                          color: AppColors.coral,
+                          outlineColor: AppColors.woodDeep,
+                          outlineWidth: 3,
+                        ),
                       ),
-                      GameButtonLabel(
-                        'VS',
-                        fontSize: 30,
-                        color: AppColors.coral,
-                        outlineColor: AppColors.woodDeep,
-                        outlineWidth: 4,
+                      Expanded(
+                        child: _PvpVersusPetSlot(
+                          affinityCode: opponentAffinityCode,
+                          stageNo: opponentStageNo,
+                          isLeft: false,
+                        ),
                       ),
                     ],
                   ),
@@ -414,9 +428,29 @@ class PvPFinishedOverlay extends StatelessWidget {
     }
   }
 
-  String _formatMmrDelta(int delta, MaterialLocalizations materialL10n) {
-    final formatted = materialL10n.formatDecimal(delta);
-    return delta > 0 ? '+$formatted' : formatted;
+  String _resultAssetForCode(String? resultCode) {
+    return switch (resultCode) {
+      'win' => AppAssets.iconWin,
+      'lose' => AppAssets.iconLose,
+      _ => AppAssets.iconDraw,
+    };
+  }
+
+  PvpParticipantResponse? _opponentFor(
+    PvpMatchResultResponse result,
+    PvpParticipantResponse? me,
+  ) {
+    for (final participant in result.participants) {
+      if (!identical(participant, me)) return participant;
+    }
+    return null;
+  }
+
+  int _scoreFor(PvpParticipantResponse? participant) {
+    return participant?.score ??
+        participant?.validatedSteps ??
+        participant?.distanceUnits ??
+        0;
   }
 
   @override
@@ -424,16 +458,28 @@ class PvPFinishedOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
-    final materialL10n = MaterialLocalizations.of(context);
     final resultCode =
         (forcedResultCode?.isNotEmpty == true
             ? forcedResultCode!.toLowerCase()
             : null) ??
         result?.resultCodeForUser(currentUserId);
+    final myParticipant = result?.participantForUser(currentUserId);
+    final opponentParticipant = result == null
+        ? null
+        : _opponentFor(result!, myParticipant);
+    final opponentLabel = opponentName.trim().isNotEmpty
+        ? opponentName.trim()
+        : (opponentParticipant?.displayName?.trim().isNotEmpty == true
+              ? opponentParticipant!.displayName!.trim()
+              : l10n.pvpOpponent);
+    final materialL10n = MaterialLocalizations.of(context);
     final rank = result?.rankAfter ?? result?.rankBefore;
+    final showsRankedProgress =
+        result?.isRanked == true && forcedResultCode == null;
     final rankColor =
         _parseHexColor(rank?.colorHex) ?? theme.colorScheme.primary;
     final canClaim =
+        showsRankedProgress &&
         result != null &&
         result!.canClaimReward &&
         result!.claimedAt == null &&
@@ -441,12 +487,13 @@ class PvPFinishedOverlay extends StatelessWidget {
         forcedResultCode == null;
 
     return Container(
-      color: Colors.black87,
+      color: Colors.black.withValues(alpha: 0.52),
       alignment: Alignment.center,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: const BoxConstraints(maxWidth: 380),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+          key: const ValueKey('pvp-finished-card'),
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
             color: theme.brightness == Brightness.dark
                 ? AppColors.darkCard
@@ -467,7 +514,7 @@ class PvPFinishedOverlay extends StatelessWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 86, 20, 22),
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 340),
               child: Column(
@@ -510,44 +557,89 @@ class PvPFinishedOverlay extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    const SizedBox(height: 42),
+                    Image.asset(
+                      _resultAssetForCode(resultCode),
+                      width: 76,
+                      height: 76,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       _titleForResult(l10n, resultCode),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: 28,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       _subtitleForResult(l10n, resultCode),
                       textAlign: TextAlign.center,
                     ),
                     if (result != null) ...[
-                      const SizedBox(height: 24),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          if (result!.isRanked) ...[
-                            _buildRewardCard(
-                              context,
-                              l10n.pvpMmr,
-                              _formatMmrDelta(result!.mmrDelta, materialL10n),
-                              Icons.trending_up,
-                              result!.mmrDelta >= 0
-                                  ? Colors.amber
-                                  : theme.colorScheme.error,
+                      const SizedBox(height: 14),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkMuted
+                              : AppColors.authCard,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.wood.withValues(alpha: 0.45),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildScoreSide(
+                                context,
+                                l10n.pvpYou,
+                                materialL10n.formatDecimal(
+                                  _scoreFor(myParticipant),
+                                ),
+                              ),
                             ),
-                            _buildRewardCard(
-                              context,
-                              l10n.pvpCurrentMmr,
-                              materialL10n.formatDecimal(result!.mmrAfter),
-                              Icons.speed,
-                              theme.colorScheme.primary,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                '—',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkMutedForeground
+                                      : AppColors.wood,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildScoreSide(
+                                context,
+                                opponentLabel,
+                                materialL10n.formatDecimal(
+                                  _scoreFor(opponentParticipant),
+                                ),
+                              ),
                             ),
                           ],
-                          if (rank != null)
+                        ),
+                      ),
+                      if (showsRankedProgress && rank != null) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          alignment: WrapAlignment.center,
+                          children: [
                             _buildRewardCard(
                               context,
                               result!.tierChanged
@@ -560,9 +652,10 @@ class PvPFinishedOverlay extends StatelessWidget {
                                 rank,
                               ),
                             ),
-                        ],
-                      ),
-                      if (result!.tierChanged) ...[
+                          ],
+                        ),
+                      ],
+                      if (showsRankedProgress && result!.tierChanged) ...[
                         const SizedBox(height: 12),
                         const PvpFrameAnimation(
                           effectCode: 'rank_up',
@@ -570,7 +663,7 @@ class PvPFinishedOverlay extends StatelessWidget {
                           height: 120,
                         ),
                       ],
-                      if (result!.claimedAt != null) ...[
+                      if (showsRankedProgress && result!.claimedAt != null) ...[
                         const SizedBox(height: 12),
                         Text(
                           l10n.pvpRewardClaimed,
@@ -710,90 +803,106 @@ class PvPFinishedOverlay extends StatelessWidget {
                       ],
                     ],
                   ],
-                  const SizedBox(height: 32),
-                  if (canClaim) ...[
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: 165,
-                        height: 44,
-                        child: ElevatedButton(
-                          onPressed: isClaiming
-                              ? null
-                              : () => onClaimReward?.call(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark
-                                ? AppColors.darkBorder
-                                : AppColors.buttonYellow,
-                            foregroundColor: isDark
-                                ? AppColors.darkTextOutline
-                                : AppColors.buttonText,
-                            side: BorderSide(
-                              color: isDark
-                                  ? AppColors.darkTextOutline
-                                  : AppColors.woodDeep,
-                              width: 2,
-                            ),
-                            shape: const StadiumBorder(),
-                          ),
-                          child: isClaiming
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: canClaim ? double.infinity : 190,
+                    child: Row(
+                      children: [
+                        if (canClaim) ...[
+                          Expanded(
+                            child: SizedBox(
+                              height: 44,
+                              child: ElevatedButton(
+                                onPressed: isClaiming
+                                    ? null
+                                    : () => onClaimReward?.call(),
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(0, 44),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
                                   ),
-                                )
-                              : GameButtonLabel(
-                                  l10n.pvpClaimReward,
-                                  fontSize: 16,
-                                  color: isDark
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  backgroundColor: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.buttonYellow,
+                                  foregroundColor: isDark
                                       ? AppColors.darkTextOutline
                                       : AppColors.buttonText,
-                                  outlineColor: isDark
-                                      ? AppColors.darkTextOutline
-                                      : AppColors.woodDeep,
-                                  outlineWidth: 2.5,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppColors.darkTextOutline
+                                        : AppColors.woodDeep,
+                                    width: 2,
+                                  ),
+                                  shape: const StadiumBorder(),
                                 ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 165,
-                      height: 44,
-                      child: ElevatedButton(
-                        onPressed: onContinue,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark
-                              ? AppColors.darkPrimary
-                              : AppColors.buttonGreen,
-                          foregroundColor: isDark
-                              ? AppColors.darkForeground
-                              : AppColors.buttonText,
-                          side: BorderSide(
-                            color: isDark
-                                ? AppColors.darkBorder
-                                : AppColors.woodDeep,
-                            width: 2,
+                                child: isClaiming
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        l10n.pvpClaimReward,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Quicksand',
+                                          color: isDark
+                                              ? AppColors.darkTextOutline
+                                              : AppColors.buttonText,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                              ),
+                            ),
                           ),
-                          shape: const StadiumBorder(),
+                          const SizedBox(width: 10),
+                        ],
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: onContinue,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(0, 44),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: isDark
+                                    ? AppColors.darkPrimary
+                                    : AppColors.buttonGreen,
+                                foregroundColor: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.buttonText,
+                                side: BorderSide(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.woodDeep,
+                                  width: 2,
+                                ),
+                                shape: const StadiumBorder(),
+                              ),
+                              child: Text(
+                                l10n.pvpContinue,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Quicksand',
+                                  color: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.buttonText,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: GameButtonLabel(
-                          l10n.pvpContinue,
-                          fontSize: 16,
-                          color: isDark
-                              ? AppColors.darkForeground
-                              : AppColors.buttonText,
-                          outlineColor: isDark
-                              ? AppColors.darkTextOutline
-                              : AppColors.woodDeep,
-                          outlineWidth: 2.5,
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -802,6 +911,33 @@ class PvPFinishedOverlay extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildScoreSide(BuildContext context, String label, String score) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: isDark ? AppColors.darkMutedForeground : AppColors.wood,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          score,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
     );
   }
 
@@ -820,7 +956,7 @@ class PvPFinishedOverlay extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.darkMuted
-            : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),

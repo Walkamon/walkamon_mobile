@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'pvp_item_models.dart';
 
 class PvpParticipantResponse {
   final String participantTypeCode;
@@ -14,8 +15,10 @@ class PvpParticipantResponse {
   final String? spiritAffinityCode;
   final int? passiveSpeedBps;
   final String? resultCode;
+  final int? expectedDistanceUnits;
+  final int? basePaceMilliStepsPerSecond;
 
-  PvpParticipantResponse({
+  const PvpParticipantResponse({
     required this.participantTypeCode,
     this.userId,
     this.matchPlayerId,
@@ -29,6 +32,8 @@ class PvpParticipantResponse {
     this.spiritAffinityCode,
     this.passiveSpeedBps,
     this.resultCode,
+    this.expectedDistanceUnits,
+    this.basePaceMilliStepsPerSecond,
   });
 
   factory PvpParticipantResponse.fromJson(Map<String, dynamic> json) {
@@ -46,6 +51,9 @@ class PvpParticipantResponse {
       spiritAffinityCode: json['spiritAffinityCode'] as String?,
       passiveSpeedBps: (json['passiveSpeedBps'] as num?)?.toInt(),
       resultCode: json['resultCode'] as String?,
+      expectedDistanceUnits: (json['expectedDistanceUnits'] as num?)?.toInt(),
+      basePaceMilliStepsPerSecond: (json['basePaceMilliStepsPerSecond'] as num?)
+          ?.toInt(),
     );
   }
 
@@ -63,6 +71,8 @@ class PvpParticipantResponse {
     String? spiritAffinityCode,
     int? passiveSpeedBps,
     String? resultCode,
+    int? expectedDistanceUnits,
+    int? basePaceMilliStepsPerSecond,
   }) {
     return PvpParticipantResponse(
       participantTypeCode: participantTypeCode ?? this.participantTypeCode,
@@ -78,6 +88,10 @@ class PvpParticipantResponse {
       spiritAffinityCode: spiritAffinityCode ?? this.spiritAffinityCode,
       passiveSpeedBps: passiveSpeedBps ?? this.passiveSpeedBps,
       resultCode: resultCode ?? this.resultCode,
+      expectedDistanceUnits:
+          expectedDistanceUnits ?? this.expectedDistanceUnits,
+      basePaceMilliStepsPerSecond:
+          basePaceMilliStepsPerSecond ?? this.basePaceMilliStepsPerSecond,
     );
   }
 }
@@ -98,6 +112,8 @@ class PvpMatchResponse {
   final DateTime? settlementEndsAt;
   final int? lastEventSequence;
   final List<PvpParticipantResponse> participants;
+  final List<PvpActiveEffect> activeEffects;
+  final List<PvpLoadoutSlot> loadout;
 
   PvpMatchResponse({
     required this.matchId,
@@ -115,6 +131,8 @@ class PvpMatchResponse {
     this.settlementEndsAt,
     this.lastEventSequence,
     required this.participants,
+    this.activeEffects = const <PvpActiveEffect>[],
+    this.loadout = const <PvpLoadoutSlot>[],
   });
 
   factory PvpMatchResponse.fromJson(Map<String, dynamic> json) {
@@ -126,6 +144,8 @@ class PvpMatchResponse {
     final rawStartedAt = json['startedAt'] as String?;
     final rawEndedAt = json['endedAt'] as String?;
     final rawSettlementEndsAt = json['settlementEndsAt'] as String?;
+    final rawEffects = json['activeEffects'] ?? json['ActiveEffects'];
+    final rawLoadout = json['loadout'] ?? json['Loadout'];
 
     final parsedServerTime = rawServerTime != null
         ? DateTime.parse(rawServerTime).toUtc()
@@ -178,6 +198,15 @@ class PvpMatchResponse {
             (e) => PvpParticipantResponse.fromJson(e as Map<String, dynamic>),
           )
           .toList(),
+      activeEffects: rawEffects is List
+          ? rawEffects
+                .whereType<Map>()
+                .map(
+                  (e) => PvpActiveEffect.fromJson(Map<String, dynamic>.from(e)),
+                )
+                .toList(growable: false)
+          : const <PvpActiveEffect>[],
+      loadout: PvpLoadoutResponse.fromJson(rawLoadout).slots,
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import 'app_icon.dart';
+import 'asset_only_icon_button.dart';
 
 /// Shared back control dimensions and styling for portrait game screens.
 class GameBackButton extends StatelessWidget {
@@ -21,34 +20,12 @@ class GameBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final background = isDark ? AppColors.darkCard : AppColors.authCard;
-    final iconColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
-    return SizedBox.square(
-      dimension: buttonSize,
-      child: Material(
-        color: background,
-        shape: CircleBorder(
-          side: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-            width: 2,
-          ),
-        ),
-        elevation: 3,
-        shadowColor: Colors.black26,
-        clipBehavior: Clip.antiAlias,
-        child: IconButton(
-          tooltip: semanticLabel,
-          padding: EdgeInsets.zero,
-          onPressed: onPressed,
-          iconSize: iconSize,
-          icon: AppIcon(
-            Icons.arrow_back_rounded,
-            size: iconSize,
-            color: iconColor,
-          ),
-        ),
-      ),
+    return AssetOnlyIconButton(
+      onPressed: onPressed,
+      semanticLabel: semanticLabel,
+      icon: Icons.arrow_back_rounded,
+      buttonSize: buttonSize,
+      assetSize: iconSize,
     );
   }
 }

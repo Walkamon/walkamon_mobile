@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
@@ -88,7 +89,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         _selectedGender = 'other';
       }
 
-      if (user?.dob != null && user?.dob != 'Chưa cập nhật') {
+      if (user?.dob.trim().isNotEmpty == true) {
         try {
           final parts = user!.dob.split('/');
           if (parts.length == 3) {
@@ -419,7 +420,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   .withValues(alpha: 0.96),
                           borderRadius: BorderRadius.circular(26),
                           border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.oliveDeep,
                             width: 2,
                           ),
                           boxShadow: [
@@ -440,7 +443,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                     .withValues(alpha: 0.97),
                             borderRadius: BorderRadius.circular(19),
                             border: Border.all(
-                              color: isDark ? AppColors.darkBorder : AppColors.wood,
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.wood,
                               width: 1.5,
                             ),
                           ),
@@ -463,7 +468,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: isDark
-                                                ? AppColors.darkBorder.withValues(alpha: 0.45)
+                                                ? AppColors.darkBorder
+                                                      .withValues(alpha: 0.45)
                                                 : AppColors.woodDeep,
                                             width: 2,
                                           ),
@@ -525,8 +531,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                             fontWeight:
                                                                 FontWeight.w800,
                                                             color: isDark
-                                                                ? AppColors.darkForeground
-                                                                : AppColors.woodDeep,
+                                                                ? AppColors
+                                                                      .darkForeground
+                                                                : AppColors
+                                                                      .woodDeep,
                                                           ),
                                                         ),
                                                   )
@@ -543,7 +551,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                       fontWeight:
                                                           FontWeight.w800,
                                                       color: isDark
-                                                          ? AppColors.darkForeground
+                                                          ? AppColors
+                                                                .darkForeground
                                                           : AppColors.woodDeep,
                                                     ),
                                                   ),
@@ -553,42 +562,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       Positioned(
                                         bottom: 0,
                                         right: 0,
-                                        child: Container(
-                                          width: 36,
-                                          height: 36,
-                                          decoration: BoxDecoration(
-                                            color: isDark
-                                                ? AppColors.darkCard
-                                                : AppColors.authCard,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: isDark
-                                                  ? AppColors.darkIconBorder
-                                                  : AppColors.woodDeep,
-                                              width: 1.2,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: AppColors.woodDeep
-                                                    .withValues(alpha: 0.18),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            icon: AppIcon(
-                                              Icons.camera_alt_rounded,
-                                              size: 21,
-                                              color: isDark
-                                                  ? AppColors.darkForeground
-                                                  : AppColors.woodDeep,
-                                            ),
-                                            onPressed: isProfileLoading
-                                                ? null
-                                                : _pickAvatar, // Kích hoạt gọi hàm chọn ảnh từ điện thoại
-                                          ),
+                                        child: AssetOnlyIconButton(
+                                          onPressed: isProfileLoading
+                                              ? null
+                                              : _pickAvatar,
+                                          semanticLabel: l10n.profileEditTitle,
+                                          icon: Icons.camera_alt_rounded,
+                                          buttonSize: 36,
+                                          assetSize: 32,
                                         ),
                                       ),
                                     ],
@@ -831,8 +812,8 @@ class _PillInput extends StatelessWidget {
                 color: enabled
                     ? (isDark ? AppColors.darkForeground : AppColors.inkBrown)
                     : (isDark
-                        ? AppColors.darkMutedForeground
-                        : AppColors.outlineBrown.withValues(alpha: 0.65)),
+                          ? AppColors.darkMutedForeground
+                          : AppColors.outlineBrown.withValues(alpha: 0.65)),
               ),
               decoration: InputDecoration(
                 hintText: hint,
@@ -858,8 +839,8 @@ class _PillInput extends StatelessWidget {
               color: enabled
                   ? (isDark ? AppColors.darkBorder : AppColors.woodLight)
                   : (isDark
-                      ? AppColors.darkMutedForeground
-                      : AppColors.outlineBrown.withValues(alpha: 0.55)),
+                        ? AppColors.darkMutedForeground
+                        : AppColors.outlineBrown.withValues(alpha: 0.55)),
             ),
           ),
         ],

@@ -11,8 +11,10 @@ import 'package:walkamon_mobile/data/models/daily_login_model.dart';
 import '../../core/audio/app_audio_service.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/feedback/app_haptics.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/common/game_async_state.dart';
 
 class DailyLoginScreen extends StatefulWidget {
   const DailyLoginScreen({super.key});
@@ -60,23 +62,27 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
         child: Consumer<DailyLoginProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading && provider.calendarData == null) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: GameLoadingIndicator(label: l10n.loading));
             }
 
             if (provider.errorMessage != null &&
                 provider.calendarData == null) {
-              return Center(
-                child: Text(
-                  '${l10n.errorPrefix}: ${provider.errorMessage}',
-                  style: const TextStyle(color: Colors.red),
-                ),
+              return GameAsyncStatePanel(
+                message: '${l10n.errorPrefix}: ${provider.errorMessage}',
+                isError: true,
+                onRetry: provider.loadDailyLoginStatus,
+                retryLabel: l10n.retry,
               );
             }
 
             final data = provider.calendarData;
             final isDark = Theme.of(context).brightness == Brightness.dark;
             if (data == null) {
-              return Center(child: Text(l10n.dailyLoginNoData));
+              return GameAsyncStatePanel(
+                message: l10n.dailyLoginNoData,
+                onRetry: provider.loadDailyLoginStatus,
+                retryLabel: l10n.retry,
+              );
             }
 
             return Padding(
@@ -96,8 +102,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                       GameButtonLabel(
                         l10n.dailyLoginTitle,
                         fontSize: 20,
-                        color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                        outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                        color: isDark
+                            ? AppColors.darkForeground
+                            : AppColors.woodDeep,
+                        outlineColor: isDark
+                            ? AppColors.darkTextOutline
+                            : AppColors.authCard,
                         outlineWidth: 4,
                       ),
                       const SizedBox(width: GameBackButton.buttonSize),
@@ -107,40 +117,38 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                   const SizedBox(height: 18),
 
                   // Main Gift Icon & Text
-                  Container(
+                  SizedBox(
                     width: 78,
                     height: 78,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkMuted : AppColors.authCard.withValues(alpha: 0.92),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark ? AppColors.darkIconBorder : AppColors.wood,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        AppAssets.iconDailyRewardSystem,
-                        width: 62,
-                        height: 62,
-                        fit: BoxFit.contain,
-                      ),
+                    child: Image.asset(
+                      AppAssets.iconDailyRewardSystem,
+                      width: 78,
+                      height: 78,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 10),
                   GameButtonLabel(
                     l10n.dailyLoginRewardTitle,
                     fontSize: 22,
-                    color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                    outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
+                    outlineColor: isDark
+                        ? AppColors.darkTextOutline
+                        : AppColors.authCard,
                     outlineWidth: 4,
                   ),
                   const SizedBox(height: 12),
                   GameButtonLabel(
                     l10n.dailyLoginRewardSubtitle,
                     fontSize: 14,
-                    color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
-                    outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                    color: isDark
+                        ? AppColors.darkForeground
+                        : AppColors.oliveDeep,
+                    outlineColor: isDark
+                        ? AppColors.darkTextOutline
+                        : AppColors.authCard,
                     outlineWidth: 3.5,
                     maxLines: 2,
                   ),
@@ -190,6 +198,7 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                   unawaited(
                                     AppAudioService.instance.playReward(),
                                   );
+                                  unawaited(AppHaptics.success());
                                   showDialog(
                                     context: context,
                                     barrierDismissible: false,
@@ -250,7 +259,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                       ? AppColors.darkForeground
                                                       : AppColors.woodDeep,
                                                   outlineColor: isDark
-                                                      ? AppColors.darkTextOutline
+                                                      ? AppColors
+                                                            .darkTextOutline
                                                       : AppColors.creamLight,
                                                   outlineWidth: 3,
                                                 ),
@@ -262,7 +272,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                   textAlign: TextAlign.center,
                                                   style: TextStyle(
                                                     color: isDark
-                                                        ? AppColors.darkForeground
+                                                        ? AppColors
+                                                              .darkForeground
                                                         : AppColors.inkBrown,
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w600,
@@ -288,7 +299,8 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                     border: Border.all(
                                                       color: isDark
                                                           ? AppColors.darkBorder
-                                                          : AppColors.outlineBrown,
+                                                          : AppColors
+                                                                .outlineBrown,
                                                       width: 1.5,
                                                     ),
                                                   ),
@@ -313,8 +325,10 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                               ),
                                                               style: TextStyle(
                                                                 color: isDark
-                                                                    ? AppColors.darkForeground
-                                                                    : AppColors.woodDeep,
+                                                                    ? AppColors
+                                                                          .darkForeground
+                                                                    : AppColors
+                                                                          .woodDeep,
                                                                 fontSize: 15,
                                                                 fontWeight:
                                                                     FontWeight
@@ -330,8 +344,10 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                                               ),
                                                               style: TextStyle(
                                                                 color: isDark
-                                                                    ? AppColors.darkMutedForeground
-                                                                    : AppColors.outlineBrown,
+                                                                    ? AppColors
+                                                                          .darkMutedForeground
+                                                                    : AppColors
+                                                                          .outlineBrown,
                                                                 fontSize: 13,
                                                                 fontWeight:
                                                                     FontWeight
@@ -376,14 +392,21 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: !data.canClaimToday
-                              ? (isDark ? AppColors.darkMuted : AppColors.panelMuted)
-                              : (isDark ? AppColors.darkLife : AppColors.buttonGreen),
-                          disabledBackgroundColor:
-                              isDark ? AppColors.darkMuted : AppColors.panelMuted,
+                              ? (isDark
+                                    ? AppColors.darkMuted
+                                    : AppColors.panelMuted)
+                              : (isDark
+                                    ? AppColors.darkLife
+                                    : AppColors.buttonGreen),
+                          disabledBackgroundColor: isDark
+                              ? AppColors.darkMuted
+                              : AppColors.panelMuted,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(32),
                             side: BorderSide(
-                              color: isDark ? AppColors.darkBorder : AppColors.buttonBorder,
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.buttonBorder,
                               width: 2,
                             ),
                           ),

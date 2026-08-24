@@ -6,7 +6,7 @@ enum ActivityStatsRange { daily, weekly, monthly }
 
 class ActivityStatsDatasource {
   ActivityStatsDatasource({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

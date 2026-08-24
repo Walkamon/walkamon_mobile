@@ -2,6 +2,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../models/pvp_models.dart';
+import '../../models/pvp_item_models.dart';
 
 class PvpSprintDatasource {
   PvpSprintDatasource([ApiClient? apiClient])
@@ -199,6 +200,49 @@ class PvpSprintDatasource {
       ApiConstants.pvpSprintMatchById(matchId),
       fromJsonT: (json) =>
           PvpMatchResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  Future<ApiResponse<PvpLoadoutResponse>> getLoadout() async {
+    return _apiClient.get<PvpLoadoutResponse>(
+      ApiConstants.pvpSprintLoadout,
+      fromJsonT: (json) => PvpLoadoutResponse.fromJson(json),
+    );
+  }
+
+  Future<ApiResponse<PvpLoadoutResponse>> updateLoadout(
+    List<PvpLoadoutSlot> slots,
+  ) async {
+    return _apiClient.put<PvpLoadoutResponse>(
+      ApiConstants.pvpSprintLoadout,
+      data: {
+        'slots': slots
+            .map(
+              (slot) => <String, dynamic>{
+                'slotNo': slot.slotNo,
+                if (slot.itemId != null) 'itemId': slot.itemId,
+              },
+            )
+            .toList(growable: false),
+      },
+      fromJsonT: (json) => PvpLoadoutResponse.fromJson(json),
+    );
+  }
+
+  Future<ApiResponse<PvpItemActionResponse>> useItem(
+    String matchId, {
+    required int slotNo,
+    required String clientActionId,
+  }) async {
+    return _apiClient.post<PvpItemActionResponse>(
+      ApiConstants.pvpSprintMatchItems(matchId),
+      data: <String, dynamic>{
+        'slotNo': slotNo,
+        'clientActionId': clientActionId,
+      },
+      fromJsonT: (json) => PvpItemActionResponse.fromJson(
+        Map<String, dynamic>.from(json as Map),
+      ),
     );
   }
 

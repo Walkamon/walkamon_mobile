@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
@@ -9,6 +11,7 @@ import 'package:walkamon_mobile/screen/home/home_screen.dart';
 import 'core/l10n/locale_helper.dart';
 import 'core/audio/app_audio_service.dart';
 import 'core/audio/app_tap_sound_region.dart';
+import 'core/feedback/app_haptics.dart';
 import 'core/navigation/app_route_observer.dart';
 
 import 'core/network/api_client.dart';
@@ -25,6 +28,7 @@ import 'providers/game_state_provider.dart';
 import 'providers/presence_provider.dart';
 import 'providers/step_tracking_provider.dart';
 import 'providers/daily_login_provider.dart';
+import 'providers/tutorial_provider.dart';
 import 'data/repositories/daily_login_repository.dart';
 import 'widgets/layouts/root_layout.dart';
 import 'widgets/layouts/auth_layout.dart';
@@ -43,6 +47,8 @@ import 'screen/auth/privacy_policy_screen.dart';
 import 'screen/spirit/spirit_detail_screen.dart';
 import 'screen/social/social_screen.dart';
 import 'screen/gameplay/pvp_screen.dart';
+import 'screen/debug/pet_animation_player_screen.dart';
+import 'screen/debug/pvp_review_harness_screen.dart';
 import 'screen/welcome/daily_reward_screen.dart';
 import 'screen/welcome/lumina_onboarding_screen.dart';
 import 'screen/welcome/name_pet_screen.dart';
@@ -74,6 +80,9 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations(const [
+    DeviceOrientation.portraitUp,
+  ]);
   await AppAudioService.instance.initialize();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WalkamonApp());
@@ -93,9 +102,14 @@ class _HiddenScrollbarBehavior extends MaterialScrollBehavior {
 }
 
 class WalkamonApp extends StatefulWidget {
-  const WalkamonApp({super.key, this.startupPermissionService});
+  const WalkamonApp({
+    super.key,
+    this.startupPermissionService,
+    this.gameStateProvider,
+  });
 
   final StartupPermissionService? startupPermissionService;
+  final GameStateProvider? gameStateProvider;
 
   @override
   State<WalkamonApp> createState() => _WalkamonAppState();
@@ -106,6 +120,10 @@ class _WalkamonAppState extends State<WalkamonApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final injectedProvider = widget.gameStateProvider;
+      if (injectedProvider != null) {
+        unawaited(injectedProvider.bootstrapAuthentication());
+      }
       await (widget.startupPermissionService ?? StartupPermissionService())
           .requestOnce();
     });
@@ -129,14 +147,21 @@ class _WalkamonAppState extends State<WalkamonApp> {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => GameStateProvider(
-            profileRepository,
-            notificationRepository,
-            FCMService(notificationRepository),
-            petRepository,
+        if (widget.gameStateProvider case final provider?)
+          ChangeNotifierProvider<GameStateProvider>.value(value: provider)
+        else
+          ChangeNotifierProvider<GameStateProvider>(
+            create: (_) {
+              final provider = GameStateProvider(
+                profileRepository,
+                notificationRepository,
+                FCMService(notificationRepository),
+                petRepository,
+              );
+              unawaited(provider.bootstrapAuthentication());
+              return provider;
+            },
           ),
-        ),
         ChangeNotifierProxyProvider<GameStateProvider, PresenceProvider>(
           create: (_) => PresenceProvider(),
           update: (_, gameState, presence) {
@@ -153,6 +178,7 @@ class _WalkamonAppState extends State<WalkamonApp> {
         ChangeNotifierProvider(
           create: (_) => DailyLoginProvider(DailyLoginRepository()),
         ),
+        ChangeNotifierProvider(create: (_) => TutorialProvider()),
         Provider<FriendsRepository>(create: (_) => friendsRepository),
       ],
       child: Consumer<GameStateProvider>(
@@ -163,7 +189,13 @@ class _WalkamonAppState extends State<WalkamonApp> {
           AppAudioService.instance.setBackgroundEnabled(
             gameState.settings.backgroundMusicEnabled,
           );
+          AppHaptics.setEnabled(gameState.settings.hapticsEnabled);
           return MaterialApp(
+            key: ValueKey(
+              gameState.isAuthBootstrapPending
+                  ? 'auth-bootstrap-restoring'
+                  : 'auth-bootstrap-ready',
+            ),
             title: 'Walkamon',
             debugShowCheckedModeBanner: false,
             scrollBehavior: const _HiddenScrollbarBehavior(),
@@ -191,251 +223,310 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 AppTapSoundRegion(child: RootLayout(child: child!)),
 
             // ── CẤU HÌNH ĐIỀU HƯỚNG AN TOÀN (ROUTE GUARD) ──────────────────
-            initialRoute: '/',
+            home: gameState.isAuthBootstrapPending
+                ? const _AuthBootstrapScreen()
+                : null,
+            initialRoute: gameState.isAuthBootstrapPending ? null : '/',
 
-            onGenerateRoute: (settings) {
-              // 1. Lấy trạng thái đăng nhập thực tế của người dùng từ Provider
-              final bool isLogged = gameState.isAuthenticated;
-              final String? routeName = settings.name;
+            onGenerateRoute: gameState.isAuthBootstrapPending
+                ? null
+                : (settings) {
+                    // 1. Lấy trạng thái đăng nhập thực tế của người dùng từ Provider
+                    final bool isLogged = gameState.isAuthenticated;
+                    final String? routeName = settings.name;
 
-              WidgetBuilder withPetBackground(
-                WidgetBuilder pageBuilder, {
-                required String? targetRoute,
-              }) {
-                return (context) {
-                  final page = pageBuilder(context);
-                  if (targetRoute == '/pvp') return page;
-                  if (targetRoute == '/' ||
-                      targetRoute == '/story' ||
-                      targetRoute == '/seed' ||
-                      targetRoute == '/name-pet' ||
-                      (targetRoute?.startsWith('/auth/') ?? false)) {
-                    return Theme(data: AppTheme.light(), child: page);
-                  }
+                    WidgetBuilder withPetBackground(
+                      WidgetBuilder pageBuilder, {
+                      required String? targetRoute,
+                    }) {
+                      return (context) {
+                        final page = pageBuilder(context);
+                        if (const {
+                          '/home',
+                          '/inventory',
+                          '/shop',
+                          '/friends',
+                          '/social',
+                          '/pvp',
+                        }.contains(targetRoute)) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              scaffoldBackgroundColor: Colors.transparent,
+                            ),
+                            child: page,
+                          );
+                        }
+                        if (targetRoute == '/' ||
+                            targetRoute == '/story' ||
+                            targetRoute == '/seed' ||
+                            targetRoute == '/name-pet' ||
+                            (targetRoute?.startsWith('/auth/') ?? false)) {
+                          return Theme(data: AppTheme.light(), child: page);
+                        }
 
-                  return HomePageBackdrop(
-                    child: Theme(
-                      data: Theme.of(
-                        context,
-                      ).copyWith(scaffoldBackgroundColor: Colors.transparent),
-                      child: page,
-                    ),
-                  );
-                };
-              }
+                        return HomePageBackdrop(
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              scaffoldBackgroundColor: Colors.transparent,
+                            ),
+                            child: page,
+                          ),
+                        );
+                      };
+                    }
 
-              // 2. Định nghĩa danh sách các Route cần bảo mật (Private)
-              final privateRoutes = [
-                '/home',
-                '/inventory',
-                '/shop',
-                '/missions',
-                '/settings',
-                '/profile',
-                '/profile/view',
-                '/profile/friend',
-                '/profile/activity',
-                '/profile/edit',
-                '/profile/achievements',
-                '/step-goal',
-                '/streak',
-                '/auth/change-password',
-                '/friends',
-                '/social',
-                '/pvp',
-                '/daily-reward',
-                '/daily-login-calendar',
-                '/notifications',
-                '/spirit/detail',
-                '/spirit/friend',
+                    // 2. Định nghĩa danh sách các Route cần bảo mật (Private)
+                    final privateRoutes = [
+                      '/home',
+                      '/inventory',
+                      '/shop',
+                      '/missions',
+                      '/settings',
+                      '/profile',
+                      '/profile/view',
+                      '/profile/friend',
+                      '/profile/activity',
+                      '/profile/edit',
+                      '/profile/achievements',
+                      '/step-goal',
+                      '/streak',
+                      '/auth/change-password',
+                      '/friends',
+                      '/social',
+                      '/pvp',
+                      '/daily-reward',
+                      '/daily-login-calendar',
+                      '/notifications',
+                      '/spirit/detail',
+                      '/spirit/friend',
 
-                '/story',
-                '/seed',
-                '/name-pet',
-              ];
+                      '/story',
+                      '/seed',
+                      '/name-pet',
+                    ];
 
-              // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
-              if (!isLogged && privateRoutes.contains(routeName)) {
-                return MaterialPageRoute(
-                  builder: withPetBackground(
-                    (_) =>
-                        const AuthLayout(fullBleed: true, child: LoginScreen()),
-                    targetRoute: '/auth/login',
-                  ),
-                  settings: const RouteSettings(
-                    name: '/auth/login',
-                  ), // Giữ đúng lịch sử định tuyến
-                );
-              }
+                    // 3. LOGIC CHẶN CỬA 1: Chưa đăng nhập mà đòi vào trang Private -> Đưa về trang Login
+                    if (!isLogged && privateRoutes.contains(routeName)) {
+                      return MaterialPageRoute(
+                        builder: withPetBackground(
+                          (_) => const AuthLayout(
+                            fullBleed: true,
+                            child: LoginScreen(),
+                          ),
+                          targetRoute: '/auth/login',
+                        ),
+                        settings: const RouteSettings(
+                          name: '/auth/login',
+                        ), // Giữ đúng lịch sử định tuyến
+                      );
+                    }
 
-              // 4. LOGIC CHẶN CỬA 2 (Tùy chọn UX): Đã đăng nhập rồi mà cố quay lại trang Welcome hoặc Login
-              // -> Đi qua /seed để kiểm tra onboarding thú cưng trước khi vào home.
-              if (isLogged &&
-                  (routeName == '/' ||
-                      routeName == '/auth/login' ||
-                      routeName == '/auth/register')) {
-                return MaterialPageRoute(
-                  builder: withPetBackground(
-                    (_) => const SeedScreen(),
-                    targetRoute: '/seed',
-                  ),
-                  settings: const RouteSettings(name: '/seed'),
-                );
-              }
+                    // 4. LOGIC CHẶN CỬA 2 (Tùy chọn UX): Đã đăng nhập rồi mà cố quay lại trang Welcome hoặc Login
+                    // -> Đi qua /seed để kiểm tra onboarding thú cưng trước khi vào home.
+                    if (isLogged &&
+                        (routeName == '/' ||
+                            routeName == '/auth/login' ||
+                            routeName == '/auth/register')) {
+                      return MaterialPageRoute(
+                        builder: withPetBackground(
+                          (_) => const SeedScreen(),
+                          targetRoute: '/seed',
+                        ),
+                        settings: const RouteSettings(name: '/seed'),
+                      );
+                    }
 
-              // 5. Nếu vượt qua các bộ lọc trên, tiến hành phân phối màn hình như bình thường
-              WidgetBuilder builder;
-              switch (routeName) {
-                // Các tuyến đường Public công cộng
-                case '/':
-                  builder = (_) => const WelcomeScreen();
-                  break;
-                case '/auth/login':
-                  builder = (_) =>
-                      const AuthLayout(fullBleed: true, child: LoginScreen());
-                  break;
-                case '/auth/register':
-                  builder = (_) => const AuthLayout(
-                    fullBleed: true,
-                    child: RegisterScreen(),
-                  );
-                  break;
-                case '/auth/forgot':
-                  builder = (_) => const AuthLayout(
-                    fullBleed: true,
-                    child: ForgotPasswordScreen(),
-                  );
-                  break;
-                case '/auth/reset-password':
-                  builder = (_) =>
-                      const AuthLayout(child: ResetPasswordScreen());
-                  break;
-                case '/auth/change-password':
-                  builder = (_) => const AuthLayout(
-                    fullBleed: true,
-                    child: ChangePasswordScreen(),
-                  );
-                  break;
-                case '/auth/otp_verification':
-                  builder = (_) => const AuthLayout(
-                    fullBleed: true,
-                    child: OTP_Verification(),
-                  );
-                  break;
+                    // 5. Nếu vượt qua các bộ lọc trên, tiến hành phân phối màn hình như bình thường
+                    WidgetBuilder builder;
+                    switch (routeName) {
+                      case '/debug/pvp-review' when kDebugMode:
+                        builder = (_) => const PvpReviewHarnessScreen();
+                        break;
+                      // Các tuyến đường Public công cộng
+                      case '/':
+                        builder = (_) => const WelcomeScreen();
+                        break;
+                      case '/auth/login':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: LoginScreen(),
+                        );
+                        break;
+                      case '/auth/register':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: RegisterScreen(),
+                        );
+                        break;
+                      case '/auth/forgot':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: ForgotPasswordScreen(),
+                        );
+                        break;
+                      case '/auth/reset-password':
+                        builder = (_) =>
+                            const AuthLayout(child: ResetPasswordScreen());
+                        break;
+                      case '/auth/change-password':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: ChangePasswordScreen(),
+                        );
+                        break;
+                      case '/auth/otp_verification':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: OTP_Verification(),
+                        );
+                        break;
 
-                case '/auth/otp_register':
-                  builder = (_) =>
-                      const AuthLayout(fullBleed: true, child: OTP_Register());
-                  break;
-                case '/auth/privacy':
-                  builder = (_) => const AuthLayout(
-                    fullBleed: true,
-                    child: PrivacyPolicyScreen(),
-                  );
-                  break;
+                      case '/auth/otp_register':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: OTP_Register(),
+                        );
+                        break;
+                      case '/auth/privacy':
+                        builder = (_) => const AuthLayout(
+                          fullBleed: true,
+                          child: PrivacyPolicyScreen(),
+                        );
+                        break;
 
-                // Các tuyến đường Private bảo mật
-                case '/home':
-                  builder = (_) => const HomeScreen(title: 'Home');
-                  break;
-                case '/inventory':
-                  builder = (_) => const InventoryScreen();
-                  break;
-                case '/shop':
-                  builder = (_) => const ShopScreen(); // Đã thêm màn hình Shop
-                  break;
-                case '/missions':
-                  builder = (_) => const MissionsScreen();
-                  break;
-                case '/settings':
-                  builder = (_) =>
-                      const SettingScreen(); // Đã thêm màn hình Settings
-                  break;
-                case '/profile':
-                  builder = (_) => const ProfileMenuScreen();
-                  break;
-                case '/profile/view':
-                  builder = (_) => const ProfileViewScreen();
-                  break;
-                case '/profile/friend':
-                  final args = settings.arguments;
-                  if (args is FriendPlayerProfileArguments) {
-                    builder = (_) => FriendPlayerProfileScreen(
-                      userId: args.userId,
-                      initialName: args.initialName,
-                      initialAvatarUrl: args.initialAvatarUrl,
+                      // Các tuyến đường Private bảo mật
+                      case '/home':
+                        builder = (_) => const HomeScreen(title: 'Home');
+                        break;
+                      case '/inventory':
+                        builder = (_) => const InventoryScreen();
+                        break;
+                      case '/shop':
+                        builder = (_) =>
+                            const ShopScreen(); // Đã thêm màn hình Shop
+                        break;
+                      case '/missions':
+                        builder = (_) => const MissionsScreen();
+                        break;
+                      case '/settings':
+                        builder = (_) =>
+                            const SettingScreen(); // Đã thêm màn hình Settings
+                        break;
+                      case '/profile':
+                        builder = (_) => const ProfileMenuScreen();
+                        break;
+                      case '/profile/view':
+                        builder = (_) => const ProfileViewScreen();
+                        break;
+                      case '/profile/friend':
+                        final args = settings.arguments;
+                        if (args is FriendPlayerProfileArguments) {
+                          builder = (_) => FriendPlayerProfileScreen(
+                            userId: args.userId,
+                            initialName: args.initialName,
+                            initialAvatarUrl: args.initialAvatarUrl,
+                          );
+                        } else {
+                          builder = (_) => FriendPlayerProfileScreen(
+                            userId: args?.toString() ?? '',
+                          );
+                        }
+                        break;
+                      case '/profile/activity':
+                        builder = (_) => const ActivityStatsScreen();
+                        break;
+                      case '/step-goal':
+                        builder = (_) => const StepGoalScreen();
+                        break;
+
+                      case '/streak':
+                        builder = (_) => const StreakScreen();
+                        break;
+
+                      case '/profile/edit':
+                        builder = (_) => const EditProfileScreen();
+                        break;
+                      case '/profile/achievements':
+                        builder = (_) => const ViewAchievementListScreen();
+                        break;
+                      case '/friends':
+                        builder = (_) =>
+                            const MainLayout(child: SocialScreen());
+                        break;
+                      case '/social':
+                        builder = (_) =>
+                            const MainLayout(child: SocialScreen());
+                        break;
+                      case '/pvp':
+                        builder = (_) => const PvPScreen();
+                        break;
+                      case '/debug/pet-player':
+                        builder = (_) => kDebugMode
+                            ? const PetAnimationPlayerScreen()
+                            : const WelcomeScreen();
+                        break;
+                      case '/daily-reward':
+                        builder = (_) => const DailyRewardScreen();
+                        break;
+                      case '/daily-login-calendar':
+                        builder = (_) => const DailyLoginScreen();
+                        break;
+                      case '/notifications':
+                        builder = (_) => const NotificationsScreen();
+                        break;
+                      case '/spirit/detail':
+                        builder = (_) => const SpiritDetailScreen();
+                        break;
+                      case '/spirit/friend':
+                        builder = (_) => fs.FriendSpiritScreen(
+                          userId: settings.arguments?.toString() ?? '',
+                        );
+                        break;
+                      case '/story':
+                        builder = (_) => const LuminaOnboardingScreen();
+                        break;
+                      case '/seed':
+                        builder = (_) => const SeedScreen();
+                        break;
+                      case '/name-pet':
+                        builder = (_) => const NamePetScreen();
+                        break;
+
+                      // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng
+                      default:
+                        builder = (_) => const WelcomeScreen();
+                    }
+
+                    return MaterialPageRoute(
+                      builder: withPetBackground(
+                        builder,
+                        targetRoute: routeName,
+                      ),
+                      settings: settings,
                     );
-                  } else {
-                    builder = (_) => FriendPlayerProfileScreen(
-                      userId: args?.toString() ?? '',
-                    );
-                  }
-                  break;
-                case '/profile/activity':
-                  builder = (_) => const ActivityStatsScreen();
-                  break;
-                case '/step-goal':
-                  builder = (_) => const StepGoalScreen();
-                  break;
-
-                case '/streak':
-                  builder = (_) => const StreakScreen();
-                  break;
-
-                case '/profile/edit':
-                  builder = (_) => const EditProfileScreen();
-                  break;
-                case '/profile/achievements':
-                  builder = (_) => const ViewAchievementListScreen();
-                  break;
-                case '/friends':
-                  builder = (_) => const MainLayout(child: SocialScreen());
-                  break;
-                case '/social':
-                  builder = (_) => const MainLayout(child: SocialScreen());
-                  break;
-                case '/pvp':
-                  builder = (_) => const PvPScreen();
-                  break;
-                case '/daily-reward':
-                  builder = (_) => const DailyRewardScreen();
-                  break;
-                case '/daily-login-calendar':
-                  builder = (_) => const DailyLoginScreen();
-                  break;
-                case '/notifications':
-                  builder = (_) => const NotificationsScreen();
-                  break;
-                case '/spirit/detail':
-                  builder = (_) => const SpiritDetailScreen();
-                  break;
-                case '/spirit/friend':
-                  builder = (_) => fs.FriendSpiritScreen(
-                    userId: settings.arguments?.toString() ?? '',
-                  );
-                  break;
-                case '/story':
-                  builder = (_) => const LuminaOnboardingScreen();
-                  break;
-                case '/seed':
-                  builder = (_) => const SeedScreen();
-                  break;
-                case '/name-pet':
-                  builder = (_) => const NamePetScreen();
-                  break;
-
-                // Trường hợp gõ bậy bạ route không tồn tại -> Cho về màn hình chào mừng
-                default:
-                  builder = (_) => const WelcomeScreen();
-              }
-
-              return MaterialPageRoute(
-                builder: withPetBackground(builder, targetRoute: routeName),
-                settings: settings,
-              );
-            },
+                  },
           );
         },
+      ),
+    );
+  }
+}
+
+class _AuthBootstrapScreen extends StatelessWidget {
+  const _AuthBootstrapScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFFFFF6E8),
+      body: Center(
+        child: SizedBox.square(
+          dimension: 34,
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            color: Color(0xFF9A6539),
+          ),
+        ),
       ),
     );
   }

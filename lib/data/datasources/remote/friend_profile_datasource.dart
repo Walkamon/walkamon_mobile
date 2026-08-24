@@ -8,13 +8,12 @@ class FriendProfileDatasource {
 
   final ApiClient _apiClient;
 
-  Future<ApiResponse<FriendProfileResponse>> getFriendProfile(
-    String userId,
-  ) {
+  Future<ApiResponse<FriendProfileResponse>> getFriendProfile(String userId) {
     return _apiClient.get<FriendProfileResponse>(
       ApiConstants.friendProfile(userId),
-      fromJsonT: (json) =>
-          FriendProfileResponse.fromJson(Map<String, dynamic>.from(json as Map)),
+      fromJsonT: (json) => FriendProfileResponse.fromJson(
+        Map<String, dynamic>.from(json as Map),
+      ),
     );
   }
 

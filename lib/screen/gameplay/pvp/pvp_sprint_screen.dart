@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../core/audio/app_audio_service.dart';
+import '../../../core/feedback/app_haptics.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../widgets/common/game_button_label.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
+import '../../../providers/tutorial_provider.dart';
 import 'pvp_asset_resolver.dart';
 import 'pvp_waiting_room_screen.dart';
 import 'widgets/pvp_modals.dart';
 import 'widgets/pvp_racing_environment.dart';
 import 'widgets/pvp_overlays.dart';
+import 'widgets/pvp_two_slot_hud.dart';
+import '../../../data/models/pvp_item_models.dart';
+import '../../../widgets/tutorial/tutorial_context_tip.dart';
+import '../../../widgets/tutorial/tutorial_spotlight_overlay.dart';
 
 class PvPSprintScreen extends StatefulWidget {
   const PvPSprintScreen({super.key});
@@ -33,6 +39,20 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   bool _isLoadingResult = false;
   String? _resultRequestedForMatchId;
   bool _battleMusicActive = false;
+  String? _lastFinishFeedbackKey;
+  String? _tutorialAccountKey;
+  final GlobalKey _tutorialLobbyKey = GlobalKey(
+    debugLabel: 'pvp-tutorial-lobby',
+  );
+  final GlobalKey _tutorialMatchKey = GlobalKey(
+    debugLabel: 'pvp-tutorial-match',
+  );
+  final GlobalKey _tutorialItemsKey = GlobalKey(
+    debugLabel: 'pvp-tutorial-items',
+  );
+  final GlobalKey _tutorialResultKey = GlobalKey(
+    debugLabel: 'pvp-tutorial-result',
+  );
 
   @override
   void initState() {
@@ -41,6 +61,19 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       if (!mounted) return;
       unawaited(context.read<GameStateProvider>().fetchPetVisual());
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final accountKey = context.read<GameStateProvider>().user?.id.trim();
+    if (accountKey == null ||
+        accountKey.isEmpty ||
+        accountKey == _tutorialAccountKey) {
+      return;
+    }
+    _tutorialAccountKey = accountKey;
+    unawaited(context.read<TutorialProvider>().synchronizeAccount(accountKey));
   }
 
   @override
@@ -69,15 +102,21 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   }
 
   Future<void> _startMatchmaking() async {
+    final tutorial = context.read<TutorialProvider>();
+    final pvpProvider = context.read<PvpProvider>();
+    if (tutorial.pvpStep == PvpTutorialStep.matchmaking) {
+      await tutorial.advancePvp(PvpTutorialStep.matchmaking);
+    }
+    if (!mounted) return;
     setState(() {
       _gameState = 'matching';
     });
 
-    await context.read<PvpProvider>().startMatchmaking();
+    await pvpProvider.startMatchmaking();
 
     if (!mounted) return;
 
-    final provider = context.read<PvpProvider>();
+    final provider = pvpProvider;
     if (provider.matchmakingState == PvpMatchmakingState.countdown) {
       _showSuccessThenEnterRacing(opponentName: provider.currentOpponentName);
     } else if (provider.matchmakingState == PvpMatchmakingState.running) {
@@ -180,6 +219,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
       _isClaimingReward = false;
       _isLoadingResult = false;
       _resultRequestedForMatchId = null;
+      _lastFinishFeedbackKey = null;
       _gameState = 'waiting';
       _opponentName = '';
     });
@@ -251,7 +291,8 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).brightness == Brightness.dark
+                        foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkForeground
                             : AppColors.woodDeep,
                         side: BorderSide(
@@ -260,7 +301,8 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                               : AppColors.woodDeep,
                           width: 2,
                         ),
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkMuted
                             : AppColors.buttonSecondary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -274,10 +316,12 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context, true),
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Theme.of(context).brightness == Brightness.dark
+                        foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkTextOutline
                             : AppColors.buttonText,
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkLife
                             : AppColors.buttonGreen,
                         side: BorderSide(
@@ -373,10 +417,204 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     }
   }
 
+  Widget _buildItemHud(BuildContext context, PvpProvider provider) {
+    PvpLoadoutSlot? slotAt(int slotNo) {
+      for (final slot in provider.itemLoadout) {
+        if (slot.slotNo == slotNo) return slot;
+      }
+      return null;
+    }
+
+    PvpHudSlot visualSlot(int slotNo) {
+      final slot = slotAt(slotNo);
+      return PvpHudSlot(
+        itemCode: slot?.presentationCode ?? 'haste',
+        enabled: slot?.isAvailable ?? false,
+        used: slot?.isUsed ?? false,
+        pending: provider.pendingItemSlots.contains(slotNo),
+        quantity: slot?.quantity,
+        onTap: slot == null ? null : () => provider.useItem(slotNo),
+      );
+    }
+
+    final feedback = provider.itemFeedback;
+    final l10n = AppLocalizations.of(context);
+    final feedbackText = switch (feedback) {
+      PvpItemFeedbackCode.onlyDuringRace => l10n.pvpItemOnlyDuringRace,
+      PvpItemFeedbackCode.slotUnavailable => l10n.pvpItemSlotUnavailable,
+      PvpItemFeedbackCode.useFailed => l10n.pvpItemUseFailed,
+      PvpItemFeedbackCode.blocked => l10n.pvpItemBlocked,
+      PvpItemFeedbackCode.cleansed => l10n.pvpItemCleansed,
+      PvpItemFeedbackCode.used => l10n.pvpItemUsed,
+      null => null,
+    };
+    return Positioned(
+      left: 18,
+      right: 18,
+      bottom: 12,
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (feedbackText != null)
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.64),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    feedbackText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ConstrainedBox(
+              key: _tutorialItemsKey,
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: PvpTwoSlotHud(left: visualSlot(1), right: visualSlot(2)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _syncFinishFeedback({
+    required PvpProvider provider,
+    required String? resultCode,
+    required bool showFinishReaction,
+  }) {
+    if (!showFinishReaction || resultCode == null) return;
+    final matchId =
+        provider.activeMatchId ?? provider.matchResult?.matchId ?? '';
+    final key = '$matchId:$resultCode';
+    if (_lastFinishFeedbackKey == key) return;
+    _lastFinishFeedbackKey = key;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (resultCode) {
+        case 'win':
+          unawaited(AppAudioService.instance.playPvpWin());
+          unawaited(AppHaptics.success());
+        case 'lose':
+          unawaited(AppAudioService.instance.playPvpLose());
+          unawaited(AppHaptics.warning());
+        default:
+          unawaited(AppHaptics.mediumImpact());
+      }
+    });
+  }
+
+  Widget _buildPvpTutorial(
+    BuildContext context, {
+    required TutorialProvider tutorial,
+    required PvpProvider provider,
+    required bool showRacingTrack,
+    required bool showFinishReaction,
+    required bool finishPresentationComplete,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    return switch (tutorial.pvpStep) {
+      PvpTutorialStep.lobby when !showRacingTrack => TutorialSpotlightOverlay(
+        key: const ValueKey('pvp-tutorial-lobby'),
+        targetKey: _tutorialLobbyKey,
+        title: l10n.tutorialPvpLobbyTitle,
+        description: l10n.tutorialPvpLobbyBody,
+        stepLabel: l10n.tutorialStepLabel(1, 6),
+        skipLabel: l10n.tutorialSkip,
+        onSkip: tutorial.skipPvp,
+        nextLabel: l10n.tutorialNext,
+        onNext: () => tutorial.advancePvp(PvpTutorialStep.lobby),
+      ),
+      PvpTutorialStep.matchmaking when !showRacingTrack =>
+        TutorialSpotlightOverlay(
+          key: const ValueKey('pvp-tutorial-matchmaking'),
+          targetKey: _tutorialMatchKey,
+          title: l10n.tutorialPvpMatchTitle,
+          description: l10n.tutorialPvpMatchBody,
+          stepLabel: l10n.tutorialStepLabel(2, 6),
+          skipLabel: l10n.tutorialSkip,
+          onSkip: tutorial.skipPvp,
+          targetSemanticLabel: l10n.pvpFindRandomMatch,
+          onTargetTap: _startMatchmaking,
+        ),
+      PvpTutorialStep.race
+          when showRacingTrack &&
+              !showFinishReaction &&
+              !finishPresentationComplete =>
+        TutorialContextTip(
+          key: const ValueKey('pvp-tutorial-race'),
+          title: l10n.tutorialPvpRaceTitle,
+          description: l10n.tutorialPvpRaceBody,
+          stepLabel: l10n.tutorialStepLabel(3, 6),
+          actionLabel: l10n.tutorialGotIt,
+          skipLabel: l10n.tutorialSkip,
+          onAction: () => tutorial.advancePvp(PvpTutorialStep.race),
+          onSkip: tutorial.skipPvp,
+        ),
+      PvpTutorialStep.items
+          when showRacingTrack &&
+              !showFinishReaction &&
+              !finishPresentationComplete =>
+        TutorialContextTip(
+          key: const ValueKey('pvp-tutorial-items'),
+          title: l10n.tutorialPvpItemsTitle,
+          description: provider.itemLoadout.isEmpty
+              ? l10n.tutorialPvpItemsEmptyBody
+              : l10n.tutorialPvpItemsBody,
+          stepLabel: l10n.tutorialStepLabel(4, 6),
+          actionLabel: l10n.tutorialGotIt,
+          skipLabel: l10n.tutorialSkip,
+          alignment: Alignment.bottomCenter,
+          margin: const EdgeInsets.fromLTRB(42, 0, 42, 112),
+          onAction: () => tutorial.advancePvp(PvpTutorialStep.items),
+          onSkip: tutorial.skipPvp,
+        ),
+      PvpTutorialStep.finish when showRacingTrack && showFinishReaction =>
+        TutorialContextTip(
+          key: const ValueKey('pvp-tutorial-finish'),
+          title: l10n.tutorialPvpFinishTitle,
+          description: l10n.tutorialPvpFinishBody,
+          stepLabel: l10n.tutorialStepLabel(5, 6),
+          actionLabel: l10n.tutorialGotIt,
+          skipLabel: l10n.tutorialSkip,
+          onAction: () => tutorial.advancePvp(PvpTutorialStep.finish),
+          onSkip: tutorial.skipPvp,
+        ),
+      PvpTutorialStep.result when finishPresentationComplete =>
+        TutorialContextTip(
+          key: const ValueKey('pvp-tutorial-result'),
+          title: l10n.tutorialPvpResultTitle,
+          description: l10n.tutorialPvpResultBody,
+          stepLabel: l10n.tutorialStepLabel(6, 6),
+          actionLabel: l10n.tutorialGotIt,
+          skipLabel: l10n.tutorialSkip,
+          alignment: Alignment.topCenter,
+          margin: const EdgeInsets.fromLTRB(32, 18, 32, 0),
+          onAction: () => tutorial.advancePvp(PvpTutorialStep.result),
+          onSkip: tutorial.skipPvp,
+        ),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final pvpProvider = context.watch<PvpProvider>();
     final gameState = context.watch<GameStateProvider>();
+    final tutorial = context.watch<TutorialProvider>();
     final l10n = AppLocalizations.of(context);
     final providerOpponentName = pvpProvider.currentOpponentName.trim();
     final opponentDisplayName = providerOpponentName.isNotEmpty
@@ -445,14 +683,20 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Theme.of(dialogContext).brightness == Brightness.dark
+                          foregroundColor:
+                              Theme.of(dialogContext).brightness ==
+                                  Brightness.dark
                               ? AppColors.darkTextOutline
                               : AppColors.buttonText,
-                          backgroundColor: Theme.of(dialogContext).brightness == Brightness.dark
+                          backgroundColor:
+                              Theme.of(dialogContext).brightness ==
+                                  Brightness.dark
                               ? AppColors.darkLife
                               : AppColors.buttonGreen,
                           side: BorderSide(
-                            color: Theme.of(dialogContext).brightness == Brightness.dark
+                            color:
+                                Theme.of(dialogContext).brightness ==
+                                    Brightness.dark
                                 ? AppColors.darkBorder
                                 : AppColors.woodDeep,
                             width: 2,
@@ -562,6 +806,47 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
         ? 'room-countdown'
         : _gameState;
 
+    final resultCode =
+        (pvpProvider.forcedResultCode?.trim().isNotEmpty == true
+            ? pvpProvider.forcedResultCode!.trim().toLowerCase()
+            : null) ??
+        pvpProvider.matchResult?.resultCodeForUser(currentUserId);
+    final finishPresentationComplete = pvpProvider.finishPresentationCompleted;
+    final showFinishReaction = pvpProvider.isFinishReacting;
+    _syncFinishFeedback(
+      provider: pvpProvider,
+      resultCode: resultCode,
+      showFinishReaction: showFinishReaction,
+    );
+    final myFinishAnimation = showFinishReaction && resultCode == 'win'
+        ? 'win'
+        : showFinishReaction && resultCode == 'lose'
+        ? 'lose'
+        : 'race';
+    final opponentFinishAnimation = showFinishReaction && resultCode == 'win'
+        ? 'lose'
+        : showFinishReaction && resultCode == 'lose'
+        ? 'win'
+        : 'race';
+    String? myMatchPlayerId;
+    for (final participant
+        in pvpProvider.currentMatch?.participants ?? const []) {
+      if (participant.userId == currentUserId) {
+        myMatchPlayerId = participant.matchPlayerId;
+        break;
+      }
+    }
+    final myEffectCodes = pvpProvider.activeEffects
+        .where((effect) => effect.targetMatchPlayerId == myMatchPlayerId)
+        .map((effect) => effect.presentationCode)
+        .whereType<String>()
+        .toList(growable: false);
+    final opponentEffectCodes = pvpProvider.activeEffects
+        .where((effect) => effect.targetMatchPlayerId != myMatchPlayerId)
+        .map((effect) => effect.presentationCode)
+        .whereType<String>()
+        .toList(growable: false);
+
     // After success popup dismisses → show racing track for countdown + race.
     final showRacingTrack =
         _enterRacingAfterPopup &&
@@ -570,6 +855,31 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             _gameState == 'racing' ||
             _gameState == 'room-countdown' ||
             effectiveGameState == 'finished');
+
+    if (tutorial.shouldShowPvp && showRacingTrack) {
+      final needsResultContext =
+          finishPresentationComplete &&
+          tutorial.pvpStep.index < PvpTutorialStep.result.index;
+      final needsFinishContext =
+          showFinishReaction &&
+          tutorial.pvpStep.index < PvpTutorialStep.finish.index;
+      final needsRaceContext =
+          !showFinishReaction &&
+          !finishPresentationComplete &&
+          tutorial.pvpStep.index < PvpTutorialStep.race.index;
+      if (needsResultContext || needsFinishContext || needsRaceContext) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (needsResultContext) {
+            unawaited(tutorial.enterPvpResultContext());
+          } else if (needsFinishContext) {
+            unawaited(tutorial.enterPvpFinishContext());
+          } else {
+            unawaited(tutorial.enterPvpRaceContext());
+          }
+        });
+      }
+    }
 
     return Stack(
       children: [
@@ -596,6 +906,8 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             ),
             onShowMatchHistory: () =>
                 showMatchHistoryModal(context, currentUserId: currentUserId),
+            lobbyTutorialKey: _tutorialLobbyKey,
+            matchmakingTutorialKey: _tutorialMatchKey,
           )
         else
           PvPRacingEnvironment(
@@ -605,7 +917,10 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             opponentProgress: pvpProvider.opponentProgress,
             opponentName: opponentDisplayName,
             racePhase: pvpProvider.racePhase,
-            isFinished: pvpProvider.isRaceFinished,
+            isFinished: finishPresentationComplete,
+            showFinishReaction: showFinishReaction,
+            finishResultCode: resultCode,
+            onWinnerCrossed: pvpProvider.markFinishLineCrossed,
             onClose: _onCloseRacePressed,
             mapAssets: PvpAssetResolver.mapsForNow(
               pvpProvider.estimatedServerNow(),
@@ -613,7 +928,23 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             myAffinityCode: gameState.affinityCode,
             opponentAffinityCode: pvpProvider.opponentSpiritAffinityCode,
             myStageNo: gameState.petStageNo,
+            myAnimationState: myFinishAnimation,
+            opponentAnimationState: opponentFinishAnimation,
+            myActiveEffects: myEffectCodes,
+            opponentActiveEffects: opponentEffectCodes,
+            myTransientEffect: pvpProvider.transientVfxOnMyPet
+                ? pvpProvider.transientVfxCode
+                : null,
+            opponentTransientEffect: pvpProvider.transientVfxOnMyPet
+                ? null
+                : pvpProvider.transientVfxCode,
+            transientVfxSequence: pvpProvider.transientVfxSequence,
           ),
+
+        if (showRacingTrack &&
+            !finishPresentationComplete &&
+            !pvpProvider.isFinishReconciling)
+          _buildItemHud(context, pvpProvider),
 
         if (isProviderConnecting) const PvPMatchingOverlay(),
         if (_showMatchSuccessPopup)
@@ -627,25 +958,37 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
             opponentName: _opponentName,
             onCancel: _cancelInvite,
           ),
-        if (effectiveGameState == 'finished')
-          PvPFinishedOverlay(
-            result: pvpProvider.matchResult,
-            isLoading:
-                _isLoadingResult ||
-                (awaitingServerResult &&
-                    pvpProvider.forcedResultCode == null) ||
-                (isProviderFinished &&
-                    pvpProvider.matchResult == null &&
-                    pvpProvider.forcedResultCode == null),
-            currentUserId: currentUserId,
-            forcedResultCode: pvpProvider.forcedResultCode,
-            opponentName: _opponentName.isNotEmpty
-                ? _opponentName
-                : pvpProvider.currentOpponentName,
-            onContinue: _resetGame,
-            onClaimReward: _claimReward,
-            isClaiming: _isClaimingReward,
-            claimResponse: pvpProvider.lastClaimResponse,
+        if (finishPresentationComplete)
+          KeyedSubtree(
+            key: _tutorialResultKey,
+            child: PvPFinishedOverlay(
+              result: pvpProvider.matchResult,
+              isLoading:
+                  _isLoadingResult ||
+                  (awaitingServerResult &&
+                      pvpProvider.forcedResultCode == null) ||
+                  (isProviderFinished &&
+                      pvpProvider.matchResult == null &&
+                      pvpProvider.forcedResultCode == null),
+              currentUserId: currentUserId,
+              forcedResultCode: pvpProvider.forcedResultCode,
+              opponentName: _opponentName.isNotEmpty
+                  ? _opponentName
+                  : pvpProvider.currentOpponentName,
+              onContinue: _resetGame,
+              onClaimReward: _claimReward,
+              isClaiming: _isClaimingReward,
+              claimResponse: pvpProvider.lastClaimResponse,
+            ),
+          ),
+        if (tutorial.shouldShowPvp)
+          _buildPvpTutorial(
+            context,
+            tutorial: tutorial,
+            provider: pvpProvider,
+            showRacingTrack: showRacingTrack,
+            showFinishReaction: showFinishReaction,
+            finishPresentationComplete: finishPresentationComplete,
           ),
       ],
     );

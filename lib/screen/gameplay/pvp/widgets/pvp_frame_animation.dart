@@ -2,6 +2,56 @@ import 'package:flutter/material.dart';
 
 import '../pvp_asset_resolver.dart';
 
+class PvpPetAnimationContract {
+  const PvpPetAnimationContract._();
+
+  static int fpsFor(String state) => switch (state.trim().toLowerCase()) {
+    'race' => 15,
+    'lose' => 4,
+    _ => 8,
+  };
+
+  static int selectedFrameCount(String state, int availableFrames) {
+    if (state.trim().toLowerCase() == 'lose' && availableFrames > 4) return 4;
+    return availableFrames;
+  }
+
+  static bool loops(String state) => state.trim().toLowerCase() == 'race';
+
+  /// Clip-level normalization measured from the median meaningful alpha
+  /// height of every authored frame. Race is the visual-size reference.
+  ///
+  /// This deliberately stays constant for a whole clip: per-frame scaling
+  /// would erase the authored squash/stretch and introduce visible pumping.
+  static double visualScaleFor({
+    required String affinityCode,
+    required int stageNo,
+    required String state,
+  }) {
+    final normalizedState = state.trim().toLowerCase();
+    if (normalizedState == 'race') return 1;
+    final affinity = affinityCode.trim().toLowerCase();
+    return switch ((affinity, stageNo.clamp(1, 2), normalizedState)) {
+      (_, _, String value) when value != 'win' && value != 'lose' => 1,
+      ('warm_sun', 1, 'win') => 1.02,
+      ('warm_sun', 1, 'lose') => 1.04,
+      ('warm_sun', 2, 'win') => .96,
+      ('warm_sun', 2, 'lose') => 1.02,
+      ('moonlight', 1, 'win') => 1.02,
+      ('moonlight', 1, 'lose') => 1.09,
+      ('moonlight', 2, 'win') => .97,
+      ('moonlight', 2, 'lose') => 1.11,
+      ('dawn', 1, 'win') => .87,
+      ('dawn', 1, 'lose') => .89,
+      ('dawn', 2, 'win') => .82,
+      ('dawn', 2, 'lose') => .92,
+      (_, _, 'win') => .83,
+      (_, _, 'lose') => .85,
+      _ => 1,
+    };
+  }
+}
+
 /// Plays an 8-frame PvP VFX strip from `assets/Mobile/PVP/vfx/...`.
 class PvpFrameAnimation extends StatefulWidget {
   const PvpFrameAnimation({
@@ -22,7 +72,7 @@ class PvpFrameAnimation extends StatefulWidget {
 }
 
 class _PvpFrameAnimationState extends State<PvpFrameAnimation>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   AnimationController? _controller;
   late List<String> _frames;
   late bool _loops;
@@ -108,7 +158,8 @@ class _PvpFrameAnimationState extends State<PvpFrameAnimation>
 }
 
 /// Plays the dedicated PvP pet sequence (`race`, `win`, or `lose`) using the
-/// exact case-sensitive paths documented by the PvP asset contract.
+/// exact case-sensitive paths documented by the PvP asset contract. Outcome
+/// clips play once and hold their most readable reaction pose.
 class PvpPetAnimation extends StatefulWidget {
   const PvpPetAnimation({
     super.key,
@@ -132,7 +183,7 @@ class PvpPetAnimation extends StatefulWidget {
 }
 
 class _PvpPetAnimationState extends State<PvpPetAnimation>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late List<String> _frames;
   late bool _loops;
@@ -158,13 +209,24 @@ class _PvpPetAnimationState extends State<PvpPetAnimation>
 
   void _configure() {
     final state = widget.state.trim().toLowerCase();
-    _frames = PvpAssetResolver.petAnimationFrames(
+    final resolvedFrames = PvpAssetResolver.petAnimationFrames(
       affinityCode: widget.affinityCode,
       stageNo: widget.stageNo,
       state: state,
     );
-    _loops = state == 'race';
-    final fps = _loops ? 12 : 10;
+    // The authored lose strip returns to a neutral running pose in F05-F08.
+    // During a post-race reaction that made the loser appear recovered before
+    // the result card arrived. Stop at the lowest defeated pose (F04) and hold
+    // it; win plays through to its happy final pose and holds there.
+    final selectedCount = PvpPetAnimationContract.selectedFrameCount(
+      state,
+      resolvedFrames.length,
+    );
+    _frames = selectedCount < resolvedFrames.length
+        ? resolvedFrames.take(selectedCount).toList(growable: false)
+        : resolvedFrames;
+    _loops = PvpPetAnimationContract.loops(state);
+    final fps = PvpPetAnimationContract.fpsFor(state);
     _controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: (_frames.length * 1000 / fps).round()),
@@ -192,6 +254,11 @@ class _PvpPetAnimationState extends State<PvpPetAnimation>
 
   @override
   Widget build(BuildContext context) {
+    final clipScale = PvpPetAnimationContract.visualScaleFor(
+      affinityCode: widget.affinityCode,
+      stageNo: widget.stageNo,
+      state: widget.state,
+    );
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -199,14 +266,20 @@ class _PvpPetAnimationState extends State<PvpPetAnimation>
           0,
           _frames.length - 1,
         );
-        return Image.asset(
-          _frames[index],
-          width: widget.width,
-          height: widget.height,
-          fit: BoxFit.contain,
+        return AnimatedScale(
+          scale: clipScale,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
           alignment: Alignment.bottomCenter,
-          filterQuality: FilterQuality.medium,
-          gaplessPlayback: true,
+          child: Image.asset(
+            _frames[index],
+            width: widget.width,
+            height: widget.height,
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            filterQuality: FilterQuality.medium,
+            gaplessPlayback: true,
+          ),
         );
       },
     );

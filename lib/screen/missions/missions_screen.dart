@@ -12,8 +12,10 @@ import '../../data/repositories/missions_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/asset_only_icon_button.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/common/game_async_state.dart';
 
 enum MissionTab { mission, challenge }
 
@@ -160,7 +162,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
   ) {
     final claimed = challenge.statusCode.toLowerCase() == 'claimed';
     final completed = challenge.progressValue >= challenge.targetValue;
-    
+
     return _QuestDisplayItem(
       missionId: challenge.challengeId,
       userMissionId: challenge.userMissionId,
@@ -452,9 +454,6 @@ class _MissionsScreenState extends State<MissionsScreen> {
               children: [
                 _MissionsHeader(
                   title: l10n.missionsTitle,
-                  foreground: foreground,
-                  cardColor: cardColor,
-                  borderColor: borderColor,
                   onBack: () => Navigator.pop(context),
                 ),
               ],
@@ -463,16 +462,16 @@ class _MissionsScreenState extends State<MissionsScreen> {
           const SizedBox(height: 20),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: GameLoadingIndicator(label: l10n.loading))
                 : _errorMessage != null &&
                       _dailyQuests.isEmpty &&
                       _overallQuests.isEmpty &&
                       _challengeQuests.isEmpty
-                ? Center(
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: mutedForeground),
-                    ),
+                ? GameAsyncStatePanel(
+                    message: _errorMessage!,
+                    isError: true,
+                    onRetry: _loadData,
+                    retryLabel: l10n.retry,
                   )
                 : LayoutBuilder(
                     builder: (context, contentConstraints) {
@@ -703,18 +702,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
 }
 
 class _MissionsHeader extends StatelessWidget {
-  const _MissionsHeader({
-    required this.title,
-    required this.foreground,
-    required this.cardColor,
-    required this.borderColor,
-    required this.onBack,
-  });
+  const _MissionsHeader({required this.title, required this.onBack});
 
   final String title;
-  final Color foreground;
-  final Color cardColor;
-  final Color borderColor;
   final VoidCallback onBack;
 
   @override
@@ -724,20 +714,12 @@ class _MissionsHeader extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: Material(
-            color: cardColor,
-            shape: CircleBorder(side: BorderSide(color: borderColor)),
-            elevation: 1,
-            shadowColor: Colors.black.withValues(alpha: 0.05),
-            child: InkWell(
-              onTap: onBack,
-              customBorder: const CircleBorder(),
-              child: const SizedBox(
-                width: 40,
-                height: 40,
-                child: AppIcon(Icons.chevron_left, size: 20),
-              ),
-            ),
+          child: AssetOnlyIconButton(
+            onPressed: onBack,
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            icon: Icons.chevron_left,
+            buttonSize: 40,
+            assetSize: 34,
           ),
         ),
         GameButtonLabel(
@@ -795,7 +777,9 @@ class _MissionTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isActive ? (isDark ? AppColors.darkBorder : AppColors.woodDeep) : Colors.transparent,
+                  color: isActive
+                      ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                      : Colors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -803,8 +787,12 @@ class _MissionTabs extends StatelessWidget {
                   ? GameButtonLabel(
                       label,
                       fontSize: 13,
-                      color: isDark ? AppColors.darkForeground : AppColors.buttonText,
-                      outlineColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.buttonText,
+                      outlineColor: isDark
+                          ? AppColors.darkTextOutline
+                          : AppColors.woodDeep,
                       outlineWidth: 2.5,
                     )
                   : Text(
@@ -881,7 +869,9 @@ class _MissionListTabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(11),
                 border: Border.all(
                   color: isDark
-                      ? (selected ? AppColors.darkBorder : AppColors.darkCardBorder)
+                      ? (selected
+                            ? AppColors.darkBorder
+                            : AppColors.darkCardBorder)
                       : AppColors.woodDeep,
                   width: selected ? 2 : 1.4,
                 ),
@@ -899,8 +889,12 @@ class _MissionListTabs extends StatelessWidget {
                   ? GameButtonLabel(
                       label,
                       fontSize: 14,
-                      color: isDark ? AppColors.darkForeground : AppColors.buttonText,
-                      outlineColor: isDark ? AppColors.darkTextOutline : AppColors.woodDeep,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.buttonText,
+                      outlineColor: isDark
+                          ? AppColors.darkTextOutline
+                          : AppColors.woodDeep,
                       outlineWidth: 3,
                     )
                   : Text(
@@ -949,7 +943,8 @@ class _MissionListPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
+              color: (isDark ? AppColors.darkMuted : AppColors.leafLight)
+                  .withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
@@ -967,7 +962,8 @@ class _MissionListPanel extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(12, 42, 12, 4),
               decoration: BoxDecoration(
-                color: (isDark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.97),
+                color: (isDark ? AppColors.darkCard : AppColors.authCard)
+                    .withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isDark ? AppColors.darkBorder : AppColors.wood,
@@ -1065,25 +1061,6 @@ class _MissionLeafPainter extends CustomPainter {
       oldDelegate.flower != flower || oldDelegate.mirrored != mirrored;
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.foreground});
-
-  final String title;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-        color: foreground,
-      ),
-    );
-  }
-}
-
 class _EmptySection extends StatelessWidget {
   const _EmptySection({required this.message, required this.mutedForeground});
 
@@ -1094,7 +1071,7 @@ class _EmptySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-            child: Text(
+      child: Text(
         message,
         style: TextStyle(fontSize: 13, color: mutedForeground),
       ),
@@ -1165,7 +1142,11 @@ class _QuestItemCard extends StatelessWidget {
               : showClaim
               ? AppColors.darkLife
               : AppColors.darkCardBorder)
-        : (isClaimed ? AppColors.wood.withValues(alpha: 0.55) : isCompleted ? AppColors.oliveDeep : AppColors.wood);
+        : (isClaimed
+              ? AppColors.wood.withValues(alpha: 0.55)
+              : isCompleted
+              ? AppColors.oliveDeep
+              : AppColors.wood);
     final resolvedForeground = isDark && isClaimed
         ? AppColors.darkMutedForeground
         : foreground;
@@ -1215,10 +1196,14 @@ class _QuestItemCard extends StatelessWidget {
                           : Icons.star_border_rounded,
                       size: isCompleted ? 38 : 35,
                       color: isCompleted
-                            ? (isDark
-                                  ? (isClaimed ? AppColors.darkMutedForeground : AppColors.darkForeground)
-                                  : AppColors.success)
-                          : (isDark ? AppColors.darkBorder : AppColors.woodLight),
+                          ? (isDark
+                                ? (isClaimed
+                                      ? AppColors.darkMutedForeground
+                                      : AppColors.darkForeground)
+                                : AppColors.success)
+                          : (isDark
+                                ? AppColors.darkBorder
+                                : AppColors.woodLight),
                       shadows: [
                         Shadow(
                           color: isCompleted
@@ -1436,8 +1421,12 @@ class _QuestItemCard extends StatelessWidget {
                           .withValues(alpha: 0.5),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         isClaimed
-                            ? AppColors.darkMutedForeground.withValues(alpha: 0.55)
-                            : isCompleted ? AppColors.buttonGreen : energyColor,
+                            ? AppColors.darkMutedForeground.withValues(
+                                alpha: 0.55,
+                              )
+                            : isCompleted
+                            ? AppColors.buttonGreen
+                            : energyColor,
                       ),
                     ),
                   ),

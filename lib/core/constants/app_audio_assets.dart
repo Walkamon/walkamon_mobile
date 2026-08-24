@@ -10,6 +10,12 @@ abstract final class AppAudioAssets {
   // PvP battle music.
   static const battleMusic =
       'audio/Pvp/battle_music/openmindaudio-cartoon-cinematic-film-outro-sunny-pulse-short-preview-497381.mp3';
+  static const pvpWin =
+      'audio/Pvp/Win/freesound_community-success-fanfare-trumpets-6185.mp3';
+  static const pvpLose =
+      'audio/Pvp/Lose/universfield-marimba-game-over-250960.mp3';
+  static const pvpBlocked =
+      'audio/Tab/freesound_community-killswitch-being-turned-on-100591.mp3';
   static const reward =
       'audio/Reward/shidenbeatsmusic-sound-effect-twinklesparkle-115095.mp3';
   static const tab = 'audio/Tab/universfield-bubble-pop-06-351337.mp3';

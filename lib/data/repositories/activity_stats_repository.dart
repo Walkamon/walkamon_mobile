@@ -4,7 +4,7 @@ import '../models/daily_step_statistic_response.dart';
 
 class ActivityStatsRepository {
   ActivityStatsRepository({ActivityStatsDatasource? datasource})
-      : _datasource = datasource ?? ActivityStatsDatasource();
+    : _datasource = datasource ?? ActivityStatsDatasource();
 
   final ActivityStatsDatasource _datasource;
 

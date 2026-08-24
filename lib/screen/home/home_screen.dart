@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
+import '../../core/feedback/app_haptics.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
@@ -17,8 +19,14 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/daily_login_provider.dart';
 import '../../providers/step_tracking_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../widgets/pet_runtime/pet_runtime_preview.dart';
+import '../../widgets/common/asset_only_icon_button.dart';
 import '../../widgets/common/bottom_navigation.dart';
+import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/tutorial/tutorial_spotlight_overlay.dart';
+import 'home_pet_ambient.dart';
+import 'home_pet_world_contract.dart';
 
 Widget _assetIcon(String path, {double size = 20, Color? color}) {
   return Image.asset(
@@ -52,24 +60,15 @@ String _homeBackgroundForAffinity(String affinityCode, {required bool isDark}) {
   }
 }
 
-double _responsivePetScale(Size viewport) {
-  final heightScale = (viewport.height / 720).clamp(0.58, 1.0);
-  final widthScale = (viewport.width / 360).clamp(0.72, 1.0);
-  return math.min(heightScale, widthScale).toDouble();
-}
+@visibleForTesting
+double homeSideActionTop(Size viewport) =>
+    (viewport.height * 0.10).clamp(68.0, 92.0).toDouble();
 
-double _responsivePetVerticalOffset({
-  required String affinityCode,
-  required int stageNo,
-  required Size viewport,
-}) {
-  final preferredOffset =
-      affinityCode.trim().toLowerCase() == 'warm_sun' && stageNo == 1
-      ? 176.0
-      : 62.0;
-  final availableHeightFactor = ((viewport.height - 400) / 480).clamp(0.0, 1.0);
-  return preferredOffset * availableHeightFactor;
-}
+@visibleForTesting
+const double homeSideActionTapSize = 56;
+
+@visibleForTesting
+const double homeSideActionGap = 12;
 
 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ StatBar Widget ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
 class _StatBar extends StatelessWidget {
@@ -146,7 +145,7 @@ class _StatBar extends StatelessWidget {
                   child: Text(
                     '$safeValue/$safeMaximum',
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
                       color: isDark
                           ? AppColors.darkForeground
@@ -172,7 +171,7 @@ class _StatBar extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 9,
+            fontSize: 11,
             fontWeight: FontWeight.w800,
             color: mutedFg,
           ),
@@ -253,7 +252,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String? _petAnimationOverride;
-  bool _stepExpanded = false;
+  int _petActionSerial = 0;
   bool _isRefreshingMetrics = false;
   bool _isFeedButtonPressed = false;
   int? _dewBalance;
@@ -267,6 +266,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _showNotificationBadge = false;
   Timer? _refreshTimer;
   Timer? _petAnimationTimer;
+  Timer? _ambientTimer;
+  DateTime _lastPetInteractionAt = DateTime.now();
+  DateTime _lastAmbientAt = DateTime.fromMillisecondsSinceEpoch(0);
+  int _ambientCycle = 0;
+  final GlobalKey _petAreaKey = GlobalKey(debugLabel: 'home-pet-area');
+  final GlobalKey _petTutorialKey = GlobalKey(debugLabel: 'tutorial-home-pet');
+  final GlobalKey _feedTutorialKey = GlobalKey(
+    debugLabel: 'tutorial-home-feed',
+  );
+  final GlobalKey _statsTutorialKey = GlobalKey(
+    debugLabel: 'tutorial-home-stats',
+  );
+  final GlobalKey _stepsTutorialKey = GlobalKey(
+    debugLabel: 'tutorial-home-steps',
+  );
+  final GlobalKey _missionsTutorialKey = GlobalKey(
+    debugLabel: 'tutorial-home-missions',
+  );
+  String? _tutorialAccountKey;
+  double? _petAreaGlobalTop;
+  bool _petAreaMeasurementScheduled = false;
   final List<_FloatingNum> _floatingNums = [];
   final List<_FloatingBubble> _bubbles = [
     _FloatingBubble(id: 1, top: 0.20, left: 0.12, size: 30),
@@ -276,10 +296,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   ];
 
   // Glow animation
-  late final AnimationController _glowCtrl;
-  late final Animation<double> _glowScale;
-  late final Animation<double> _glowOpacity;
-
   // Feed ripple animation
   late final AnimationController _rippleCtrl;
 
@@ -289,20 +305,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    // Glow pulse behind pet
-    _glowCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    );
-    _glowScale = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
-    _glowOpacity = Tween<double>(
-      begin: 0.35,
-      end: 0.65,
-    ).animate(CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut));
 
     // Feed ripple
     _rippleCtrl = AnimationController(
@@ -323,11 +325,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       unawaited(_refreshHomeMetrics());
     });
+    _ambientTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+      _tryPlayAmbientAnimation();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final accountKey = context.read<GameStateProvider>().user?.id.trim();
+    if (accountKey == null ||
+        accountKey.isEmpty ||
+        accountKey == _tutorialAccountKey) {
+      return;
+    }
+    _tutorialAccountKey = accountKey;
+    unawaited(context.read<TutorialProvider>().synchronizeAccount(accountKey));
   }
 
   void _playLevelUpEffectIfNeeded(int previousLevel, int currentLevel) {
     if (currentLevel <= previousLevel) return;
     unawaited(AppAudioService.instance.playLevelUp());
+    unawaited(AppHaptics.success());
   }
 
   Future<void> _openRouteAndRefresh(String route) async {
@@ -344,7 +363,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _isRefreshingMetrics = true;
     try {
       await Future.wait([
-        gameState.fetchPetStatus(),
         gameState.fetchPetVisual(),
         _refreshDewBalance(gameState),
         _refreshHomeBadges(),
@@ -424,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     _refreshTimer?.cancel();
     _petAnimationTimer?.cancel();
-    _glowCtrl.dispose();
+    _ambientTimer?.cancel();
     _rippleCtrl.dispose();
     _hintCtrl.dispose();
     super.dispose();
@@ -432,18 +450,74 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _playPetAnimation(String animation, Duration duration) {
     _petAnimationTimer?.cancel();
-    setState(() => _petAnimationOverride = animation);
+    setState(() {
+      _petAnimationOverride = animation;
+      _petActionSerial++;
+    });
     _petAnimationTimer = Timer(duration, () {
       if (mounted) setState(() => _petAnimationOverride = null);
     });
   }
 
-  void _handlePetTap(GameStateProvider gameState) async {
+  void _markPetInteraction() {
+    _lastPetInteractionAt = DateTime.now();
+  }
+
+  void _tryPlayAmbientAnimation() {
+    if (!mounted || _petAnimationOverride != null) return;
+
+    final now = DateTime.now();
+    if (now.difference(_lastPetInteractionAt) < const Duration(seconds: 24) ||
+        now.difference(_lastAmbientAt) < const Duration(seconds: 18)) {
+      return;
+    }
+
+    final tutorial = context.read<TutorialProvider>();
+    final gameState = context.read<GameStateProvider>();
+    if (!gameState.isAuthenticated || tutorial.shouldShowHome) return;
+
+    final serverAnimation = gameState.animationType.trim().toLowerCase();
+    if (serverAnimation.isNotEmpty && serverAnimation != 'idle') return;
+
+    final cue = selectHomePetAmbientCue(
+      energy: gameState.spiritEnergy,
+      energyMax: gameState.spiritEnergyMax,
+      lifeForce: gameState.spiritHealth,
+      lifeForceMax: gameState.spiritHealthMax,
+      bond: gameState.bondingLevel,
+      bondMax: gameState.bondingMax,
+      hour: now.hour,
+      cycle: _ambientCycle++,
+    );
+    _lastAmbientAt = now;
+    if (cue != null) _playPetAnimation(cue.animation, cue.duration);
+  }
+
+  void _schedulePetAreaMeasurement() {
+    if (_petAreaMeasurementScheduled) return;
+    _petAreaMeasurementScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _petAreaMeasurementScheduled = false;
+      if (!mounted) return;
+      final box = _petAreaKey.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return;
+      final top = box.localToGlobal(Offset.zero).dy;
+      if (_petAreaGlobalTop == null || (_petAreaGlobalTop! - top).abs() > 0.5) {
+        setState(() => _petAreaGlobalTop = top);
+      }
+    });
+  }
+
+  Future<void> _handlePetTap(GameStateProvider gameState) async {
+    _markPetInteraction();
     AppAudioService.instance.suppressNextTabSound();
     final previousLevel = gameState.spiritLevel;
     final success = await gameState.tapSpirit();
 
     if (!success) {
+      if (gameState.isPetActionBusy) {
+        _showFeedNotice(PetFeedFailureReason.busy);
+      }
       return;
     }
 
@@ -455,7 +529,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
       );
     });
-    _playPetAnimation('excited', const Duration(milliseconds: 600));
+    _playPetAnimation('tap_hello', const Duration(milliseconds: 2800));
+    unawaited(AppHaptics.lightImpact());
 
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
@@ -478,57 +553,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _showFeedNotice(PetFeedFailureReason reason) {
     if (!mounted) return;
 
-    final isVietnamese = Localizations.localeOf(context).languageCode == 'vi';
+    final l10n = AppLocalizations.of(context);
     final message = switch (reason) {
-      PetFeedFailureReason.busy =>
-        isVietnamese
-            ? 'Bạn đang cho pet ăn quá nhanh. Hãy chờ thao tác hiện tại hoàn tất.'
-            : 'You are feeding too quickly. Please wait for the current action to finish.',
-      PetFeedFailureReason.fullLifeForce =>
-        isVietnamese
-            ? 'Sinh Mệnh Lực của pet đã đạt giới hạn rồi.'
-            : 'Your pet has reached its Life Force limit.',
-      PetFeedFailureReason.limitReached =>
-        isVietnamese
-            ? 'Bạn đã đạt giới hạn cho pet ăn. Hãy quay lại sau nhé.'
-            : 'You have reached the feeding limit. Please come back later.',
-      PetFeedFailureReason.insufficientDew =>
-        isVietnamese
-            ? 'Bạn không đủ Giọt Sương để cho pet ăn.'
-            : 'You do not have enough Dew Drops to feed your pet.',
-      _ =>
-        isVietnamese
-            ? 'Chưa thể cho pet ăn lúc này. Vui lòng thử lại.'
-            : 'Unable to feed your pet right now. Please try again.',
+      PetFeedFailureReason.busy => l10n.petActionBusy,
+      PetFeedFailureReason.fullLifeForce => l10n.petLifeForceFull,
+      PetFeedFailureReason.limitReached => l10n.petFeedLimitReached,
+      PetFeedFailureReason.insufficientDew => l10n.petFeedInsufficientDew,
+      _ => l10n.petFeedUnavailable,
     };
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.woodDeep,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.cream,
-          margin: const EdgeInsets.fromLTRB(24, 0, 24, 112),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: AppColors.woodDeep, width: 2),
-          ),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    showGameNotificationDialog(context, message: message, isSuccess: false);
   }
 
-  void _handleDewdropTap(GameStateProvider gameState) async {
+  Future<void> _handleDewdropTap(GameStateProvider gameState) async {
+    _markPetInteraction();
     AppAudioService.instance.suppressNextTabSound();
     final previousLevel = gameState.spiritLevel;
     final success = await gameState.feedSpirit();
@@ -539,6 +577,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     unawaited(AppAudioService.instance.playFeed());
+    unawaited(AppHaptics.mediumImpact());
     _playLevelUpEffectIfNeeded(previousLevel, gameState.spiritLevel);
 
     setState(() {
@@ -547,17 +586,118 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
       );
     });
-    _playPetAnimation('feed_eat', const Duration(milliseconds: 900));
+    _playPetAnimation('feed_eat', const Duration(milliseconds: 4200));
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
     unawaited(_refreshDewBalance(gameState));
   }
 
   void _collectBubble(int id, GameStateProvider gameState) {
+    _markPetInteraction();
     setState(() {
       _bubbles.removeWhere((b) => b.id == id);
     });
     _handleDewdropTap(gameState);
+  }
+
+  void _forwardTapToTarget(GlobalKey key) {
+    VoidCallback? callback;
+    void search(Element element) {
+      final widget = element.widget;
+      if (callback == null &&
+          widget is GestureDetector &&
+          widget.onTap != null) {
+        callback = widget.onTap;
+        return;
+      }
+      element.visitChildElements(search);
+    }
+
+    final context = key.currentContext;
+    if (context is Element) search(context);
+    callback?.call();
+  }
+
+  Widget _buildHomeTutorialOverlay(
+    BuildContext context,
+    TutorialProvider tutorial,
+    GameStateProvider gameState,
+    AppLocalizations l10n,
+  ) {
+    final step = tutorial.homeStep;
+    final shared = (skipLabel: l10n.tutorialSkip, onSkip: tutorial.skipHome);
+    return switch (step) {
+      HomeTutorialStep.pet => TutorialSpotlightOverlay(
+        key: const ValueKey('home-tutorial-pet'),
+        targetKey: _petTutorialKey,
+        title: l10n.tutorialHomePetTitle,
+        description: l10n.tutorialHomePetBody,
+        stepLabel: l10n.tutorialStepLabel(1, 5),
+        skipLabel: shared.skipLabel,
+        onSkip: shared.onSkip,
+        targetSemanticLabel: l10n.tutorialHomePetTitle,
+        onTargetTap: () async {
+          await _handlePetTap(gameState);
+          await tutorial.advanceHome(HomeTutorialStep.pet);
+        },
+      ),
+      HomeTutorialStep.feed => TutorialSpotlightOverlay(
+        key: const ValueKey('home-tutorial-feed'),
+        targetKey: _feedTutorialKey,
+        title: l10n.tutorialHomeFeedTitle,
+        description: l10n.tutorialHomeFeedBody,
+        stepLabel: l10n.tutorialStepLabel(2, 5),
+        skipLabel: shared.skipLabel,
+        onSkip: shared.onSkip,
+        targetSemanticLabel: l10n.tutorialHomeFeedTitle,
+        onTargetTap: () async {
+          // Advance after the real attempt even when the API legitimately
+          // rejects feeding because the pet is full/busy or Dew is missing.
+          await _handleDewdropTap(gameState);
+          await tutorial.advanceHome(HomeTutorialStep.feed);
+        },
+      ),
+      HomeTutorialStep.stats => TutorialSpotlightOverlay(
+        key: const ValueKey('home-tutorial-stats'),
+        targetKey: _statsTutorialKey,
+        title: l10n.tutorialHomeStatsTitle,
+        description: l10n.tutorialHomeStatsBody,
+        stepLabel: l10n.tutorialStepLabel(3, 5),
+        skipLabel: shared.skipLabel,
+        onSkip: shared.onSkip,
+        nextLabel: l10n.tutorialNext,
+        onNext: () => tutorial.advanceHome(HomeTutorialStep.stats),
+      ),
+      HomeTutorialStep.steps => TutorialSpotlightOverlay(
+        key: const ValueKey('home-tutorial-steps'),
+        targetKey: _stepsTutorialKey,
+        title: l10n.tutorialHomeStepsTitle,
+        description: l10n.tutorialHomeStepsBody,
+        stepLabel: l10n.tutorialStepLabel(4, 5),
+        skipLabel: shared.skipLabel,
+        onSkip: shared.onSkip,
+        targetSemanticLabel: l10n.tutorialHomeStepsTitle,
+        onTargetTap: () async {
+          _forwardTapToTarget(_stepsTutorialKey);
+          await tutorial.advanceHome(HomeTutorialStep.steps);
+        },
+      ),
+      HomeTutorialStep.missions => TutorialSpotlightOverlay(
+        key: const ValueKey('home-tutorial-missions'),
+        targetKey: _missionsTutorialKey,
+        title: l10n.tutorialHomeMissionsTitle,
+        description: l10n.tutorialHomeMissionsBody,
+        stepLabel: l10n.tutorialStepLabel(5, 5),
+        skipLabel: shared.skipLabel,
+        onSkip: shared.onSkip,
+        targetSemanticLabel: l10n.tutorialHomeMissionsTitle,
+        onTargetTap: () async {
+          await tutorial.advanceHome(HomeTutorialStep.missions);
+          if (mounted) await _openRouteAndRefresh('/missions');
+        },
+      ),
+      HomeTutorialStep.complete => const SizedBox.shrink(),
+    };
   }
 
   @override
@@ -567,6 +707,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final gameState = Provider.of<GameStateProvider>(context);
+    final tutorial = context.watch<TutorialProvider>();
     final user = gameState.user;
 
     // GiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£ lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡c biÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿n tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­nh toÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡n bÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âºc chÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢n giÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œng nhÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â° React
@@ -588,8 +729,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
     final energyColor = isDark ? AppColors.darkDew : AppColors.lightDew;
-    final lifeColor = isDark ? AppColors.darkLife : AppColors.lightLife;
-    final bondColor = isDark ? AppColors.darkBond : AppColors.lightBond;
     final int bondingLevel = gameState.bondingLevel;
     final int spiritLevel = gameState.spiritLevel;
     final int spiritExp = gameState.spiritExp;
@@ -603,11 +742,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       isDark: isDark,
     );
     final viewport = MediaQuery.sizeOf(context);
-    final petScale = _responsivePetScale(viewport);
-    final petVerticalOffset = _responsivePetVerticalOffset(
-      affinityCode: gameState.affinityCode,
-      stageNo: gameState.petStageNo,
+    final sideActionTop = homeSideActionTop(viewport);
+    final petSceneContract = resolveHomePetSceneContract(
+      gameState.affinityCode,
+    );
+    final preferredPetSize = homePetLogicalSize(viewport, petSceneContract);
+    final projectedContact = projectHomeSourcePoint(
+      normalizedSourcePoint: Offset(0.5, petSceneContract.contactYNormalized),
       viewport: viewport,
+      contract: petSceneContract,
     );
 
     return Scaffold(
@@ -638,366 +781,318 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // 1. Warning message
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              constraints: const BoxConstraints(minHeight: 36),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface.withOpacity(
-                                  0.75,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0xFF8FAF8F)
-                                          : const Color(0xFF253426),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '12+',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        color: isDark
-                                            ? Colors.black
-                                            : Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      l10n.healthWarning,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.w600,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          // The age guidance now floats independently so this
+                          // header keeps the compact game resources aligned.
+                          const Spacer(),
                           const SizedBox(width: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // 2. Step bar (compact -> expands on tap)
-                              GestureDetector(
-                                key: const ValueKey('step_compact'),
-                                onTap: () => showDialog(
-                                  context: context,
-                                  builder: (context) => Dialog(
-                                    backgroundColor: Colors.transparent,
-                                    insetPadding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 24,
-                                    ),
-                                    child: Container(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 320,
+                              KeyedSubtree(
+                                key: _stepsTutorialKey,
+                                child: GestureDetector(
+                                  key: const ValueKey('step_compact'),
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (context) => Dialog(
+                                      backgroundColor: Colors.transparent,
+                                      insetPadding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 24,
                                       ),
-                                      padding: const EdgeInsets.fromLTRB(
-                                        16,
-                                        18,
-                                        16,
-                                        16,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.authCard.withValues(
-                                          alpha: 0.98,
+                                      child: Container(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 320,
                                         ),
-                                        borderRadius: BorderRadius.circular(24),
-                                        border: Border.all(
-                                          color: AppColors.wood,
-                                          width: 2,
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          18,
+                                          16,
+                                          16,
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppColors.woodDeep
-                                                .withValues(alpha: 0.25),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 5),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.authCard.withValues(
+                                            alpha: 0.98,
                                           ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  _assetIcon(
-                                                    AppAssets.iconProfileSteps,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Text(
-                                                    l10n.today,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppColors.woodDeep,
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.wood,
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.woodDeep
+                                                  .withValues(alpha: 0.25),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 5),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    _assetIcon(
+                                                      AppAssets
+                                                          .iconProfileSteps,
+                                                      size: 20,
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Text(
-                                                '${_formatNumber(dailySteps)} / ${_formatNumber(goalSteps)}',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: AppColors.woodDeep,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 12),
-                                          TweenAnimationBuilder<double>(
-                                            tween: Tween(
-                                              begin: 0.0,
-                                              end: stepPct,
-                                            ),
-                                            duration: const Duration(
-                                              milliseconds: 800,
-                                            ),
-                                            curve: Curves.easeOutCubic,
-                                            builder: (_, val, __) => Container(
-                                              height: 10,
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                color: AppColors.parchment,
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                border: Border.all(
-                                                  color: AppColors.wood,
-                                                  width: 1,
-                                                ),
-                                              ),
-                                              child: FractionallySizedBox(
-                                                alignment: Alignment.centerLeft,
-                                                widthFactor: val,
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        AppColors.buttonGreen,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            l10n.todayStepsDesc,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.oliveDeep,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          if (pendingSteps > 0)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 6,
-                                              ),
-                                              child: Text(
-                                                '+$pendingSteps bước đang xác minh '
-                                                '($localPendingSteps máy, '
-                                                '$serverPendingSteps máy chủ)',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  color: AppColors.oliveDeep,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                          AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            child: lastRejectedSteps > 0
-                                                ? Padding(
-                                                    key: ValueKey(
-                                                      lastRejectedSteps,
-                                                    ),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          top: 6,
-                                                        ),
-                                                    child: Text(
-                                                      '-$lastRejectedSteps bước '
-                                                      'không đủ bằng chứng',
-                                                      style: const TextStyle(
-                                                        fontSize: 10,
-                                                        color:
-                                                            Colors.deepOrange,
+                                                    const SizedBox(width: 6),
+                                                    Text(
+                                                      l10n.today,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
                                                         fontWeight:
-                                                            FontWeight.w700,
+                                                            FontWeight.bold,
+                                                        color:
+                                                            AppColors.woodDeep,
                                                       ),
                                                     ),
-                                                  )
-                                                : const SizedBox.shrink(),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  '${_formatNumber(dailySteps)} / ${_formatNumber(goalSteps)}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.woodDeep,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TweenAnimationBuilder<double>(
+                                              tween: Tween(
+                                                begin: 0.0,
+                                                end: stepPct,
+                                              ),
+                                              duration: const Duration(
+                                                milliseconds: 800,
+                                              ),
+                                              curve: Curves.easeOutCubic,
+                                              builder: (_, val, __) => Container(
+                                                height: 10,
+                                                width: double.infinity,
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.parchment,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: AppColors.wood,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: FractionallySizedBox(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  widthFactor: val,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          AppColors.buttonGreen,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              l10n.todayStepsDesc,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: AppColors.oliveDeep,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            if (pendingSteps > 0)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 6,
+                                                ),
+                                                child: Text(
+                                                  '+$pendingSteps bước đang xác minh '
+                                                  '($localPendingSteps máy, '
+                                                  '$serverPendingSteps máy chủ)',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppColors.oliveDeep,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            AnimatedSwitcher(
+                                              duration: const Duration(
+                                                milliseconds: 300,
+                                              ),
+                                              child: lastRejectedSteps > 0
+                                                  ? Padding(
+                                                      key: ValueKey(
+                                                        lastRejectedSteps,
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            top: 6,
+                                                          ),
+                                                      child: Text(
+                                                        '-$lastRejectedSteps bước '
+                                                        'không đủ bằng chứng',
+                                                        style: const TextStyle(
+                                                          fontSize: 11,
+                                                          color:
+                                                              Colors.deepOrange,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : const SizedBox.shrink(),
+                                            ),
+                                            if (trackingStatus ==
+                                                StepTrackingStatus
+                                                    .permissionDenied)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 8,
+                                                ),
+                                                child: TextButton.icon(
+                                                  onPressed: () => context
+                                                      .read<
+                                                        StepTrackingProvider
+                                                      >()
+                                                      .requestActivityPermission(),
+                                                  icon: const Icon(
+                                                    Icons.lock_open,
+                                                    size: 16,
+                                                  ),
+                                                  label: Text(
+                                                    l10n.stepTrackingPermissionAction,
+                                                  ),
+                                                  style: TextButton.styleFrom(
+                                                    minimumSize: const Size(
+                                                      44,
+                                                      44,
+                                                    ),
+                                                    padding: EdgeInsets.zero,
+                                                    tapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (trackingStatus ==
+                                                StepTrackingStatus
+                                                    .permissionPermanentlyDenied)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 8,
+                                                ),
+                                                child: TextButton.icon(
+                                                  onPressed: () => context
+                                                      .read<
+                                                        StepTrackingProvider
+                                                      >()
+                                                      .openActivitySettings(),
+                                                  icon: const Icon(
+                                                    Icons.settings,
+                                                    size: 16,
+                                                  ),
+                                                  label: Text(
+                                                    l10n.stepTrackingPermissionSettings,
+                                                  ),
+                                                  style: TextButton.styleFrom(
+                                                    minimumSize: const Size(
+                                                      44,
+                                                      44,
+                                                    ),
+                                                    padding: EdgeInsets.zero,
+                                                    tapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (trackingStatus ==
+                                                StepTrackingStatus
+                                                    .sensorUnavailable)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 8,
+                                                ),
+                                                child: Text(
+                                                  l10n.stepTrackingSensorUnavailable,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppColors.oliveDeep,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  child: Container(
+                                    height: 36,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.authCard.withValues(
+                                        alpha: 0.92,
+                                      ),
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: AppColors.wood,
+                                        width: 1.6,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.woodDeep.withValues(
+                                            alpha: 0.15,
                                           ),
-                                          if (trackingStatus ==
-                                              StepTrackingStatus
-                                                  .permissionDenied)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 8,
-                                              ),
-                                              child: TextButton.icon(
-                                                onPressed: () => context
-                                                    .read<
-                                                      StepTrackingProvider
-                                                    >()
-                                                    .requestActivityPermission(),
-                                                icon: const Icon(
-                                                  Icons.lock_open,
-                                                  size: 16,
-                                                ),
-                                                label: Text(
-                                                  l10n.stepTrackingPermissionAction,
-                                                ),
-                                                style: TextButton.styleFrom(
-                                                  minimumSize: const Size(
-                                                    44,
-                                                    44,
-                                                  ),
-                                                  padding: EdgeInsets.zero,
-                                                  tapTargetSize:
-                                                      MaterialTapTargetSize
-                                                          .shrinkWrap,
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                ),
-                                              ),
-                                            ),
-                                          if (trackingStatus ==
-                                              StepTrackingStatus
-                                                  .permissionPermanentlyDenied)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 8,
-                                              ),
-                                              child: TextButton.icon(
-                                                onPressed: () => context
-                                                    .read<
-                                                      StepTrackingProvider
-                                                    >()
-                                                    .openActivitySettings(),
-                                                icon: const Icon(
-                                                  Icons.settings,
-                                                  size: 16,
-                                                ),
-                                                label: Text(
-                                                  l10n.stepTrackingPermissionSettings,
-                                                ),
-                                                style: TextButton.styleFrom(
-                                                  minimumSize: const Size(
-                                                    44,
-                                                    44,
-                                                  ),
-                                                  padding: EdgeInsets.zero,
-                                                  tapTargetSize:
-                                                      MaterialTapTargetSize
-                                                          .shrinkWrap,
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                ),
-                                              ),
-                                            ),
-                                          if (trackingStatus ==
-                                              StepTrackingStatus
-                                                  .sensorUnavailable)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 8,
-                                              ),
-                                              child: Text(
-                                                l10n.stepTrackingSensorUnavailable,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: AppColors.oliveDeep,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                child: Container(
-                                  height: 36,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.authCard.withValues(
-                                      alpha: 0.92,
-                                    ),
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(
-                                      color: AppColors.wood,
-                                      width: 1.6,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.woodDeep.withValues(
-                                          alpha: 0.15,
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
                                         ),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      _assetIcon(
-                                        AppAssets.iconProfileSteps,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        l10n.step,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.woodDeep,
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        _assetIcon(
+                                          AppAssets.iconProfileSteps,
+                                          size: 20,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          l10n.step,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.woodDeep,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1089,63 +1184,85 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Pet Area ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
                     Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, petAreaConstraints) {
-                          final heightFit =
-                              ((petAreaConstraints.maxHeight - 16) / 200).clamp(
-                                0.42,
-                                1.0,
-                              );
-                          final widthFit =
-                              ((petAreaConstraints.maxWidth - 24) / 200).clamp(
-                                0.42,
-                                1.0,
-                              );
-                          final areaScale = math.min(heightFit, widthFit);
-                          final effectivePetScale = math
-                              .min(petScale, areaScale)
-                              .toDouble();
-                          final scaledPetSize = 200 * effectivePetScale;
-                          final maxPetOffset = math.max(
-                            0.0,
-                            (petAreaConstraints.maxHeight - scaledPetSize) / 2 -
-                                8,
-                          );
-                          final safePetVerticalOffset = petVerticalOffset
-                              .clamp(-maxPetOffset, maxPetOffset)
-                              .toDouble();
-
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Floating dew bubbles (drawn on top of the circles)
-                              ..._bubbles.map(
-                                (bubble) => _BubbleWidget(
-                                  key: ValueKey(bubble.id),
-                                  bubble: bubble,
-                                  dewColor: dewColor,
-                                  petAreaSize: Size(
-                                    petAreaConstraints.maxWidth,
-                                    petAreaConstraints.maxHeight,
+                      child: KeyedSubtree(
+                        key: _petAreaKey,
+                        child: LayoutBuilder(
+                          builder: (context, petAreaConstraints) {
+                            _schedulePetAreaMeasurement();
+                            final effectivePetSize = math
+                                .min(
+                                  preferredPetSize,
+                                  math.min(
+                                    petAreaConstraints.maxWidth - 24,
+                                    petAreaConstraints.maxHeight - 8,
                                   ),
-                                  petScale: effectivePetScale,
-                                  petVerticalOffset: safePetVerticalOffset,
-                                  onCollect: () =>
-                                      _collectBubble(bubble.id, gameState),
-                                ),
-                              ),
+                                )
+                                .clamp(120.0, preferredPetSize)
+                                .toDouble();
+                            final areaTop = _petAreaGlobalTop;
+                            final desiredContactY = areaTop == null
+                                ? petAreaConstraints.maxHeight * 0.64
+                                : projectedContact.dy - areaTop;
+                            const gameBaselineNormalized = 0.975;
+                            final unclampedPetTop =
+                                desiredContactY -
+                                effectivePetSize * gameBaselineNormalized;
+                            final petTop = unclampedPetTop
+                                .clamp(
+                                  0.0,
+                                  math.max(
+                                    0.0,
+                                    petAreaConstraints.maxHeight -
+                                        effectivePetSize,
+                                  ),
+                                )
+                                .toDouble();
+                            final petVerticalOffset =
+                                petTop +
+                                effectivePetSize / 2 -
+                                petAreaConstraints.maxHeight / 2;
+                            final petScaleForBubbles = effectivePetSize / 200;
 
-                              // Pet sprite placeholder
-                              Transform.translate(
-                                offset: Offset(0, safePetVerticalOffset),
-                                child: Transform.scale(
-                                  scale: effectivePetScale,
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Floating dew bubbles (drawn on top of the circles)
+                                ..._bubbles.map(
+                                  (bubble) => _BubbleWidget(
+                                    key: ValueKey(bubble.id),
+                                    bubble: bubble,
+                                    dewColor: dewColor,
+                                    petAreaSize: Size(
+                                      petAreaConstraints.maxWidth,
+                                      petAreaConstraints.maxHeight,
+                                    ),
+                                    petScale: petScaleForBubbles,
+                                    petVerticalOffset: petVerticalOffset,
+                                    onCollect: () =>
+                                        _collectBubble(bubble.id, gameState),
+                                  ),
+                                ),
+
+                                // Pet sprite placeholder
+                                Positioned(
+                                  left:
+                                      (petAreaConstraints.maxWidth -
+                                          effectivePetSize) /
+                                      2,
+                                  top: petTop,
+                                  width: effectivePetSize,
+                                  height: effectivePetSize,
                                   child: GestureDetector(
+                                    key: _petTutorialKey,
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () => _handlePetTap(gameState),
-                                    child: SizedBox(
-                                      width: 200,
-                                      height: 200,
+                                    onLongPress: kDebugMode
+                                        ? () => Navigator.pushNamed(
+                                            context,
+                                            '/debug/pet-player',
+                                          )
+                                        : null,
+                                    child: SizedBox.expand(
                                       child: Stack(
                                         clipBehavior: Clip.none,
                                         alignment: Alignment.center,
@@ -1155,6 +1272,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             affinityCode:
                                                 gameState.affinityCode,
                                             stageNo: gameState.petStageNo,
+                                            actionSerial: _petActionSerial,
                                             animationType:
                                                 _petAnimationOverride ??
                                                 (gameState.animationType.isEmpty
@@ -1177,10 +1295,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
 
@@ -1206,6 +1324,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       sigmaY: 6,
                                     ),
                                     child: Container(
+                                      key: _statsTutorialKey,
                                       padding: const EdgeInsets.fromLTRB(
                                         10,
                                         10,
@@ -1249,7 +1368,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                       Text(
                                                         l10n.luminaStatus,
                                                         style: TextStyle(
-                                                          fontSize: 9,
+                                                          fontSize: 11,
                                                           fontWeight:
                                                               FontWeight.w900,
                                                           color: mutedFg,
@@ -1264,7 +1383,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           style: TextStyle(
-                                                            fontSize: 9,
+                                                            fontSize: 12,
                                                             fontWeight:
                                                                 FontWeight.w700,
                                                             color: theme
@@ -1357,7 +1476,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           '${spiritExp.clamp(0, spiritExpMaxSafe)}/$spiritExpMaxSafe',
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 8,
+                                                                fontSize: 11,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w900,
@@ -1395,7 +1514,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           '$spiritLevel',
                                                           style:
                                                               const TextStyle(
-                                                                fontSize: 10,
+                                                                fontSize: 11,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w900,
@@ -1456,6 +1575,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             top: 0,
                             right: 8,
                             child: GestureDetector(
+                              key: _feedTutorialKey,
                               behavior: HitTestBehavior.opaque,
                               onTapDown: (_) => _setFeedButtonPressed(true),
                               onTapUp: (_) => _setFeedButtonPressed(false),
@@ -1480,8 +1600,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         : const Color(0xFFA1D4B1),
                                     border: Border.all(
                                       color: _isFeedButtonPressed
-                                          ? (isDark ? AppColors.darkCardBorder : AppColors.woodDeep)
-                                          : (isDark ? AppColors.darkBorder : AppColors.sky),
+                                          ? (isDark
+                                                ? AppColors.darkCardBorder
+                                                : AppColors.woodDeep)
+                                          : (isDark
+                                                ? AppColors.darkBorder
+                                                : AppColors.sky),
                                       width: 2.5,
                                     ),
                                     boxShadow: _isFeedButtonPressed
@@ -1515,21 +1639,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Floating buttons: Left side ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
                 Positioned(
-                  top: 84,
-                  left: 24,
+                  top: sideActionTop,
+                  left: 18,
                   child: Column(
                     children: [
                       // Settings
                       _buildFloatingIconBtn(
                         context: context,
                         assetPath: AppAssets.iconSettingsNav,
+                        semanticLabel: l10n.gameSettings,
                         onTap: () => _openRouteAndRefresh('/settings'),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: homeSideActionGap),
                       // Daily Reward
                       _buildFloatingIconBtn(
                         context: context,
                         assetPath: AppAssets.iconDailyRewardSystem,
+                        semanticLabel: l10n.dailyLoginTitle,
                         hasBadge: _showDailyLoginBadge,
                         onTap: () async {
                           await Navigator.pushNamed(
@@ -1539,16 +1665,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           if (mounted) unawaited(_refreshHomeMetrics());
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: homeSideActionGap),
                       // Missions / Quests
-                      _buildFloatingIconBtn(
-                        context: context,
-                        assetPath: AppAssets.iconMissionNav,
-                        hasBadge: _showMissionBadge,
-                        onTap: () async {
-                          await Navigator.pushNamed(context, '/missions');
-                          if (mounted) unawaited(_refreshHomeMetrics());
-                        },
+                      KeyedSubtree(
+                        key: _missionsTutorialKey,
+                        child: _buildFloatingIconBtn(
+                          context: context,
+                          assetPath: AppAssets.iconMissionNav,
+                          semanticLabel: l10n.missionsTitle,
+                          hasBadge: _showMissionBadge,
+                          onTap: () async {
+                            await Navigator.pushNamed(context, '/missions');
+                            if (mounted) unawaited(_refreshHomeMetrics());
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -1556,12 +1686,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Floating button: Right side (Notification Bell) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
                 Positioned(
-                  top: 84,
-                  right: 24,
+                  top: sideActionTop,
+                  right: 18,
                   child: _buildFloatingIconBtn(
                     context: context,
                     assetPath: AppAssets.iconNotificationBell,
-                    backgroundOpacity: 0.58,
+                    semanticLabel: l10n.notificationsTitle,
                     hasBadge: _showNotificationBadge,
                     onTap: () async {
                       await Navigator.pushNamed(context, '/notifications');
@@ -1569,6 +1699,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     },
                   ),
                 ),
+                Positioned.fill(
+                  child: AgeGuidanceOverlay(text: l10n.healthWarning),
+                ),
+                if (tutorial.shouldShowHome)
+                  _buildHomeTutorialOverlay(context, tutorial, gameState, l10n),
               ],
             ),
           ),
@@ -1589,77 +1724,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildFloatingIconBtn({
     required BuildContext context,
     required String assetPath,
+    required String semanticLabel,
     required VoidCallback onTap,
-    double backgroundOpacity = 0.85,
     bool hasBadge = false,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 64,
-        height: 64,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 3,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withValues(
-                        alpha: backgroundOpacity,
-                      ),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.darkBorder
-                            : AppColors.lightBorder,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(child: _assetIcon(assetPath, size: 40)),
-                  ),
+    return SizedBox.square(
+      dimension: homeSideActionTapSize,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          AssetOnlyIconButton(
+            onPressed: onTap,
+            semanticLabel: semanticLabel,
+            asset: assetPath,
+            buttonSize: homeSideActionTapSize,
+            assetSize: 50,
+          ),
+          if (hasBadge)
+            Positioned(
+              top: 3,
+              right: 3,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
-            if (hasBadge)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  width: 13,
-                  height: 13,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkAccent
-                        : AppColors.lightAccent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.surface,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -1807,60 +1905,206 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 }
 
 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Lumina Sprite Widget ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
-class _LuminaSprite extends StatefulWidget {
+class AgeGuidanceOverlay extends StatefulWidget {
+  const AgeGuidanceOverlay({super.key, required this.text});
+
+  final String text;
+
+  @override
+  State<AgeGuidanceOverlay> createState() => _AgeGuidanceOverlayState();
+}
+
+class _AgeGuidanceOverlayState extends State<AgeGuidanceOverlay> {
+  static const _edgePadding = 8.0;
+  Offset? _position;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final expandedWidth = math.min(280.0, constraints.maxWidth - 24);
+        final badgeWidth = _expanded ? expandedWidth : 46.0;
+        final badgeHeight = _expanded ? 82.0 : 44.0;
+        final rawPosition = _position ?? const Offset(18, 18);
+        final position = Offset(
+          rawPosition.dx.clamp(
+            _edgePadding,
+            math.max(_edgePadding, constraints.maxWidth - badgeWidth - 8),
+          ),
+          rawPosition.dy.clamp(
+            _edgePadding,
+            math.max(_edgePadding, constraints.maxHeight - badgeHeight - 8),
+          ),
+        );
+
+        return Stack(
+          children: [
+            Positioned(
+              left: position.dx,
+              top: position.dy,
+              child: Semantics(
+                button: true,
+                label: _expanded ? widget.text : '12+',
+                child: GestureDetector(
+                  key: const ValueKey('age-guidance-overlay'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _expanded = !_expanded),
+                  onPanUpdate: (details) {
+                    setState(() {
+                      _position = Offset(
+                        (position.dx + details.delta.dx).clamp(
+                          _edgePadding,
+                          math.max(
+                            _edgePadding,
+                            constraints.maxWidth - badgeWidth - 8,
+                          ),
+                        ),
+                        (position.dy + details.delta.dy).clamp(
+                          _edgePadding,
+                          math.max(
+                            _edgePadding,
+                            constraints.maxHeight - badgeHeight - 8,
+                          ),
+                        ),
+                      );
+                    });
+                  },
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 180),
+                    opacity: _expanded ? 0.96 : 0.62,
+                    child: AnimatedContainer(
+                      key: ValueKey(
+                        _expanded
+                            ? 'age-guidance-expanded'
+                            : 'age-guidance-collapsed',
+                      ),
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      width: badgeWidth,
+                      constraints: const BoxConstraints(minHeight: 44),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: _expanded ? 10 : 6,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            (isDark ? AppColors.darkCard : AppColors.authCard)
+                                .withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: AppColors.woodDeep.withValues(alpha: 0.38),
+                          width: 1,
+                        ),
+                        boxShadow: _expanded
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.14),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ]
+                            : const [],
+                      ),
+                      child: _expanded
+                          ? Row(
+                              children: [
+                                _AgeMark(isDark: isDark),
+                                const SizedBox(width: 9),
+                                Expanded(
+                                  child: Text(
+                                    widget.text,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.darkForeground
+                                          : AppColors.inkBrown,
+                                      fontSize: 11,
+                                      height: 1.25,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                const Icon(
+                                  Icons.keyboard_arrow_left_rounded,
+                                  size: 17,
+                                  color: AppColors.woodDeep,
+                                ),
+                              ],
+                            )
+                          : Center(child: _AgeMark(isDark: isDark)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AgeMark extends StatelessWidget {
+  const _AgeMark({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF8FAF8F) : const Color(0xFF253426),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Text(
+        '12+',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: isDark ? Colors.black : Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _LuminaSprite extends StatelessWidget {
   const _LuminaSprite({
     required this.affinityCode,
     required this.stageNo,
     required this.animationType,
+    required this.actionSerial,
     required this.primary,
     required this.luminaGlow,
   });
   final String affinityCode;
   final int stageNo;
   final String animationType;
+  final int actionSerial;
   final Color primary;
   final Color luminaGlow;
 
   @override
-  State<_LuminaSprite> createState() => _LuminaSpriteState();
-}
-
-class _LuminaSpriteState extends State<_LuminaSprite>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _bounceCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _bounceCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-  }
-
-  @override
-  void dispose() {
-    _bounceCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 180,
-      height: 180,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: IgnorePointer(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = math.min(constraints.maxWidth, constraints.maxHeight);
+        return IgnorePointer(
           child: PetRuntimePreview(
-            affinityCode: widget.affinityCode,
-            stageNo: widget.stageNo,
-            animationType: widget.animationType,
+            affinityCode: affinityCode,
+            stageNo: stageNo,
+            animationType: animationType,
+            actionSerial: actionSerial,
             compact: true,
-            height: 164,
+            height: size,
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -1914,7 +2158,7 @@ class _FloatingHeartWidgetState extends State<_FloatingHeartWidget>
         child: Opacity(
           opacity: (1 - _ctrl.value).clamp(0, 1),
           child: Text(
-            '+ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥',
+            '+♥',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,

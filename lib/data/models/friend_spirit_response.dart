@@ -2,10 +2,7 @@ class AnimationInfo {
   final String typeAnimation;
   final String animationUrl;
 
-  AnimationInfo({
-    required this.typeAnimation,
-    required this.animationUrl,
-  });
+  AnimationInfo({required this.typeAnimation, required this.animationUrl});
 
   factory AnimationInfo.fromJson(Map<String, dynamic> json) {
     return AnimationInfo(
@@ -15,10 +12,7 @@ class AnimationInfo {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'typeAnimation': typeAnimation,
-      'animationUrl': animationUrl,
-    };
+    return {'typeAnimation': typeAnimation, 'animationUrl': animationUrl};
   }
 }
 
@@ -74,9 +68,10 @@ class FriendSpiritResponse {
       maxBond: json['maxBond'] as int? ?? 100,
       currentLifeForce: json['currentLifeForce'] as int? ?? 0,
       maxLifeForce: json['maxLifeForce'] as int? ?? 100,
-      stageName: json['stageName'] as String? ?? 'Mầm Non',
+      stageName: json['stageName'] as String? ?? '',
       stageImage: json['stageImage'] as String? ?? '',
-      animations: (json['animations'] as List<dynamic>?)
+      animations:
+          (json['animations'] as List<dynamic>?)
               ?.map((e) => AnimationInfo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

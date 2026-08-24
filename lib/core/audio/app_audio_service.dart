@@ -6,7 +6,16 @@ import 'package:flutter/widgets.dart';
 
 import '../constants/app_audio_assets.dart';
 
-enum _AppSoundEffect { feed, levelUp, reward, tab, useItem }
+enum _AppSoundEffect {
+  feed,
+  levelUp,
+  reward,
+  tab,
+  useItem,
+  pvpBlocked,
+  pvpWin,
+  pvpLose,
+}
 
 class AppAudioService with WidgetsBindingObserver {
   AppAudioService._();
@@ -135,6 +144,21 @@ class AppAudioService with WidgetsBindingObserver {
 
   Future<void> playUseItem() =>
       _playEffect(_AppSoundEffect.useItem, AppAudioAssets.useItem);
+
+  Future<void> playPvpBlocked() => _playEffect(
+    _AppSoundEffect.pvpBlocked,
+    AppAudioAssets.pvpBlocked,
+    volume: 0.72,
+  );
+
+  Future<void> playPvpWin() =>
+      _playEffect(_AppSoundEffect.pvpWin, AppAudioAssets.pvpWin, volume: 0.82);
+
+  Future<void> playPvpLose() => _playEffect(
+    _AppSoundEffect.pvpLose,
+    AppAudioAssets.pvpLose,
+    volume: 0.78,
+  );
 
   Future<void> _playEffect(
     _AppSoundEffect effect,

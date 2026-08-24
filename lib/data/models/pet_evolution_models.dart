@@ -225,9 +225,7 @@ class PetEvolutionPreviewStageResponse {
   final int requiredLevel;
   final List<PetEvolutionAnimationResponse> animations;
 
-  factory PetEvolutionPreviewStageResponse.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory PetEvolutionPreviewStageResponse.fromJson(Map<String, dynamic> json) {
     final animationsJson = json['animations'];
     return PetEvolutionPreviewStageResponse(
       stageNo: int.tryParse(json['stageNo']?.toString() ?? '0') ?? 0,
@@ -278,4 +276,3 @@ class PetEvolutionPreviewResponse {
     );
   }
 }
-

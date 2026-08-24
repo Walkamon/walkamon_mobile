@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import '../../core/constants/app_assets.dart';
+import '../../widgets/common/game_back_button.dart';
 import '../auth/widgets/auth_style.dart';
 
 class DailyRewardScreen extends StatelessWidget {
@@ -21,8 +22,7 @@ class DailyRewardScreen extends StatelessWidget {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: AuthRoundIconButton(
-                    icon: Icons.arrow_back_rounded,
+                  child: GameBackButton(
                     semanticLabel: l10n.loginBack,
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -35,18 +35,13 @@ class DailyRewardScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
+                            SizedBox(
                               width: 84,
                               height: 84,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.72),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AuthStyle.gold.withValues(alpha: 0.42),
-                                ),
+                              child: Image.asset(
+                                AppAssets.authLoginSteps,
+                                fit: BoxFit.contain,
                               ),
-                              child: Image.asset(AppAssets.authLoginSteps),
                             ),
                             const SizedBox(height: 16),
                             Text(

@@ -23,7 +23,10 @@ class ShopScreenRepository {
   }
 
   /// Returns ApiResponse from buy endpoint; response.data may contain updated wallet/inventory
-  Future<ApiResponse<dynamic>> buyShopItem(String shopItemId, {int quantity = 1}) async {
+  Future<ApiResponse<dynamic>> buyShopItem(
+    String shopItemId, {
+    int quantity = 1,
+  }) async {
     return await _remoteDataSource.buyShopItem(shopItemId, quantity: quantity);
   }
 }

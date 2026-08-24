@@ -27,11 +27,11 @@ class ProfileViewResponse {
 
   factory ProfileViewResponse.fromJson(Map<String, dynamic> json) {
     return ProfileViewResponse(
-      email: json['email'] ?? 'Chưa cập nhật',
-      username: json['username'] ?? 'Lữ Hành Giả',
+      email: (json['email'] as String?)?.trim() ?? '',
+      username: (json['username'] as String?)?.trim() ?? '',
       // Keep an empty bio empty so the UI can render the localized fallback.
       bio: (json['bio'] as String?)?.trim() ?? '',
-      gender: json['gender'] ?? 'Chưa rõ',
+      gender: (json['gender'] as String?)?.trim() ?? '',
       dob: json['dob'] != null ? DateTime.parse(json['dob']) : null,
       avatarUrl: json['avatarUrl'] ?? '',
       languageCode: json['languageCode'] ?? 'vi-VN',
@@ -43,7 +43,7 @@ class ProfileViewResponse {
   }
 
   String get formattedDob {
-    if (dob == null) return 'Chưa cập nhật';
+    if (dob == null) return '';
     return '${dob!.day.toString().padLeft(2, '0')}/${dob!.month.toString().padLeft(2, '0')}/${dob!.year}';
   }
 }

@@ -5,7 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/core/theme/app_colors.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_confirmation_dialog.dart';
+import 'package:walkamon_mobile/widgets/common/game_notification_dialog.dart';
 
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
@@ -89,12 +92,10 @@ class _FriendsScreenState extends State<FriendsScreen>
     } catch (e) {
       debugPrint("Lỗi tải danh sách bạn bè: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context).friendsLoadError}: $e',
-            ),
-          ),
+        showGameNotificationDialog(
+          context,
+          message: AppLocalizations.of(context).friendsLoadError,
+          isSuccess: false,
         );
       }
     } finally {
@@ -106,51 +107,22 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   Future<void> _removeFriend(FriendsResponse friend) async {
     // 1. Hiển thị popup xác nhận trước khi xóa
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        final colorScheme = Theme.of(ctx).colorScheme;
-        return AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            AppLocalizations.of(ctx).friendsRemoveTitle,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            AppLocalizations.of(ctx).friendsRemoveConfirm(friend.username),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(
-                AppLocalizations.of(ctx).friendsCancel,
-                style: TextStyle(color: colorScheme.onSurfaceVariant),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.secondary,
-                foregroundColor: colorScheme.onSecondary,
-              ),
-              child: Text(
-                AppLocalizations.of(ctx).friendsRemove,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
+    final l10n = AppLocalizations.of(context);
+    final repo = context.read<FriendsRepository>();
+    final confirm = await showGameConfirmationDialog(
+      context,
+      title: l10n.friendsRemoveTitle,
+      message: l10n.friendsRemoveConfirm(friend.username),
+      cancelLabel: l10n.friendsCancel,
+      confirmLabel: l10n.friendsRemove,
+      destructive: true,
     );
 
     // 2. Nếu người dùng chọn Hủy thì dừng lại
-    if (confirm != true) return;
+    if (!confirm) return;
 
     // 3. Gọi API xóa bạn
     try {
-      final repo = context.read<FriendsRepository>();
       await repo.removeFriend(friend.userId);
 
       if (mounted) {
@@ -177,68 +149,7 @@ class _FriendsScreenState extends State<FriendsScreen>
   }
 
   void _showNotification(String message, bool isSuccess) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.25),
-      barrierDismissible: false,
-      builder: (ctx) {
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (ctx.mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
-        });
-
-        final colorScheme = Theme.of(context).colorScheme;
-        final bgColor = isSuccess ? colorScheme.primary : colorScheme.error;
-        final contentColor = isSuccess
-            ? colorScheme.onPrimary
-            : colorScheme.onError;
-
-        return Align(
-          alignment: Alignment.center,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: contentColor, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppIcon(
-                    isSuccess
-                        ? Icons.check_circle_outline
-                        : Icons.warning_amber_rounded,
-                    color: contentColor,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: contentColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: isSuccess);
   }
 
   @override
@@ -369,9 +280,6 @@ class _FriendsScreenState extends State<FriendsScreen>
   }
 
   Widget _buildHeaderActions(AppLocalizations l10n) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
-    final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
     return Padding(
       padding: EdgeInsets.zero,
       child: Row(
@@ -380,25 +288,12 @@ class _FriendsScreenState extends State<FriendsScreen>
           Stack(
             clipBehavior: Clip.none,
             children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: () => _showFriendRequestsPopup(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: textColor,
-                    backgroundColor: cardColor,
-                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2),
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.all(6),
-                    shape: const CircleBorder(),
-                  ),
-                  child: Image.asset(
-                    AppAssets.iconFriendRequest,
-                    width: 32,
-                    height: 32,
-                  ),
-                ),
+              AssetOnlyIconButton(
+                onPressed: () => _showFriendRequestsPopup(context),
+                semanticLabel: l10n.friendsRequest,
+                asset: AppAssets.iconFriendRequest,
+                buttonSize: 48,
+                assetSize: 44,
               ),
               if (_pendingReceivedRequestCount > 0)
                 Positioned(
@@ -410,7 +305,6 @@ class _FriendsScreenState extends State<FriendsScreen>
                     decoration: BoxDecoration(
                       color: AppColors.danger,
                       shape: BoxShape.circle,
-                      border: Border.all(color: cardColor, width: 2),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.woodDeep.withValues(alpha: 0.3),
@@ -423,26 +317,12 @@ class _FriendsScreenState extends State<FriendsScreen>
             ],
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: OutlinedButton(
-              onPressed: () => _showAddFriendPopup(context),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: cardColor,
-                foregroundColor: textColor,
-                elevation: 0,
-                side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 2),
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.all(6),
-                shape: const CircleBorder(),
-              ),
-              child: Image.asset(
-                AppAssets.iconAddFriend,
-                width: 32,
-                height: 32,
-              ),
-            ),
+          AssetOnlyIconButton(
+            onPressed: () => _showAddFriendPopup(context),
+            semanticLabel: l10n.friendsAdd,
+            asset: AppAssets.iconAddFriend,
+            buttonSize: 48,
+            assetSize: 44,
           ),
         ],
       ),
@@ -528,7 +408,9 @@ class _FriendsScreenState extends State<FriendsScreen>
         Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkForeground : AppColors.inkDark;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.inkBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.inkBrown;
 
     void openProfile() {
       Navigator.pushNamed(
@@ -543,10 +425,15 @@ class _FriendsScreenState extends State<FriendsScreen>
     }
 
     return Material(
-      color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.98),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                  side: BorderSide(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 1.6),
+      color: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkNestedCard
+          : AppColors.authCard.withValues(alpha: 0.98),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(13),
+        side: BorderSide(
+          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+          width: 1.6,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -563,7 +450,10 @@ class _FriendsScreenState extends State<FriendsScreen>
                   decoration: BoxDecoration(
                     color: AppColors.creamDeep,
                     shape: BoxShape.circle,
-                    border: Border.all(color: isDark ? AppColors.darkIconBorder : AppColors.wood, width: 1.5),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkIconBorder : AppColors.wood,
+                      width: 1.5,
+                    ),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: hasAvatar
@@ -733,9 +623,16 @@ class _FriendsScreenState extends State<FriendsScreen>
             style: FilledButton.styleFrom(
               minimumSize: const Size(66, 42),
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              backgroundColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
-              foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
-              side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 1.6),
+              backgroundColor: isDark
+                  ? AppColors.darkLife
+                  : AppColors.buttonGreen,
+              foregroundColor: isDark
+                  ? AppColors.darkTextOutline
+                  : AppColors.buttonText,
+              side: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                width: 1.6,
+              ),
               shape: const StadiumBorder(),
             ),
             child: GameButtonLabel(
@@ -833,12 +730,10 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
     } catch (e) {
       debugPrint("LỖI GET AVAILABLE USERS: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context).friendsLoadError}: $e',
-            ),
-          ),
+        showGameNotificationDialog(
+          context,
+          message: AppLocalizations.of(context).friendsLoadError,
+          isSuccess: false,
         );
       }
       setState(() {
@@ -871,12 +766,10 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
     } catch (e) {
       debugPrint("LỖI TÌM KIẾM USERS: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context).friendsSearchError}: $e',
-            ),
-          ),
+        showGameNotificationDialog(
+          context,
+          message: AppLocalizations.of(context).friendsSearchError,
+          isSuccess: false,
         );
       }
       setState(() {
@@ -895,91 +788,7 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
   }
 
   void _showGameNotification(String message, bool isSuccess) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(
-        0.25,
-      ), // Làm tối nền nhẹ phía sau để nổi bật popup giữa màn hình
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (dialogContext.mounted && Navigator.canPop(dialogContext)) {
-            Navigator.pop(dialogContext);
-          }
-        });
-
-        // Lấy colorScheme đang chạy của ứng dụng (Tự động đổi theo Light/Dark Mode của app_theme.dart)
-        final colorScheme = Theme.of(context).colorScheme;
-
-        // Đặt màu sắc động: Thành công lấy màu Primary, Thất bại lấy màu Error của hệ thống
-        final bgColor = isSuccess ? colorScheme.primary : colorScheme.error;
-        final contentColor = isSuccess
-            ? colorScheme.onPrimary
-            : colorScheme.onError;
-
-        return Align(
-          alignment: Alignment.center, // Đưa popup ra CHÍNH GIỮA màn hình
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width:
-                  MediaQuery.of(context).size.width *
-                  0.75, // Độ rộng bằng 75% màn hình vuông vức
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: bgColor, // Màu nền chuẩn theo cấu hình Theme của bạn
-                borderRadius: BorderRadius.circular(
-                  20,
-                ), // Bo góc vuông dày kiểu UI game hiện đại
-                border: Border.all(
-                  color: contentColor,
-                  width: 3,
-                ), // Viền dày 3px tiệp màu chữ cực nét
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 20,
-                    offset: const Offset(
-                      0,
-                      10,
-                    ), // Đổ bóng khối 3D đổ xuống dưới
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize
-                    .min, // Tự co giãn chiều cao khít theo nội dung chữ
-                children: [
-                  // Icon đặt ở trên cùng
-                  AppIcon(
-                    isSuccess
-                        ? Icons.check_circle_outline
-                        : Icons.warning_amber_rounded,
-                    color: contentColor,
-                    size: 48, // Tăng kích thước icon to rõ ràng
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Text nội dung đặt ở dưới
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: contentColor,
-                      fontSize: 15,
-                      fontWeight:
-                          FontWeight.w900, // Chữ siêu đậm chuẩn style game
-                      letterSpacing: 0.5,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: isSuccess);
   }
 
   Future<void> _sendRequest(FriendsResponse player) async {
@@ -1042,7 +851,12 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2)),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.wood,
+            width: 2,
+          ),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1055,7 +869,9 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                 l10n.friendsAddNew,
                 fontSize: 18,
                 color: textColor,
-                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.creamLight,
+                outlineColor: isDark
+                    ? AppColors.darkTextOutline
+                    : AppColors.creamLight,
                 outlineWidth: 3,
               ),
               IconButton(
@@ -1125,7 +941,10 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                   decoration: BoxDecoration(
                     color: AppColors.buttonGreen,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.woodDeep, width: 1.5),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                      width: 1.5,
+                    ),
                   ),
                   child: _isLoading
                       ? SizedBox(
@@ -1193,11 +1012,19 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.darkCard
+                                : AppColors.authCard,
                             borderRadius: BorderRadius.circular(
                               16,
                             ), // Thẻ bo tròn
-                            border: Border.all(color: isDark ? AppColors.darkCardBorder : AppColors.wood, width: 2),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkCardBorder
+                                  : AppColors.wood,
+                              width: 2,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -1277,8 +1104,12 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                               FilledButton(
                                 onPressed: () => _sendRequest(player),
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
-                                  foregroundColor: isDark ? AppColors.darkTextOutline : AppColors.buttonText,
+                                  backgroundColor: isDark
+                                      ? AppColors.darkLife
+                                      : AppColors.buttonGreen,
+                                  foregroundColor: isDark
+                                      ? AppColors.darkTextOutline
+                                      : AppColors.buttonText,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                     vertical: 0,
@@ -1286,7 +1117,9 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
                                   minimumSize: const Size(0, 36), // Thu gọn nút
                                   shape: const StadiumBorder(),
                                   side: BorderSide(
-                                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                                    color: isDark
+                                        ? AppColors.darkBorder
+                                        : AppColors.woodDeep,
                                     width: 1.5,
                                   ),
                                 ),
@@ -1389,10 +1222,16 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
           ..removeWhere((item) => item.requestId == request.requestId);
       });
 
-      _showNotification("Đã thu hồi lời mời kết bạn!", true);
+      _showNotification(
+        AppLocalizations.of(context).friendsRequestCanceled,
+        true,
+      );
     } catch (e) {
       if (!mounted) return;
-      _showNotification("Hủy yêu cầu thất bại. Thử lại sau!", false);
+      _showNotification(
+        AppLocalizations.of(context).friendsRequestCancelFailed,
+        false,
+      );
     }
   }
 
@@ -1418,79 +1257,21 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
 
       _showNotification(
         isAccepted
-            ? "Đã chấp nhận lời mời kết bạn!"
-            : "Đã từ chối lời mời kết bạn.",
+            ? AppLocalizations.of(context).friendsRequestAccepted
+            : AppLocalizations.of(context).friendsRequestDeclined,
         true,
       );
     } catch (e) {
       if (!mounted) return;
-      _showNotification("Thao tác thất bại. Vui lòng thử lại sau!", false);
+      _showNotification(
+        AppLocalizations.of(context).friendsRequestActionFailed,
+        false,
+      );
     }
   }
 
   void _showNotification(String message, bool isSuccess) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.25),
-      barrierDismissible: false,
-      builder: (ctx) {
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (ctx.mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
-        });
-
-        final colorScheme = Theme.of(context).colorScheme;
-        final bgColor = isSuccess ? colorScheme.primary : colorScheme.error;
-        final contentColor = isSuccess
-            ? colorScheme.onPrimary
-            : colorScheme.onError;
-
-        return Align(
-          alignment: Alignment.center,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: contentColor, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppIcon(
-                    isSuccess
-                        ? Icons.check_circle_outline
-                        : Icons.warning_amber_rounded,
-                    color: contentColor,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: contentColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: isSuccess);
   }
 
   @override
@@ -1508,7 +1289,12 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2)),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.wood,
+            width: 2,
+          ),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1521,7 +1307,9 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                 l10n.friendsInbox,
                 fontSize: 18,
                 color: textColor,
-                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.creamLight,
+                outlineColor: isDark
+                    ? AppColors.darkTextOutline
+                    : AppColors.creamLight,
                 outlineWidth: 3,
               ),
               IconButton(
@@ -1549,8 +1337,12 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: !_isSentTab,
-                  selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
-                  backgroundColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
+                  selectedColor: isDark
+                      ? AppColors.darkPrimary
+                      : AppColors.buttonGreen,
+                  backgroundColor: isDark
+                      ? AppColors.darkMuted
+                      : AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: !_isSentTab
                         ? colorScheme.onPrimary
@@ -1559,7 +1351,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.wood,
+                      width: 1.5,
+                    ),
                   ),
                   onSelected: (val) {
                     if (_isSentTab) {
@@ -1580,8 +1375,12 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                     ),
                   ),
                   selected: _isSentTab,
-                  selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
-                  backgroundColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
+                  selectedColor: isDark
+                      ? AppColors.darkPrimary
+                      : AppColors.buttonGreen,
+                  backgroundColor: isDark
+                      ? AppColors.darkMuted
+                      : AppColors.creamLight,
                   labelStyle: TextStyle(
                     color: _isSentTab
                         ? colorScheme.onPrimary
@@ -1590,7 +1389,10 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.wood,
+                      width: 1.5,
+                    ),
                   ),
                   onSelected: (val) {
                     if (!_isSentTab) {
@@ -1644,9 +1446,16 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           // Đồng bộ màu nền thẻ giống Thêm Bạn
-                          color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkCard
+                              : AppColors.authCard,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.wood,
+                            width: 2,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -1749,38 +1558,24 @@ class _FriendRequestsBottomSheetState extends State<FriendRequestsBottomSheet> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
+                                  AssetOnlyIconButton(
                                     onPressed: () =>
                                         _respondToRequest(req, true),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: colorScheme.secondary,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      padding: const EdgeInsets.all(8),
-                                      minimumSize: const Size(40, 40),
-                                    ),
-                                    icon: Image.asset(
-                                      AppAssets.iconAcceptFriend,
-                                      width: 32,
-                                      height: 32,
-                                    ),
+                                    semanticLabel: l10n.pvpAccept,
+                                    asset: AppAssets.iconAcceptFriend,
+                                    buttonSize: 40,
+                                    assetSize: 36,
                                   ),
 
                                   const SizedBox(width: 12),
 
-                                  IconButton(
+                                  AssetOnlyIconButton(
                                     onPressed: () =>
                                         _respondToRequest(req, false),
-                                    style: IconButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: const Size(40, 40),
-                                    ),
-                                    icon: Image.asset(
-                                      AppAssets.iconDeclineFriend,
-                                      width: 32,
-                                      height: 32,
-                                    ),
+                                    semanticLabel: l10n.pvpReject,
+                                    asset: AppAssets.iconDeclineFriend,
+                                    buttonSize: 40,
+                                    assetSize: 36,
                                   ),
                                   const SizedBox(width: 8),
                                 ],

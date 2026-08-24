@@ -3,7 +3,8 @@ import '../datasources/remote/inventory_screen_datasource.dart';
 import '../models/inventory_item_response.dart';
 
 class InventoryScreenRepository {
-  final InventoryScreenDatasource _remoteDataSource = InventoryScreenDatasource();
+  final InventoryScreenDatasource _remoteDataSource =
+      InventoryScreenDatasource();
 
   Future<List<InventoryItemResponse>> getInventory() async {
     final resp = await _remoteDataSource.getInventory();

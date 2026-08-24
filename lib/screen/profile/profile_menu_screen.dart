@@ -73,7 +73,9 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     final panelColor = isDark ? AppColors.darkMuted : AppColors.leafLight;
     final cardColor = isDark ? AppColors.darkNestedCard : AppColors.authCard;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
     final l10n = AppLocalizations.of(context);
     // ── Lấy trực tiếp màu nền Scaffold tối từ hệ thống Theme ──
     final backgroundColor = theme.scaffoldBackgroundColor;
@@ -120,10 +122,12 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                    color: panelColor.withValues(alpha: 0.96),
+                      color: panelColor.withValues(alpha: 0.96),
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.oliveDeep,
                         width: 2,
                       ),
                       boxShadow: [
@@ -140,7 +144,9 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                         color: cardColor.withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(21),
                         border: Border.all(
-                          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                          color: isDark
+                              ? AppColors.darkCardBorder
+                              : AppColors.wood,
                           width: 1.5,
                         ),
                       ),
@@ -159,12 +165,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                               height: 88,
                               margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
-                                color: isDark ? AppColors.darkMuted : AppColors.leafLight,
+                                color: isDark
+                                    ? AppColors.darkMuted
+                                    : AppColors.leafLight,
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                              color: textColor,
-                                  width: 3,
-                                ),
+                                border: Border.all(color: textColor, width: 3),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.woodDeep.withValues(
@@ -200,7 +205,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                       style: TextStyle(
                                         fontSize: 32,
                                         fontWeight: FontWeight.w900,
-                                      color: textColor,
+                                        color: textColor,
                                       ),
                                     ),
                             ),
@@ -249,7 +254,9 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       color: panelColor.withValues(alpha: 0.94),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.oliveDeep,
                         width: 2,
                       ),
                       boxShadow: [
@@ -314,7 +321,9 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       color: panelColor.withValues(alpha: 0.94),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                        color: isDark
+                            ? AppColors.darkBorder
+                            : AppColors.oliveDeep,
                         width: 2,
                       ),
                       boxShadow: [
@@ -390,7 +399,9 @@ class _MenuItemRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
     final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
 
     return Padding(
@@ -402,7 +413,7 @@ class _MenuItemRow extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(17),
             border: Border.all(
-                          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+              color: isDark ? AppColors.darkCardBorder : AppColors.wood,
               width: 1.35,
             ),
           ),
@@ -413,24 +424,16 @@ class _MenuItemRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.darkIconBorder
-                            : AppColors.wood,
-                        width: 1.0,
+                    child: Center(
+                      child: AppIcon(
+                        icon,
+                        asset: asset,
+                        color: iconColor,
+                        size: 42,
                       ),
-                    ),
-                    child: AppIcon(
-                      icon,
-                      asset: asset,
-                      color: iconColor,
-                      size: 28,
                     ),
                   ),
                   const SizedBox(width: 14),

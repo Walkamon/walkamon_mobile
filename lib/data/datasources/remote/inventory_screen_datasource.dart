@@ -13,7 +13,8 @@ class InventoryScreenDatasource {
         if (json is List) {
           return json
               .map(
-                (e) => InventoryItemResponse.fromJson(e as Map<String, dynamic>),
+                (e) =>
+                    InventoryItemResponse.fromJson(e as Map<String, dynamic>),
               )
               .toList();
         }

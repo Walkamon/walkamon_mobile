@@ -20,7 +20,6 @@ class ProfileViewScreenDatasource {
     );
   }
 
-
   Future<ApiResponse<void>> updateTheme(String themeCode) async {
     return await _apiClient.patch<void>(
       ApiConstants.profileTheme,

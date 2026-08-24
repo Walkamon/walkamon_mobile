@@ -7,6 +7,7 @@ import '../../../../data/models/pvp_models.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/pvp_provider.dart';
 import '../../../../widgets/common/app_icon.dart';
+import '../../../../widgets/common/asset_only_icon_button.dart';
 import '../../../../widgets/common/game_button_label.dart';
 
 String? _nonBlank(String? value) {
@@ -429,20 +430,14 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                   ),
                 ),
               const SizedBox(width: 14),
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.darkNestedCard : AppColors.creamLight,
-                  side: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-                    width: 1.6,
-                  ),
-                  shape: const CircleBorder(),
-                ),
-                tooltip: l10n.pvpRefresh,
+              AssetOnlyIconButton(
+                semanticLabel: l10n.pvpRefresh,
                 onPressed: provider.historyLoading
                     ? null
                     : () => provider.loadMatchHistory(page: 1),
-                icon: const AppIcon(Icons.refresh),
+                icon: Icons.refresh,
+                buttonSize: 48,
+                assetSize: 42,
               ),
             ],
           ),
@@ -619,8 +614,12 @@ class _MatchHistorySheetState extends State<_MatchHistorySheet> {
                               height: 48,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                            color: isWin
-                                    ? (isDark ? AppColors.darkLife.withValues(alpha: 0.2) : Colors.amber.withValues(alpha: 0.2))
+                                color: isWin
+                                    ? (isDark
+                                          ? AppColors.darkLife.withValues(
+                                              alpha: 0.2,
+                                            )
+                                          : Colors.amber.withValues(alpha: 0.2))
                                     : theme.colorScheme.surfaceContainerHighest,
                                 border: isWin
                                     ? null
@@ -767,7 +766,9 @@ class _FilterChip extends StatelessWidget {
         selected: selected,
         onSelected: (_) => onSelected(),
         selectedColor: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
-        backgroundColor: isDark ? AppColors.darkNestedCard : AppColors.buttonSecondary,
+        backgroundColor: isDark
+            ? AppColors.darkNestedCard
+            : AppColors.buttonSecondary,
         side: BorderSide(
           color: isDark ? AppColors.darkCardBorder : AppColors.woodDeep,
           width: 1.5,
@@ -936,6 +937,7 @@ class _FriendsModalContent extends StatelessWidget {
       ],
     );
   }
+
   Widget _buildFriendItem(
     BuildContext context,
     FriendsResponse friend,

@@ -2,25 +2,26 @@ abstract final class AppAssets {
   static const root = 'assets/Mobile';
 
   // Auth and onboarding
-  static const authGarden = '$root/Auth/auth_garden_portrait.png';
-  static const welcome = '$root/Onboarding/welcome_portrait.png';
-  static const onboardingSeed = '$root/Onboarding/onboarding_seed_portrait.png';
+  static const authGarden = '$root/Auth/auth_garden_portrait.webp';
+  static const welcome = '$root/Onboarding/welcome_portrait.webp';
+  static const onboardingSeed =
+      '$root/Onboarding/onboarding_seed_portrait.webp';
   static const onboardingNamePet =
-      '$root/Onboarding/onboarding_name_pet_portrait.png';
+      '$root/Onboarding/onboarding_name_pet_portrait.webp';
   static const onboardingStory01 =
-      '$root/Onboarding/onboarding_01_luminara_alive-qa1.png';
+      '$root/Onboarding/onboarding_01_luminara_alive-qa1.webp';
   static const onboardingStory02 =
-      '$root/Onboarding/onboarding_02_silent_night-qa1.png';
+      '$root/Onboarding/onboarding_02_silent_night-qa1.webp';
   static const onboardingStory03 =
-      '$root/Onboarding/onboarding_03_last_seed-qa1.png';
+      '$root/Onboarding/onboarding_03_last_seed-qa1.webp';
   static const onboardingStory04 =
-      '$root/Onboarding/onboarding_04_waiting_device-qa1.png';
+      '$root/Onboarding/onboarding_04_waiting_device-qa1.webp';
   static const onboardingStory05 =
-      '$root/Onboarding/onboarding_05_first_step-qa1.png';
+      '$root/Onboarding/onboarding_05_first_step-qa1.webp';
   static const onboardingStory06 =
-      '$root/Onboarding/onboarding_06_lumina_awakens-qa1.png';
-  static const dailyReward = '$root/Onboarding/daily_reward_portrait.png';
-  static const menuBackdrop = '$root/Menu/menu_backdrop_portrait.png';
+      '$root/Onboarding/onboarding_06_lumina_awakens-qa1.webp';
+  static const dailyReward = '$root/Onboarding/daily_reward_portrait.webp';
+  static const menuBackdrop = '$root/Menu/menu_backdrop_portrait.webp';
 
   // Notifications and action feedback
   static const toastFeedbackFrame = '$root/ui_frames/toast_feedback_9slice.png';
@@ -407,37 +408,19 @@ abstract final class AppAssets {
       '$root/icon/friend_battle_pvp/friend_battle_start/14_battle.png';
 
   // Home
-  static const homeSprout = '$root/HomeBackgrounds/home_mam_non_portrait.png';
+  static const homeSprout = '$root/HomeBackgrounds/home_mam_non_portrait.webp';
   static const homeSproutDark =
-      '$root/HomeBackgrounds/home_mam_non_dark_portrait.png';
-  static const homeDawn = '$root/HomeBackgrounds/home_binh_minh_portrait.png';
+      '$root/HomeBackgrounds/home_mam_non_dark_portrait.webp';
+  static const homeDawn = '$root/HomeBackgrounds/home_binh_minh_portrait.webp';
   static const homeDawnDark =
-      '$root/HomeBackgrounds/home_binh_minh_dark_portrait.png';
-  static const homeWarmSun = '$root/HomeBackgrounds/home_nang_am_portrait.png';
+      '$root/HomeBackgrounds/home_binh_minh_dark_portrait.webp';
+  static const homeWarmSun = '$root/HomeBackgrounds/home_nang_am_portrait.webp';
   static const homeWarmSunDark =
-      '$root/HomeBackgrounds/home_nang_am_dark_portrait.png';
+      '$root/HomeBackgrounds/home_nang_am_dark_portrait.webp';
   static const homeMoonlightLight =
-      '$root/HomeBackgrounds/home_anh_trang_light_portrait.png';
+      '$root/HomeBackgrounds/home_anh_trang_light_portrait.webp';
   static const homeMoonlight =
-      '$root/HomeBackgrounds/home_anh_trang_portrait.png';
-
-  static const sproutDefaultAtlas =
-      '$root/flame/pet_runtime_v7_2/atlas_dd7071c64cc0f0ba6ecc554d.png';
-  static const moonlightStage1DefaultAtlas =
-      '$root/TInh Linh Ánh Trăng/stage1/base/atlas_e78e207b4fb6783144a0a55e.png';
-  static const dawnStage2DefaultAtlas =
-      '$root/Tinh Linh Bình Minh/stage2/base/atlas_fa372753875fe8d5d0bd080e.png';
-  static const warmSunStage1DefaultAtlas =
-      '$root/TinhLinhNangAm/Stage1/base/atlas_ff327504644d8c1f0717b891.png';
-  static const warmSunStage2DefaultAtlas =
-      '$root/TinhLinhNangAm/stage2/base/atlas_f540b13296415a1387269766.png';
-
-  static const evolvedDefaultAtlasAssets = [
-    moonlightStage1DefaultAtlas,
-    dawnStage2DefaultAtlas,
-    warmSunStage1DefaultAtlas,
-    warmSunStage2DefaultAtlas,
-  ];
+      '$root/HomeBackgrounds/home_anh_trang_portrait.webp';
 
   static List<String> get homeChromeAssets => [
     iconHomeNav,
@@ -465,54 +448,6 @@ abstract final class AppAssets {
     homeMoonlight,
   ];
 
-  // Pet runtime assets (catalog + fallbacks only; master atlases stay offline)
-  static const petRuntimeRoot = '$root/flame/pet_runtime_v7_2';
-  static const petRuntimeCatalogV1 =
-      '$petRuntimeRoot/pet_runtime_catalog_v1.json';
-  static const petRuntimeAnimationsV4 =
-      '$petRuntimeRoot/pet_animations_v4.json';
-  static const petRuntimeManifestSproutStage0 =
-      '$petRuntimeRoot/manifest_sprout_stage0_v4.json';
-  static const petRuntimeManifestWarmSunStage1 =
-      '$petRuntimeRoot/manifest_warm_sun_stage1_v4.json';
-  static const petRuntimeManifestWarmSunStage2 =
-      '$petRuntimeRoot/manifest_warm_sun_stage2_v4.json';
-  static const petRuntimeManifestDawnStage1 =
-      '$petRuntimeRoot/manifest_dawn_stage1_v4.json';
-  static const petRuntimeManifestDawnStage2 =
-      '$petRuntimeRoot/manifest_dawn_stage2_v4.json';
-  static const petRuntimeManifestMoonlightStage1 =
-      '$petRuntimeRoot/manifest_moonlight_stage1_v4.json';
-  static const petRuntimeManifestMoonlightStage2 =
-      '$petRuntimeRoot/manifest_moonlight_stage2_v4.json';
-
-  static const petRuntimeManifestAssets = [
-    petRuntimeManifestSproutStage0,
-    petRuntimeManifestWarmSunStage1,
-    petRuntimeManifestWarmSunStage2,
-    petRuntimeManifestDawnStage1,
-    petRuntimeManifestDawnStage2,
-    petRuntimeManifestMoonlightStage1,
-    petRuntimeManifestMoonlightStage2,
-  ];
-
-  static const petRuntimeFallbackAssets = [
-    '$petRuntimeRoot/fallback_sprout_stage0_eef089f06193e311.png',
-    '$petRuntimeRoot/fallback_warm_sun_stage1_e2992a6362d2f2f0.png',
-    '$petRuntimeRoot/fallback_warm_sun_stage2_854ad2fb82016339.png',
-    '$petRuntimeRoot/fallback_dawn_stage1_d1a28f0045a3211e.png',
-    '$petRuntimeRoot/fallback_dawn_stage2_83a65898a5d2f264.png',
-    '$petRuntimeRoot/fallback_moonlight_stage1_892833fec78f85bb.png',
-    '$petRuntimeRoot/fallback_moonlight_stage2_6a3c74cc5bd6ddcd.png',
-  ];
-
-  static List<String> get petRuntimeCatalogAssets => [
-    petRuntimeCatalogV1,
-    petRuntimeAnimationsV4,
-    ...petRuntimeManifestAssets,
-    ...petRuntimeFallbackAssets,
-  ];
-
   // PvP lobby / friend-battle icons
   static const pvpIconAutoBattle =
       '$root/icon/friend_battle_pvp/battle_pvp/24_auto_battle.png';
@@ -529,13 +464,13 @@ abstract final class AppAssets {
   static const pvpMapMorningLoop =
       '$root/PVP/Maps/pvp_map_morning_loop_portrait.png';
   static const pvpMapMorningFinish =
-      '$root/PVP/Maps/pvp_map_morning_finish_portrait.png';
+      '$root/PVP/Maps/pvp_map_morning_finish_runout_portrait.png';
   static const pvpMapNightStart =
       '$root/PVP/Maps/pvp_map_night_start_portrait.png';
   static const pvpMapNightLoop =
       '$root/PVP/Maps/pvp_map_night_loop_portrait.png';
   static const pvpMapNightFinish =
-      '$root/PVP/Maps/pvp_map_night_finish_portrait.png';
+      '$root/PVP/Maps/pvp_map_night_finish_runout_portrait.png';
 
   // Backward-compatible defaults while the PvP scene adopts phase switching.
   static const pvpMapMorning = pvpMapMorningStart;

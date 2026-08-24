@@ -25,8 +25,6 @@ class StartupPermissionService {
   }
 
   static Future<void> _requestAndroidPermissions() async {
-    await <Permission>[
-      Permission.activityRecognition,
-    ].request();
+    await <Permission>[Permission.activityRecognition].request();
   }
 }

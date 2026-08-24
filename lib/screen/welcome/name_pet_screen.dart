@@ -7,6 +7,7 @@ import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../auth/widgets/auth_style.dart';
 
 class NamePetScreen extends StatefulWidget {
@@ -81,6 +82,19 @@ class _NamePetScreenState extends State<NamePetScreen>
     setState(() => _isSaving = false);
 
     if (success) {
+      final prepared = await gameState.preparePetForHome();
+      if (!mounted) return;
+      if (!prepared) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).namePetCreateFailed),
+          ),
+        );
+        return;
+      }
+      final accountKey = gameState.user?.id.trim() ?? '';
+      await context.read<TutorialProvider>().markNewPlayerEligible(accountKey);
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
       return;
     }
@@ -112,41 +126,61 @@ class _NamePetScreenState extends State<NamePetScreen>
                         final petSize = (constraints.maxHeight * 0.24)
                             .clamp(160.0, 240.0)
                             .toDouble();
-                        final cardToPetGap = (constraints.maxHeight * 0.025)
-                            .clamp(12.0, 24.0)
-                            .toDouble();
+                        final keyboardInset = MediaQuery.viewInsetsOf(
+                          context,
+                        ).bottom;
+                        final keyboardVisible = keyboardInset > 0;
+                        // The painted nest cushion is centered at ~74.5% of
+                        // this portrait background. Anchor the pet's feet to
+                        // that world point instead of centering card + pet as
+                        // one UI column.
+                        final petGroundY = constraints.maxHeight * 0.745;
 
-                        return SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight - 42,
-                            ),
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 440,
-                                ),
-                                child: Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      _buildNameCard(l10n),
-                                      SizedBox(height: cardToPetGap),
-                                      PetRuntimePreview(
-                                        affinityCode: 'sprout',
-                                        stageNo: 0,
-                                        animationType: 'idle',
-                                        compact: true,
-                                        height: petSize,
-                                      ),
-                                    ],
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Positioned(
+                              key: const ValueKey('name-pet-world-anchor'),
+                              left: 0,
+                              right: 0,
+                              top: petGroundY - petSize,
+                              height: petSize,
+                              child: IgnorePointer(
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 180),
+                                  opacity: keyboardVisible ? 0 : 1,
+                                  child: PetRuntimePreview(
+                                    affinityCode: 'sprout',
+                                    stageNo: 0,
+                                    animationType: 'idle',
+                                    compact: true,
+                                    height: petSize,
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            Positioned.fill(
+                              child: SingleChildScrollView(
+                                padding: EdgeInsets.fromLTRB(
+                                  18,
+                                  18,
+                                  18,
+                                  keyboardInset + 24,
+                                ),
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 440,
+                                    ),
+                                    child: Form(
+                                      key: _formKey,
+                                      child: _buildNameCard(l10n),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
@@ -13,6 +14,8 @@ import '../../data/models/friend_profile_response.dart';
 import '../../data/repositories/friend_profile_repository.dart';
 import '../../data/repositories/friends_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/common/game_async_state.dart';
 
 class FriendPlayerProfileArguments {
   final String userId;
@@ -85,9 +88,7 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
       } else if (message.contains('not found')) {
         gameText = l10n.friendsPlayerNotFound;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(gameText), behavior: SnackBarBehavior.floating),
-      );
+      showGameNotificationDialog(context, message: gameText, isSuccess: false);
     } finally {
       if (mounted) setState(() => _isSendingRequest = false);
     }
@@ -95,79 +96,10 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
 
   void _showRequestDialog(String name) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.55),
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: theme.colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-            side: BorderSide(color: theme.colorScheme.outlineVariant),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withOpacity(0.25),
-                  ),
-                ),
-                child: AppIcon(
-                  Icons.check_rounded,
-                  color: theme.colorScheme.primary,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.friendProfileRequestSentTitle,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.friendProfileRequestSentMessage(name),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    l10n.friendProfileGreat,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    showGameNotificationDialog(
+      context,
+      message: l10n.friendProfileRequestSentMessage(name),
+      isSuccess: true,
     );
   }
 
@@ -219,7 +151,9 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
                   const SizedBox(height: 22),
                   Expanded(
                     child: snapshot.connectionState == ConnectionState.waiting
-                        ? const Center(child: CircularProgressIndicator())
+                        ? Center(
+                            child: GameLoadingIndicator(label: l10n.loading),
+                          )
                         : snapshot.hasError
                         ? _ErrorState(onRetry: _refresh)
                         : RefreshIndicator(
@@ -332,7 +266,9 @@ class _FriendSpiritScreenState extends State<FriendSpiritScreen> {
                   future: _spiritFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(
+                        child: GameLoadingIndicator(label: l10n.loading),
+                      );
                     }
                     if (snapshot.hasError || !snapshot.hasData) {
                       return _ErrorState(
@@ -416,7 +352,9 @@ class _ProfileCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.wood, width: 1.5),
         boxShadow: [
@@ -532,7 +470,9 @@ class _SpiritCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkCard
+                : AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: AppColors.woodDeep, width: 1.8),
           ),
@@ -673,21 +613,20 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.creamLight,
-              borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: AppColors.wood, width: 1.2),
+            child: Center(
+              child: AppIcon(icon, asset: asset, color: iconColor, size: 36),
             ),
-            child: AppIcon(icon, asset: asset, color: iconColor, size: 26),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -736,7 +675,9 @@ class _AchievementsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.woodDeep, width: 1.8),
       ),
@@ -785,7 +726,9 @@ class _SpiritHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
@@ -840,7 +783,9 @@ class _SpiritMetricBar extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.wood, width: 1.5),
       ),
@@ -950,45 +895,33 @@ class _CircleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: isLoading ? null : onTap,
-        child: Ink(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isActive
-                ? theme.colorScheme.primary
-                : theme.colorScheme.surface.withOpacity(0.85),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isActive
-                  ? Colors.transparent
-                  : theme.colorScheme.outlineVariant,
+    if (isLoading) {
+      return SizedBox.square(
+        dimension: 40,
+        child: Center(
+          child: SizedBox.square(
+            dimension: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.primary,
             ),
           ),
-          child: Center(
-            child: isLoading
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: theme.colorScheme.primary,
-                    ),
-                  )
-                : AppIcon(
-                    icon,
-                    size: 20,
-                    color: isActive
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
-          ),
         ),
-      ),
+      );
+    }
+
+    final l10n = AppLocalizations.of(context);
+    return AssetOnlyIconButton(
+      onPressed: onTap,
+      semanticLabel: isActive
+          ? l10n.friendProfileRequestSentTitle
+          : l10n.friendsAdd,
+      icon: icon,
+      buttonSize: 40,
+      assetSize: 34,
+      color: isActive
+          ? theme.colorScheme.primary
+          : theme.colorScheme.onSurfaceVariant,
     );
   }
 }

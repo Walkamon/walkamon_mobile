@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DewdropIcon extends StatelessWidget {
-  const DewdropIcon({
-    super.key,
-    this.size = 16,
-    this.color,
-  });
+  const DewdropIcon({super.key, this.size = 16, this.color});
 
   final double size;
   final Color? color;
@@ -14,7 +10,9 @@ class DewdropIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _DewdropPainter(color: color ?? Theme.of(context).colorScheme.primary),
+      painter: _DewdropPainter(
+        color: color ?? Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }

@@ -35,10 +35,16 @@ class FriendProfileRepository {
     }
 
     if (profile == null && spirit == null) {
-      throw Exception(profileError ?? spiritError ?? 'Friend profile not found');
+      throw Exception(
+        profileError ?? spiritError ?? 'Friend profile not found',
+      );
     }
 
-    return FriendPlayerProfile(userId: userId, profile: profile, spirit: spirit);
+    return FriendPlayerProfile(
+      userId: userId,
+      profile: profile,
+      spirit: spirit,
+    );
   }
 
   Future<FriendSpiritResponse> getFriendSpirit(String userId) async {

@@ -88,6 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sfx => 'Sound effects (SFX)';
 
   @override
+  String get haptics => 'Touch feedback';
+
+  @override
+  String get hapticsSubtitle =>
+      'Gentle vibration for care actions, rewards and races';
+
+  @override
   String get darkMode => 'Dark mode';
 
   @override
@@ -135,6 +142,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get todayStepsDesc => 'Steps you\'ve walked today';
+
+  @override
+  String get petActionBusy =>
+      'Your pet is finishing another action. Please wait a moment.';
+
+  @override
+  String get petLifeForceFull => 'Your pet has reached its Life Force limit.';
+
+  @override
+  String get petFeedLimitReached =>
+      'You have reached the feeding limit. Please come back later.';
+
+  @override
+  String get petFeedInsufficientDew =>
+      'You do not have enough Dewdrops to feed your pet.';
+
+  @override
+  String get petFeedUnavailable =>
+      'Unable to feed your pet right now. Please try again.';
 
   @override
   String get stepTrackingPermissionRequired =>
@@ -568,6 +594,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get achievementsLockedTab => 'Unclaimed';
 
   @override
+  String achievementClaimSuccess(int amount) {
+    return 'Reward claimed: +$amount';
+  }
+
+  @override
+  String get achievementClaimFailed =>
+      'Could not claim the reward. Please try again.';
+
+  @override
   String get achievementsCurrentProgress => 'Current progress';
 
   @override
@@ -891,6 +926,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsEmpty => 'No notifications yet.';
+
+  @override
+  String get notificationsLoadFailed => 'Could not load notifications.';
+
+  @override
+  String get streakLoadFailed => 'Could not load your streak.';
 
   @override
   String get notificationsDeleted => 'Notification deleted';
@@ -1534,6 +1575,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'You already sent this player an invite!';
 
   @override
+  String get friendsRequestCanceled => 'Friend invite withdrawn.';
+
+  @override
+  String get friendsRequestCancelFailed =>
+      'Could not withdraw the invite. Please try again.';
+
+  @override
+  String get friendsRequestAccepted => 'Friend invite accepted!';
+
+  @override
+  String get friendsRequestDeclined => 'Friend invite declined.';
+
+  @override
+  String get friendsRequestActionFailed =>
+      'That action could not be completed. Please try again.';
+
+  @override
   String get friendsAlreadyFriend => 'You are already friends!';
 
   @override
@@ -1708,6 +1766,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pvpBondLabel => 'Bond:';
+
+  @override
+  String pvpEnergyRequired(int amount) {
+    return 'PvP requires at least $amount energy.';
+  }
+
+  @override
+  String get petDataLoadError =>
+      'Unable to load the latest spirit stats. Please try again.';
 
   @override
   String get pvpSearchingOpponent => 'Searching for an opponent...';
@@ -2021,10 +2088,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String pvpRaceTimeRemaining(int seconds) {
+    return '${seconds}s left';
+  }
+
+  @override
+  String get pvpRaceSegmentStart => 'Start';
+
+  @override
+  String get pvpRaceSegmentTrail => 'Forest trail';
+
+  @override
+  String get pvpRaceSegmentFinish => 'Finish';
+
+  @override
   String get pvpRaceGo => 'GO!';
 
   @override
   String get pvpCloseRace => 'Leave race';
+
+  @override
+  String get pvpItemOnlyDuringRace =>
+      'Items can only be used while the race is running';
+
+  @override
+  String get pvpItemSlotUnavailable => 'This item slot is no longer available';
+
+  @override
+  String get pvpItemUseFailed => 'Unable to use this item';
+
+  @override
+  String get pvpItemBlocked => 'The shield blocked the effect';
+
+  @override
+  String get pvpItemCleansed => 'Negative effects were cleansed';
+
+  @override
+  String get pvpItemUsed => 'Item used';
 
   @override
   String get pvpMatchStatusWaiting => 'Waiting';
@@ -2064,4 +2164,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pvpTierUnknown => 'Unknown rank';
+
+  @override
+  String get tutorialSettingsTitle => 'Guides';
+
+  @override
+  String get tutorialReplayHome => 'Replay Home guide';
+
+  @override
+  String get tutorialReplayPvp => 'Replay PvP guide';
+
+  @override
+  String get tutorialReplayStarted => 'The guide is ready to replay.';
+
+  @override
+  String get tutorialSkip => 'Skip guide';
+
+  @override
+  String get tutorialNext => 'Next';
+
+  @override
+  String get tutorialGotIt => 'Got it';
+
+  @override
+  String tutorialStepLabel(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get tutorialHomePetTitle => 'Say hello';
+
+  @override
+  String get tutorialHomePetBody =>
+      'Tap your Lumina to greet it and build your bond.';
+
+  @override
+  String get tutorialHomeFeedTitle => 'Care for your Lumina';
+
+  @override
+  String get tutorialHomeFeedBody =>
+      'Tap the Dew Drop to try feeding. Even when your pet is full, the game will explain why.';
+
+  @override
+  String get tutorialHomeStatsTitle => 'Read its needs';
+
+  @override
+  String get tutorialHomeStatsBody =>
+      'Energy powers activities, Life Force shows wellbeing, and Bond grows as you care for your Lumina.';
+
+  @override
+  String get tutorialHomeStepsTitle => 'Your real steps matter';
+
+  @override
+  String get tutorialHomeStepsBody =>
+      'Open Steps to see today\'s progress and fix activity permission when needed.';
+
+  @override
+  String get tutorialHomeMissionsTitle => 'A gentle next goal';
+
+  @override
+  String get tutorialHomeMissionsBody =>
+      'Open Missions to find small daily goals and rewards.';
+
+  @override
+  String get tutorialPvpLobbyTitle => 'Before the race';
+
+  @override
+  String get tutorialPvpLobbyBody =>
+      'Check your pet, Energy and Bond here. A race costs Energy; Friendly races do not grant ranked rewards.';
+
+  @override
+  String get tutorialPvpMatchTitle => 'Choose an opponent';
+
+  @override
+  String get tutorialPvpMatchBody =>
+      'Use random matchmaking or challenge a friend. You can cancel safely while searching.';
+
+  @override
+  String get tutorialPvpRaceTitle => 'A 30-second journey';
+
+  @override
+  String get tutorialPvpRaceBody =>
+      'Your pet runs automatically. The route and live progress show how close both racers are to the finish.';
+
+  @override
+  String get tutorialPvpItemsTitle => 'Optional race items';
+
+  @override
+  String get tutorialPvpItemsBody =>
+      'Items are optional. Tap an available slot for an effect; an empty loadout never blocks the race.';
+
+  @override
+  String get tutorialPvpItemsEmptyBody =>
+      'Your loadout is empty. That is okay—your pet still races normally and no item is required.';
+
+  @override
+  String get tutorialPvpFinishTitle => 'The finish moment';
+
+  @override
+  String get tutorialPvpFinishBody =>
+      'After crossing the line, your pet stops and reacts to winning or losing before the result card appears.';
+
+  @override
+  String get tutorialPvpResultTitle => 'The finish tells the story';
+
+  @override
+  String get tutorialPvpResultBody =>
+      'After the finish reaction, compare the final scores. Ranked rewards appear only when the server grants them.';
+
+  @override
+  String get pvpRaceCountdownReady => 'Ready';
+
+  @override
+  String get pvpRaceCountdownSet => 'Set';
+
+  @override
+  String get pvpRaceCountdownGo => 'Go!';
 }

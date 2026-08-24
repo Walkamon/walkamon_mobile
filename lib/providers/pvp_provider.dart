@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/auth/token_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:signalr_netcore/signalr_client.dart';
+import '../core/audio/app_audio_service.dart';
+import '../core/feedback/app_haptics.dart';
 import '../core/constants/api_constants.dart';
 import '../core/network/api_client.dart';
 import '../data/datasources/remote/pvp_sprint_datasource.dart';
@@ -12,8 +14,10 @@ import '../data/datasources/remote/pet_screen_datasource.dart';
 import '../data/datasources/remote/activity_stats_datasource.dart';
 import '../data/datasources/remote/friends_datasource.dart';
 import '../data/models/pvp_models.dart';
+import '../data/models/pvp_item_models.dart';
 import '../data/models/friends_response.dart';
 import 'presence_provider.dart';
+import '../screen/gameplay/pvp/pvp_race_contract.dart';
 
 abstract class PvpSignalRService {
   bool get isConnected;
@@ -210,6 +214,11 @@ class DefaultPvpSignalRService implements PvpSignalRService {
           'match.countdown.started',
           'match.started',
           'match.finished',
+          'match.item.used',
+          'match.effect.applied',
+          'match.effect.blocked',
+          'match.effect.cleansed',
+          'match.effect.expired',
           'match.settling',
           'match.cancelled',
           'presence.changed',
@@ -313,6 +322,13 @@ class DefaultPvpSignalRService implements PvpSignalRService {
         _onAssigned?.call(data);
         break;
       case 'match.progress':
+        _onProgress?.call(data);
+        break;
+      case 'match.item.used':
+      case 'match.effect.applied':
+      case 'match.effect.blocked':
+      case 'match.effect.cleansed':
+      case 'match.effect.expired':
         _onProgress?.call(data);
         break;
       case 'match.countdown.started':
@@ -475,6 +491,13 @@ class DefaultPvpSignalRService implements PvpSignalRService {
       case 'match.progress':
         _onProgress?.call(event);
         break;
+      case 'match.item.used':
+      case 'match.effect.applied':
+      case 'match.effect.blocked':
+      case 'match.effect.cleansed':
+      case 'match.effect.expired':
+        _onProgress?.call(event);
+        break;
       case 'match.countdown.started':
         _onCountdownStarted?.call(event);
         break;
@@ -520,6 +543,58 @@ enum PvpMatchmakingState {
 }
 
 enum PvpCountdownPhase { beforeStart, countdown, finished }
+
+/// Stable presentation codes. Providers never emit localized user-facing
+/// sentences; widgets resolve these codes through [AppLocalizations].
+enum PvpItemFeedbackCode {
+  onlyDuringRace,
+  slotUnavailable,
+  useFailed,
+  blocked,
+  cleansed,
+  used,
+}
+
+@visibleForTesting
+const pvpFinishReactionDuration = Duration(milliseconds: 2600);
+
+@visibleForTesting
+const pvpFinishSettlementFailsafe = Duration(seconds: 10);
+
+@visibleForTesting
+bool isPvpFinishWinnerVisible({
+  required String? resultCode,
+  required double myProgress,
+  required double opponentProgress,
+}) {
+  return switch (resultCode?.trim().toLowerCase()) {
+    'win' => myProgress >= 99.5,
+    'lose' => opponentProgress >= 99.5,
+    'draw' => myProgress >= 99.5 && opponentProgress >= 99.5,
+    _ => false,
+  };
+}
+
+@visibleForTesting
+bool shouldCompletePvpFinishPresentation({
+  required String? resultCode,
+  required double myProgress,
+  required double opponentProgress,
+  required int presentationElapsedMilliseconds,
+  required int? reactionElapsedMilliseconds,
+}) {
+  final winnerVisible = isPvpFinishWinnerVisible(
+    resultCode: resultCode,
+    myProgress: myProgress,
+    opponentProgress: opponentProgress,
+  );
+  if (reactionElapsedMilliseconds != null) {
+    return winnerVisible &&
+        reactionElapsedMilliseconds >= pvpFinishReactionDuration.inMilliseconds;
+  }
+  return presentationElapsedMilliseconds >=
+      pvpFinishSettlementFailsafe.inMilliseconds;
+}
 
 PvpCountdownPhase resolveCountdownPhase({
   required bool countdownActive,
@@ -616,10 +691,8 @@ class PvpProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  bool _hasReceivedAssignedEvent = false;
   bool _hasMatchRoomJoined = false;
   String? _activeMatchId;
-  DateTime? _matchmakingStartedAt;
   bool _inviteDeclined = false;
   bool get inviteDeclined => _inviteDeclined;
 
@@ -810,16 +883,31 @@ class PvpProvider extends ChangeNotifier {
   int? _lastLoggedCountdownValue;
 
   DateTime? _raceStartedAt;
+  DateTime? _lastRaceProgressTickAt;
   Duration _raceDuration = const Duration(seconds: 30);
   double _raceTimeProgress = 0.0;
   double _myProgress = 0.0;
   double _opponentProgress = 0.0;
+  double _targetMyProgress = 0.0;
+  double _targetOpponentProgress = 0.0;
+  int? _finishTargetDistanceUnits;
   bool _isRaceFinished = false;
+  bool _serverFinished = false;
+  bool _finishLineCrossed = false;
+  bool _finishPresentationCompleted = false;
+  PvpRacePresentationState _finishPresentationState =
+      PvpRacePresentationState.waiting;
+  DateTime? _finishPresentationStartedAt;
+  DateTime? _finishReactionStartedAt;
+  final Map<int, String> _pendingItemActions = <int, String>{};
+  PvpItemFeedbackCode? _itemFeedback;
+  String? _lastItemActionId;
+  String? _transientVfxCode;
+  String? _transientVfxTargetMatchPlayerId;
+  int _transientVfxSequence = 0;
 
   // Matchmaking trace
-  String _lastMatchmakingStep = 'none';
   void _traceMatchmaking(String step) {
-    _lastMatchmakingStep = step;
     _log(step);
   }
 
@@ -887,7 +975,41 @@ class PvpProvider extends ChangeNotifier {
 
   void _setCurrentMatchSnapshot(PvpMatchResponse match) {
     _currentMatch = match;
+    _finishTargetDistanceUnits ??=
+        PvpRaceProgressMapper.finishTargetFromParticipants(match.participants);
+    _applyAuthoritativeEffects(match.activeEffects);
     _applyHudFromMatch(match);
+    if (match.statusCode.toLowerCase() == 'finished') {
+      _beginFinishReconciliation();
+    }
+  }
+
+  void _applyAuthoritativeEffects(List<PvpActiveEffect> effects) {
+    final now = estimatedServerNow();
+    final active = effects
+        .where((effect) => effect.isActiveAt(now))
+        .toList(growable: false);
+    final match = _currentMatch;
+    if (match == null) return;
+    _currentMatch = PvpMatchResponse(
+      matchId: match.matchId,
+      matchTypeCode: match.matchTypeCode,
+      statusCode: match.statusCode,
+      sourceCode: match.sourceCode,
+      cancelReasonCode: match.cancelReasonCode,
+      serverTime: match.serverTime,
+      createdAt: match.createdAt,
+      countdownStartsAt: match.countdownStartsAt,
+      countdownEndsAt: match.countdownEndsAt,
+      countdownSecondsRemaining: match.countdownSecondsRemaining,
+      startedAt: match.startedAt,
+      endedAt: match.endedAt,
+      settlementEndsAt: match.settlementEndsAt,
+      lastEventSequence: match.lastEventSequence,
+      participants: match.participants,
+      activeEffects: active,
+      loadout: match.loadout,
+    );
   }
 
   void _applyHudFromMatch(PvpMatchResponse match) {
@@ -948,12 +1070,17 @@ class PvpProvider extends ChangeNotifier {
       if (row == null) return p;
 
       final distance = (row['distanceUnits'] as num?)?.toInt();
-      print('[PvP][match.progress][apply] participant=$id distance=$distance');
+      debugPrint(
+        '[PvP][match.progress][apply] participant=$id distance=$distance',
+      );
       return p.copyWith(
         distanceUnits: distance,
         validatedSteps: (row['validatedSteps'] as num?)?.toInt(),
         speedMultiplierBps: (row['speedMultiplierBps'] as num?)?.toInt(),
         score: (row['score'] as num?)?.toInt(),
+        expectedDistanceUnits: (row['expectedDistanceUnits'] as num?)?.toInt(),
+        basePaceMilliStepsPerSecond:
+            (row['basePaceMilliStepsPerSecond'] as num?)?.toInt(),
       );
     }).toList();
 
@@ -973,7 +1100,11 @@ class PvpProvider extends ChangeNotifier {
       settlementEndsAt: match.settlementEndsAt,
       lastEventSequence: match.lastEventSequence,
       participants: updated,
+      activeEffects: match.activeEffects,
+      loadout: match.loadout,
     );
+    _finishTargetDistanceUnits ??=
+        PvpRaceProgressMapper.finishTargetFromParticipants(updated);
     _applyHudFromMatch(_currentMatch!);
     notifyListeners();
   }
@@ -982,6 +1113,272 @@ class PvpProvider extends ChangeNotifier {
     Map<String, dynamic> event, {
     required String eventType,
   }) {}
+
+  List<PvpLoadoutSlot> get itemLoadout =>
+      _currentMatch?.loadout ?? const <PvpLoadoutSlot>[];
+  List<PvpActiveEffect> get activeEffects =>
+      _currentMatch?.activeEffects ?? const <PvpActiveEffect>[];
+  Set<int> get pendingItemSlots => _pendingItemActions.keys.toSet();
+  PvpItemFeedbackCode? get itemFeedback => _itemFeedback;
+  String? get transientVfxCode => _transientVfxCode;
+  bool get transientVfxOnMyPet {
+    final myId = _myParticipant?.matchPlayerId;
+    return myId != null && myId == _transientVfxTargetMatchPlayerId;
+  }
+
+  int get transientVfxSequence => _transientVfxSequence;
+  PvpRacePresentationState get finishPresentationState =>
+      _finishPresentationState;
+  bool get isFinishReconciling =>
+      _finishPresentationState == PvpRacePresentationState.serverFinished ||
+      _finishPresentationState == PvpRacePresentationState.reconciling ||
+      _finishPresentationState == PvpRacePresentationState.reacting;
+  bool get isFinishReacting =>
+      _finishPresentationState == PvpRacePresentationState.reacting;
+  bool get finishPresentationCompleted => _finishPresentationCompleted;
+  bool get finishLineCrossed => _finishLineCrossed;
+  double get targetMyProgress => _targetMyProgress;
+  double get targetOpponentProgress => _targetOpponentProgress;
+  double get finishTargetDistanceUnits =>
+      (_finishTargetDistanceUnits ?? 0).toDouble();
+
+  /// Called by the race presentation only after the winning pet's meaningful
+  /// trailing alpha edge has crossed the checker stripe. The server remains
+  /// the source
+  /// of truth for the result; this only unlocks its visual reaction sequence.
+  void markFinishLineCrossed() {
+    if (!_serverFinished || _finishLineCrossed) return;
+    _finishLineCrossed = true;
+    _advanceFinishPresentation();
+    notifyListeners();
+  }
+
+  Future<void> refreshPvpLoadout() async {
+    final response = await _pvpDatasource.getLoadout();
+    final match = _currentMatch;
+    if (!response.success || response.data == null || match == null) return;
+    _currentMatch = _copyMatch(match, loadout: response.data!.slots);
+    notifyListeners();
+  }
+
+  PvpMatchResponse _copyMatch(
+    PvpMatchResponse match, {
+    List<PvpParticipantResponse>? participants,
+    List<PvpActiveEffect>? activeEffects,
+    List<PvpLoadoutSlot>? loadout,
+    String? statusCode,
+  }) {
+    return PvpMatchResponse(
+      matchId: match.matchId,
+      matchTypeCode: match.matchTypeCode,
+      statusCode: statusCode ?? match.statusCode,
+      sourceCode: match.sourceCode,
+      cancelReasonCode: match.cancelReasonCode,
+      serverTime: match.serverTime,
+      createdAt: match.createdAt,
+      countdownStartsAt: match.countdownStartsAt,
+      countdownEndsAt: match.countdownEndsAt,
+      countdownSecondsRemaining: match.countdownSecondsRemaining,
+      startedAt: match.startedAt,
+      endedAt: match.endedAt,
+      settlementEndsAt: match.settlementEndsAt,
+      lastEventSequence: match.lastEventSequence,
+      participants: participants ?? match.participants,
+      activeEffects: activeEffects ?? match.activeEffects,
+      loadout: loadout ?? match.loadout,
+    );
+  }
+
+  String _newClientActionId() {
+    final random = math.Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
+
+  Future<bool> useItem(int slotNo) async {
+    final matchId = _activeMatchId;
+    final acceptsItemInput =
+        _matchmakingState == PvpMatchmakingState.running && !_serverFinished;
+    if (matchId == null || matchId.isEmpty || !acceptsItemInput) {
+      _itemFeedback = PvpItemFeedbackCode.onlyDuringRace;
+      notifyListeners();
+      return false;
+    }
+    PvpLoadoutSlot? slot;
+    for (final candidate in itemLoadout) {
+      if (candidate.slotNo == slotNo) {
+        slot = candidate;
+        break;
+      }
+    }
+    if (slot == null ||
+        !slot.isAvailable ||
+        _pendingItemActions.containsKey(slotNo)) {
+      _itemFeedback = PvpItemFeedbackCode.slotUnavailable;
+      notifyListeners();
+      return false;
+    }
+    final clientActionId = _newClientActionId();
+    _pendingItemActions[slotNo] = clientActionId;
+    _itemFeedback = null;
+    notifyListeners();
+    final response = await _pvpDatasource.useItem(
+      matchId,
+      slotNo: slotNo,
+      clientActionId: clientActionId,
+    );
+    if (!response.success || response.data == null) {
+      _pendingItemActions.remove(slotNo);
+      _itemFeedback = PvpItemFeedbackCode.useFailed;
+      notifyListeners();
+      return false;
+    }
+    final action = response.data!;
+    if (!action.accepted) {
+      _pendingItemActions.remove(slotNo);
+      _itemFeedback = _friendlyItemResult(action.resultCode);
+      notifyListeners();
+      return false;
+    }
+    _lastItemActionId = action.clientActionId.isEmpty
+        ? clientActionId
+        : action.clientActionId;
+    AppAudioService.instance.playUseItem();
+    unawaited(AppHaptics.mediumImpact());
+    if (action.effect != null) {
+      _applyEffectFromEvent(action.effect!, 'applied');
+    }
+    _markSlotUsed(slotNo);
+    _pendingItemActions.remove(slotNo);
+    _itemFeedback = _friendlyItemResult(action.resultCode);
+    notifyListeners();
+    return true;
+  }
+
+  PvpItemFeedbackCode _friendlyItemResult(String resultCode) {
+    switch (resultCode.trim().toLowerCase()) {
+      case 'blocked':
+        AppAudioService.instance.playPvpBlocked();
+        unawaited(AppHaptics.warning());
+        return PvpItemFeedbackCode.blocked;
+      case 'cleansed':
+        unawaited(AppHaptics.success());
+        return PvpItemFeedbackCode.cleansed;
+      case 'applied':
+      case 'accepted':
+      case 'ok':
+      case 'success':
+        return PvpItemFeedbackCode.used;
+      default:
+        return PvpItemFeedbackCode.useFailed;
+    }
+  }
+
+  void clearItemFeedback() {
+    if (_itemFeedback == null) return;
+    _itemFeedback = null;
+    notifyListeners();
+  }
+
+  void _markSlotUsed(int slotNo) {
+    final match = _currentMatch;
+    if (match == null) return;
+    final slots = match.loadout
+        .map(
+          (slot) => slot.slotNo == slotNo
+              ? slot.copyWith(usedAt: estimatedServerNow())
+              : slot,
+        )
+        .toList(growable: false);
+    _currentMatch = _copyMatch(match, loadout: slots);
+  }
+
+  void _applyEffectFromEvent(PvpActiveEffect effect, String eventType) {
+    final match = _currentMatch;
+    if (match == null) return;
+    final effects = List<PvpActiveEffect>.from(match.activeEffects);
+    if (eventType == 'expired' ||
+        eventType == 'cleansed' ||
+        eventType == 'blocked') {
+      effects.removeWhere(
+        (value) =>
+            value.effectId == effect.effectId ||
+            (value.targetMatchPlayerId == effect.targetMatchPlayerId &&
+                value.effectCode == effect.effectCode),
+      );
+    } else {
+      effects.removeWhere((value) => value.effectId == effect.effectId);
+      effects.add(effect);
+    }
+    _currentMatch = _copyMatch(match, activeEffects: effects);
+    final assetCode = effect.presentationCode;
+    if (assetCode != null) {
+      _transientVfxCode = assetCode;
+      _transientVfxTargetMatchPlayerId = effect.targetMatchPlayerId;
+      _transientVfxSequence++;
+    }
+  }
+
+  void _handleItemEvent(Map<String, dynamic> event) {
+    final eventType = event['eventType']?.toString() ?? '';
+    final payload = event['payload'] is Map
+        ? Map<String, dynamic>.from(event['payload'] as Map)
+        : <String, dynamic>{};
+    final rawDetails = payload['details'];
+    final details = rawDetails is Map
+        ? Map<String, dynamic>.from(rawDetails)
+        : payload;
+    final slotNo =
+        (details['slotNo'] as num?)?.toInt() ??
+        int.tryParse('${details['slotNo'] ?? 0}') ??
+        0;
+    final actionId =
+        details['clientActionId']?.toString() ??
+        details['actionId']?.toString();
+    if (slotNo > 0 && eventType == 'match.item.used') {
+      _markSlotUsed(slotNo);
+      _pendingItemActions.remove(slotNo);
+    }
+    final rawEffect = details['effect'];
+    PvpActiveEffect? effect;
+    if (rawEffect is Map) {
+      effect = PvpActiveEffect.fromJson(Map<String, dynamic>.from(rawEffect));
+    } else if (details['effectCode'] != null) {
+      effect = PvpActiveEffect.fromJson(details);
+    }
+    if (effect != null) {
+      final phase = eventType.endsWith('expired')
+          ? 'expired'
+          : eventType.endsWith('cleansed')
+          ? 'cleansed'
+          : eventType.endsWith('blocked')
+          ? 'blocked'
+          : 'applied';
+      _applyEffectFromEvent(effect, phase);
+      if (phase == 'applied' && actionId != _lastItemActionId) {
+        final targetsMe =
+            effect.targetMatchPlayerId == _myParticipant?.matchPlayerId;
+        if (targetsMe && effect.presentationCode == 'slow') {
+          AppAudioService.instance.playPvpBlocked();
+          unawaited(AppHaptics.warning());
+        } else {
+          AppAudioService.instance.playUseItem();
+          unawaited(AppHaptics.mediumImpact());
+        }
+        _lastItemActionId = actionId;
+      }
+    }
+    final result = details['result']?.toString();
+    if (result != null && result.isNotEmpty) {
+      _itemFeedback = _friendlyItemResult(result);
+    }
+    notifyListeners();
+  }
 
   DateTime estimatedServerNow() {
     final localNow = DateTime.now().toUtc();
@@ -1090,10 +1487,12 @@ class PvpProvider extends ChangeNotifier {
   void _stopRaceTicker() {
     _raceTicker?.cancel();
     _raceTicker = null;
+    _lastRaceProgressTickAt = null;
   }
 
   bool get isRaceRunning =>
-      _matchmakingState == PvpMatchmakingState.running && !_isRaceFinished;
+      (_matchmakingState == PvpMatchmakingState.running && !_isRaceFinished) ||
+      isFinishReconciling;
 
   bool get isRaceFinished =>
       _isRaceFinished || _matchmakingState == PvpMatchmakingState.finished;
@@ -1142,10 +1541,26 @@ class PvpProvider extends ChangeNotifier {
 
   void _resetRaceState() {
     _raceStartedAt = null;
+    _lastRaceProgressTickAt = null;
     _raceTimeProgress = 0.0;
     _myProgress = 0.0;
     _opponentProgress = 0.0;
+    _targetMyProgress = 0.0;
+    _targetOpponentProgress = 0.0;
+    _finishTargetDistanceUnits = null;
     _isRaceFinished = false;
+    _serverFinished = false;
+    _finishLineCrossed = false;
+    _finishPresentationCompleted = false;
+    _finishPresentationState = PvpRacePresentationState.waiting;
+    _finishPresentationStartedAt = null;
+    _finishReactionStartedAt = null;
+    _pendingItemActions.clear();
+    _itemFeedback = null;
+    _lastItemActionId = null;
+    _transientVfxCode = null;
+    _transientVfxTargetMatchPlayerId = null;
+    _transientVfxSequence = 0;
     _stopRaceTicker();
     _stopSettlementPoll();
   }
@@ -1236,12 +1651,21 @@ class PvpProvider extends ChangeNotifier {
   void _updateRaceProgress() {
     if (_raceStartedAt == null) return;
 
+    final now = DateTime.now().toUtc();
+    final dtSeconds = _lastRaceProgressTickAt == null
+        ? 0.05
+        : (now.difference(_lastRaceProgressTickAt!).inMicroseconds / 1000000)
+              .clamp(1 / 120, 0.12)
+              .toDouble();
+    _lastRaceProgressTickAt = now;
+
     final elapsedMs = elapsed.inMilliseconds;
     final totalMs = _raceDuration.inMilliseconds;
     final progress = totalMs == 0 ? 0.0 : elapsedMs / totalMs;
     _raceTimeProgress = progress.clamp(0.0, 1.0);
 
-    // UC-72: HUD mượt mà kết hợp giữa Server Distance và Time Progress
+    // The race clock is presentation fallback only.  Distance/target is the
+    // canonical mapping whenever the backend provides a target.
     final me = _myParticipant;
     PvpParticipantResponse? opponent;
     final participants = _currentMatch?.participants ?? [];
@@ -1252,37 +1676,164 @@ class PvpProvider extends ChangeNotifier {
       }
     }
 
-    final myDist = me?.distanceUnits ?? 0;
-    final oppDist = opponent?.distanceUnits ?? 0;
-
-    if (myDist <= 0 && oppDist <= 0) {
-      _myProgress = _raceTimeProgress * 100.0;
-      _opponentProgress = _raceTimeProgress * 100.0;
-    } else {
-      final scale = math.max(math.max(myDist, oppDist), 1);
-      _myProgress = ((myDist / scale) * _raceTimeProgress * 100)
-          .clamp(0, 100)
-          .toDouble();
-      _opponentProgress = ((oppDist / scale) * _raceTimeProgress * 100)
-          .clamp(0, 100)
-          .toDouble();
-    }
+    final target = _finishTargetDistanceUnits;
+    final myTarget = PvpRaceProgressMapper.normalizeParticipant(
+      me ?? const PvpParticipantResponse(participantTypeCode: ''),
+      fallbackProgress: _raceTimeProgress,
+      finishTargetDistanceUnits: target,
+    );
+    final opponentTarget = PvpRaceProgressMapper.normalizeParticipant(
+      opponent ?? const PvpParticipantResponse(participantTypeCode: ''),
+      fallbackProgress: _raceTimeProgress,
+      finishTargetDistanceUnits: target,
+    );
+    _targetMyProgress = math.max(_targetMyProgress, myTarget);
+    _targetOpponentProgress = math.max(_targetOpponentProgress, opponentTarget);
+    _myProgress =
+        PvpRaceProgressMapper.approach(
+          current: _myProgress / 100,
+          target: _targetMyProgress,
+          dtSeconds: dtSeconds,
+        ) *
+        100;
+    _opponentProgress =
+        PvpRaceProgressMapper.approach(
+          current: _opponentProgress / 100,
+          target: _targetOpponentProgress,
+          dtSeconds: dtSeconds,
+        ) *
+        100;
+    if (_serverFinished) _advanceFinishPresentation();
   }
 
   void _startRaceTicker() {
     _stopRaceTicker();
-    _raceTicker = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _lastRaceProgressTickAt = null;
+    _raceTicker = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       _updateRaceProgress();
       notifyListeners();
-      if (_raceTimeProgress >= 1.0) {
+      if (_raceTimeProgress >= 1.0 && !_serverFinished) {
         timer.cancel();
+        if (identical(_raceTicker, timer)) _raceTicker = null;
         // Local HUD clock ended — do not invent win/MMR. Poll server until
         // finished/cancelled, then UC-69 result becomes available.
         _isRaceFinished = true;
+        _serverFinished = true;
+        _beginFinishReconciliation();
         notifyListeners();
         unawaited(_pollMatchUntilTerminal());
       }
     });
+  }
+
+  void _beginFinishReconciliation() {
+    if (_finishPresentationCompleted) return;
+    _serverFinished = true;
+    _isRaceFinished = true;
+    if (_raceStartedAt == null) {
+      _raceStartedAt = _currentMatch?.startedAt ?? estimatedServerNow();
+      _raceTimeProgress = 1.0;
+    }
+    _finishPresentationCompleted = false;
+    _finishPresentationState = PvpRacePresentationState.serverFinished;
+    _finishPresentationStartedAt ??= DateTime.now().toUtc();
+
+    final participants =
+        _currentMatch?.participants ?? const <PvpParticipantResponse>[];
+    final distances = participants
+        .map((participant) => participant.distanceUnits ?? 0)
+        .where((distance) => distance > 0)
+        .toList(growable: false);
+    _finishTargetDistanceUnits ??= distances.isEmpty
+        ? null
+        : distances.reduce((a, b) => a > b ? a : b);
+
+    final resultCode = _matchResult?.resultCodeForUser(_currentUserId ?? '');
+    final me = _myParticipant;
+    PvpParticipantResponse? opponent;
+    for (final participant in participants) {
+      if (!identical(participant, me)) {
+        opponent = participant;
+        break;
+      }
+    }
+    final finalTarget = _finishTargetDistanceUnits;
+    if (finalTarget != null && finalTarget > 0) {
+      _targetMyProgress = PvpRaceProgressMapper.normalizeParticipant(
+        me ?? const PvpParticipantResponse(participantTypeCode: ''),
+        fallbackProgress: _targetMyProgress,
+        finishTargetDistanceUnits: finalTarget,
+      );
+      _targetOpponentProgress = PvpRaceProgressMapper.normalizeParticipant(
+        opponent ?? const PvpParticipantResponse(participantTypeCode: ''),
+        fallbackProgress: _targetOpponentProgress,
+        finishTargetDistanceUnits: finalTarget,
+      );
+    }
+    // A finished result is the one place where the winner is intentionally
+    // allowed to reach the visible finish stripe even if the final snapshot
+    // omitted an expected-distance field.
+    if (resultCode == 'win') _targetMyProgress = 1.0;
+    if (resultCode == 'lose') _targetOpponentProgress = 1.0;
+    if (resultCode == 'draw') {
+      _targetMyProgress = 1.0;
+      _targetOpponentProgress = 1.0;
+    }
+    if (kDebugMode) {
+      final visualMax = math.max(_myProgress, _opponentProgress) / 100;
+      final targetMax = math.max(_targetMyProgress, _targetOpponentProgress);
+      if ((targetMax - visualMax) > 0.25) {
+        debugPrint(
+          '[PvP][finish-desync] serverFinished=true '
+          'authoritativeProgress=$targetMax visualProgress=$visualMax '
+          'remainingDistance=${(targetMax - visualMax).toStringAsFixed(3)}',
+        );
+      }
+    }
+    _finishPresentationState = PvpRacePresentationState.reconciling;
+    if (_raceTicker == null) _startRaceTicker();
+    notifyListeners();
+  }
+
+  void _advanceFinishPresentation() {
+    if (!_serverFinished || _finishPresentationCompleted) return;
+    final now = DateTime.now().toUtc();
+    final resultCode =
+        (_forcedResultCode?.trim().isNotEmpty == true
+            ? _forcedResultCode!.trim().toLowerCase()
+            : null) ??
+        _matchResult?.resultCodeForUser(_currentUserId ?? '');
+    final winnerVisible = resultCode != null && _finishLineCrossed;
+    if (_finishReactionStartedAt == null && winnerVisible) {
+      // Start this clock only after the authoritative result is known and the
+      // winning runner has visibly crossed the stripe. Starting it at the
+      // server-finished event used to let a delayed result skip the reaction.
+      _finishReactionStartedAt = now;
+    }
+    _finishPresentationState = _finishReactionStartedAt == null
+        ? PvpRacePresentationState.reconciling
+        : PvpRacePresentationState.reacting;
+    final presentationElapsedMs = _finishPresentationStartedAt == null
+        ? 0
+        : now.difference(_finishPresentationStartedAt!).inMilliseconds;
+    final reactionElapsedMs = _finishReactionStartedAt == null
+        ? null
+        : now.difference(_finishReactionStartedAt!).inMilliseconds;
+    // Give the finish reaction its own readable beat before the result card
+    // covers the track. The failsafe applies only while no valid reaction can
+    // start, so a late server result still receives the full animation time.
+    if (shouldCompletePvpFinishPresentation(
+      resultCode: resultCode,
+      myProgress: _myProgress,
+      opponentProgress: _opponentProgress,
+      presentationElapsedMilliseconds: presentationElapsedMs,
+      reactionElapsedMilliseconds: reactionElapsedMs,
+    )) {
+      _finishPresentationCompleted = true;
+      _finishPresentationState = PvpRacePresentationState.showingResult;
+      _stopRaceTicker();
+      notifyListeners();
+    }
   }
 
   Future<void> _pollMatchUntilTerminal() async {
@@ -1327,6 +1878,7 @@ class PvpProvider extends ChangeNotifier {
             _settlementPollTimer = null;
           }
           _isRaceFinished = true;
+          _beginFinishReconciliation();
           _updateState(
             PvpMatchmakingState.finished,
             reason: 'settlement poll finished',
@@ -1518,8 +2070,6 @@ class PvpProvider extends ChangeNotifier {
 
     try {
       final futures = await Future.wait([
-        _petDatasource.getPetName(),
-        _petDatasource.getPetStatus(),
         _petDatasource.getPetOverview(),
         _activityDatasource.getStatistic(ActivityStatsRange.daily),
         _friendsDatasource.getFriends(),
@@ -1527,26 +2077,21 @@ class PvpProvider extends ChangeNotifier {
         _pvpDatasource.getMatchHistory(includeActive: false),
       ]);
 
-      final petNameResp = futures[0] as dynamic;
-      final petStatusResp = futures[1] as dynamic;
-      final petOverviewResp = futures[2] as dynamic;
-      final activityResp = futures[3] as dynamic;
-      final friendsResp = futures[4] as List<FriendsResponse>;
-      final invitesResp = futures[5] as dynamic;
-      final historyResp = futures[6] as dynamic;
-
-      if (petNameResp.success && petNameResp.data != null) {
-        _petName = petNameResp.data!.petName;
-      }
-
-      if (petStatusResp.success && petStatusResp.data != null) {
-        _currentEnergy = petStatusResp.data!.currentEnergy;
-        _maxEnergy = petStatusResp.data!.maxEnergy;
-        _currentBond = petStatusResp.data!.currentBond;
-      }
+      final petOverviewResp = futures[0] as dynamic;
+      final activityResp = futures[1] as dynamic;
+      final friendsResp = futures[2] as List<FriendsResponse>;
+      final invitesResp = futures[3] as dynamic;
+      final historyResp = futures[4] as dynamic;
 
       if (petOverviewResp.success && petOverviewResp.data != null) {
         final overview = petOverviewResp.data!;
+        final nickname = overview.nickname.trim();
+        if (nickname.isNotEmpty) {
+          _petName = nickname;
+        }
+        _currentEnergy = overview.currentEnergy;
+        _maxEnergy = overview.maxEnergy > 0 ? overview.maxEnergy : 100;
+        _currentBond = overview.currentBond;
         final code = overview.affinityCode.trim();
         if (code.isNotEmpty) {
           _spiritAffinityCode = code;
@@ -1586,10 +2131,12 @@ class PvpProvider extends ChangeNotifier {
 
   Future<void> refreshPetStatus() async {
     try {
-      final response = await _petDatasource.getPetStatus();
+      final response = await _petDatasource.getPetOverview();
       if (response.success && response.data != null) {
         _currentEnergy = response.data!.currentEnergy;
-        _maxEnergy = response.data!.maxEnergy;
+        _maxEnergy = response.data!.maxEnergy > 0
+            ? response.data!.maxEnergy
+            : 100;
         _currentBond = response.data!.currentBond;
         notifyListeners();
       }
@@ -1691,6 +2238,7 @@ class PvpProvider extends ChangeNotifier {
     if (normalizedStatus == 'finished') {
       _stopCountdownSchedule();
       _isRaceFinished = true;
+      _beginFinishReconciliation();
       _updateState(
         PvpMatchmakingState.finished,
         reason: 'match snapshot finished',
@@ -1800,8 +2348,9 @@ class PvpProvider extends ChangeNotifier {
 
       final matchId = status.matchId!;
       await _joinAndPrepareMatch(matchId);
-      if (session != null && !_isCurrentMatchmakingSession(session))
+      if (session != null && !_isCurrentMatchmakingSession(session)) {
         return false;
+      }
       return session != null && _shouldContinueMatchmakingRecovery(session);
     }
 
@@ -1847,6 +2396,15 @@ class PvpProvider extends ChangeNotifier {
 
     _logSignalREvent(event, eventType: eventType);
 
+    if (eventType == 'match.item.used' ||
+        eventType == 'match.effect.applied' ||
+        eventType == 'match.effect.blocked' ||
+        eventType == 'match.effect.cleansed' ||
+        eventType == 'match.effect.expired') {
+      _handleItemEvent(event);
+      return;
+    }
+
     if (eventType == 'queue.failed') {
       final reasonCode = payload['reasonCode']?.toString();
       _setMatchmakingError(reasonCode ?? 'bot_unavailable');
@@ -1864,7 +2422,6 @@ class PvpProvider extends ChangeNotifier {
 
     // Handle specific events
     if (eventType == 'match.assigned') {
-      _hasReceivedAssignedEvent = true;
       if (matchId != null && matchId.isNotEmpty) {
         _log('match.assigned', matchId: matchId);
         _traceMatchmaking('[8] Recover assigned match');
@@ -1945,6 +2502,7 @@ class PvpProvider extends ChangeNotifier {
     if (eventType == 'match.finished') {
       stopCountdown(reason: 'match.finished', matchId: matchId);
       _isRaceFinished = true;
+      _beginFinishReconciliation();
       if (matchId != null && matchId.isNotEmpty) {
         // Snapshot + UC-69 result (finished branch inside _joinAndSyncMatch).
         await _joinAndSyncMatch(matchId);
@@ -2110,6 +2668,7 @@ class PvpProvider extends ChangeNotifier {
 
     if (normalizedStatus == 'finished') {
       _isRaceFinished = true;
+      _beginFinishReconciliation();
       _updateState(PvpMatchmakingState.finished);
       await loadMatchResult(matchId);
       return;
@@ -2241,6 +2800,8 @@ class PvpProvider extends ChangeNotifier {
     final match = _currentMatch;
     if (match == null) {
       _forcedResultCode = 'lose';
+      _targetOpponentProgress = 1.0;
+      _beginFinishReconciliation();
       return;
     }
 
@@ -2299,6 +2860,7 @@ class PvpProvider extends ChangeNotifier {
       claimedAt: null,
     );
     _forcedResultCode = 'lose';
+    _beginFinishReconciliation();
     notifyListeners();
   }
 
@@ -2312,10 +2874,7 @@ class PvpProvider extends ChangeNotifier {
 
     final session = _beginMatchmakingSession();
     _setMatchmakingError(null);
-    _matchmakingStartedAt = DateTime.now();
-    _hasReceivedAssignedEvent = false;
     _hasMatchRoomJoined = false;
-    _lastMatchmakingStep = 'none';
 
     // Ensure SignalR is initialized before sending matchmaking POST
     if (!_signalRInitialized) {
@@ -2383,7 +2942,8 @@ class PvpProvider extends ChangeNotifier {
     }
 
     final match = response.data!;
-    _currentMatch = match;
+    _setCurrentMatchSnapshot(match);
+    unawaited(refreshPvpLoadout());
 
     final normalizedStatus = match.statusCode.toLowerCase();
     if (normalizedStatus == 'waiting' || match.matchId.isEmpty) {

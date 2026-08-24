@@ -23,12 +23,16 @@ class ShopScreenDatasource {
   Future<ApiResponse<ShopItemResponse>> getShopItemById(String id) async {
     return await _apiClient.get<ShopItemResponse>(
       ApiConstants.shopItemById(id),
-      fromJsonT: (json) => ShopItemResponse.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) =>
+          ShopItemResponse.fromJson(json as Map<String, dynamic>),
     );
   }
 
   /// Calls POST /api/shop/buy with body { shopItemId, quantity }
-  Future<ApiResponse<dynamic>> buyShopItem(String shopItemId, {int quantity = 1}) async {
+  Future<ApiResponse<dynamic>> buyShopItem(
+    String shopItemId, {
+    int quantity = 1,
+  }) async {
     final body = {'shopItemId': shopItemId, 'quantity': quantity};
     return await _apiClient.post<dynamic>(
       ApiConstants.buyShop,

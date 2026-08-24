@@ -10,26 +10,19 @@ class OtpScreenDatasource {
     required String requestCode,
     required String otp,
   }) async {
-    final Map<String, dynamic> body = {
-      'requestCode': requestCode,
-      'otp': otp,
-    };
-    return await _apiClient.post<void>(
-      ApiConstants.verifyOtp,
-      data: body,
-    );
+    final Map<String, dynamic> body = {'requestCode': requestCode, 'otp': otp};
+    return await _apiClient.post<void>(ApiConstants.verifyOtp, data: body);
   }
 
   Future<ApiResponse<RegisterResponse>> resendOtp({
     required String requestCode,
   }) async {
-    final Map<String, dynamic> body = {
-      'requestCode': requestCode,
-    };
+    final Map<String, dynamic> body = {'requestCode': requestCode};
     return await _apiClient.post<RegisterResponse>(
       ApiConstants.resendOtp,
       data: body,
-      fromJsonT: (json) => RegisterResponse.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) =>
+          RegisterResponse.fromJson(json as Map<String, dynamic>),
     );
   }
 }

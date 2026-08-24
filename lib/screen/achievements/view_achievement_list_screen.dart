@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
@@ -5,6 +7,7 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/network/api_client.dart';
+import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/models/achievement_response.dart';
@@ -13,6 +16,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_dual_bottom_tabs.dart';
+import '../../widgets/common/game_async_state.dart';
 
 class ViewAchievementListScreen extends StatefulWidget {
   const ViewAchievementListScreen({super.key, this.repository});
@@ -44,6 +48,10 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
   }
 
   Future<void> _loadAchievements() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final data = await _repository.getAchievements();
       if (!mounted) return;
@@ -54,26 +62,28 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = AppLocalizations.of(context).achievementsLoadFailed;
         _isLoading = false;
       });
     }
   }
 
   Future<void> _handleClaim(String achievementId) async {
+    final provider = context.read<GameStateProvider>();
+    final l10n = AppLocalizations.of(context);
     setState(() => _claimingAchievementId = achievementId);
     try {
       final result = await _repository.claimAchievement(achievementId);
-      final provider = context.read<GameStateProvider>();
       final user = provider.user;
       if (user != null) {
         provider.setUser(user.copyWith(coins: result.walletBalance));
       }
 
       if (mounted) {
+        unawaited(AppAudioService.instance.playReward());
         showGameNotificationDialog(
           context,
-          message: 'Nhận thành công: +${result.walletAmount}',
+          message: l10n.achievementClaimSuccess(result.walletAmount),
           isSuccess: true,
         );
       }
@@ -82,7 +92,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
       if (mounted) {
         showGameNotificationDialog(
           context,
-          message: 'Không thể nhận thưởng: $e',
+          message: l10n.achievementClaimFailed,
           isSuccess: false,
         );
       }
@@ -153,8 +163,12 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                           child: GameButtonLabel(
                             l10n.achievementVault,
                             fontSize: 20,
-                            color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                            outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                            color: isDark
+                                ? AppColors.darkForeground
+                                : AppColors.woodDeep,
+                            outlineColor: isDark
+                                ? AppColors.darkTextOutline
+                                : AppColors.authCard,
                             outlineWidth: 4,
                           ),
                         ),
@@ -165,30 +179,15 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _errorMessage != null
                         ? Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.authCard.withValues(alpha: 0.97),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isDark ? AppColors.darkBorder : AppColors.wood,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Text(
-                                _errorMessage!,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
+                            child: GameLoadingIndicator(label: l10n.loading),
+                          )
+                        : _errorMessage != null
+                        ? GameAsyncStatePanel(
+                            message: _errorMessage!,
+                            isError: true,
+                            onRetry: _loadAchievements,
+                            retryLabel: l10n.retry,
                           )
                         : _activeTab == 'unlocked'
                         ? _buildUnlockedView(theme)
@@ -515,9 +514,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
+            color: isDark
+                ? AppColors.darkNestedCard
+                : AppColors.authCard.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 2),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.wood,
+              width: 2,
+            ),
           ),
           child: Column(
             children: [
@@ -532,14 +536,18 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                 l10n.achievementsCollection,
                 fontSize: 19,
                 color: isDark ? AppColors.darkForeground : AppColors.woodDeep,
-                outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                outlineColor: isDark
+                    ? AppColors.darkTextOutline
+                    : AppColors.authCard,
                 outlineWidth: 3,
               ),
               const SizedBox(height: 3),
               Text(
                 l10n.achievementsCollected(_claimedAchievements.length),
                 style: TextStyle(
-                  color: isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown,
+                  color: isDark
+                      ? AppColors.darkMutedForeground
+                      : AppColors.outlineBrown,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -551,9 +559,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.94),
+            color: isDark
+                ? AppColors.darkMuted
+                : AppColors.leafLight.withValues(alpha: 0.94),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.oliveDeep, width: 2),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+              width: 2,
+            ),
           ),
           child: GridView.builder(
             shrinkWrap: true,
@@ -569,9 +582,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
               final hasItem = index < _claimedAchievements.length;
               final item = hasItem ? _claimedAchievements[index] : null;
               return Material(
-                color: (isDark ? AppColors.darkNestedCard : AppColors.authCard).withValues(
-                  alpha: hasItem ? 0.97 : 0.55,
-                ),
+                color: (isDark ? AppColors.darkNestedCard : AppColors.authCard)
+                    .withValues(alpha: hasItem ? 0.97 : 0.55),
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   onTap: item == null
@@ -596,7 +608,9 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       border: Border.all(
                         color: hasItem
                             ? (isDark ? AppColors.darkBorder : AppColors.wood)
-                            : (isDark ? AppColors.darkBorder.withValues(alpha: 0.38) : AppColors.wood.withValues(alpha: 0.38)),
+                            : (isDark
+                                  ? AppColors.darkBorder.withValues(alpha: 0.38)
+                                  : AppColors.wood.withValues(alpha: 0.38)),
                         width: hasItem ? 1.5 : 1,
                       ),
                     ),
@@ -640,9 +654,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.96),
+              color: isDark
+                  ? AppColors.darkMuted
+                  : AppColors.leafLight.withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.oliveDeep, width: 2),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.woodDeep.withValues(alpha: 0.2),
@@ -654,9 +673,14 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 40, 12, 10),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
+                color: isDark
+                    ? AppColors.darkNestedCard
+                    : AppColors.authCard.withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.wood, width: 1.5),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.wood,
+                  width: 1.5,
+                ),
               ),
               child: ListView.separated(
                 padding: EdgeInsets.zero,
@@ -704,38 +728,32 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       ),
                       child: Row(
                         children: [
-                          Container(
+                          SizedBox(
                             width: 44,
                             height: 44,
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.creamLight,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.wood,
-                                width: 1.3,
-                              ),
-                            ),
-                            child:
-                                item.isUnlocked &&
-                                    item.iconUrl?.isNotEmpty == true
-                                ? Image.network(
-                                    item.iconUrl!,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, _, _) => const AppIcon(
-                                      Icons.emoji_events_rounded,
-                                      color: AppColors.gold,
+                            child: Padding(
+                              padding: const EdgeInsets.all(3),
+                              child:
+                                  item.isUnlocked &&
+                                      item.iconUrl?.isNotEmpty == true
+                                  ? Image.network(
+                                      item.iconUrl!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, _, _) => const AppIcon(
+                                        Icons.emoji_events_rounded,
+                                        color: AppColors.gold,
+                                      ),
+                                    )
+                                  : AppIcon(
+                                      item.isUnlocked
+                                          ? Icons.emoji_events_rounded
+                                          : Icons.star_border_rounded,
+                                      color: item.isUnlocked
+                                          ? AppColors.gold
+                                          : AppColors.woodLight,
+                                      size: 38,
                                     ),
-                                  )
-                                : AppIcon(
-                                    item.isUnlocked
-                                        ? Icons.emoji_events_rounded
-                                        : Icons.star_border_rounded,
-                                    color: item.isUnlocked
-                                        ? AppColors.gold
-                                        : AppColors.woodLight,
-                                    size: 28,
-                                  ),
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -833,44 +851,5 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
       return '${(value / 1000).toStringAsFixed(1)}k';
     }
     return value.toString();
-  }
-}
-
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? theme.colorScheme.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: selected
-                  ? theme.colorScheme.onSurface
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -780,10 +780,18 @@ class _PresetGoalButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selected ? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkPrimary : AppColors.buttonGreen) : cardColor,
+          color: selected
+              ? (Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkPrimary
+                    : AppColors.buttonGreen)
+              : cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkBorder : AppColors.woodDeep) : borderColor,
+            color: selected
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkBorder
+                      : AppColors.woodDeep)
+                : borderColor,
             width: selected ? 2 : 1.5,
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
+import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
@@ -49,7 +50,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
     final cardColor = isDark ? AppColors.darkCard : AppColors.authCard;
     final l10n = AppLocalizations.of(context);
     // Lắng nghe liên tục sự thay đổi dữ liệu từ GameStateProvider
@@ -77,13 +80,16 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                     l10n.accountInfo,
                     fontSize: 20,
                     color: textColor,
-                    outlineColor: isDark ? AppColors.darkBorder : AppColors.authCard,
+                    outlineColor: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.authCard,
                     outlineWidth: 4,
                   ),
                   _HeaderIconButton(
                     icon: Icons.edit_rounded,
                     asset: AppAssets.iconEditProfile,
                     iconColor: textColor,
+                    semanticLabel: l10n.profileEditTitle,
                     onTap: () {
                       Navigator.pushNamed(context, '/profile/edit');
                     },
@@ -163,10 +169,16 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
+                          color:
+                              (Theme.of(context).brightness == Brightness.dark
+                                      ? AppColors.darkMuted
+                                      : AppColors.leafLight)
+                                  .withValues(alpha: 0.96),
                           borderRadius: BorderRadius.circular(26),
                           border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.oliveDeep,
                             width: 2,
                           ),
                           boxShadow: [
@@ -184,10 +196,15 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             vertical: 22,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.darkCard
+                                : AppColors.authCard.withValues(alpha: 0.97),
                             borderRadius: BorderRadius.circular(19),
                             border: Border.all(
-                              color: isDark ? AppColors.darkBorder : AppColors.wood,
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.wood,
                               width: 1.5,
                             ),
                           ),
@@ -200,7 +217,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                   color: AppColors.leafLight,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                            color: textColor,
+                                    color: textColor,
                                     width: 3,
                                   ),
                                   boxShadow: [
@@ -229,7 +246,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                             style: TextStyle(
                                               fontSize: 36,
                                               fontWeight: FontWeight.w900,
-                            color: textColor,
+                                              color: textColor,
                                             ),
                                           ),
                                         ),
@@ -241,7 +258,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                         style: TextStyle(
                                           fontSize: 36,
                                           fontWeight: FontWeight.w900,
-                            color: textColor,
+                                          color: textColor,
                                         ),
                                       ),
                               ),
@@ -282,7 +299,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                           color: cardColor.withValues(alpha: 0.97),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: isDark ? AppColors.darkBorder : AppColors.wood,
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.wood,
                             width: 2,
                           ),
                           boxShadow: [
@@ -395,49 +414,26 @@ class _HeaderIconButton extends StatelessWidget {
   final String? asset;
   final VoidCallback onTap;
   final Color? iconColor;
+  final String semanticLabel;
 
   const _HeaderIconButton({
     required this.icon,
     this.asset,
     required this.onTap,
+    required this.semanticLabel,
     this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: GameBackButton.buttonSize,
-      height: GameBackButton.buttonSize,
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.96),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.darkBorder
-              : AppColors.woodDeep,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.woodDeep.withValues(alpha: 0.18),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: AppIcon(
-            icon,
-            asset: asset,
-            size: 27,
-            color: iconColor ?? AppColors.woodDeep,
-          ),
-        ),
-      ),
+    return AssetOnlyIconButton(
+      onPressed: onTap,
+      semanticLabel: semanticLabel,
+      icon: icon,
+      asset: asset,
+      buttonSize: GameBackButton.buttonSize,
+      assetSize: 42,
+      color: iconColor ?? AppColors.woodDeep,
     );
   }
 }
@@ -460,7 +456,9 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
     final valueColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
 
     return Padding(
@@ -470,18 +468,17 @@ class _DetailRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
+              SizedBox(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkMuted : AppColors.creamLight,
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.wood,
-                    width: 1.2,
+                child: Center(
+                  child: AppIcon(
+                    icon,
+                    asset: asset,
+                    size: 32,
+                    color: mutedColor,
                   ),
                 ),
-                child: AppIcon(icon, asset: asset, size: 22, color: mutedColor),
               ),
               const SizedBox(width: 12),
               Text(

@@ -13,12 +13,13 @@ import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/bottom_navigation.dart';
 import '../../widgets/common/home_page_backdrop.dart';
-import '../../widgets/common/error_message_widget.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_button_label.dart';
+import '../../widgets/common/game_async_state.dart';
 
-class _ShopDisplayItem {
-  const _ShopDisplayItem({
+@visibleForTesting
+class ShopCatalogItem {
+  const ShopCatalogItem({
     required this.shopItemId,
     required this.name,
     required this.price,
@@ -50,8 +51,8 @@ class _ShopScreenState extends State<ShopScreen> {
 
   bool _isLoading = true;
   String? _errorMessage;
-  List<_ShopDisplayItem> _items = [];
-  _ShopDisplayItem? _selectedItem;
+  List<ShopCatalogItem> _items = [];
+  ShopCatalogItem? _selectedItem;
   String? _buyingItemId;
   int _walletBalance = 0;
   bool _isWalletLoading = true;
@@ -93,7 +94,7 @@ class _ShopScreenState extends State<ShopScreen> {
       final apiItems = await _repository.getAllShopItems();
       final items = apiItems
           .map(
-            (item) => _ShopDisplayItem(
+            (item) => ShopCatalogItem(
               shopItemId: item.shopItemId,
               name: item.itemName,
               price: item.priceAmount,
@@ -120,7 +121,7 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
-  void _openDetail(_ShopDisplayItem item) {
+  void _openDetail(ShopCatalogItem item) {
     setState(() => _selectedItem = item);
   }
 
@@ -172,7 +173,7 @@ class _ShopScreenState extends State<ShopScreen> {
     return null;
   }
 
-  Future<void> _handleBuy(_ShopDisplayItem item) async {
+  Future<void> _handleBuy(ShopCatalogItem item) async {
     if (_buyingItemId != null) return;
 
     AppAudioService.instance.suppressNextTabSound();
@@ -273,10 +274,12 @@ class _ShopScreenState extends State<ShopScreen> {
                                 Positioned.fill(
                                   top: 42,
                                   child: _isLoading
-                                      ? const Center(
-                                          child: CircularProgressIndicator(),
+                                      ? Center(
+                                          child: GameLoadingIndicator(
+                                            label: l10n.loading,
+                                          ),
                                         )
-                                      : _ShopGrid(
+                                      : ShopCatalog(
                                           items: _items,
                                           borderColor: borderColor,
                                           accent: accent,
@@ -303,7 +306,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ),
         if (_selectedItem != null)
           Positioned.fill(
-            child: _ShopDetailModal(
+            child: ShopDetailModal(
               item: _selectedItem!,
               isDark: isDark,
               cardColor: cardColor,
@@ -314,6 +317,7 @@ class _ShopScreenState extends State<ShopScreen> {
               isBuying: _buyingItemId == _selectedItem!.shopItemId,
               typeLabel: l10n.shopType,
               priceLabel: l10n.shopPrice,
+              balanceText: l10n.dailyLoginSuccessBalance(_walletBalance),
               noDescription: l10n.inventoryNoDescription,
               closeLabel: l10n.close,
               buyLabel: l10n.shopBuy,
@@ -564,8 +568,10 @@ class _ShopWalletPill extends StatelessWidget {
   }
 }
 
-class _ShopDetailModal extends StatelessWidget {
-  const _ShopDetailModal({
+@visibleForTesting
+class ShopDetailModal extends StatelessWidget {
+  const ShopDetailModal({
+    super.key,
     required this.item,
     required this.isDark,
     required this.cardColor,
@@ -576,6 +582,7 @@ class _ShopDetailModal extends StatelessWidget {
     required this.isBuying,
     required this.typeLabel,
     required this.priceLabel,
+    required this.balanceText,
     required this.noDescription,
     required this.closeLabel,
     required this.buyLabel,
@@ -585,7 +592,7 @@ class _ShopDetailModal extends StatelessWidget {
     required this.onBuy,
   });
 
-  final _ShopDisplayItem item;
+  final ShopCatalogItem item;
   final bool isDark;
   final Color cardColor;
   final Color borderColor;
@@ -595,6 +602,7 @@ class _ShopDetailModal extends StatelessWidget {
   final bool isBuying;
   final String typeLabel;
   final String priceLabel;
+  final String balanceText;
   final String noDescription;
   final String closeLabel;
   final String buyLabel;
@@ -682,15 +690,10 @@ class _ShopDetailModal extends StatelessWidget {
                                   ),
                                 ),
                                 child: hasImage
-                                    ? Image.network(
-                                        item.image!,
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => AppIcon(
-                                          Icons.shopping_bag_outlined,
-                                          asset: AppAssets.iconShoppingBag,
-                                          size: 50,
-                                          color: accent,
-                                        ),
+                                    ? _ShopItemArtwork(
+                                        item: item,
+                                        accent: accent,
+                                        size: 84,
                                       )
                                     : AppIcon(
                                         Icons.shopping_bag_outlined,
@@ -776,6 +779,32 @@ class _ShopDetailModal extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(
+                                    AppAssets.iconDewDrop,
+                                    width: 17,
+                                    height: 17,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      balanceText,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? mutedForeground
+                                            : AppColors.inkBrown,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 18),
                               Text(
@@ -897,7 +926,11 @@ class _ShopPanel extends StatelessWidget {
           bottom: 4,
           child: Container(
             decoration: BoxDecoration(
-              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkMuted
+                          : AppColors.leafLight)
+                      .withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.oliveDeep, width: 2),
               boxShadow: [
@@ -918,7 +951,11 @@ class _ShopPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 42, 14, 14),
             decoration: BoxDecoration(
-              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.96),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkCard
+                          : AppColors.authCard)
+                      .withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(19),
               border: Border.all(color: AppColors.wood, width: 1.5),
             ),
@@ -977,8 +1014,10 @@ class _ShopPanel extends StatelessWidget {
   }
 }
 
-class _ShopGrid extends StatelessWidget {
-  const _ShopGrid({
+@visibleForTesting
+class ShopCatalog extends StatelessWidget {
+  const ShopCatalog({
+    super.key,
     required this.items,
     required this.borderColor,
     required this.accent,
@@ -988,159 +1027,368 @@ class _ShopGrid extends StatelessWidget {
     required this.emptyMessage,
   });
 
-  final List<_ShopDisplayItem> items;
+  final List<ShopCatalogItem> items;
   final Color borderColor;
   final Color accent;
   final bool isDark;
   final String Function(int value) formatMoney;
-  final ValueChanged<_ShopDisplayItem> onSelect;
+  final ValueChanged<ShopCatalogItem> onSelect;
   final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
-    final slotCount = items.length > 20 ? items.length : 20;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 300 ? 4 : 3;
-        return Stack(
-          children: [
-            GridView.builder(
-              padding: const EdgeInsets.fromLTRB(2, 2, 2, 72),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.82,
+    if (items.isEmpty) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 250),
+          child: Container(
+            key: const ValueKey('shop-empty-state'),
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.darkMuted : AppColors.creamLight)
+                  .withValues(alpha: 0.82),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: borderColor.withValues(alpha: 0.68),
+                width: 1.4,
               ),
-              itemCount: slotCount,
-              itemBuilder: (context, index) {
-                if (index >= items.length) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkMuted.withValues(alpha: 0.74)
-                          : AppColors.panelMuted.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: borderColor.withValues(alpha: 0.48),
-                        width: 1.4,
-                      ),
-                    ),
-                  );
-                }
-
-                final item = items[index];
-                final hasImage =
-                    item.image != null && item.image!.trim().isNotEmpty;
-                return Material(
-                  color: isDark
-                      ? AppColors.darkMuted
-                      : AppColors.authCard.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    onTap: () => onSelect(item),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(5, 6, 5, 5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.wood.withValues(alpha: 0.72),
-                          width: 1.4,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: hasImage
-                                ? Image.network(
-                                    item.image!,
-                                    width: double.infinity,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => AppIcon(
-                                      Icons.shopping_bag_outlined,
-                                      asset: AppAssets.iconShoppingBag,
-                                      size: 38,
-                                      color: accent,
-                                    ),
-                                  )
-                                : AppIcon(
-                                    Icons.shopping_bag_outlined,
-                                    asset: AppAssets.iconShoppingBag,
-                                    size: 38,
-                                    color: accent,
-                                  ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.creamLight,
-                              borderRadius: BorderRadius.circular(9),
-                              border: Border.all(
-                                color: AppColors.wood.withValues(alpha: 0.5),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    formatMoney(item.price),
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: AppColors.woodDeep,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Image.asset(
-                                  AppAssets.iconDewDrop,
-                                  width: 16,
-                                  height: 16,
-                                  fit: BoxFit.contain,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
-            if (emptyMessage != null)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  margin: const EdgeInsets.all(8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard).withValues(alpha: 0.94),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.wood),
-                  ),
-                  child: Text(
-                    emptyMessage!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.woodDeep,
-                      fontWeight: FontWeight.w800,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppIcon(
+                  Icons.shopping_bag_outlined,
+                  asset: AppAssets.iconShoppingBag,
+                  size: 58,
+                  color: accent,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  emptyMessage ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.woodDeep,
+                    fontSize: 14,
+                    height: 1.3,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final featured = items.firstWhere(
+      (item) => item.isActive,
+      orElse: () => items.first,
+    );
+    final remaining = items
+        .where((item) => item.shopItemId != featured.shopItemId)
+        .toList(growable: false);
+
+    return CustomScrollView(
+      key: const ValueKey('shop-real-catalog'),
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(2, 2, 2, 12),
+            child: _ShopFeaturedCard(
+              item: featured,
+              accent: accent,
+              isDark: isDark,
+              formatMoney: formatMoney,
+              onSelect: onSelect,
+            ),
+          ),
+        ),
+        if (remaining.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(2, 0, 2, 76),
+            sliver: SliverGrid.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.78,
               ),
-          ],
-        );
-      },
+              itemCount: remaining.length,
+              itemBuilder: (context, index) => _ShopItemCard(
+                item: remaining[index],
+                accent: accent,
+                isDark: isDark,
+                formatMoney: formatMoney,
+                onSelect: onSelect,
+              ),
+            ),
+          ),
+        if (remaining.isEmpty)
+          const SliverToBoxAdapter(child: SizedBox(height: 76)),
+      ],
+    );
+  }
+}
+
+class _ShopFeaturedCard extends StatelessWidget {
+  const _ShopFeaturedCard({
+    required this.item,
+    required this.accent,
+    required this.isDark,
+    required this.formatMoney,
+    required this.onSelect,
+  });
+
+  final ShopCatalogItem item;
+  final Color accent;
+  final bool isDark;
+  final String Function(int value) formatMoney;
+  final ValueChanged<ShopCatalogItem> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: ValueKey('shop-featured-${item.shopItemId}'),
+      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: () => onSelect(item),
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          height: 158,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.wood, width: 1.7),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [AppColors.darkMuted, AppColors.darkCard]
+                  : [AppColors.creamLight, AppColors.panelMuted],
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 5,
+                child: _ShopItemArtwork(item: item, accent: accent, size: 116),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                flex: 6,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 17,
+                        height: 1.1,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    if (item.itemTypeName?.trim().isNotEmpty == true) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        item.itemTypeName!.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.inkBrown.withValues(alpha: 0.78),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    _ShopPricePill(
+                      value: formatMoney(item.price),
+                      enabled: item.isActive,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShopItemCard extends StatelessWidget {
+  const _ShopItemCard({
+    required this.item,
+    required this.accent,
+    required this.isDark,
+    required this.formatMoney,
+    required this.onSelect,
+  });
+
+  final ShopCatalogItem item;
+  final Color accent;
+  final bool isDark;
+  final String Function(int value) formatMoney;
+  final ValueChanged<ShopCatalogItem> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: item.isActive ? 1 : 0.58,
+      child: Material(
+        key: ValueKey('shop-card-${item.shopItemId}'),
+        color: isDark ? AppColors.darkMuted : AppColors.authCard,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: () => onSelect(item),
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppColors.wood.withValues(alpha: 0.76),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _ShopItemArtwork(item: item, accent: accent, size: 92),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  item.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.woodDeep,
+                    fontSize: 13,
+                    height: 1.12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Align(
+                  alignment: Alignment.center,
+                  child: _ShopPricePill(
+                    value: formatMoney(item.price),
+                    enabled: item.isActive,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShopItemArtwork extends StatelessWidget {
+  const _ShopItemArtwork({
+    required this.item,
+    required this.accent,
+    required this.size,
+  });
+
+  final ShopCatalogItem item;
+  final Color accent;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = item.image?.trim();
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Center(
+        child: AppIcon(
+          Icons.shopping_bag_outlined,
+          asset: AppAssets.iconShoppingBag,
+          size: size * 0.56,
+          color: accent,
+        ),
+      );
+    }
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        width: double.infinity,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, __, ___) => Center(
+          child: AppIcon(
+            Icons.broken_image_outlined,
+            asset: AppAssets.iconShoppingBag,
+            size: size * 0.56,
+            color: accent,
+          ),
+        ),
+      );
+    }
+    return Image.network(
+      imageUrl,
+      width: double.infinity,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, __, ___) => Center(
+        child: AppIcon(
+          Icons.broken_image_outlined,
+          asset: AppAssets.iconShoppingBag,
+          size: size * 0.56,
+          color: accent,
+        ),
+      ),
+    );
+  }
+}
+
+class _ShopPricePill extends StatelessWidget {
+  const _ShopPricePill({required this.value, required this.enabled});
+
+  final String value;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: enabled ? AppColors.creamLight : AppColors.panelMuted,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColors.wood.withValues(alpha: 0.55)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.woodDeep,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Image.asset(
+            AppAssets.iconDewDrop,
+            width: 17,
+            height: 17,
+            fit: BoxFit.contain,
+          ),
+        ],
+      ),
     );
   }
 }

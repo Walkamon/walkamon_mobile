@@ -4,7 +4,7 @@ import '../../models/wallet_balance_response.dart';
 
 class WalletDatasource {
   WalletDatasource([ApiClient? apiClient])
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

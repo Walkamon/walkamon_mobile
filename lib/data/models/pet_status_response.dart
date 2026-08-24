@@ -17,12 +17,15 @@ class PetStatusResponse {
 
   factory PetStatusResponse.fromJson(Map<String, dynamic> json) {
     return PetStatusResponse(
-      currentEnergy: int.tryParse(json['currentEnergy']?.toString() ?? '0') ?? 0,
+      currentEnergy:
+          int.tryParse(json['currentEnergy']?.toString() ?? '0') ?? 0,
       maxEnergy: int.tryParse(json['maxEnergy']?.toString() ?? '100') ?? 100,
       currentBond: int.tryParse(json['currentBond']?.toString() ?? '0') ?? 0,
       maxBond: int.tryParse(json['maxBond']?.toString() ?? '100') ?? 100,
-      currentLifeForce: int.tryParse(json['currentLifeForce']?.toString() ?? '0') ?? 0,
-      maxLifeForce: int.tryParse(json['maxLifeForce']?.toString() ?? '100') ?? 100,
+      currentLifeForce:
+          int.tryParse(json['currentLifeForce']?.toString() ?? '0') ?? 0,
+      maxLifeForce:
+          int.tryParse(json['maxLifeForce']?.toString() ?? '100') ?? 100,
     );
   }
 

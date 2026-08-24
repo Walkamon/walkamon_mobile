@@ -722,7 +722,11 @@ class _ActivityHistoryPanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight).withValues(alpha: 0.96),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkMuted
+                          : AppColors.leafLight)
+                      .withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: Theme.of(context).brightness == Brightness.dark
@@ -741,7 +745,9 @@ class _ActivityHistoryPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 38, 12, 10),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkCard
+                    : AppColors.authCard.withValues(alpha: 0.97),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: Theme.of(context).brightness == Brightness.dark
@@ -945,7 +951,9 @@ class _TimeRangeSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.96),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : AppColors.authCard.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.dark
@@ -1387,7 +1395,9 @@ class _ErrorState extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.authCard.withValues(alpha: 0.97),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkCard
+              : AppColors.authCard.withValues(alpha: 0.97),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.wood, width: 2),
         ),

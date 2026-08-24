@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
@@ -10,6 +12,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
@@ -30,8 +33,33 @@ class _SettingScreenState extends State<SettingScreen> {
   String _feedbackText = '';
   bool _feedbackSentSuccess = false;
   String? _feedbackMessage;
+  String? _tutorialAccountKey;
 
   bool get _isFeedbackValid => _feedbackText.trim().length >= 20;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final accountKey = context.read<GameStateProvider>().user?.id.trim();
+    if (accountKey == null ||
+        accountKey.isEmpty ||
+        accountKey == _tutorialAccountKey) {
+      return;
+    }
+    _tutorialAccountKey = accountKey;
+    context.read<TutorialProvider>().synchronizeAccount(accountKey);
+  }
+
+  Future<void> _replayTutorial({required bool pvp}) async {
+    final tutorial = context.read<TutorialProvider>();
+    if (pvp) {
+      await tutorial.replayPvp();
+    } else {
+      await tutorial.replayHome();
+    }
+    if (!mounted) return;
+    Navigator.pushNamed(context, pvp ? '/pvp' : '/home');
+  }
 
   Future<void> _handleLogout() async {
     if (_isLoggingOut) return;
@@ -190,10 +218,25 @@ class _SettingScreenState extends State<SettingScreen> {
                                 .read<GameStateProvider>()
                                 .updateSettings(soundEnabled: value),
                           ),
+                          _SettingsSwitch(
+                            label: l10n.haptics,
+                            subtitle: l10n.hapticsSubtitle,
+                            icon: Icons.touch_app,
+                            asset: AppAssets.iconUse,
+                            value: gameState.settings.hapticsEnabled,
+                            onChanged: (value) => unawaited(
+                              context
+                                  .read<GameStateProvider>()
+                                  .setHapticsEnabled(value),
+                            ),
+                          ),
                           _ThemeModeSetting(
                             value: gameState.settings.themeCode,
                             onChanged: (value) {
-                              if (value != null) context.read<GameStateProvider>().setThemeCode(value);
+                              if (value != null)
+                                context.read<GameStateProvider>().setThemeCode(
+                                  value,
+                                );
                             },
                           ),
                           _SettingsSwitch(
@@ -208,8 +251,9 @@ class _SettingScreenState extends State<SettingScreen> {
                                   .setNotificationsEnabled(newValue);
                               if (!enabled && newValue && mounted) {
                                 final isVietnamese =
-                                    Localizations.localeOf(context)
-                                        .languageCode ==
+                                    Localizations.localeOf(
+                                      context,
+                                    ).languageCode ==
                                     'vi';
                                 showGameNotificationDialog(
                                   context,
@@ -248,7 +292,9 @@ class _SettingScreenState extends State<SettingScreen> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? AppColors.darkForeground : AppColors.oliveDeep,
+                                color: isDark
+                                    ? AppColors.darkForeground
+                                    : AppColors.oliveDeep,
                               ),
                             ),
                           ),
@@ -259,6 +305,31 @@ class _SettingScreenState extends State<SettingScreen> {
                               _feedbackMessage = null;
                               _showFeedbackPopup = true;
                             }),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                l10n.tutorialSettingsTitle,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: .6,
+                                ),
+                              ),
+                            ),
+                          ),
+                          _SettingsButton(
+                            label: l10n.tutorialReplayHome,
+                            icon: Icons.pets_rounded,
+                            onPressed: () => _replayTutorial(pvp: false),
+                          ),
+                          _SettingsButton(
+                            label: l10n.tutorialReplayPvp,
+                            icon: Icons.flag_rounded,
+                            onPressed: () => _replayTutorial(pvp: true),
                           ),
                         ],
                       ),
@@ -314,7 +385,9 @@ class _SettingScreenState extends State<SettingScreen> {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
 
     return Positioned.fill(
       child: GestureDetector(
@@ -450,7 +523,9 @@ class _SettingScreenState extends State<SettingScreen> {
                                     fontSize: 14,
                                   ),
                                   filled: true,
-                                  fillColor: isDark ? AppColors.darkMuted : AppColors.creamLight,
+                                  fillColor: isDark
+                                      ? AppColors.darkMuted
+                                      : AppColors.creamLight,
                                   suffixIcon: const Padding(
                                     padding: EdgeInsets.only(
                                       right: 10,
@@ -550,7 +625,6 @@ class _FeedbackTypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -588,7 +662,6 @@ class _ThemeModeSetting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep;
     final isDark = value == 'dark';
     final appDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
@@ -636,9 +709,15 @@ class _ThemeModeSetting extends StatelessWidget {
           Switch(
             value: isDark,
             onChanged: (enabled) => onChanged(enabled ? 'dark' : 'light'),
-            activeThumbColor: appDark ? AppColors.darkForeground : AppColors.authCard,
-            activeTrackColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
-            inactiveThumbColor: appDark ? AppColors.darkForeground : AppColors.authCard,
+            activeThumbColor: appDark
+                ? AppColors.darkForeground
+                : AppColors.authCard,
+            activeTrackColor: isDark
+                ? AppColors.darkLife
+                : AppColors.buttonGreen,
+            inactiveThumbColor: appDark
+                ? AppColors.darkForeground
+                : AppColors.authCard,
             inactiveTrackColor: AppColors.creamDeep,
             trackOutlineColor: WidgetStatePropertyAll(
               appDark ? AppColors.darkBorder : AppColors.woodDeep,
@@ -649,6 +728,7 @@ class _ThemeModeSetting extends StatelessWidget {
     );
   }
 }
+
 class _SettingsPanel extends StatelessWidget {
   const _SettingsPanel({required this.child});
 
@@ -660,7 +740,9 @@ class _SettingsPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.leafLight.withValues(alpha: 0.95),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkMuted
+            : AppColors.leafLight.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.oliveDeep,
@@ -682,7 +764,6 @@ class _SettingsPanel extends StatelessWidget {
 class _SettingsButton extends StatefulWidget {
   const _SettingsButton({
     required this.icon,
-    this.asset,
     required this.label,
     required this.onPressed,
     this.trailing,
@@ -691,7 +772,6 @@ class _SettingsButton extends StatefulWidget {
   });
 
   final IconData icon;
-  final String? asset;
   final String label;
   final VoidCallback onPressed;
   final Widget? trailing;
@@ -738,25 +818,19 @@ class _SettingsButtonState extends State<_SettingsButton> {
           ),
           child: Row(
             children: [
-              Container(
+              SizedBox(
                 width: 46,
                 height: 46,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.creamLight,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkIconBorder
-                        : AppColors.wood,
-                    width: 1.0,
-                  ),
-                ),
-                child: AppIcon(
-                  widget.icon,
-                  size: 25,
-                        color: widget.isWarning
+                child: Center(
+                  child: AppIcon(
+                    widget.icon,
+                    size: 40,
+                    color: widget.isWarning
                         ? warningColor
-                        : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep),
+                        : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkForeground
+                              : AppColors.woodDeep),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -820,12 +894,16 @@ class _SettingsSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkForeground : AppColors.woodDeep;
-    final mutedColor = isDark ? AppColors.darkMutedForeground : AppColors.outlineBrown;
+    final mutedColor = isDark
+        ? AppColors.darkMutedForeground
+        : AppColors.outlineBrown;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkNestedCard : AppColors.authCard.withValues(alpha: 0.97),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkNestedCard
+            : AppColors.authCard.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(17),
         border: Border.all(
           color: isDark ? AppColors.darkCardBorder : AppColors.wood,
@@ -834,22 +912,14 @@ class _SettingsSwitch extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 46,
             height: 46,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkMuted : AppColors.creamLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? AppColors.darkIconBorder
-                    : AppColors.wood,
-                width: 1.0,
-              ),
+            child: Center(
+              child: asset != null
+                  ? Image.asset(asset!, width: 42, height: 42)
+                  : AppIcon(icon, size: 40, color: textColor),
             ),
-            child: asset != null
-                ? Image.asset(asset!, width: 30, height: 30)
-                : AppIcon(icon, size: 25, color: textColor),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -881,11 +951,21 @@ class _SettingsSwitch extends StatelessWidget {
           Switch(
             value: value,
             onChanged: enabled ? onChanged : null,
-            activeThumbColor: isDark ? AppColors.darkForeground : AppColors.authCard,
-            activeTrackColor: isDark ? AppColors.darkLife : AppColors.buttonGreen,
-            inactiveThumbColor: isDark ? AppColors.darkForeground : AppColors.authCard,
-            inactiveTrackColor: isDark ? AppColors.darkMuted : AppColors.creamDeep,
-            trackOutlineColor: WidgetStatePropertyAll(isDark ? AppColors.darkBorder : AppColors.woodDeep),
+            activeThumbColor: isDark
+                ? AppColors.darkForeground
+                : AppColors.authCard,
+            activeTrackColor: isDark
+                ? AppColors.darkLife
+                : AppColors.buttonGreen,
+            inactiveThumbColor: isDark
+                ? AppColors.darkForeground
+                : AppColors.authCard,
+            inactiveTrackColor: isDark
+                ? AppColors.darkMuted
+                : AppColors.creamDeep,
+            trackOutlineColor: WidgetStatePropertyAll(
+              isDark ? AppColors.darkBorder : AppColors.woodDeep,
+            ),
           ),
         ],
       ),

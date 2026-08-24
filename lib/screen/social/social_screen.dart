@@ -35,7 +35,9 @@ class _SocialScreenState extends State<SocialScreen> {
                   l10n.socialTitle,
                   fontSize: 20,
                   color: textColor,
-                  outlineColor: isDark ? AppColors.darkTextOutline : AppColors.authCard,
+                  outlineColor: isDark
+                      ? AppColors.darkTextOutline
+                      : AppColors.authCard,
                   outlineWidth: 4,
                 ),
                 const SizedBox(height: 16),
@@ -44,7 +46,8 @@ class _SocialScreenState extends State<SocialScreen> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.darkCard : AppColors.authCard).withOpacity(0.92),
+                    color: (isDark ? AppColors.darkCard : AppColors.authCard)
+                        .withOpacity(0.92),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.wood, width: 2),
                   ),
@@ -143,7 +146,9 @@ class _SocialScreenState extends State<SocialScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkForeground : AppColors.woodDeep,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkForeground
+                        : AppColors.woodDeep,
                   ),
                 ),
         ),

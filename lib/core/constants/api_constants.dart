@@ -95,6 +95,9 @@ class ApiConstants {
       '/api/pvp/sprint/matchmaking/status';
   static String pvpSprintMatchById(String matchId) =>
       '/api/pvp/sprint/matches/$matchId';
+  static const String pvpSprintLoadout = '/api/pvp/sprint/loadout';
+  static String pvpSprintMatchItems(String matchId) =>
+      '/api/pvp/sprint/matches/$matchId/items/use';
 
   // Notification Endpoints
   static const String updateNotification = '/api/notifications/settings';

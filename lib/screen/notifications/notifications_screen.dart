@@ -6,8 +6,11 @@ import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
+import '../../widgets/common/asset_only_icon_button.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/common/game_async_state.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -20,6 +23,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   late final NotificationDatasource _datasource;
   List<NotificationItem> _notifications = [];
   bool _isLoading = true;
+  bool _hasLoadError = false;
 
   @override
   void initState() {
@@ -29,60 +33,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _fetchNotifications() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _hasLoadError = false;
+      });
+    }
     try {
       final data = await _datasource.getNotifications(1, 20);
+      if (!mounted) return;
       setState(() {
         _notifications = data;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (!mounted) return;
+      setState(() {
+        _hasLoadError = true;
+        _isLoading = false;
+      });
     }
   }
 
   void _showGameToast(String message, {bool isError = false}) {
-    final theme = Theme.of(context);
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating, // Cho phép nổi lơ lửng
-        elevation: 8,
-        backgroundColor: theme.cardColor, // Đồng bộ màu nền card của app
-        margin: const EdgeInsets.only(bottom: 40, left: 24, right: 24),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30), // Bo tròn thành viên nang
-          side: BorderSide(
-            color: isError
-                ? Colors.redAccent
-                : theme.colorScheme.primary.withValues(
-                    alpha: 0.5,
-                  ), // Viền sáng màu
-            width: 1.5,
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-        content: Row(
-          children: [
-            AppIcon(
-              isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: isError ? Colors.redAccent : theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    showGameNotificationDialog(context, message: message, isSuccess: !isError);
   }
 
   Future<void> _deleteNotification(String id, int index) async {
@@ -449,17 +423,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: IconButton(
-            icon: const AppIcon(Icons.arrow_back),
-            style: IconButton.styleFrom(
-              backgroundColor: theme.cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isDark ? AppColors.darkBorder : theme.dividerColor,
-                ),
-              ),
-            ),
+          child: AssetOnlyIconButton(
+            icon: Icons.arrow_back,
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            buttonSize: 40,
+            assetSize: 36,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -473,17 +441,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: GameLoadingIndicator(label: l10n.loading))
+          : _hasLoadError
+          ? GameAsyncStatePanel(
+              message: l10n.notificationsLoadFailed,
+              isError: true,
+              onRetry: _fetchNotifications,
+              retryLabel: l10n.retry,
+            )
           : _notifications.isEmpty
-          ? Center(
-              child: GameButtonLabel(
-                l10n.notificationsEmpty,
-                fontSize: 16,
-                color: AppColors.woodDeep,
-                outlineColor: AppColors.authCard,
-                outlineWidth: 3,
-                maxLines: 2,
-              ),
+          ? GameAsyncStatePanel(
+              message: l10n.notificationsEmpty,
+              onRetry: _fetchNotifications,
+              retryLabel: l10n.retry,
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),

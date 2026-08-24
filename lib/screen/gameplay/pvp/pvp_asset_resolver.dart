@@ -2,6 +2,7 @@ import 'dart:ui' show Rect;
 
 import '../../../core/constants/app_assets.dart';
 import '../../../data/models/pvp_models.dart';
+import '../../../data/models/pvp_item_models.dart';
 
 /// Maps API codes → bundled `assets/Mobile/PVP` paths from the V1 manifest.
 abstract final class PvpAssetResolver {
@@ -106,7 +107,7 @@ abstract final class PvpAssetResolver {
   }
 
   static String? itemIcon(String itemCode) {
-    switch (itemCode.trim().toLowerCase()) {
+    switch (PvpEffectPresentationMapper.assetCode(itemCode) ?? '') {
       case 'haste':
         return AppAssets.pvpHasteItem;
       case 'slow':
@@ -121,7 +122,7 @@ abstract final class PvpAssetResolver {
   }
 
   static String? statusIcon(String statusCode) {
-    switch (statusCode.trim().toLowerCase()) {
+    switch (PvpEffectPresentationMapper.assetCode(statusCode) ?? '') {
       case 'haste':
         return AppAssets.pvpHasteStatus;
       case 'slow':
@@ -136,7 +137,8 @@ abstract final class PvpAssetResolver {
   }
 
   static List<String> vfxFrames(String effectCode) {
-    switch (effectCode.trim().toLowerCase()) {
+    switch (PvpEffectPresentationMapper.assetCode(effectCode) ??
+        effectCode.trim().toLowerCase()) {
       case 'haste':
         return AppAssets.pvpSpeedTrailFrames();
       case 'slow':
@@ -153,7 +155,8 @@ abstract final class PvpAssetResolver {
   }
 
   static int vfxFps(String effectCode) {
-    switch (effectCode.trim().toLowerCase()) {
+    switch (PvpEffectPresentationMapper.assetCode(effectCode) ??
+        effectCode.trim().toLowerCase()) {
       case 'slow':
         return 8;
       case 'shield':
@@ -165,7 +168,8 @@ abstract final class PvpAssetResolver {
   }
 
   static bool vfxLoops(String effectCode) {
-    switch (effectCode.trim().toLowerCase()) {
+    switch (PvpEffectPresentationMapper.assetCode(effectCode) ??
+        effectCode.trim().toLowerCase()) {
       case 'cleanse':
       case 'rank_up':
         return false;

@@ -23,7 +23,6 @@ class ProfileViewScreenRepository {
     }
   }
 
-
   Future<void> updateTheme(String themeCode) async {
     final normalized = themeCode.trim().toLowerCase();
     if (!{'light', 'dark', 'system'}.contains(normalized)) {

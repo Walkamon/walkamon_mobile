@@ -40,7 +40,8 @@ class MissionsScreenRepository {
     throw Exception(resp.message);
   }
 
-  Future<ApiResponse<PlayerChallengeStateResponse>> createRandomChallenge() async {
+  Future<ApiResponse<PlayerChallengeStateResponse>>
+  createRandomChallenge() async {
     return await _remoteDataSource.createRandomChallenge();
   }
 
