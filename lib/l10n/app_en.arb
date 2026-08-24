@@ -519,6 +519,7 @@
   },
   "notificationsTimeAgoJustNow": "Just now",
   "notificationsTypeDailyReward": "Daily login reward",
+  "notificationsTypeDailyStepGoalReminder": "Daily activity reminder",
   "notificationsTypeStreakReward": "Streak reward",
   "notificationsTypeMissionComplete": "Mission complete",
   "notificationsTypeAchievementComplete": "Achievement complete",

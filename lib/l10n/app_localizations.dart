@@ -1832,6 +1832,12 @@ abstract class AppLocalizations {
   /// **'Daily login reward'**
   String get notificationsTypeDailyReward;
 
+  /// No description provided for @notificationsTypeDailyStepGoalReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily activity reminder'**
+  String get notificationsTypeDailyStepGoalReminder;
+
   /// No description provided for @notificationsTypeStreakReward.
   ///
   /// In en, this message translates to:
