@@ -180,6 +180,30 @@ class _MissionsScreenState extends State<MissionsScreen> {
     );
   }
 
+  List<_QuestDisplayItem> _prioritizeCompletedQuests(
+    Iterable<_QuestDisplayItem> quests,
+  ) {
+    final indexedQuests = quests.toList().asMap().entries.toList();
+
+    int priority(_QuestDisplayItem quest) {
+      if (quest.canClaim && !quest.isClaimed) return 0;
+      if (quest.isCompleted && !quest.isClaimed) return 1;
+      if (!quest.isClaimed) return 2;
+      return 3;
+    }
+
+    indexedQuests.sort((a, b) {
+      final priorityComparison = priority(
+        a.value,
+      ).compareTo(priority(b.value));
+      return priorityComparison != 0
+          ? priorityComparison
+          : a.key.compareTo(b.key);
+    });
+
+    return indexedQuests.map((entry) => entry.value).toList();
+  }
+
   Future<void> _loadData({bool showLoading = true}) async {
     if (showLoading) {
       setState(() {
@@ -198,12 +222,14 @@ class _MissionsScreenState extends State<MissionsScreen> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       setState(() {
-        _dailyQuests = missions.dailyMissions
-            .map((mission) => _fromMission(mission, l10n))
-            .toList();
-        _overallQuests = missions.overallMissions
-            .map((mission) => _fromMission(mission, l10n))
-            .toList();
+        _dailyQuests = _prioritizeCompletedQuests(
+          missions.dailyMissions.map((mission) => _fromMission(mission, l10n)),
+        );
+        _overallQuests = _prioritizeCompletedQuests(
+          missions.overallMissions.map(
+            (mission) => _fromMission(mission, l10n),
+          ),
+        );
         _challengeQuests = challengeState.currentChallenge != null
             ? [_fromChallenge(challengeState.currentChallenge!, l10n)]
             : [];

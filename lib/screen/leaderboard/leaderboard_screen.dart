@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/models/leaderboard_response.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_icon.dart';
@@ -47,33 +48,57 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     });
 
     try {
-      final response = await _repository.getLeaderboard(
-        _mapTimeFrameToBackend(_timeFrame),
-      );
+      final isLevel = _metric == 'level';
+      final response = isLevel
+          ? await _repository.getPetLeaderboard()
+          : await _repository.getLeaderboard(
+              _mapTimeFrameToBackend(_timeFrame),
+            );
       if (!mounted) return;
 
       if (response.success && response.data != null) {
         setState(() {
-          _users = response.data!.leaderboard
-              .map(
-                (item) => _UserRank(
-                  id: item.userId,
-                  name:
-                      item.username ??
-                      AppLocalizations.of(context).leaderboardUserDefault,
-                  steps: {
-                    'daily': item.stepCount,
-                    'weekly': item.stepCount,
-                    'monthly': item.stepCount,
-                  },
-                  level: 0,
-                  isMe: item.isCurrentUser,
-                  isFriend: true,
-                  rank: item.rank,
-                ),
-              )
-              .toList();
-          _myRank = response.data!.myRank;
+          if (isLevel) {
+            final levelData = response.data! as PetLeaderboardResponse;
+            _users = levelData.leaderboard
+                .map(
+                  (item) => _UserRank(
+                    id: item.userId,
+                    name:
+                        item.username ??
+                        AppLocalizations.of(context).leaderboardUserDefault,
+                    steps: const {'daily': 0, 'weekly': 0, 'monthly': 0},
+                    level: item.level,
+                    isMe: item.isCurrentUser,
+                    isFriend: true,
+                    rank: item.rank,
+                  ),
+                )
+                .toList();
+            _myRank = levelData.myRank;
+          } else {
+            final stepData = response.data! as LeaderboardResponse;
+            _users = stepData.leaderboard
+                .map(
+                  (item) => _UserRank(
+                    id: item.userId,
+                    name:
+                        item.username ??
+                        AppLocalizations.of(context).leaderboardUserDefault,
+                    steps: {
+                      'daily': item.stepCount,
+                      'weekly': item.stepCount,
+                      'monthly': item.stepCount,
+                    },
+                    level: 0,
+                    isMe: item.isCurrentUser,
+                    isFriend: true,
+                    rank: item.rank,
+                  ),
+                )
+                .toList();
+            _myRank = stepData.myRank;
+          }
           _isLoading = false;
         });
       } else {
@@ -208,8 +233,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           ),
                           child: Column(
                             children: [
-                              _buildCompactPeriodSelector(l10n),
-                              const SizedBox(height: 7),
+                              if (_metric == 'steps') ...[
+                                _buildCompactPeriodSelector(l10n),
+                                const SizedBox(height: 7),
+                              ],
                               _buildMetricDropdown(l10n),
                               const SizedBox(height: 7),
                               _buildTableHeader(),
@@ -411,6 +438,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               onSelected: (selected) {
                 if (selected == _metric) return;
                 setState(() => _metric = selected);
+                _loadLeaderboard();
               },
               itemBuilder: (context) => [
                 _buildMetricPopupItem(
