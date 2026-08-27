@@ -15,4 +15,11 @@ class LeaderboardRepository {
       fromJsonT: (json) => LeaderboardResponse.fromJson(json),
     );
   }
+
+  Future<ApiResponse<PetLeaderboardResponse>> getPetLeaderboard() async {
+    return _apiClient.get<PetLeaderboardResponse>(
+      '/api/Pet/leaderboard',
+      fromJsonT: (json) => PetLeaderboardResponse.fromJson(json),
+    );
+  }
 }
