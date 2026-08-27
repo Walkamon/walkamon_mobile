@@ -986,7 +986,8 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = widget.item.image != null && widget.item.image!.isNotEmpty;
+    final imagePath = widget.item.image?.trim();
+    final hasImage = imagePath != null && imagePath.isNotEmpty;
 
     return FadeTransition(
       opacity: _opacity,
@@ -1021,17 +1022,29 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                       padding: const EdgeInsets.all(6),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          widget.item.image!,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => AppIcon(
-                            widget.icon,
-                            size: 32,
-                            color: widget.color,
-                          ),
-                        ),
+                        child: imagePath!.startsWith('assets/')
+                            ? Image.asset(
+                                imagePath,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => AppIcon(
+                                  widget.icon,
+                                  size: 32,
+                                  color: widget.color,
+                                ),
+                              )
+                            : Image.network(
+                                imagePath,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => AppIcon(
+                                  widget.icon,
+                                  size: 32,
+                                  color: widget.color,
+                                ),
+                              ),
                       ),
                     )
                   else
@@ -1120,7 +1133,8 @@ class _ItemDetailPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final hasImage = item.image != null && item.image!.isNotEmpty;
+    final imagePath = item.image?.trim();
+    final hasImage = imagePath != null && imagePath.isNotEmpty;
 
     return GestureDetector(
       onTap: onClose,
@@ -1199,15 +1213,25 @@ class _ItemDetailPopup extends StatelessWidget {
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: hasImage
-                              ? Image.network(
-                                  item.image!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => AppIcon(
-                                    itemIcon,
-                                    size: 48,
-                                    color: itemColor,
-                                  ),
-                                )
+                              ? imagePath!.startsWith('assets/')
+                                    ? Image.asset(
+                                        imagePath,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => AppIcon(
+                                          itemIcon,
+                                          size: 48,
+                                          color: itemColor,
+                                        ),
+                                      )
+                                    : Image.network(
+                                        imagePath,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => AppIcon(
+                                          itemIcon,
+                                          size: 48,
+                                          color: itemColor,
+                                        ),
+                                      )
                               : AppIcon(itemIcon, size: 48, color: itemColor),
                         ),
                         const SizedBox(height: 18),

@@ -21,6 +21,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    tasks.configureEach {
+        if (name == "compileReleaseJavaWithJavac" && project.tasks.findByName("compileReleaseKotlin") != null) {
+            dependsOn("compileReleaseKotlin")
+        }
+        if (name == "compileDebugJavaWithJavac" && project.tasks.findByName("compileDebugKotlin") != null) {
+            dependsOn("compileDebugKotlin")
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

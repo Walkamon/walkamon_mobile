@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 const _googleServerClientId =
@@ -10,7 +11,8 @@ class GoogleSignInAuth {
 
   static Future<String> getIdToken() async {
     _initFuture ??= GoogleSignIn.instance.initialize(
-      serverClientId: _googleServerClientId,
+      clientId: _googleServerClientId,
+      serverClientId: kIsWeb ? null : _googleServerClientId,
     );
     await _initFuture;
 
