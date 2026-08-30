@@ -14,6 +14,7 @@ import '../../data/models/friend_spirit_response.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import 'package:walkamon_mobile/core/theme/app_colors.dart';
+import 'package:walkamon_mobile/core/localization/translation_resolver.dart';
 
 class FriendSpiritScreen extends StatelessWidget {
   final String userId;
@@ -92,7 +93,7 @@ class _FriendSpiritScreenContentState
       );
     }
 
-    if (provider.errorMessage.isNotEmpty) {
+    if (provider.failure != null || provider.errorMessage.isNotEmpty) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
@@ -114,7 +115,12 @@ class _FriendSpiritScreenContentState
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              provider.errorMessage,
+              provider.failure == null
+                  ? AppLocalizations.of(context).apiErrorUnexpectedResponse
+                  : TranslationResolver.resolveFailure(
+                      context,
+                      provider.failure!,
+                    ),
               style: TextStyle(
                 color: isDark ? AppColors.darkForeground : AppColors.danger,
                 fontSize: 16,

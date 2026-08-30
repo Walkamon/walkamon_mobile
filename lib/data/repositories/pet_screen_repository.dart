@@ -1,16 +1,17 @@
+import '../../core/network/app_failure.dart';
 import '../datasources/remote/pet_screen_datasource.dart';
 import '../models/pet_evolution_models.dart';
 import '../models/pet_name_response.dart';
 import '../models/pet_status_response.dart';
 
-class PetFeedException implements Exception {
-  const PetFeedException({required this.status, required this.message});
-
-  final int status;
-  final String message;
-
-  @override
-  String toString() => message;
+class PetFeedException extends AppFailure {
+  const PetFeedException({
+    required super.code,
+    required super.status,
+    super.params,
+    super.fallbackMessage,
+    super.traceId,
+  });
 }
 
 class PetScreenRepository {
@@ -26,11 +27,7 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải trạng thái thú cưng.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<bool> getStoryStatus() async {
@@ -40,11 +37,7 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải trạng thái cốt truyện.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<PetNameResponse?> getPetName() async {
@@ -56,11 +49,7 @@ class PetScreenRepository {
 
     if (apiResponse.status == 404) return null;
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải tên thú cưng.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<PetNameResponse?> createStarterPet(String petName) async {
@@ -70,16 +59,11 @@ class PetScreenRepository {
       return apiResponse.data ?? PetNameResponse(petId: '', petName: petName);
     }
 
-    final message = apiResponse.message.toLowerCase();
-    if (apiResponse.status == 400 && message.contains('already has a pet')) {
+    if (apiResponse.errorCode == 'PET_ALREADY_EXISTS') {
       return getPetName();
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tạo thú cưng khởi đầu.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<PetStatusResponse> tapSpirit() async {
@@ -89,11 +73,7 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể nhấp vào thú cưng.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<PetStatusResponse> feedSpirit() async {
@@ -103,11 +83,13 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
+    final failure = apiResponse.failure;
     throw PetFeedException(
-      status: apiResponse.status,
-      message: apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể cho thú cưng ăn.',
+      code: failure.code,
+      status: failure.status,
+      params: failure.params,
+      fallbackMessage: failure.fallbackMessage,
+      traceId: failure.traceId,
     );
   }
 
@@ -118,11 +100,7 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải thông tin tiến hóa thú cưng.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<List<PetEvolutionStageResponse>> getEvolutionStages() async {
@@ -132,11 +110,7 @@ class PetScreenRepository {
       return apiResponse.data ?? <PetEvolutionStageResponse>[];
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải giai đoạn tiến hóa.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<List<PetEvolutionHistoryResponse>> getEvolutionHistory() async {
@@ -146,11 +120,7 @@ class PetScreenRepository {
       return apiResponse.data ?? <PetEvolutionHistoryResponse>[];
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải lịch sử tiến hóa.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<PetCurrentAnimationResponse> getCurrentAnimation() async {
@@ -160,11 +130,7 @@ class PetScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải animation hiện tại.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<bool> evolveToNextStage() async {
@@ -179,11 +145,7 @@ class PetScreenRepository {
       return apiResponse.data ?? <PetEvolutionOptionResponse>[];
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải tùy chọn tiến hóa.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<bool> evolveToFamily(String petId) async {
@@ -198,10 +160,6 @@ class PetScreenRepository {
       return apiResponse.data ?? <PetEvolutionPreviewResponse>[];
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải xem trước tiến hóa.',
-    );
+    throw apiResponse.failure;
   }
 }

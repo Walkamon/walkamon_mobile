@@ -6,10 +6,10 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import '../../core/l10n/locale_helper.dart';
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 
 import '../../core/theme/app_colors.dart';
 
-import '../../core/utils/sendfeedback_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 import '../../providers/tutorial_provider.dart';
@@ -104,9 +104,9 @@ class _SettingScreenState extends State<SettingScreen> {
     if (result.retryAfter != null) {
       final l10n = AppLocalizations.of(context);
       setState(() {
-        _feedbackMessage = translateSendFeedbackError(
-          result.message ?? l10n.feedbackWaitBeforeRetry,
-        );
+        _feedbackMessage = result.failure == null
+            ? l10n.feedbackWaitBeforeRetry
+            : TranslationResolver.resolveFailure(context, result.failure!);
       });
       return;
     }
@@ -129,9 +129,9 @@ class _SettingScreenState extends State<SettingScreen> {
     } else {
       final l10n = AppLocalizations.of(context);
       setState(() {
-        _feedbackMessage = translateSendFeedbackError(
-          result.message ?? l10n.feedbackSendFailed,
-        );
+        _feedbackMessage = result.failure == null
+            ? l10n.feedbackSendFailed
+            : TranslationResolver.resolveFailure(context, result.failure!);
       });
     }
   }

@@ -7,6 +7,7 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
@@ -185,7 +186,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(TranslationResolver.resolveError(context, e)),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

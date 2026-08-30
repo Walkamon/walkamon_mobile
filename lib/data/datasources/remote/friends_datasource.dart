@@ -1,6 +1,7 @@
 import '../../models/friends_response.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/network/app_failure.dart';
 
 class FriendsDatasource {
   final ApiClient apiClient;
@@ -13,14 +14,7 @@ class FriendsDatasource {
         ApiConstants.removeFriend(friendId),
       );
 
-      if (!response.success &&
-          !response.message.toLowerCase().contains('success')) {
-        throw Exception(
-          response.message.isNotEmpty
-              ? response.message
-              : "Xóa bạn bè thất bại",
-        );
-      }
+      if (!response.success) throw response.failure;
     } catch (e) {
       rethrow;
     }
@@ -79,12 +73,7 @@ class FriendsDatasource {
         data: {'isAccepted': isAccepted}, // Payload chuẩn theo backend của bạn
       );
 
-      if (!response.success &&
-          !response.message.toLowerCase().contains("success")) {
-        throw Exception(
-          response.message.isNotEmpty ? response.message : "Thao tác thất bại",
-        );
-      }
+      if (!response.success) throw response.failure;
     } catch (e) {
       rethrow;
     }
@@ -119,14 +108,7 @@ class FriendsDatasource {
         ApiConstants.cancelFriendRequest(requestId),
       );
 
-      if (!response.success &&
-          !response.message.toLowerCase().contains('success')) {
-        throw Exception(
-          response.message.isNotEmpty
-              ? response.message
-              : "Hủy yêu cầu kết bạn thất bại",
-        );
-      }
+      if (!response.success) throw response.failure;
     } catch (e) {
       rethrow;
     }
@@ -196,10 +178,6 @@ class FriendsDatasource {
       ApiConstants.sendFriendRequest,
       data: {'receiverUserId': receiverId},
     );
-    if (!response.success && !response.message.contains("successfully")) {
-      throw Exception(
-        response.message.isNotEmpty ? response.message : "Gửi lời mời thất bại",
-      );
-    }
+    if (!response.success) throw response.failure;
   }
 }

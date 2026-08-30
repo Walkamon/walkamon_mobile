@@ -109,6 +109,8 @@ class PetScreenDatasource {
         message: resp.message,
         data: <PetEvolutionStageResponse>[],
         traceId: resp.traceId,
+        errorCode: resp.errorCode,
+        params: resp.params,
       );
     }
 
@@ -141,6 +143,8 @@ class PetScreenDatasource {
         message: resp.message,
         data: <PetEvolutionHistoryResponse>[],
         traceId: resp.traceId,
+        errorCode: resp.errorCode,
+        params: resp.params,
       );
     }
 
@@ -182,6 +186,8 @@ class PetScreenDatasource {
         message: resp.message,
         data: <PetEvolutionOptionResponse>[],
         traceId: resp.traceId,
+        errorCode: resp.errorCode,
+        params: resp.params,
       );
     }
 
@@ -225,6 +231,8 @@ class PetScreenDatasource {
         message: resp.message,
         data: <PetEvolutionPreviewResponse>[],
         traceId: resp.traceId,
+        errorCode: resp.errorCode,
+        params: resp.params,
       );
     }
 

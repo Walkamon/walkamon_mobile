@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:dio/dio.dart';
+import '../../core/network/app_failure.dart';
 import '../models/profile_view_response.dart';
 import '../datasources/remote/profile_view_screen_datasource.dart';
 
@@ -15,11 +15,7 @@ class ProfileViewScreenRepository {
     if (apiResponse.success && apiResponse.data != null) {
       return apiResponse.data!;
     } else {
-      throw Exception(
-        apiResponse.message.isNotEmpty
-            ? apiResponse.message
-            : 'Không thể tải thông tin tài khoản.',
-      );
+      throw apiResponse.failure;
     }
   }
 
@@ -29,7 +25,7 @@ class ProfileViewScreenRepository {
       throw ArgumentError.value(themeCode, 'themeCode');
     }
     final response = await _remoteDatasource.updateTheme(normalized);
-    if (!response.success) throw Exception(response.message);
+    if (!response.success) throw response.failure;
   }
 
   /// Xử lý cập nhật thông tin và kiểm tra trạng thái thành công/thất bại
@@ -49,11 +45,7 @@ class ProfileViewScreenRepository {
     );
 
     if (!apiResponse.success) {
-      throw Exception(
-        apiResponse.message.isNotEmpty
-            ? apiResponse.message
-            : 'Không thể cập nhật hồ sơ.',
-      );
+      throw apiResponse.failure;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
@@ -227,15 +228,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
         _closeItemPopup();
         await _loadInventory();
       } else if (mounted) {
-        _showError(
-          AppLocalizations.of(context).inventoryUseFailed(resp.message),
-        );
+        _showError(TranslationResolver.resolveResponse(context, resp));
       }
     } catch (e) {
       if (mounted) {
-        _showError(
-          AppLocalizations.of(context).inventoryUseError(e.toString()),
-        );
+        _showError(TranslationResolver.resolveError(context, e));
       }
     } finally {
       if (mounted) setState(() => _usingItemId = null);

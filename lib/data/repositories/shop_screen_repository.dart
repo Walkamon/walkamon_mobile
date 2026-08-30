@@ -1,6 +1,7 @@
 import '../datasources/remote/shop_screen_datasource.dart';
 import '../models/shop_item_response.dart';
 import '../../core/network/api_response.dart';
+import '../../core/network/app_failure.dart';
 
 class ShopScreenRepository {
   final ShopScreenDatasource _remoteDataSource = ShopScreenDatasource();
@@ -11,7 +12,7 @@ class ShopScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   Future<ShopItemResponse> getShopItemById(String id) async {
@@ -19,7 +20,7 @@ class ShopScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   /// Returns ApiResponse from buy endpoint; response.data may contain updated wallet/inventory

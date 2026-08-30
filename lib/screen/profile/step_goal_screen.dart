@@ -8,6 +8,8 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/audio/app_audio_service.dart';
+import '../../core/localization/translation_resolver.dart';
+import '../../core/network/app_failure.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
@@ -55,9 +57,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       try {
         progress = await _repository.getProgress();
       } catch (e) {
-        final message = e.toString().toLowerCase();
-        if (!message.contains('not found') &&
-            !message.contains('không tìm thấy')) {
+        if (e is! AppFailure || e.status != 404) {
           rethrow;
         }
 
@@ -84,7 +84,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _error = TranslationResolver.resolveError(context, e);
         _isLoading = false;
       });
     }
@@ -117,7 +117,7 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       await _loadProgress();
     } catch (e) {
       if (!mounted) return;
-      _showMessage(e.toString().replaceAll('Exception: ', ''));
+      _showMessage(TranslationResolver.resolveError(context, e));
     } finally {
       if (mounted) setState(() => _isClaiming = false);
     }
@@ -154,29 +154,10 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      _showMessage(_friendlyGoalError(e));
+      _showMessage(TranslationResolver.resolveError(context, e));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-
-  String _friendlyGoalError(Object error) {
-    final message = error.toString().replaceAll('Exception: ', '');
-    final lower = message.toLowerCase();
-
-    if (lower.contains('required') || lower.contains('greater than 500')) {
-      return AppLocalizations.of(context).stepGoalMinError;
-    }
-
-    if (lower.contains('cannot exceed 100000')) {
-      return AppLocalizations.of(context).stepGoalMaxError;
-    }
-
-    if (lower.contains('greater than the current target')) {
-      return AppLocalizations.of(context).stepGoalGreaterThanCurrent;
-    }
-
-    return message;
   }
 
   void _showMessage(String message, {bool isSuccess = false}) {

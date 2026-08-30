@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
@@ -69,7 +70,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _fetchNotifications();
       if (mounted) {
         _showGameToast(
-          AppLocalizations.of(context).notificationsDeleteFailed('$e'),
+          TranslationResolver.resolveError(context, e),
           isError: true,
         );
       }

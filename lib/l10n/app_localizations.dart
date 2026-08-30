@@ -4207,6 +4207,540 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go!'**
   String get pvpRaceCountdownGo;
+
+  /// No description provided for @pvpLoadoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Race items'**
+  String get pvpLoadoutTitle;
+
+  /// No description provided for @pvpLoadoutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to two items for your next race'**
+  String get pvpLoadoutSubtitle;
+
+  /// No description provided for @pvpLoadoutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Items {equipped}/{limit}'**
+  String pvpLoadoutSummary(int equipped, int limit);
+
+  /// No description provided for @pvpLoadoutSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {slot}'**
+  String pvpLoadoutSlot(int slot);
+
+  /// No description provided for @pvpLoadoutEmptySlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an item to equip'**
+  String get pvpLoadoutEmptySlot;
+
+  /// No description provided for @pvpLoadoutChooseReplacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the slot you want to replace'**
+  String get pvpLoadoutChooseReplacement;
+
+  /// No description provided for @pvpLoadoutAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available items'**
+  String get pvpLoadoutAvailableTitle;
+
+  /// No description provided for @pvpLoadoutQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned: {quantity}'**
+  String pvpLoadoutQuantity(int quantity);
+
+  /// No description provided for @pvpLoadoutSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save loadout'**
+  String get pvpLoadoutSave;
+
+  /// No description provided for @pvpLoadoutSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Loadout saved'**
+  String get pvpLoadoutSaved;
+
+  /// No description provided for @pvpLoadoutDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get pvpLoadoutDiscardTitle;
+
+  /// No description provided for @pvpLoadoutDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your item choices have not been saved.'**
+  String get pvpLoadoutDiscardBody;
+
+  /// No description provided for @pvpLoadoutDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get pvpLoadoutDiscard;
+
+  /// No description provided for @pvpLoadoutKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get pvpLoadoutKeepEditing;
+
+  /// No description provided for @pvpLoadoutNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not own a PvP item yet.'**
+  String get pvpLoadoutNoItems;
+
+  /// No description provided for @pvpLoadoutGoToShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit shop'**
+  String get pvpLoadoutGoToShop;
+
+  /// No description provided for @pvpLoadoutLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Loadout is locked after matchmaking starts'**
+  String get pvpLoadoutLocked;
+
+  /// No description provided for @pvpItemHasteName.
+  ///
+  /// In en, this message translates to:
+  /// **'Haste Nectar'**
+  String get pvpItemHasteName;
+
+  /// No description provided for @pvpItemHasteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Boosts your Lumina\'s speed for a short time.'**
+  String get pvpItemHasteDescription;
+
+  /// No description provided for @pvpItemSlowName.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow Mist'**
+  String get pvpItemSlowName;
+
+  /// No description provided for @pvpItemSlowDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Slows the opponent for a short time.'**
+  String get pvpItemSlowDescription;
+
+  /// No description provided for @pvpItemCleanseName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleansing Dew'**
+  String get pvpItemCleanseName;
+
+  /// No description provided for @pvpItemCleanseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes negative speed effects from your Lumina.'**
+  String get pvpItemCleanseDescription;
+
+  /// No description provided for @pvpItemShieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield Acorn'**
+  String get pvpItemShieldName;
+
+  /// No description provided for @pvpItemShieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks the next harmful item effect.'**
+  String get pvpItemShieldDescription;
+
+  /// No description provided for @pvpItemTargetSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: you'**
+  String get pvpItemTargetSelf;
+
+  /// No description provided for @pvpItemTargetOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: opponent'**
+  String get pvpItemTargetOpponent;
+
+  /// No description provided for @pvpItemDurationSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {seconds}s'**
+  String pvpItemDurationSeconds(num seconds);
+
+  /// No description provided for @apiErrorBadRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check the information and try again.'**
+  String get apiErrorBadRequest;
+
+  /// No description provided for @apiErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get apiErrorUnauthorized;
+
+  /// No description provided for @apiErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to do that.'**
+  String get apiErrorForbidden;
+
+  /// No description provided for @apiErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested content could not be found.'**
+  String get apiErrorNotFound;
+
+  /// No description provided for @apiErrorConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'The data changed. Refresh and try again.'**
+  String get apiErrorConflict;
+
+  /// No description provided for @apiErrorTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Please wait a moment.'**
+  String get apiErrorTooManyRequests;
+
+  /// No description provided for @apiErrorInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is having trouble. Please try again later.'**
+  String get apiErrorInternal;
+
+  /// No description provided for @apiErrorNetworkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No network connection. Check your connection and try again.'**
+  String get apiErrorNetworkUnavailable;
+
+  /// No description provided for @apiErrorRequestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request took too long. Please try again.'**
+  String get apiErrorRequestTimeout;
+
+  /// No description provided for @apiErrorUnexpectedResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get apiErrorUnexpectedResponse;
+
+  /// No description provided for @apiErrorValidationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some information is invalid. Please check it again.'**
+  String get apiErrorValidationFailed;
+
+  /// No description provided for @apiErrorAccountNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has not been activated.'**
+  String get apiErrorAccountNotActive;
+
+  /// No description provided for @apiErrorPvpInvalidSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Only two PvP item slots are available.'**
+  String get apiErrorPvpInvalidSlot;
+
+  /// No description provided for @apiErrorPvpDuplicateItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Each PvP item can only occupy one slot.'**
+  String get apiErrorPvpDuplicateItem;
+
+  /// No description provided for @apiErrorPvpInvalidItem.
+  ///
+  /// In en, this message translates to:
+  /// **'This item cannot be used in PvP.'**
+  String get apiErrorPvpInvalidItem;
+
+  /// No description provided for @apiErrorPvpItemNotOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'You no longer own this item.'**
+  String get apiErrorPvpItemNotOwned;
+
+  /// No description provided for @apiErrorPvpLoadoutLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot change items after matchmaking starts.'**
+  String get apiErrorPvpLoadoutLocked;
+
+  /// No description provided for @apiErrorPvpActionInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That PvP item action is invalid. Please try again.'**
+  String get apiErrorPvpActionInvalid;
+
+  /// No description provided for @apiErrorPvpMatchNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This PvP match is no longer available.'**
+  String get apiErrorPvpMatchNotFound;
+
+  /// No description provided for @apiErrorPvpNotParticipant.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not a participant in this PvP match.'**
+  String get apiErrorPvpNotParticipant;
+
+  /// No description provided for @apiErrorPvpMatchNotRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Items can only be used while the race is running.'**
+  String get apiErrorPvpMatchNotRunning;
+
+  /// No description provided for @apiErrorPvpSlotNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This item slot is not available in the current race.'**
+  String get apiErrorPvpSlotNotFound;
+
+  /// No description provided for @apiErrorPvpItemAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This item has already been used.'**
+  String get apiErrorPvpItemAlreadyUsed;
+
+  /// No description provided for @apiErrorPvpItemUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer in your inventory.'**
+  String get apiErrorPvpItemUnavailable;
+
+  /// No description provided for @apiErrorPvpEffectConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'That effect cannot be applied right now.'**
+  String get apiErrorPvpEffectConflict;
+
+  /// No description provided for @apiErrorPvpBotUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No suitable opponent is available right now.'**
+  String get apiErrorPvpBotUnavailable;
+
+  /// No description provided for @apiErrorPvpInsufficientEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {requiredEnergy} energy is required to play PvP.'**
+  String apiErrorPvpInsufficientEnergy(int requiredEnergy);
+
+  /// No description provided for @apiErrorPvpReadyTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The match was cancelled because a player was not ready in time.'**
+  String get apiErrorPvpReadyTimeout;
+
+  /// No description provided for @apiErrorPvpMatchmakingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Matchmaking could not start. Please try again.'**
+  String get apiErrorPvpMatchmakingFailed;
+
+  /// No description provided for @apiErrorAuthEmailExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered.'**
+  String get apiErrorAuthEmailExists;
+
+  /// No description provided for @apiErrorAuthUsernameExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is already in use.'**
+  String get apiErrorAuthUsernameExists;
+
+  /// No description provided for @apiErrorAuthIdentityExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This email or username is already registered.'**
+  String get apiErrorAuthIdentityExists;
+
+  /// No description provided for @apiErrorAuthOtpRequestInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This OTP request is no longer valid.'**
+  String get apiErrorAuthOtpRequestInvalid;
+
+  /// No description provided for @apiErrorAuthOtpExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This OTP has expired. Request a new one.'**
+  String get apiErrorAuthOtpExpired;
+
+  /// No description provided for @apiErrorAuthOtpInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The OTP is incorrect.'**
+  String get apiErrorAuthOtpInvalid;
+
+  /// No description provided for @apiErrorAuthResetInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This password reset request has expired.'**
+  String get apiErrorAuthResetInvalid;
+
+  /// No description provided for @apiErrorAuthAccountLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is locked.'**
+  String get apiErrorAuthAccountLocked;
+
+  /// No description provided for @apiErrorAuthCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'The current password is incorrect.'**
+  String get apiErrorAuthCurrentPassword;
+
+  /// No description provided for @apiErrorAuthGoogleInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in could not be verified.'**
+  String get apiErrorAuthGoogleInvalid;
+
+  /// No description provided for @apiErrorAuthGoogleUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'The Google email has not been verified.'**
+  String get apiErrorAuthGoogleUnverified;
+
+  /// No description provided for @apiErrorUserNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This player could not be found.'**
+  String get apiErrorUserNotFound;
+
+  /// No description provided for @apiErrorProfileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This player profile could not be found.'**
+  String get apiErrorProfileNotFound;
+
+  /// No description provided for @apiErrorPetNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Lumina could not be found.'**
+  String get apiErrorPetNotFound;
+
+  /// No description provided for @apiErrorPetAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a Lumina.'**
+  String get apiErrorPetAlreadyExists;
+
+  /// No description provided for @apiErrorPetBondFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Lumina\'s Bond is already full.'**
+  String get apiErrorPetBondFull;
+
+  /// No description provided for @apiErrorPetTapLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached today\'s greeting limit.'**
+  String get apiErrorPetTapLimit;
+
+  /// No description provided for @apiErrorPetLifeForceFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Lumina\'s Life Force is already full.'**
+  String get apiErrorPetLifeForceFull;
+
+  /// No description provided for @apiErrorPetFeedLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached today\'s feeding limit.'**
+  String get apiErrorPetFeedLimit;
+
+  /// No description provided for @apiErrorPetFinalStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Lumina is already at its final stage.'**
+  String get apiErrorPetFinalStage;
+
+  /// No description provided for @apiErrorMissionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This mission is no longer available.'**
+  String get apiErrorMissionNotFound;
+
+  /// No description provided for @apiErrorMissionNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the mission before claiming its reward.'**
+  String get apiErrorMissionNotCompleted;
+
+  /// No description provided for @apiErrorMissionCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This mission has been cancelled.'**
+  String get apiErrorMissionCancelled;
+
+  /// No description provided for @apiErrorAchievementNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This achievement is no longer available.'**
+  String get apiErrorAchievementNotFound;
+
+  /// No description provided for @apiErrorAchievementNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This achievement has not been completed yet.'**
+  String get apiErrorAchievementNotCompleted;
+
+  /// No description provided for @apiErrorRewardAlreadyClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'This reward has already been claimed.'**
+  String get apiErrorRewardAlreadyClaimed;
+
+  /// No description provided for @apiErrorShopQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a valid purchase quantity.'**
+  String get apiErrorShopQuantity;
+
+  /// No description provided for @apiErrorWalletBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have enough Dewdrops.'**
+  String get apiErrorWalletBalance;
+
+  /// No description provided for @apiErrorItemNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer available.'**
+  String get apiErrorItemNotFound;
+
+  /// No description provided for @apiErrorFriendSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send a friend request to yourself.'**
+  String get apiErrorFriendSelf;
+
+  /// No description provided for @apiErrorNotificationNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This notification is no longer available.'**
+  String get apiErrorNotificationNotFound;
+
+  /// No description provided for @apiErrorFeedbackCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'You can send feedback once every {hours} hours.'**
+  String apiErrorFeedbackCooldown(int hours);
 }
 
 class _AppLocalizationsDelegate

@@ -11,6 +11,7 @@ import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/l10n/locale_helper.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
@@ -46,10 +47,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         return;
       }
 
-      _showGoogleLoginError(provider.errorMessage);
+      _showGoogleLoginError(
+        provider.authFailure == null
+            ? null
+            : TranslationResolver.resolveFailure(
+                context,
+                provider.authFailure!,
+              ),
+      );
     } catch (e) {
       if (!mounted) return;
-      _showGoogleLoginError(e.toString().replaceAll('Exception: ', ''));
+      _showGoogleLoginError(TranslationResolver.resolveError(context, e));
     }
   }
 

@@ -12,6 +12,7 @@ import '../../core/audio/app_audio_service.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/feedback/app_haptics.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_async_state.dart';
@@ -68,7 +69,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
             if (provider.errorMessage != null &&
                 provider.calendarData == null) {
               return GameAsyncStatePanel(
-                message: '${l10n.errorPrefix}: ${provider.errorMessage}',
+                message: provider.failure == null
+                    ? l10n.apiErrorUnexpectedResponse
+                    : TranslationResolver.resolveFailure(
+                        context,
+                        provider.failure!,
+                      ),
                 isError: true,
                 onRetry: provider.loadDailyLoginStatus,
                 retryLabel: l10n.retry,
@@ -385,7 +391,12 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                                   if (mounted &&
                                       provider.errorMessage != null) {
                                     _showDailyNotice(
-                                      '${l10n.errorPrefix}: ${provider.errorMessage}',
+                                      provider.failure == null
+                                          ? l10n.apiErrorUnexpectedResponse
+                                          : TranslationResolver.resolveFailure(
+                                              context,
+                                              provider.failure!,
+                                            ),
                                     );
                                   }
                                 }

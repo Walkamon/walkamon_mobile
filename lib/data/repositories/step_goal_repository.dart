@@ -1,3 +1,4 @@
+import '../../core/network/app_failure.dart';
 import '../datasources/remote/step_goal_datasource.dart';
 import '../models/step_goal_response.dart';
 
@@ -14,11 +15,7 @@ class StepGoalRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải mục tiêu bước chân.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<CurrentStreakResponse> getCurrentStreak() async {
@@ -28,11 +25,7 @@ class StepGoalRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải chuỗi ngày hiện tại.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<LongestStreakResponse> getLongestStreak() async {
@@ -42,11 +35,7 @@ class StepGoalRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải chuỗi ngày dài nhất.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<void> setGoal(int targetSteps) async {
@@ -54,11 +43,7 @@ class StepGoalRepository {
 
     if (apiResponse.success) return;
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể lưu mục tiêu bước chân.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<StepGoalClaimRewardResponse> claimReward() async {
@@ -68,10 +53,6 @@ class StepGoalRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể nhận thưởng chuỗi ngày.',
-    );
+    throw apiResponse.failure;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../core/audio/app_audio_service.dart';
 import '../../../core/feedback/app_haptics.dart';
+import '../../../core/localization/translation_resolver.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../widgets/common/game_button_label.dart';
 import '../../../l10n/app_localizations.dart';
@@ -60,6 +61,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(context.read<GameStateProvider>().fetchPetVisual());
+      unawaited(context.read<PvpProvider>().refreshPvpLoadout());
     });
   }
 
@@ -428,7 +430,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     PvpHudSlot visualSlot(int slotNo) {
       final slot = slotAt(slotNo);
       return PvpHudSlot(
-        itemCode: slot?.presentationCode ?? 'haste',
+        itemCode: slot?.presentationCode,
         enabled: slot?.isAvailable ?? false,
         used: slot?.isUsed ?? false,
         pending: provider.pendingItemSlots.contains(slotNo),
@@ -439,15 +441,17 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
 
     final feedback = provider.itemFeedback;
     final l10n = AppLocalizations.of(context);
-    final feedbackText = switch (feedback) {
-      PvpItemFeedbackCode.onlyDuringRace => l10n.pvpItemOnlyDuringRace,
-      PvpItemFeedbackCode.slotUnavailable => l10n.pvpItemSlotUnavailable,
-      PvpItemFeedbackCode.useFailed => l10n.pvpItemUseFailed,
-      PvpItemFeedbackCode.blocked => l10n.pvpItemBlocked,
-      PvpItemFeedbackCode.cleansed => l10n.pvpItemCleansed,
-      PvpItemFeedbackCode.used => l10n.pvpItemUsed,
-      null => null,
-    };
+    final feedbackText = provider.itemFailure != null
+        ? TranslationResolver.resolveFailure(context, provider.itemFailure!)
+        : switch (feedback) {
+            PvpItemFeedbackCode.onlyDuringRace => l10n.pvpItemOnlyDuringRace,
+            PvpItemFeedbackCode.slotUnavailable => l10n.pvpItemSlotUnavailable,
+            PvpItemFeedbackCode.useFailed => l10n.pvpItemUseFailed,
+            PvpItemFeedbackCode.blocked => l10n.pvpItemBlocked,
+            PvpItemFeedbackCode.cleansed => l10n.pvpItemCleansed,
+            PvpItemFeedbackCode.used => l10n.pvpItemUsed,
+            null => null,
+          };
     return Positioned(
       left: 18,
       right: 18,

@@ -12,6 +12,7 @@ import 'package:walkamon_mobile/widgets/common/game_notification_dialog.dart';
 
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/presence_provider.dart';
 import '../profile/friend_player_profile_screen.dart';
@@ -810,29 +811,10 @@ class _AddFriendBottomSheetState extends State<AddFriendBottomSheet> {
       });
     } catch (e) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context);
-        String rawMessage = e.toString().replaceAll('Exception: ', '');
-        String gameText = l10n.friendsRequestSendFailed;
-
-        // Xử lý các câu báo lỗi
-        if (rawMessage.contains("already sent")) {
-          gameText = l10n.friendsRequestAlreadySent;
-        } else if (rawMessage.contains("already friend")) {
-          gameText = l10n.friendsAlreadyFriend;
-        } else if (rawMessage.contains("not found")) {
-          gameText = l10n.friendsPlayerNotFound;
-        } else {
-          final regex = RegExp(r'"message":"(.*?)"');
-          final match = regex.firstMatch(rawMessage);
-          if (match != null) {
-            gameText = match.group(1) ?? rawMessage;
-          } else {
-            gameText = rawMessage;
-          }
-        }
-
-        // Gọi thông báo thất bại
-        _showGameNotification(gameText, false);
+        _showGameNotification(
+          TranslationResolver.resolveError(context, e),
+          false,
+        );
       }
     }
   }

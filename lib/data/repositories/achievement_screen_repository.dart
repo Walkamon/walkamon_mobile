@@ -1,4 +1,4 @@
-import '../../../core/network/api_response.dart';
+import '../../../core/network/app_failure.dart';
 import '../datasources/remote/achievement_screen_datasource.dart';
 import '../models/achievement_response.dart';
 import '../models/achievement_claim_response.dart';
@@ -15,11 +15,7 @@ class AchievementScreenRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải danh sách thành tựu.',
-    );
+    throw apiResponse.failure;
   }
 
   Future<ClaimAchievementRewardResponse> claimAchievement(
@@ -29,6 +25,6 @@ class AchievementScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 }

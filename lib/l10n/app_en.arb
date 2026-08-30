@@ -1176,7 +1176,102 @@
   "tutorialPvpResultBody": "After the finish reaction, compare the final scores. Ranked rewards appear only when the server grants them.",
   "pvpRaceCountdownReady": "Ready",
   "pvpRaceCountdownSet": "Set",
-  "pvpRaceCountdownGo": "Go!"
+  "pvpRaceCountdownGo": "Go!",
+  "pvpLoadoutTitle": "Race items",
+  "pvpLoadoutSubtitle": "Choose up to two items for your next race",
+  "pvpLoadoutSummary": "Items {equipped}/{limit}",
+  "@pvpLoadoutSummary": {"placeholders": {"equipped": {"type": "int"}, "limit": {"type": "int"}}},
+  "pvpLoadoutSlot": "Slot {slot}",
+  "@pvpLoadoutSlot": {"placeholders": {"slot": {"type": "int"}}},
+  "pvpLoadoutEmptySlot": "Tap an item to equip",
+  "pvpLoadoutChooseReplacement": "Choose the slot you want to replace",
+  "pvpLoadoutAvailableTitle": "Available items",
+  "pvpLoadoutQuantity": "Owned: {quantity}",
+  "@pvpLoadoutQuantity": {"placeholders": {"quantity": {"type": "int"}}},
+  "pvpLoadoutSave": "Save loadout",
+  "pvpLoadoutSaved": "Loadout saved",
+  "pvpLoadoutDiscardTitle": "Discard changes?",
+  "pvpLoadoutDiscardBody": "Your item choices have not been saved.",
+  "pvpLoadoutDiscard": "Discard",
+  "pvpLoadoutKeepEditing": "Keep editing",
+  "pvpLoadoutNoItems": "You do not own a PvP item yet.",
+  "pvpLoadoutGoToShop": "Visit shop",
+  "pvpLoadoutLocked": "Loadout is locked after matchmaking starts",
+  "pvpItemHasteName": "Haste Nectar",
+  "pvpItemHasteDescription": "Boosts your Lumina's speed for a short time.",
+  "pvpItemSlowName": "Slow Mist",
+  "pvpItemSlowDescription": "Slows the opponent for a short time.",
+  "pvpItemCleanseName": "Cleansing Dew",
+  "pvpItemCleanseDescription": "Removes negative speed effects from your Lumina.",
+  "pvpItemShieldName": "Shield Acorn",
+  "pvpItemShieldDescription": "Blocks the next harmful item effect.",
+  "pvpItemTargetSelf": "Target: you",
+  "pvpItemTargetOpponent": "Target: opponent",
+  "pvpItemDurationSeconds": "Duration: {seconds}s",
+  "@pvpItemDurationSeconds": {"placeholders": {"seconds": {"type": "num"}}},
+  "apiErrorBadRequest": "Please check the information and try again.",
+  "apiErrorUnauthorized": "Your session has expired. Please sign in again.",
+  "apiErrorForbidden": "You do not have permission to do that.",
+  "apiErrorNotFound": "The requested content could not be found.",
+  "apiErrorConflict": "The data changed. Refresh and try again.",
+  "apiErrorTooManyRequests": "Too many requests. Please wait a moment.",
+  "apiErrorInternal": "The server is having trouble. Please try again later.",
+  "apiErrorNetworkUnavailable": "No network connection. Check your connection and try again.",
+  "apiErrorRequestTimeout": "The request took too long. Please try again.",
+  "apiErrorUnexpectedResponse": "Something went wrong. Please try again.",
+  "apiErrorValidationFailed": "Some information is invalid. Please check it again.",
+  "apiErrorAccountNotActive": "This account has not been activated.",
+  "apiErrorPvpInvalidSlot": "Only two PvP item slots are available.",
+  "apiErrorPvpDuplicateItem": "Each PvP item can only occupy one slot.",
+  "apiErrorPvpInvalidItem": "This item cannot be used in PvP.",
+  "apiErrorPvpItemNotOwned": "You no longer own this item.",
+  "apiErrorPvpLoadoutLocked": "You cannot change items after matchmaking starts.",
+  "apiErrorPvpActionInvalid": "That PvP item action is invalid. Please try again.",
+  "apiErrorPvpMatchNotFound": "This PvP match is no longer available.",
+  "apiErrorPvpNotParticipant": "You are not a participant in this PvP match.",
+  "apiErrorPvpMatchNotRunning": "Items can only be used while the race is running.",
+  "apiErrorPvpSlotNotFound": "This item slot is not available in the current race.",
+  "apiErrorPvpItemAlreadyUsed": "This item has already been used.",
+  "apiErrorPvpItemUnavailable": "This item is no longer in your inventory.",
+  "apiErrorPvpEffectConflict": "That effect cannot be applied right now.",
+  "apiErrorPvpBotUnavailable": "No suitable opponent is available right now.",
+  "apiErrorPvpInsufficientEnergy": "At least {requiredEnergy} energy is required to play PvP.",
+  "@apiErrorPvpInsufficientEnergy": {"placeholders": {"requiredEnergy": {"type": "int"}}},
+  "apiErrorPvpReadyTimeout": "The match was cancelled because a player was not ready in time.",
+  "apiErrorPvpMatchmakingFailed": "Matchmaking could not start. Please try again."
+  ,"apiErrorAuthEmailExists": "This email is already registered."
+  ,"apiErrorAuthUsernameExists": "This username is already in use."
+  ,"apiErrorAuthIdentityExists": "This email or username is already registered."
+  ,"apiErrorAuthOtpRequestInvalid": "This OTP request is no longer valid."
+  ,"apiErrorAuthOtpExpired": "This OTP has expired. Request a new one."
+  ,"apiErrorAuthOtpInvalid": "The OTP is incorrect."
+  ,"apiErrorAuthResetInvalid": "This password reset request has expired."
+  ,"apiErrorAuthAccountLocked": "This account is locked."
+  ,"apiErrorAuthCurrentPassword": "The current password is incorrect."
+  ,"apiErrorAuthGoogleInvalid": "Google sign-in could not be verified."
+  ,"apiErrorAuthGoogleUnverified": "The Google email has not been verified."
+  ,"apiErrorUserNotFound": "This player could not be found."
+  ,"apiErrorProfileNotFound": "This player profile could not be found."
+  ,"apiErrorPetNotFound": "Your Lumina could not be found."
+  ,"apiErrorPetAlreadyExists": "You already have a Lumina."
+  ,"apiErrorPetBondFull": "Your Lumina's Bond is already full."
+  ,"apiErrorPetTapLimit": "You have reached today's greeting limit."
+  ,"apiErrorPetLifeForceFull": "Your Lumina's Life Force is already full."
+  ,"apiErrorPetFeedLimit": "You have reached today's feeding limit."
+  ,"apiErrorPetFinalStage": "Your Lumina is already at its final stage."
+  ,"apiErrorMissionNotFound": "This mission is no longer available."
+  ,"apiErrorMissionNotCompleted": "Complete the mission before claiming its reward."
+  ,"apiErrorMissionCancelled": "This mission has been cancelled."
+  ,"apiErrorAchievementNotFound": "This achievement is no longer available."
+  ,"apiErrorAchievementNotCompleted": "This achievement has not been completed yet."
+  ,"apiErrorRewardAlreadyClaimed": "This reward has already been claimed."
+  ,"apiErrorShopQuantity": "Choose a valid purchase quantity."
+  ,"apiErrorWalletBalance": "You do not have enough Dewdrops."
+  ,"apiErrorItemNotFound": "This item is no longer available."
+  ,"apiErrorFriendSelf": "You cannot send a friend request to yourself."
+  ,"apiErrorNotificationNotFound": "This notification is no longer available."
+  ,"apiErrorFeedbackCooldown": "You can send feedback once every {hours} hours."
+  ,"@apiErrorFeedbackCooldown": {"placeholders": {"hours": {"type": "int"}}}
 }
 
 

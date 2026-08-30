@@ -7,6 +7,7 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/friend_profile_datasource.dart';
@@ -77,18 +78,11 @@ class _FriendPlayerProfileScreenState extends State<FriendPlayerProfileScreen> {
       _showRequestDialog(name);
     } catch (e) {
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context);
-      final message = e.toString().toLowerCase();
-      var gameText = l10n.friendsRequestSendFailed;
-      if (message.contains('already sent')) {
-        gameText = l10n.friendsRequestAlreadySent;
-      } else if (message.contains('already friends') ||
-          message.contains('already friend')) {
-        gameText = l10n.friendsAlreadyFriend;
-      } else if (message.contains('not found')) {
-        gameText = l10n.friendsPlayerNotFound;
-      }
-      showGameNotificationDialog(context, message: gameText, isSuccess: false);
+      showGameNotificationDialog(
+        context,
+        message: TranslationResolver.resolveError(context, e),
+        isSuccess: false,
+      );
     } finally {
       if (mounted) setState(() => _isSendingRequest = false);
     }

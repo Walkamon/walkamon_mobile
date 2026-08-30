@@ -5,6 +5,7 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
@@ -60,7 +61,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _achievementCountError = e.toString();
+        _achievementCountError = TranslationResolver.resolveError(context, e);
         _isAchievementCountLoading = false;
       });
     }

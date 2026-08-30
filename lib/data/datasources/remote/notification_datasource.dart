@@ -1,6 +1,7 @@
 import '../../models/notification_response.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/network/app_failure.dart';
 
 abstract class NotificationDatasource {
   Future<NotificationResponse> updateNotification(bool enabled);
@@ -22,7 +23,7 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       ApiConstants.registerDeviceToken,
       data: {'fcmToken': fcmToken}, //
     );
-    if (!response.success) throw Exception(response.message);
+    if (!response.success) throw response.failure;
   }
 
   @override
@@ -31,7 +32,7 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       ApiConstants.deactivateDeviceToken,
       data: {'fcmToken': fcmToken}, //
     );
-    if (!response.success) throw Exception(response.message);
+    if (!response.success) throw response.failure;
   }
 
   @override
@@ -41,7 +42,7 @@ class NotificationDatasourceImpl implements NotificationDatasource {
         ApiConstants.deleteNotification(id),
       );
       if (!response.success) {
-        throw Exception(response.message ?? "Lỗi xóa thông báo");
+        throw response.failure;
       }
     } catch (e) {
       print("Lỗi deleteNotification: $e");
@@ -61,12 +62,12 @@ class NotificationDatasourceImpl implements NotificationDatasource {
 
       // 2. Kiểm tra cờ success
       if (!response.success) {
-        throw Exception(response.message ?? "Lỗi cập nhật thông báo");
+        throw response.failure;
       }
 
       // 3. Lúc này response.data đã được ApiClient tự động parse thành NotificationResponse
       if (response.data == null) {
-        throw Exception("Không đọc được dữ liệu trả về từ server");
+        throw const AppFailure(code: 'UNEXPECTED_RESPONSE', status: 200);
       }
 
       return response.data!;
@@ -85,7 +86,7 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       );
 
       if (!response.success) {
-        throw Exception(response.message ?? "Lỗi tải chi tiết thông báo");
+        throw response.failure;
       }
 
       return response.data!;
@@ -112,7 +113,7 @@ class NotificationDatasourceImpl implements NotificationDatasource {
       );
 
       if (!response.success) {
-        throw Exception(response.message ?? "Lỗi tải thông báo");
+        throw response.failure;
       }
 
       return response.data ?? [];

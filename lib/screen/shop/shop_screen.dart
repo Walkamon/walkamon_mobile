@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
@@ -207,11 +208,11 @@ class _ShopScreenState extends State<ShopScreen> {
         _showSuccess(AppLocalizations.of(context).shopBuySuccess(item.name));
         unawaited(_loadWalletBalance());
       } else {
-        _showError(AppLocalizations.of(context).shopBuyFailed(resp.message));
+        _showError(TranslationResolver.resolveResponse(context, resp));
       }
     } catch (e) {
       if (mounted) {
-        _showError(AppLocalizations.of(context).shopBuyError(e.toString()));
+        _showError(TranslationResolver.resolveError(context, e));
       }
     } finally {
       if (mounted && _buyingItemId != null) {

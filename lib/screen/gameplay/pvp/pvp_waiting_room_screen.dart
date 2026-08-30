@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../../core/localization/translation_resolver.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/pvp_item_models.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/pvp_provider.dart';
 import '../../../widgets/common/asset_only_icon_button.dart';
@@ -10,6 +12,7 @@ import '../../../widgets/common/game_back_button.dart';
 import '../../../widgets/common/game_button_label.dart';
 import '../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import 'pvp_asset_resolver.dart';
+import 'pvp_loadout_screen.dart';
 import 'widgets/pvp_modals.dart';
 
 class PvPWaitingRoomScreen extends StatelessWidget {
@@ -108,6 +111,23 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                   Row(
                     children: [
+                      AssetOnlyIconButton(
+                        semanticLabel: l10n.pvpLoadoutTitle,
+                        onPressed: pvpProvider.isLoadoutLocked
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => PvpLoadoutScreen(
+                                    pvpProvider: pvpProvider,
+                                    backgroundAsset: mapAsset,
+                                  ),
+                                ),
+                              ),
+                        asset: AppAssets.iconShoppingBag,
+                        buttonSize: 48,
+                        assetSize: 42,
+                      ),
+                      const SizedBox(width: 8),
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -265,13 +285,28 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 10),
+                        _PvpLoadoutSummaryCard(
+                          slots: pvpProvider.configuredLoadoutSlots,
+                          slotLimit: pvpProvider.loadoutSlotLimit,
+                          onTap: pvpProvider.isLoadoutLocked
+                              ? null
+                              : () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => PvpLoadoutScreen(
+                                      pvpProvider: pvpProvider,
+                                      backgroundAsset: mapAsset,
+                                    ),
+                                  ),
+                                ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
               SizedBox(height: isCompactHeight ? 10 : 24),
-              if (pvpProvider.matchmakingErrorMessage != null) ...[
+              if (pvpProvider.matchmakingFailure != null) ...[
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
@@ -285,7 +320,10 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                     border: Border.all(color: Colors.red.shade300),
                   ),
                   child: Text(
-                    pvpProvider.matchmakingErrorMessage!,
+                    TranslationResolver.resolveFailure(
+                      context,
+                      pvpProvider.matchmakingFailure!,
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.red.shade900,
@@ -307,86 +345,101 @@ class PvPWaitingRoomScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              SizedBox(
-                width: double.infinity,
-                height: isCompactHeight ? 50 : 56,
-                child: ElevatedButton(
-                  key: matchmakingTutorialKey,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark
-                        ? AppColors.darkLife
-                        : const Color(0xFFF6C95D),
-                    foregroundColor: isDark
-                        ? AppColors.darkTextOutline
-                        : AppColors.woodDeep,
-                    side: BorderSide(
-                      color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-                      width: 2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  onPressed:
-                      pvpProvider.matchmakingState ==
-                              PvpMatchmakingState.idle ||
+              Transform.translate(
+                offset: Offset(0, isSearchingForOpponent ? 30 : 0),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: isCompactHeight ? 50 : 56,
+                      child: ElevatedButton(
+                        key: matchmakingTutorialKey,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? AppColors.darkLife
+                              : const Color(0xFFF6C95D),
+                          foregroundColor: isDark
+                              ? AppColors.darkTextOutline
+                              : AppColors.woodDeep,
+                          side: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.woodDeep,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        onPressed:
+                            pvpProvider.matchmakingState ==
+                                    PvpMatchmakingState.idle ||
+                                pvpProvider.matchmakingState ==
+                                    PvpMatchmakingState.finished ||
+                                pvpProvider.matchmakingState ==
+                                    PvpMatchmakingState.cancelled
+                            ? (hasEnoughEnergy ? onStartMatchmaking : null)
+                            : null,
+                        child: Text(
                           pvpProvider.matchmakingState ==
-                              PvpMatchmakingState.finished ||
-                          pvpProvider.matchmakingState ==
-                              PvpMatchmakingState.cancelled
-                      ? (hasEnoughEnergy ? onStartMatchmaking : null)
-                      : null,
-                  child: Text(
-                    pvpProvider.matchmakingState ==
-                            PvpMatchmakingState.connecting
-                        ? l10n.pvpConnecting
-                        : pvpProvider.matchmakingState ==
-                              PvpMatchmakingState.countdown
-                        ? l10n.pvpPreparing
-                        : l10n.pvpFindRandomMatch,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                                  PvpMatchmakingState.connecting
+                              ? l10n.pvpConnecting
+                              : pvpProvider.matchmakingState ==
+                                    PvpMatchmakingState.countdown
+                              ? l10n.pvpPreparing
+                              : l10n.pvpFindRandomMatch,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              SizedBox(height: isCompactHeight ? 10 : 16),
-              SizedBox(
-                width: double.infinity,
-                height: isCompactHeight ? 50 : 56,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: cardColor,
-                    foregroundColor: isDark
-                        ? AppColors.darkForeground
-                        : AppColors.woodDeep,
-                    side: const BorderSide(color: AppColors.woodDeep, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                    SizedBox(height: isCompactHeight ? 10 : 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: isCompactHeight ? 50 : 56,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: cardColor,
+                          foregroundColor: isDark
+                              ? AppColors.darkForeground
+                              : AppColors.woodDeep,
+                          side: const BorderSide(
+                            color: AppColors.woodDeep,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        onPressed: onInviteFriend == null || !hasEnoughEnergy
+                            ? null
+                            : () {
+                                final online = pvpProvider.friendsList
+                                    .where((f) => f.isOnline)
+                                    .toList();
+                                final offline = pvpProvider.friendsList
+                                    .where((f) => !f.isOnline)
+                                    .toList();
+                                showFriendsModal(
+                                  context,
+                                  online,
+                                  offline,
+                                  (userId, username) =>
+                                      onInviteFriend!(userId, username),
+                                );
+                              },
+                        child: Text(
+                          l10n.pvpChallengeFriend,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  onPressed: onInviteFriend == null || !hasEnoughEnergy
-                      ? null
-                      : () {
-                          final online = pvpProvider.friendsList
-                              .where((f) => f.isOnline)
-                              .toList();
-                          final offline = pvpProvider.friendsList
-                              .where((f) => !f.isOnline)
-                              .toList();
-                          showFriendsModal(
-                            context,
-                            online,
-                            offline,
-                            (userId, username) =>
-                                onInviteFriend!(userId, username),
-                          );
-                        },
-                  child: Text(
-                    l10n.pvpChallengeFriend,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  ],
                 ),
               ),
               SizedBox(height: bottomNavigationClearance),
@@ -458,6 +511,122 @@ class PvPWaitingRoomScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PvpLoadoutSummaryCard extends StatelessWidget {
+  const _PvpLoadoutSummaryCard({
+    required this.slots,
+    required this.slotLimit,
+    required this.onTap,
+  });
+
+  final List<PvpLoadoutSlot> slots;
+  final int slotLimit;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: onTap != null,
+      label: l10n.pvpLoadoutSummary(slots.length, slotLimit),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 58),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.authCard.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.woodLight, width: 1.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 7,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Image.asset(AppAssets.iconShoppingBag, width: 40, height: 40),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.pvpLoadoutSummary(slots.length, slotLimit),
+                        style: const TextStyle(
+                          color: AppColors.woodDeep,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        l10n.pvpLoadoutSubtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.inkBrown,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                for (var slotNo = 1; slotNo <= 2; slotNo++)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: _SummarySlot(slot: _slotAt(slotNo)),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  PvpLoadoutSlot? _slotAt(int slotNo) {
+    for (final slot in slots) {
+      if (slot.slotNo == slotNo) return slot;
+    }
+    return null;
+  }
+}
+
+class _SummarySlot extends StatelessWidget {
+  const _SummarySlot({required this.slot});
+
+  final PvpLoadoutSlot? slot;
+
+  @override
+  Widget build(BuildContext context) {
+    final code = slot?.presentationCode?.toString();
+    final icon = code == null ? null : PvpAssetResolver.itemIcon(code);
+    return Container(
+      width: 38,
+      height: 38,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: AppColors.creamLight,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.oliveDeep, width: 1.2),
+      ),
+      child: icon == null
+          ? Opacity(
+              opacity: 0.38,
+              child: Image.asset(AppAssets.iconUseCharm, fit: BoxFit.contain),
+            )
+          : Image.asset(icon, fit: BoxFit.contain),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
@@ -309,7 +310,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
       await _loadData(showLoading: false);
     } catch (e) {
       if (mounted) {
-        _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
+        _showError(TranslationResolver.resolveError(context, e));
       }
     } finally {
       if (mounted) setState(() => _claimingMissionId = null);
@@ -342,10 +343,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
           _showSuccess(AppLocalizations.of(context).missionsChallengeCreated);
         }
       } else {
-        _showError(resp.message);
+        _showError(TranslationResolver.resolveResponse(context, resp));
       }
     } catch (e) {
-      _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
+      _showError(TranslationResolver.resolveError(context, e));
       if (mounted) {
         await _refreshChallengeState();
       }
@@ -397,13 +398,13 @@ class _MissionsScreenState extends State<MissionsScreen> {
           await _refreshChallengeState();
         }
       } else {
-        _showError(resp.message);
+        _showError(TranslationResolver.resolveResponse(context, resp));
         if (mounted) {
           await _refreshChallengeState();
         }
       }
     } catch (e) {
-      _showError(AppLocalizations.of(context).missionsCancelFailed('$e'));
+      _showError(TranslationResolver.resolveError(context, e));
       if (mounted) {
         await _refreshChallengeState();
       }

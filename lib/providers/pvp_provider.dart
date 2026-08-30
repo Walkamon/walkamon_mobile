@@ -9,6 +9,7 @@ import '../core/audio/app_audio_service.dart';
 import '../core/feedback/app_haptics.dart';
 import '../core/constants/api_constants.dart';
 import '../core/network/api_client.dart';
+import '../core/network/app_failure.dart';
 import '../data/datasources/remote/pvp_sprint_datasource.dart';
 import '../data/datasources/remote/pet_screen_datasource.dart';
 import '../data/datasources/remote/activity_stats_datasource.dart';
@@ -646,7 +647,7 @@ class PvpProvider extends ChangeNotifier {
     String? signalRJoinMethod,
     String? signalRLeaveMethod,
     PresenceProvider? presenceProvider,
-    Duration matchmakingRecoveryDelay = const Duration(seconds: 15),
+    Duration matchmakingRecoveryDelay = const Duration(seconds: 10),
     Duration matchmakingRecoveryInterval = const Duration(seconds: 2),
   }) : _pvpDatasource = pvpDatasource ?? PvpSprintDatasource(apiClient),
        _petDatasource = petDatasource ?? PetScreenDatasource(apiClient),
@@ -818,7 +819,7 @@ class PvpProvider extends ChangeNotifier {
         _historyTotal = 0;
         debugPrint(
           '[PvP] loadMatchHistory failed status=${response.status} '
-          'message=${response.message}',
+          'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'}',
         );
       }
     } catch (e, st) {
@@ -837,32 +838,42 @@ class PvpProvider extends ChangeNotifier {
 
   PvpMatchmakingState _matchmakingState = PvpMatchmakingState.idle;
   PvpMatchmakingState get matchmakingState => _matchmakingState;
-  String? _matchmakingErrorMessage;
-  String? get matchmakingErrorMessage => _matchmakingErrorMessage;
+  AppFailure? _matchmakingFailure;
+  AppFailure? get matchmakingFailure => _matchmakingFailure;
 
   static const int pvpEnergyCost = 15;
 
   void _setMatchmakingError(String? reasonOrMessage) {
     final value = reasonOrMessage?.trim();
     if (value == null || value.isEmpty) {
-      _matchmakingErrorMessage = null;
+      _matchmakingFailure = null;
       return;
     }
-    switch (value.toLowerCase()) {
-      case 'bot_unavailable':
-        _matchmakingErrorMessage = 'No suitable bot is available right now.';
-        break;
-      case 'insufficient_energy':
-        _matchmakingErrorMessage =
-            'At least $pvpEnergyCost energy is required to play PvP.';
-        break;
-      case 'ready_timeout':
-        _matchmakingErrorMessage =
-            'The match was cancelled because a player did not ready in time.';
-        break;
-      default:
-        _matchmakingErrorMessage = value;
-    }
+    final normalized = value.toLowerCase();
+    _matchmakingFailure = switch (normalized) {
+      'bot_unavailable' => const AppFailure(
+        code: 'PVP_BOT_UNAVAILABLE',
+        status: 409,
+      ),
+      'insufficient_energy' => const AppFailure(
+        code: 'PVP_INSUFFICIENT_ENERGY',
+        status: 409,
+        params: <String, dynamic>{'requiredEnergy': pvpEnergyCost},
+      ),
+      'ready_timeout' => const AppFailure(
+        code: 'PVP_READY_TIMEOUT',
+        status: 409,
+      ),
+      _ => AppFailure(
+        code: 'PVP_MATCHMAKING_FAILED',
+        status: 409,
+        fallbackMessage: value,
+      ),
+    };
+  }
+
+  void _setMatchmakingFailure(AppFailure failure) {
+    _matchmakingFailure = failure;
   }
 
   PvpMatchResponse? _currentMatch;
@@ -1116,6 +1127,27 @@ class PvpProvider extends ChangeNotifier {
 
   List<PvpLoadoutSlot> get itemLoadout =>
       _currentMatch?.loadout ?? const <PvpLoadoutSlot>[];
+  PvpLoadoutResponse _configuredLoadout = const PvpLoadoutResponse();
+  PvpLoadoutResponse get configuredLoadout => _configuredLoadout;
+  List<PvpLoadoutSlot> get configuredLoadoutSlots => _configuredLoadout.slots;
+  List<PvpAvailableLoadoutItem> get availableLoadoutItems =>
+      _configuredLoadout.availableItems;
+  int get loadoutSlotLimit => _configuredLoadout.slotLimit;
+  bool _isLoadoutLoading = false;
+  bool get isLoadoutLoading => _isLoadoutLoading;
+  bool _isLoadoutSaving = false;
+  bool get isLoadoutSaving => _isLoadoutSaving;
+  AppFailure? _loadoutFailure;
+  AppFailure? get loadoutFailure => _loadoutFailure;
+  AppFailure? _itemFailure;
+  AppFailure? get itemFailure => _itemFailure;
+  bool get isLoadoutLocked => switch (_matchmakingState) {
+    PvpMatchmakingState.connecting ||
+    PvpMatchmakingState.waiting ||
+    PvpMatchmakingState.countdown ||
+    PvpMatchmakingState.running => true,
+    _ => false,
+  };
   List<PvpActiveEffect> get activeEffects =>
       _currentMatch?.activeEffects ?? const <PvpActiveEffect>[];
   Set<int> get pendingItemSlots => _pendingItemActions.keys.toSet();
@@ -1154,10 +1186,43 @@ class PvpProvider extends ChangeNotifier {
   }
 
   Future<void> refreshPvpLoadout() async {
+    if (_isLoadoutLoading) return;
+    _isLoadoutLoading = true;
+    _loadoutFailure = null;
+    notifyListeners();
     final response = await _pvpDatasource.getLoadout();
-    final match = _currentMatch;
-    if (!response.success || response.data == null || match == null) return;
-    _currentMatch = _copyMatch(match, loadout: response.data!.slots);
+    _isLoadoutLoading = false;
+    if (!response.success || response.data == null) {
+      _loadoutFailure = response.failure;
+      notifyListeners();
+      return;
+    }
+    _configuredLoadout = response.data!;
+    _loadoutFailure = null;
+    notifyListeners();
+  }
+
+  Future<bool> savePvpLoadout(List<PvpLoadoutSlot> slots) async {
+    if (_isLoadoutSaving || isLoadoutLocked) return false;
+    _isLoadoutSaving = true;
+    _loadoutFailure = null;
+    notifyListeners();
+    final response = await _pvpDatasource.updateLoadout(slots);
+    _isLoadoutSaving = false;
+    if (!response.success || response.data == null) {
+      _loadoutFailure = response.failure;
+      notifyListeners();
+      return false;
+    }
+    _configuredLoadout = response.data!;
+    _loadoutFailure = null;
+    notifyListeners();
+    return true;
+  }
+
+  void clearLoadoutFailure() {
+    if (_loadoutFailure == null) return;
+    _loadoutFailure = null;
     notifyListeners();
   }
 
@@ -1205,6 +1270,7 @@ class PvpProvider extends ChangeNotifier {
     final acceptsItemInput =
         _matchmakingState == PvpMatchmakingState.running && !_serverFinished;
     if (matchId == null || matchId.isEmpty || !acceptsItemInput) {
+      _itemFailure = null;
       _itemFeedback = PvpItemFeedbackCode.onlyDuringRace;
       notifyListeners();
       return false;
@@ -1220,12 +1286,14 @@ class PvpProvider extends ChangeNotifier {
         !slot.isAvailable ||
         _pendingItemActions.containsKey(slotNo)) {
       _itemFeedback = PvpItemFeedbackCode.slotUnavailable;
+      _itemFailure = null;
       notifyListeners();
       return false;
     }
     final clientActionId = _newClientActionId();
     _pendingItemActions[slotNo] = clientActionId;
     _itemFeedback = null;
+    _itemFailure = null;
     notifyListeners();
     final response = await _pvpDatasource.useItem(
       matchId,
@@ -1235,6 +1303,7 @@ class PvpProvider extends ChangeNotifier {
     if (!response.success || response.data == null) {
       _pendingItemActions.remove(slotNo);
       _itemFeedback = PvpItemFeedbackCode.useFailed;
+      _itemFailure = response.failure;
       notifyListeners();
       return false;
     }
@@ -1256,6 +1325,7 @@ class PvpProvider extends ChangeNotifier {
     _markSlotUsed(slotNo);
     _pendingItemActions.remove(slotNo);
     _itemFeedback = _friendlyItemResult(action.resultCode);
+    _itemFailure = null;
     notifyListeners();
     return true;
   }
@@ -1280,8 +1350,9 @@ class PvpProvider extends ChangeNotifier {
   }
 
   void clearItemFeedback() {
-    if (_itemFeedback == null) return;
+    if (_itemFeedback == null && _itemFailure == null) return;
     _itemFeedback = null;
+    _itemFailure = null;
     notifyListeners();
   }
 
@@ -1557,6 +1628,7 @@ class PvpProvider extends ChangeNotifier {
     _finishReactionStartedAt = null;
     _pendingItemActions.clear();
     _itemFeedback = null;
+    _itemFailure = null;
     _lastItemActionId = null;
     _transientVfxCode = null;
     _transientVfxTargetMatchPlayerId = null;
@@ -2194,7 +2266,10 @@ class PvpProvider extends ChangeNotifier {
     _log('GET Match', matchId: matchId);
     final matchResponse = await _pvpDatasource.getMatch(matchId);
     if (!matchResponse.success || matchResponse.data == null) {
-      debugPrint('GET match failed after assigned: ${matchResponse.message}');
+      debugPrint(
+        'GET match failed after assigned: code=${matchResponse.errorCode ?? '-'} '
+        'traceId=${matchResponse.traceId ?? '-'}',
+      );
       return false;
     }
 
@@ -2706,7 +2781,8 @@ class PvpProvider extends ChangeNotifier {
 
         debugPrint(
           '[PvP] loadMatchResult failed matchId=$matchId '
-          'status=${response.status} message=${response.message}',
+          'status=${response.status} code=${response.errorCode ?? '-'} '
+          'traceId=${response.traceId ?? '-'}',
         );
         return;
       }
@@ -2732,7 +2808,8 @@ class PvpProvider extends ChangeNotifier {
 
     debugPrint(
       '[PvP] claimMatchReward failed matchId=$matchId '
-      'status=${response.status} message=${response.message}',
+      'status=${response.status} code=${response.errorCode ?? '-'} '
+      'traceId=${response.traceId ?? '-'}',
     );
     return false;
   }
@@ -2788,7 +2865,8 @@ class PvpProvider extends ChangeNotifier {
 
     debugPrint(
       '[PvP] forfeitMatch API status=${response.status} '
-      'message=${response.message} — applying local lose',
+      'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'} '
+      '— applying local lose',
     );
 
     _applyLocalForfeitResult();
@@ -2912,10 +2990,12 @@ class PvpProvider extends ChangeNotifier {
     if (!_isCurrentMatchmakingSession(session)) return;
     _traceMatchmaking('[4] Response from POST /matchmaking');
     _log(
-      'POST /matchmaking response: status=${response.status}, success=${response.success}, message=${response.message}',
+      'POST /matchmaking response: status=${response.status}, '
+      'success=${response.success}, errorCode=${response.errorCode ?? '-'}, '
+      'traceId=${response.traceId ?? '-'}',
     );
     if (!response.success) {
-      _setMatchmakingError(response.message);
+      _setMatchmakingFailure(response.failure);
       if (response.status == 409) {
         final shouldRetry = await _recoverMatchmakingStateFromStatus(
           session: session,
@@ -2929,7 +3009,10 @@ class PvpProvider extends ChangeNotifier {
         return;
       }
 
-      debugPrint('Matchmaking failed: ${response.message}');
+      debugPrint(
+        'Matchmaking failed: code=${response.errorCode ?? '-'} '
+        'traceId=${response.traceId ?? '-'}',
+      );
       _stopMatchmakingRecovery();
       _updateState(PvpMatchmakingState.idle);
       return;
@@ -2943,8 +3026,6 @@ class PvpProvider extends ChangeNotifier {
 
     final match = response.data!;
     _setCurrentMatchSnapshot(match);
-    unawaited(refreshPvpLoadout());
-
     final normalizedStatus = match.statusCode.toLowerCase();
     if (normalizedStatus == 'waiting' || match.matchId.isEmpty) {
       _updateState(PvpMatchmakingState.waiting);
@@ -3055,9 +3136,10 @@ class PvpProvider extends ChangeNotifier {
       return invite;
     } else {
       debugPrint(
-        '[PvP] createInvite failed status=${response.status}: ${response.message}',
+        '[PvP] createInvite failed status=${response.status} '
+        'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'}',
       );
-      _setMatchmakingError(response.message);
+      _setMatchmakingFailure(response.failure);
       _updateState(PvpMatchmakingState.idle, reason: 'invite failed');
       return null;
     }
@@ -3087,9 +3169,10 @@ class PvpProvider extends ChangeNotifier {
       return inviteData;
     } else {
       debugPrint(
-        '[PvP] respondToInvite failed status=${response.status}: ${response.message}',
+        '[PvP] respondToInvite failed status=${response.status} '
+        'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'}',
       );
-      _setMatchmakingError(response.message);
+      _setMatchmakingFailure(response.failure);
       _updateState(PvpMatchmakingState.idle, reason: 'invite response failed');
       return null;
     }
@@ -3113,7 +3196,8 @@ class PvpProvider extends ChangeNotifier {
       return true;
     } else {
       debugPrint(
-        '[PvP] cancelInvite failed status=${response.status}: ${response.message}',
+        '[PvP] cancelInvite failed status=${response.status} '
+        'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'}',
       );
       _updateState(PvpMatchmakingState.idle);
       return false;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 
-import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../widgets/common/error_message_widget.dart';
 import 'widgets/auth_style.dart';
@@ -147,11 +147,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     }
 
     setState(() {
-      _errorMessage = translateError(
-        response.message.isNotEmpty
-            ? response.message
-            : 'Đặt lại mật khẩu thất bại.',
-      );
+      _errorMessage = TranslationResolver.resolveResponse(context, response);
     });
   }
 

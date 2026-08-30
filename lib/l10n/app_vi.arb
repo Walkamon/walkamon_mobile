@@ -1099,7 +1099,98 @@
   "tutorialPvpResultBody": "Sau phản ứng thắng/thua, hãy so sánh điểm cuối. Thưởng xếp hạng chỉ hiện khi máy chủ trao thưởng.",
   "pvpRaceCountdownReady": "Sẵn sàng",
   "pvpRaceCountdownSet": "Vào vị trí",
-  "pvpRaceCountdownGo": "Chạy!"
+  "pvpRaceCountdownGo": "Chạy!",
+  "pvpLoadoutTitle": "Vật phẩm đua",
+  "pvpLoadoutSubtitle": "Chọn tối đa hai vật phẩm cho trận tiếp theo",
+  "pvpLoadoutSummary": "Vật phẩm {equipped}/{limit}",
+  "pvpLoadoutSlot": "Ô {slot}",
+  "pvpLoadoutEmptySlot": "Chạm vật phẩm để trang bị",
+  "pvpLoadoutChooseReplacement": "Chọn ô bạn muốn thay",
+  "pvpLoadoutAvailableTitle": "Vật phẩm hiện có",
+  "pvpLoadoutQuantity": "Đang có: {quantity}",
+  "pvpLoadoutSave": "Lưu vật phẩm",
+  "pvpLoadoutSaved": "Đã lưu vật phẩm",
+  "pvpLoadoutDiscardTitle": "Bỏ thay đổi?",
+  "pvpLoadoutDiscardBody": "Các lựa chọn vật phẩm vẫn chưa được lưu.",
+  "pvpLoadoutDiscard": "Bỏ thay đổi",
+  "pvpLoadoutKeepEditing": "Tiếp tục chỉnh",
+  "pvpLoadoutNoItems": "Bạn chưa sở hữu vật phẩm PvP nào.",
+  "pvpLoadoutGoToShop": "Đến cửa hàng",
+  "pvpLoadoutLocked": "Không thể đổi vật phẩm sau khi bắt đầu ghép trận",
+  "pvpItemHasteName": "Mật Tăng Tốc",
+  "pvpItemHasteDescription": "Tăng tốc Lumina của bạn trong thời gian ngắn.",
+  "pvpItemSlowName": "Sương Làm Chậm",
+  "pvpItemSlowDescription": "Làm chậm đối thủ trong thời gian ngắn.",
+  "pvpItemCleanseName": "Sương Thanh Tẩy",
+  "pvpItemCleanseDescription": "Xóa hiệu ứng giảm tốc khỏi Lumina của bạn.",
+  "pvpItemShieldName": "Hạt Dẻ Khiên",
+  "pvpItemShieldDescription": "Chặn hiệu ứng bất lợi tiếp theo từ vật phẩm.",
+  "pvpItemTargetSelf": "Mục tiêu: bạn",
+  "pvpItemTargetOpponent": "Mục tiêu: đối thủ",
+  "pvpItemDurationSeconds": "Thời gian: {seconds} giây",
+  "apiErrorBadRequest": "Hãy kiểm tra thông tin rồi thử lại.",
+  "apiErrorUnauthorized": "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.",
+  "apiErrorForbidden": "Bạn không có quyền thực hiện thao tác này.",
+  "apiErrorNotFound": "Không tìm thấy nội dung được yêu cầu.",
+  "apiErrorConflict": "Dữ liệu vừa thay đổi. Hãy tải lại rồi thử lại.",
+  "apiErrorTooManyRequests": "Bạn thao tác quá nhanh. Hãy chờ một chút.",
+  "apiErrorInternal": "Máy chủ đang gặp sự cố. Hãy thử lại sau.",
+  "apiErrorNetworkUnavailable": "Không có kết nối mạng. Hãy kiểm tra rồi thử lại.",
+  "apiErrorRequestTimeout": "Yêu cầu mất quá nhiều thời gian. Hãy thử lại.",
+  "apiErrorUnexpectedResponse": "Đã xảy ra lỗi. Hãy thử lại.",
+  "apiErrorValidationFailed": "Một số thông tin chưa hợp lệ. Hãy kiểm tra lại.",
+  "apiErrorAccountNotActive": "Tài khoản này chưa được kích hoạt.",
+  "apiErrorPvpInvalidSlot": "PvP chỉ có hai ô vật phẩm.",
+  "apiErrorPvpDuplicateItem": "Mỗi vật phẩm PvP chỉ được đặt ở một ô.",
+  "apiErrorPvpInvalidItem": "Vật phẩm này không dùng được trong PvP.",
+  "apiErrorPvpItemNotOwned": "Bạn không còn sở hữu vật phẩm này.",
+  "apiErrorPvpLoadoutLocked": "Không thể đổi vật phẩm sau khi bắt đầu ghép trận.",
+  "apiErrorPvpActionInvalid": "Thao tác vật phẩm PvP không hợp lệ. Vui lòng thử lại.",
+  "apiErrorPvpMatchNotFound": "Trận PvP này không còn tồn tại.",
+  "apiErrorPvpNotParticipant": "Bạn không thuộc người chơi của trận PvP này.",
+  "apiErrorPvpMatchNotRunning": "Chỉ dùng được vật phẩm khi trận đua đang chạy.",
+  "apiErrorPvpSlotNotFound": "Ô vật phẩm này không có trong trận hiện tại.",
+  "apiErrorPvpItemAlreadyUsed": "Vật phẩm này đã được sử dụng.",
+  "apiErrorPvpItemUnavailable": "Vật phẩm này không còn trong túi đồ.",
+  "apiErrorPvpEffectConflict": "Hiệu ứng này chưa thể áp dụng lúc này.",
+  "apiErrorPvpBotUnavailable": "Hiện chưa tìm được đối thủ phù hợp.",
+  "apiErrorPvpInsufficientEnergy": "Cần ít nhất {requiredEnergy} năng lượng để chơi PvP.",
+  "@apiErrorPvpInsufficientEnergy": {"placeholders": {"requiredEnergy": {"type": "int"}}},
+  "apiErrorPvpReadyTimeout": "Trận đấu đã hủy vì có người chơi chưa sẵn sàng kịp thời.",
+  "apiErrorPvpMatchmakingFailed": "Không thể bắt đầu ghép trận. Vui lòng thử lại."
+  ,"apiErrorAuthEmailExists": "Email này đã được đăng ký."
+  ,"apiErrorAuthUsernameExists": "Tên người dùng này đã được sử dụng."
+  ,"apiErrorAuthIdentityExists": "Email hoặc tên người dùng này đã được đăng ký."
+  ,"apiErrorAuthOtpRequestInvalid": "Yêu cầu OTP này không còn hợp lệ."
+  ,"apiErrorAuthOtpExpired": "OTP đã hết hạn. Hãy yêu cầu mã mới."
+  ,"apiErrorAuthOtpInvalid": "Mã OTP không đúng."
+  ,"apiErrorAuthResetInvalid": "Yêu cầu đặt lại mật khẩu đã hết hạn."
+  ,"apiErrorAuthAccountLocked": "Tài khoản này đang bị khóa."
+  ,"apiErrorAuthCurrentPassword": "Mật khẩu hiện tại không đúng."
+  ,"apiErrorAuthGoogleInvalid": "Không thể xác minh đăng nhập Google."
+  ,"apiErrorAuthGoogleUnverified": "Email Google chưa được xác minh."
+  ,"apiErrorUserNotFound": "Không tìm thấy người chơi này."
+  ,"apiErrorProfileNotFound": "Không tìm thấy hồ sơ người chơi này."
+  ,"apiErrorPetNotFound": "Không tìm thấy tinh linh của bạn."
+  ,"apiErrorPetAlreadyExists": "Bạn đã có một tinh linh."
+  ,"apiErrorPetBondFull": "Độ gắn kết của tinh linh đã đầy."
+  ,"apiErrorPetTapLimit": "Bạn đã đạt giới hạn chào hỏi hôm nay."
+  ,"apiErrorPetLifeForceFull": "Sinh mệnh lực của tinh linh đã đầy."
+  ,"apiErrorPetFeedLimit": "Bạn đã đạt giới hạn cho ăn hôm nay."
+  ,"apiErrorPetFinalStage": "Tinh linh đã ở giai đoạn tiến hóa cuối."
+  ,"apiErrorMissionNotFound": "Nhiệm vụ này không còn khả dụng."
+  ,"apiErrorMissionNotCompleted": "Hãy hoàn thành nhiệm vụ trước khi nhận thưởng."
+  ,"apiErrorMissionCancelled": "Nhiệm vụ này đã bị hủy."
+  ,"apiErrorAchievementNotFound": "Thành tựu này không còn khả dụng."
+  ,"apiErrorAchievementNotCompleted": "Thành tựu này chưa hoàn thành."
+  ,"apiErrorRewardAlreadyClaimed": "Phần thưởng này đã được nhận."
+  ,"apiErrorShopQuantity": "Hãy chọn số lượng mua hợp lệ."
+  ,"apiErrorWalletBalance": "Bạn không có đủ Giọt Sương."
+  ,"apiErrorItemNotFound": "Vật phẩm này không còn khả dụng."
+  ,"apiErrorFriendSelf": "Bạn không thể gửi lời mời kết bạn cho chính mình."
+  ,"apiErrorNotificationNotFound": "Thông báo này không còn khả dụng."
+  ,"apiErrorFeedbackCooldown": "Bạn chỉ có thể gửi phản hồi mỗi {hours} giờ."
+  ,"@apiErrorFeedbackCooldown": {"placeholders": {"hours": {"type": "int"}}}
 }
 
 

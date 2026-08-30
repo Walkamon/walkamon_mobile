@@ -43,32 +43,22 @@ class GameButtonLabel extends StatelessWidget {
     final resolvedOutline = isDark
         ? AppColors.darkTextOutline
         : (outlineColor ?? AppColors.buttonBorder);
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ExcludeSemantics(
-          child: Text(
-            text,
-            maxLines: maxLines,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: _style(
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeJoin = StrokeJoin.round
-                ..strokeWidth = outlineWidth
-                ..color = resolvedOutline,
-            ),
-          ),
-        ),
-        Text(
-          text,
-          maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: _style(color: resolvedColor),
-        ),
-      ],
+    // A single text node keeps hit testing, semantics and widget tests
+    // deterministic while the small four-way shadow preserves the game
+    // label's outlined appearance without duplicating the glyph tree.
+    return Text(
+      text,
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: _style(color: resolvedColor).copyWith(
+        shadows: [
+          Shadow(offset: const Offset(1, 0), color: resolvedOutline),
+          Shadow(offset: const Offset(-1, 0), color: resolvedOutline),
+          Shadow(offset: const Offset(0, 1), color: resolvedOutline),
+          Shadow(offset: const Offset(0, -1), color: resolvedOutline),
+        ],
+      ),
     );
   }
 }

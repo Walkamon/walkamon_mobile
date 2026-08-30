@@ -1,5 +1,6 @@
 import '../datasources/remote/friend_profile_datasource.dart';
 import '../models/friend_profile_response.dart';
+import '../../core/network/app_failure.dart';
 
 class FriendProfileRepository {
   FriendProfileRepository(this._datasource);
@@ -17,7 +18,7 @@ class FriendProfileRepository {
       if (response.success) {
         profile = response.data;
       } else {
-        profileError = response.message;
+        profileError = response.failure;
       }
     } catch (e) {
       profileError = e;
@@ -28,16 +29,14 @@ class FriendProfileRepository {
       if (response.success) {
         spirit = response.data;
       } else {
-        spiritError = response.message;
+        spiritError = response.failure;
       }
     } catch (e) {
       spiritError = e;
     }
 
     if (profile == null && spirit == null) {
-      throw Exception(
-        profileError ?? spiritError ?? 'Friend profile not found',
-      );
+      throw profileError ?? spiritError ?? const AppFailure(code: 'NOT_FOUND', status: 404);
     }
 
     return FriendPlayerProfile(
@@ -51,10 +50,6 @@ class FriendProfileRepository {
     final response = await _datasource.getFriendSpirit(userId);
     if (response.success && response.data != null) return response.data!;
 
-    throw Exception(
-      response.message.isNotEmpty
-          ? response.message
-          : 'Friend spirit not found',
-    );
+    throw response.failure;
   }
 }

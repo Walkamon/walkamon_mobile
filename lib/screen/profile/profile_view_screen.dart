@@ -6,6 +6,7 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
@@ -112,7 +113,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                   }
 
                   // 2. Nếu có lỗi xảy ra (Mất mạng, Token hết hạn, API sập...): Hiển thị nút Thử lại
-                  if (provider.profileErrorMessage != null) {
+                  if (provider.profileFailure != null) {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
@@ -126,7 +127,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              provider.profileErrorMessage!,
+                              TranslationResolver.resolveFailure(
+                                context,
+                                provider.profileFailure!,
+                              ),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: theme.colorScheme.error,

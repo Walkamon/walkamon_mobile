@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import '../../data/repositories/otp_register_screen_repository.dart';
 import '../../widgets/common/egg_shape.dart';
@@ -172,9 +172,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
         );
       } else {
         setState(() {
-          _errorMessage = translateError(
-            response.message.isNotEmpty ? response.message : l10n.otpInvalid,
-          );
+          _errorMessage = TranslationResolver.resolveResponse(context, response);
         });
       }
       return;
@@ -200,9 +198,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
       }
     } else {
       setState(() {
-        _errorMessage = translateError(
-          response.message.isNotEmpty ? response.message : l10n.otpInvalid,
-        );
+        _errorMessage = TranslationResolver.resolveResponse(context, response);
       });
     }
   }
@@ -246,9 +242,7 @@ class _OTP_VerificationState extends State<OTP_Verification>
       setState(() => _successMessage = l10n.otpResendSuccess);
     } else {
       setState(() {
-        _errorMessage = translateError(
-          response.message.isNotEmpty ? response.message : l10n.otpResendFailed,
-        );
+        _errorMessage = TranslationResolver.resolveResponse(context, response);
       });
     }
   }

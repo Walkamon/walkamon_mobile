@@ -75,6 +75,10 @@ class PvpLoadoutSlot {
     this.itemId,
     this.itemName,
     this.effectCode,
+    this.targetCode,
+    this.magnitudeBps,
+    this.durationMs,
+    this.cooldownMs,
     this.assetKey,
     this.quantity,
     this.usedAt,
@@ -84,6 +88,10 @@ class PvpLoadoutSlot {
   final String? itemId;
   final String? itemName;
   final String? effectCode;
+  final String? targetCode;
+  final int? magnitudeBps;
+  final int? durationMs;
+  final int? cooldownMs;
   final String? assetKey;
   final int? quantity;
   final DateTime? usedAt;
@@ -105,6 +113,10 @@ class PvpLoadoutSlot {
       itemId: itemId,
       itemName: itemName,
       effectCode: effectCode,
+      targetCode: targetCode,
+      magnitudeBps: magnitudeBps,
+      durationMs: durationMs,
+      cooldownMs: cooldownMs,
       assetKey: assetKey,
       quantity: quantity ?? this.quantity,
       usedAt: usedAt ?? this.usedAt,
@@ -120,6 +132,10 @@ class PvpLoadoutSlot {
       itemId: json['itemId']?.toString(),
       itemName: json['itemName']?.toString(),
       effectCode: json['effectCode']?.toString(),
+      targetCode: json['targetCode']?.toString(),
+      magnitudeBps: (json['magnitudeBps'] as num?)?.toInt(),
+      durationMs: (json['durationMs'] as num?)?.toInt(),
+      cooldownMs: (json['cooldownMs'] as num?)?.toInt(),
       assetKey: json['assetKey']?.toString(),
       quantity: (json['quantity'] as num?)?.toInt(),
       usedAt: pvpDateTimeFromJson(json['usedAt']),
@@ -127,15 +143,98 @@ class PvpLoadoutSlot {
   }
 }
 
-class PvpLoadoutResponse {
-  const PvpLoadoutResponse({this.slots = const <PvpLoadoutSlot>[]});
+class PvpAvailableLoadoutItem {
+  const PvpAvailableLoadoutItem({
+    required this.itemId,
+    required this.itemName,
+    required this.effectCode,
+    required this.targetCode,
+    required this.magnitudeBps,
+    required this.durationMs,
+    required this.cooldownMs,
+    required this.assetKey,
+    required this.quantity,
+  });
 
+  final String itemId;
+  final String itemName;
+  final String effectCode;
+  final String targetCode;
+  final int magnitudeBps;
+  final int durationMs;
+  final int cooldownMs;
+  final String assetKey;
+  final int quantity;
+
+  bool get isOwned => quantity > 0;
+  PvpItemKind get itemKind => PvpEffectPresentationMapper.itemKind(effectCode);
+  String? get presentationCode =>
+      PvpEffectPresentationMapper.assetCode(effectCode);
+
+  PvpLoadoutSlot toSlot(int slotNo) => PvpLoadoutSlot(
+    slotNo: slotNo,
+    itemId: itemId,
+    itemName: itemName,
+    effectCode: effectCode,
+    targetCode: targetCode,
+    magnitudeBps: magnitudeBps,
+    durationMs: durationMs,
+    cooldownMs: cooldownMs,
+    assetKey: assetKey,
+    quantity: quantity,
+  );
+
+  factory PvpAvailableLoadoutItem.fromJson(Map<String, dynamic> json) {
+    int readInt(String key) =>
+        (json[key] as num?)?.toInt() ?? int.tryParse('${json[key] ?? 0}') ?? 0;
+    return PvpAvailableLoadoutItem(
+      itemId: json['itemId']?.toString() ?? '',
+      itemName: json['itemName']?.toString() ?? '',
+      effectCode: json['effectCode']?.toString() ?? '',
+      targetCode: json['targetCode']?.toString() ?? 'self',
+      magnitudeBps: readInt('magnitudeBps'),
+      durationMs: readInt('durationMs'),
+      cooldownMs: readInt('cooldownMs'),
+      assetKey: json['assetKey']?.toString() ?? '',
+      quantity: readInt('quantity'),
+    );
+  }
+}
+
+class PvpLoadoutResponse {
+  const PvpLoadoutResponse({
+    this.slotLimit = 2,
+    this.slots = const <PvpLoadoutSlot>[],
+    this.availableItems = const <PvpAvailableLoadoutItem>[],
+  });
+
+  final int slotLimit;
   final List<PvpLoadoutSlot> slots;
+  final List<PvpAvailableLoadoutItem> availableItems;
 
   factory PvpLoadoutResponse.fromJson(dynamic json) {
     final raw = json is Map ? json['slots'] ?? json['Slots'] : json;
     final values = raw is List ? raw : const <dynamic>[];
+    final rawAvailable = json is Map
+        ? json['availableItems'] ?? json['AvailableItems']
+        : null;
+    final available = rawAvailable is List
+        ? rawAvailable
+              .whereType<Map>()
+              .map(
+                (value) => PvpAvailableLoadoutItem.fromJson(
+                  Map<String, dynamic>.from(value),
+                ),
+              )
+              .where((item) => item.itemId.isNotEmpty)
+              .toList(growable: false)
+        : const <PvpAvailableLoadoutItem>[];
     return PvpLoadoutResponse(
+      slotLimit: json is Map
+          ? (json['slotLimit'] as num?)?.toInt() ??
+                (json['SlotLimit'] as num?)?.toInt() ??
+                2
+          : 2,
       slots: values
           .whereType<Map>()
           .map(
@@ -144,6 +243,7 @@ class PvpLoadoutResponse {
           )
           .where((slot) => slot.slotNo > 0)
           .toList(growable: false),
+      availableItems: available,
     );
   }
 }

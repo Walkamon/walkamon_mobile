@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../data/models/leaderboard_response.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -103,9 +104,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         });
       } else {
         setState(() {
-          _errorMessage = response.message.isNotEmpty
-              ? response.message
-              : AppLocalizations.of(context).leaderboardCouldNotLoad;
+          _errorMessage = TranslationResolver.resolveResponse(
+            context,
+            response,
+          );
           _isLoading = false;
         });
       }

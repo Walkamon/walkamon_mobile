@@ -24,10 +24,16 @@ class ApiClient {
       return ApiResponse<T>(
         success: false,
         status: e.response?.statusCode ?? 0,
-        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+        message: e.message ?? 'Network connection failed.',
+        errorCode: _networkErrorCode(e),
       );
     } catch (e) {
-      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+      return ApiResponse<T>(
+        success: false,
+        status: -1,
+        message: 'Unexpected client error.',
+        errorCode: 'UNEXPECTED_RESPONSE',
+      );
     }
   }
 
@@ -46,10 +52,16 @@ class ApiClient {
       return ApiResponse<T>(
         success: false,
         status: e.response?.statusCode ?? 0,
-        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+        message: e.message ?? 'Network connection failed.',
+        errorCode: _networkErrorCode(e),
       );
     } catch (e) {
-      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+      return ApiResponse<T>(
+        success: false,
+        status: -1,
+        message: 'Unexpected client error.',
+        errorCode: 'UNEXPECTED_RESPONSE',
+      );
     }
   }
 
@@ -68,10 +80,16 @@ class ApiClient {
       return ApiResponse<T>(
         success: false,
         status: e.response?.statusCode ?? 0,
-        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+        message: e.message ?? 'Network connection failed.',
+        errorCode: _networkErrorCode(e),
       );
     } catch (e) {
-      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+      return ApiResponse<T>(
+        success: false,
+        status: -1,
+        message: 'Unexpected client error.',
+        errorCode: 'UNEXPECTED_RESPONSE',
+      );
     }
   }
 
@@ -90,10 +108,16 @@ class ApiClient {
       return ApiResponse<T>(
         success: false,
         status: e.response?.statusCode ?? 0,
-        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+        message: e.message ?? 'Network connection failed.',
+        errorCode: _networkErrorCode(e),
       );
     } catch (e) {
-      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+      return ApiResponse<T>(
+        success: false,
+        status: -1,
+        message: 'Unexpected client error.',
+        errorCode: 'UNEXPECTED_RESPONSE',
+      );
     }
   }
 
@@ -112,10 +136,16 @@ class ApiClient {
       return ApiResponse<T>(
         success: false,
         status: e.response?.statusCode ?? 0,
-        message: e.message ?? 'Đã xảy ra lỗi kết nối mạng.',
+        message: e.message ?? 'Network connection failed.',
+        errorCode: _networkErrorCode(e),
       );
     } catch (e) {
-      return ApiResponse<T>(success: false, status: -1, message: e.toString());
+      return ApiResponse<T>(
+        success: false,
+        status: -1,
+        message: 'Unexpected client error.',
+        errorCode: 'UNEXPECTED_RESPONSE',
+      );
     }
   }
 
@@ -141,7 +171,7 @@ class ApiClient {
         return ApiResponse<T>(
           success: true,
           status: response.statusCode ?? 200,
-          message: 'Thành công',
+          message: 'Success',
           data: fromJsonT != null ? fromJsonT(json) : null,
         );
       }
@@ -155,7 +185,7 @@ class ApiClient {
           success: true,
           status: statusCode,
           message:
-              (json['message'] ?? json['Message'])?.toString() ?? 'Thành công',
+              (json['message'] ?? json['Message'])?.toString() ?? 'Success',
         );
       }
 
@@ -170,7 +200,7 @@ class ApiClient {
       return ApiResponse<T>(
         success: true,
         status: response.statusCode ?? 200,
-        message: 'Thành công',
+        message: 'Success',
         data: fromJsonT != null ? fromJsonT(response.data) : null,
       );
     }
@@ -178,7 +208,15 @@ class ApiClient {
     return ApiResponse<T>(
       success: false,
       status: response.statusCode ?? 0,
-      message: 'Dữ liệu phản hồi không đúng định dạng.',
+      message: 'The response format is invalid.',
+      errorCode: 'UNEXPECTED_RESPONSE',
     );
   }
+
+  String _networkErrorCode(DioException error) => switch (error.type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout => 'REQUEST_TIMEOUT',
+    _ => 'NETWORK_UNAVAILABLE',
+  };
 }

@@ -8,8 +8,8 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/utils/login_screen_error_translator.dart';
 import '../../providers/game_state_provider.dart';
 import '../../providers/step_tracking_provider.dart';
 
@@ -97,9 +97,12 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (!success) {
-      final rawError = provider.errorMessage ?? l10n.loginFailed;
-      final cleanError = rawError.replaceAll('Exception: ', '').trim();
-      setState(() => _inlineErrorMessage = translateLoginError(cleanError));
+      final failure = provider.authFailure;
+      setState(
+        () => _inlineErrorMessage = failure == null
+            ? l10n.loginFailed
+            : TranslationResolver.resolveFailure(context, failure),
+      );
       return;
     }
 

@@ -1,6 +1,7 @@
 import '../../models/friend_spirit_response.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/network/app_failure.dart';
 
 class FriendSpiritDatasource {
   final ApiClient apiClient;
@@ -16,8 +17,9 @@ class FriendSpiritDatasource {
         },
       );
 
+      if (!response.success) throw response.failure;
       if (response.data == null) {
-        throw Exception("Không thể tải thông tin Spirit của bạn bè.");
+        throw const AppFailure(code: 'UNEXPECTED_RESPONSE', status: 200);
       }
 
       return response.data!;

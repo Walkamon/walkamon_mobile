@@ -9,6 +9,7 @@ import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
@@ -343,9 +344,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       _showStatusDialog(
         context: context,
         isSuccess: false,
-        message:
-            provider.profileErrorMessage ??
-            AppLocalizations.of(context).profileEditFailureMessage,
+        message: provider.profileFailure == null
+            ? AppLocalizations.of(context).profileEditFailureMessage
+            : TranslationResolver.resolveFailure(
+                context,
+                provider.profileFailure!,
+              ),
       );
     }
   }

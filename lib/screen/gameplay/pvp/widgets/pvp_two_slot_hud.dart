@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_assets.dart';
 import '../pvp_asset_resolver.dart';
 
 class PvpHudSlot {
@@ -13,7 +14,7 @@ class PvpHudSlot {
     this.onTap,
   });
 
-  final String itemCode;
+  final String? itemCode;
   final double cooldownProgress;
   final bool enabled;
   final bool used;
@@ -28,8 +29,8 @@ class PvpHudSlot {
 class PvpTwoSlotHud extends StatelessWidget {
   const PvpTwoSlotHud({
     super.key,
-    this.left = const PvpHudSlot(itemCode: 'haste'),
-    this.right = const PvpHudSlot(itemCode: 'shield'),
+    this.left = const PvpHudSlot(itemCode: null, enabled: false),
+    this.right = const PvpHudSlot(itemCode: null, enabled: false),
   });
 
   final PvpHudSlot left;
@@ -59,13 +60,17 @@ class _SlotButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = PvpAssetResolver.itemIcon(slot.itemCode);
+    final icon = slot.itemCode == null
+        ? null
+        : PvpAssetResolver.itemIcon(slot.itemCode!);
     final cooldown = slot.cooldownProgress.clamp(0.0, 1.0);
 
     return Semantics(
       button: true,
       enabled: slot.enabled && !slot.used && !slot.pending,
-      label: 'PvP item ${slot.itemCode}',
+      label: slot.itemCode == null
+          ? 'Empty PvP item slot'
+          : 'PvP item ${slot.itemCode}',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -78,7 +83,28 @@ class _SlotButton extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                if (icon != null)
+                if (icon == null)
+                  Container(
+                    width: 62,
+                    height: 62,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Opacity(
+                      opacity: 0.45,
+                      child: Image.asset(
+                        AppAssets.iconUseCharm,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  )
+                else
                   DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,

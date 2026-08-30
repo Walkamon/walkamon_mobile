@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/auth/token_storage.dart';
 import '../core/l10n/locale_helper.dart';
-import '../core/utils/login_screen_error_translator.dart';
+import '../core/network/app_failure.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
@@ -175,6 +175,7 @@ class GameStateProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  AppFailure? _authFailure;
   AuthBootstrapStatus _authBootstrapStatus = AuthBootstrapStatus.restoring;
   Future<bool>? _authBootstrapFuture;
 
@@ -187,6 +188,7 @@ class GameStateProvider extends ChangeNotifier {
   int _petActionSerial = 0;
   PetFeedFailureReason _lastFeedFailure = PetFeedFailureReason.none;
   String? _profileErrorMessage;
+  AppFailure? _profileFailure;
 
   GameUser? get user => _user;
   GameSettings get settings => _settings;
@@ -217,6 +219,7 @@ class GameStateProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  AppFailure? get authFailure => _authFailure;
 
   bool get isProfileLoading => _isProfileLoading;
   bool get isUpdatingNotifications => _isUpdatingNotifications;
@@ -224,6 +227,7 @@ class GameStateProvider extends ChangeNotifier {
   bool get isPetActionBusy => _isPetActionBusy;
   PetFeedFailureReason get lastFeedFailure => _lastFeedFailure;
   String? get profileErrorMessage => _profileErrorMessage;
+  AppFailure? get profileFailure => _profileFailure;
 
   void setUser(GameUser? user) {
     _user = user;
@@ -265,11 +269,14 @@ class GameStateProvider extends ChangeNotifier {
     _lastFeedFailure = PetFeedFailureReason.none;
     _isProfileLoading = false;
     _profileErrorMessage = null;
+    _profileFailure = null;
+    _authFailure = null;
   }
 
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = null;
+    _authFailure = null;
     notifyListeners();
 
     final response = await _loginRepository.login(
@@ -302,7 +309,8 @@ class GameStateProvider extends ChangeNotifier {
       await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
-      _errorMessage = translateError(response.message);
+      _authFailure = response.failure;
+      _errorMessage = response.failure.fallbackMessage;
       notifyListeners();
       return false;
     }
@@ -393,6 +401,7 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> googleLogin({required String idToken}) async {
     _isLoading = true;
     _errorMessage = null;
+    _authFailure = null;
     notifyListeners();
 
     final response = await _loginRepository.googleLogin(idToken: idToken);
@@ -422,7 +431,8 @@ class GameStateProvider extends ChangeNotifier {
       await _synchronizeNotificationsAfterLogin();
       return true;
     } else {
-      _errorMessage = translateError(response.message);
+      _authFailure = response.failure;
+      _errorMessage = response.failure.fallbackMessage;
       notifyListeners();
       return false;
     }
@@ -458,6 +468,7 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> fetchProfileDetail() async {
     _isProfileLoading = true;
     _profileErrorMessage = null;
+    _profileFailure = null;
     notifyListeners();
 
     try {
@@ -496,7 +507,10 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isProfileLoading = false;
-      _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
+      _profileFailure = e is AppFailure
+          ? e
+          : const AppFailure(code: 'UNEXPECTED_RESPONSE', status: 0);
+      _profileErrorMessage = _profileFailure!.fallbackMessage;
       notifyListeners();
       return false;
     }
@@ -716,6 +730,7 @@ class GameStateProvider extends ChangeNotifier {
   }) async {
     _isProfileLoading = true;
     _profileErrorMessage = null;
+    _profileFailure = null;
     notifyListeners();
 
     try {
@@ -749,7 +764,10 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isProfileLoading = false;
-      _profileErrorMessage = e.toString().replaceAll('Exception: ', '');
+      _profileFailure = e is AppFailure
+          ? e
+          : const AppFailure(code: 'UNEXPECTED_RESPONSE', status: 0);
+      _profileErrorMessage = _profileFailure!.fallbackMessage;
       notifyListeners();
       return false;
     }
@@ -784,23 +802,21 @@ class GameStateProvider extends ChangeNotifier {
         return FeedbackResult(success: true);
       }
 
-      final message = response.message.isNotEmpty
-          ? response.message
-          : 'Gửi phản hồi thất bại.';
-
-      final isCooldownError =
-          response.status == 400 &&
-          (message.toLowerCase().contains('24') ||
-              message.toLowerCase().contains('24 giờ') ||
-              message.toLowerCase().contains('24 hours'));
+      final failure = response.failure;
+      final isCooldownError = failure.code == 'FEEDBACK_COOLDOWN';
 
       return FeedbackResult(
         success: false,
-        message: message,
+        failure: failure,
         retryAfter: isCooldownError ? const Duration(hours: 24) : null,
       );
     } catch (e) {
-      return FeedbackResult(success: false, message: e.toString());
+      return FeedbackResult(
+        success: false,
+        failure: e is AppFailure
+            ? e
+            : const AppFailure(code: 'UNEXPECTED_RESPONSE', status: 0),
+      );
     }
   }
 
@@ -1029,24 +1045,14 @@ class GameStateProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('Lỗi khi cho thú cưng ăn: $e');
-      final message = e.toString().toLowerCase();
-      if (message.contains('life force') ||
-          message.contains('lifeforce') ||
-          message.contains('sinh mệnh lực')) {
+      final code = e is AppFailure ? e.code : 'UNEXPECTED_RESPONSE';
+      if (code == 'PET_LIFE_FORCE_FULL') {
         _lastFeedFailure = PetFeedFailureReason.fullLifeForce;
-      } else if ((e is PetFeedException && e.status == 429) ||
-          message.contains('limit') ||
-          message.contains('too many') ||
-          message.contains('cooldown') ||
-          message.contains('maximum') ||
-          message.contains('rate limit') ||
-          message.contains('giới hạn')) {
+      } else if ((e is AppFailure && e.status == 429) ||
+          code == 'PET_FEED_LIMIT_REACHED') {
         _lastFeedFailure = PetFeedFailureReason.limitReached;
-      } else if (message.contains('insufficient') ||
-          message.contains('not enough') ||
-          message.contains('balance') ||
-          message.contains('wallet') ||
-          message.contains('không đủ')) {
+      } else if (code == 'WALLET_INSUFFICIENT_BALANCE' ||
+          code == 'WALLET_NOT_FOUND') {
         _lastFeedFailure = PetFeedFailureReason.insufficientDew;
       } else {
         _lastFeedFailure = PetFeedFailureReason.failed;
@@ -1196,8 +1202,8 @@ class GameStateProvider extends ChangeNotifier {
 
 class FeedbackResult {
   final bool success;
-  final String? message;
+  final AppFailure? failure;
   final Duration? retryAfter;
 
-  FeedbackResult({required this.success, this.message, this.retryAfter});
+  FeedbackResult({required this.success, this.failure, this.retryAfter});
 }

@@ -2267,4 +2267,314 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get pvpRaceCountdownGo => 'Chạy!';
+
+  @override
+  String get pvpLoadoutTitle => 'Vật phẩm đua';
+
+  @override
+  String get pvpLoadoutSubtitle =>
+      'Chọn tối đa hai vật phẩm cho trận tiếp theo';
+
+  @override
+  String pvpLoadoutSummary(int equipped, int limit) {
+    return 'Vật phẩm $equipped/$limit';
+  }
+
+  @override
+  String pvpLoadoutSlot(int slot) {
+    return 'Ô $slot';
+  }
+
+  @override
+  String get pvpLoadoutEmptySlot => 'Chạm vật phẩm để trang bị';
+
+  @override
+  String get pvpLoadoutChooseReplacement => 'Chọn ô bạn muốn thay';
+
+  @override
+  String get pvpLoadoutAvailableTitle => 'Vật phẩm hiện có';
+
+  @override
+  String pvpLoadoutQuantity(int quantity) {
+    return 'Đang có: $quantity';
+  }
+
+  @override
+  String get pvpLoadoutSave => 'Lưu vật phẩm';
+
+  @override
+  String get pvpLoadoutSaved => 'Đã lưu vật phẩm';
+
+  @override
+  String get pvpLoadoutDiscardTitle => 'Bỏ thay đổi?';
+
+  @override
+  String get pvpLoadoutDiscardBody =>
+      'Các lựa chọn vật phẩm vẫn chưa được lưu.';
+
+  @override
+  String get pvpLoadoutDiscard => 'Bỏ thay đổi';
+
+  @override
+  String get pvpLoadoutKeepEditing => 'Tiếp tục chỉnh';
+
+  @override
+  String get pvpLoadoutNoItems => 'Bạn chưa sở hữu vật phẩm PvP nào.';
+
+  @override
+  String get pvpLoadoutGoToShop => 'Đến cửa hàng';
+
+  @override
+  String get pvpLoadoutLocked =>
+      'Không thể đổi vật phẩm sau khi bắt đầu ghép trận';
+
+  @override
+  String get pvpItemHasteName => 'Mật Tăng Tốc';
+
+  @override
+  String get pvpItemHasteDescription =>
+      'Tăng tốc Lumina của bạn trong thời gian ngắn.';
+
+  @override
+  String get pvpItemSlowName => 'Sương Làm Chậm';
+
+  @override
+  String get pvpItemSlowDescription => 'Làm chậm đối thủ trong thời gian ngắn.';
+
+  @override
+  String get pvpItemCleanseName => 'Sương Thanh Tẩy';
+
+  @override
+  String get pvpItemCleanseDescription =>
+      'Xóa hiệu ứng giảm tốc khỏi Lumina của bạn.';
+
+  @override
+  String get pvpItemShieldName => 'Hạt Dẻ Khiên';
+
+  @override
+  String get pvpItemShieldDescription =>
+      'Chặn hiệu ứng bất lợi tiếp theo từ vật phẩm.';
+
+  @override
+  String get pvpItemTargetSelf => 'Mục tiêu: bạn';
+
+  @override
+  String get pvpItemTargetOpponent => 'Mục tiêu: đối thủ';
+
+  @override
+  String pvpItemDurationSeconds(num seconds) {
+    return 'Thời gian: $seconds giây';
+  }
+
+  @override
+  String get apiErrorBadRequest => 'Hãy kiểm tra thông tin rồi thử lại.';
+
+  @override
+  String get apiErrorUnauthorized =>
+      'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.';
+
+  @override
+  String get apiErrorForbidden => 'Bạn không có quyền thực hiện thao tác này.';
+
+  @override
+  String get apiErrorNotFound => 'Không tìm thấy nội dung được yêu cầu.';
+
+  @override
+  String get apiErrorConflict =>
+      'Dữ liệu vừa thay đổi. Hãy tải lại rồi thử lại.';
+
+  @override
+  String get apiErrorTooManyRequests =>
+      'Bạn thao tác quá nhanh. Hãy chờ một chút.';
+
+  @override
+  String get apiErrorInternal => 'Máy chủ đang gặp sự cố. Hãy thử lại sau.';
+
+  @override
+  String get apiErrorNetworkUnavailable =>
+      'Không có kết nối mạng. Hãy kiểm tra rồi thử lại.';
+
+  @override
+  String get apiErrorRequestTimeout =>
+      'Yêu cầu mất quá nhiều thời gian. Hãy thử lại.';
+
+  @override
+  String get apiErrorUnexpectedResponse => 'Đã xảy ra lỗi. Hãy thử lại.';
+
+  @override
+  String get apiErrorValidationFailed =>
+      'Một số thông tin chưa hợp lệ. Hãy kiểm tra lại.';
+
+  @override
+  String get apiErrorAccountNotActive => 'Tài khoản này chưa được kích hoạt.';
+
+  @override
+  String get apiErrorPvpInvalidSlot => 'PvP chỉ có hai ô vật phẩm.';
+
+  @override
+  String get apiErrorPvpDuplicateItem =>
+      'Mỗi vật phẩm PvP chỉ được đặt ở một ô.';
+
+  @override
+  String get apiErrorPvpInvalidItem =>
+      'Vật phẩm này không dùng được trong PvP.';
+
+  @override
+  String get apiErrorPvpItemNotOwned => 'Bạn không còn sở hữu vật phẩm này.';
+
+  @override
+  String get apiErrorPvpLoadoutLocked =>
+      'Không thể đổi vật phẩm sau khi bắt đầu ghép trận.';
+
+  @override
+  String get apiErrorPvpActionInvalid =>
+      'Thao tác vật phẩm PvP không hợp lệ. Vui lòng thử lại.';
+
+  @override
+  String get apiErrorPvpMatchNotFound => 'Trận PvP này không còn tồn tại.';
+
+  @override
+  String get apiErrorPvpNotParticipant =>
+      'Bạn không thuộc người chơi của trận PvP này.';
+
+  @override
+  String get apiErrorPvpMatchNotRunning =>
+      'Chỉ dùng được vật phẩm khi trận đua đang chạy.';
+
+  @override
+  String get apiErrorPvpSlotNotFound =>
+      'Ô vật phẩm này không có trong trận hiện tại.';
+
+  @override
+  String get apiErrorPvpItemAlreadyUsed => 'Vật phẩm này đã được sử dụng.';
+
+  @override
+  String get apiErrorPvpItemUnavailable =>
+      'Vật phẩm này không còn trong túi đồ.';
+
+  @override
+  String get apiErrorPvpEffectConflict =>
+      'Hiệu ứng này chưa thể áp dụng lúc này.';
+
+  @override
+  String get apiErrorPvpBotUnavailable => 'Hiện chưa tìm được đối thủ phù hợp.';
+
+  @override
+  String apiErrorPvpInsufficientEnergy(int requiredEnergy) {
+    return 'Cần ít nhất $requiredEnergy năng lượng để chơi PvP.';
+  }
+
+  @override
+  String get apiErrorPvpReadyTimeout =>
+      'Trận đấu đã hủy vì có người chơi chưa sẵn sàng kịp thời.';
+
+  @override
+  String get apiErrorPvpMatchmakingFailed =>
+      'Không thể bắt đầu ghép trận. Vui lòng thử lại.';
+
+  @override
+  String get apiErrorAuthEmailExists => 'Email này đã được đăng ký.';
+
+  @override
+  String get apiErrorAuthUsernameExists =>
+      'Tên người dùng này đã được sử dụng.';
+
+  @override
+  String get apiErrorAuthIdentityExists =>
+      'Email hoặc tên người dùng này đã được đăng ký.';
+
+  @override
+  String get apiErrorAuthOtpRequestInvalid =>
+      'Yêu cầu OTP này không còn hợp lệ.';
+
+  @override
+  String get apiErrorAuthOtpExpired => 'OTP đã hết hạn. Hãy yêu cầu mã mới.';
+
+  @override
+  String get apiErrorAuthOtpInvalid => 'Mã OTP không đúng.';
+
+  @override
+  String get apiErrorAuthResetInvalid => 'Yêu cầu đặt lại mật khẩu đã hết hạn.';
+
+  @override
+  String get apiErrorAuthAccountLocked => 'Tài khoản này đang bị khóa.';
+
+  @override
+  String get apiErrorAuthCurrentPassword => 'Mật khẩu hiện tại không đúng.';
+
+  @override
+  String get apiErrorAuthGoogleInvalid =>
+      'Không thể xác minh đăng nhập Google.';
+
+  @override
+  String get apiErrorAuthGoogleUnverified => 'Email Google chưa được xác minh.';
+
+  @override
+  String get apiErrorUserNotFound => 'Không tìm thấy người chơi này.';
+
+  @override
+  String get apiErrorProfileNotFound => 'Không tìm thấy hồ sơ người chơi này.';
+
+  @override
+  String get apiErrorPetNotFound => 'Không tìm thấy tinh linh của bạn.';
+
+  @override
+  String get apiErrorPetAlreadyExists => 'Bạn đã có một tinh linh.';
+
+  @override
+  String get apiErrorPetBondFull => 'Độ gắn kết của tinh linh đã đầy.';
+
+  @override
+  String get apiErrorPetTapLimit => 'Bạn đã đạt giới hạn chào hỏi hôm nay.';
+
+  @override
+  String get apiErrorPetLifeForceFull => 'Sinh mệnh lực của tinh linh đã đầy.';
+
+  @override
+  String get apiErrorPetFeedLimit => 'Bạn đã đạt giới hạn cho ăn hôm nay.';
+
+  @override
+  String get apiErrorPetFinalStage => 'Tinh linh đã ở giai đoạn tiến hóa cuối.';
+
+  @override
+  String get apiErrorMissionNotFound => 'Nhiệm vụ này không còn khả dụng.';
+
+  @override
+  String get apiErrorMissionNotCompleted =>
+      'Hãy hoàn thành nhiệm vụ trước khi nhận thưởng.';
+
+  @override
+  String get apiErrorMissionCancelled => 'Nhiệm vụ này đã bị hủy.';
+
+  @override
+  String get apiErrorAchievementNotFound => 'Thành tựu này không còn khả dụng.';
+
+  @override
+  String get apiErrorAchievementNotCompleted =>
+      'Thành tựu này chưa hoàn thành.';
+
+  @override
+  String get apiErrorRewardAlreadyClaimed => 'Phần thưởng này đã được nhận.';
+
+  @override
+  String get apiErrorShopQuantity => 'Hãy chọn số lượng mua hợp lệ.';
+
+  @override
+  String get apiErrorWalletBalance => 'Bạn không có đủ Giọt Sương.';
+
+  @override
+  String get apiErrorItemNotFound => 'Vật phẩm này không còn khả dụng.';
+
+  @override
+  String get apiErrorFriendSelf =>
+      'Bạn không thể gửi lời mời kết bạn cho chính mình.';
+
+  @override
+  String get apiErrorNotificationNotFound =>
+      'Thông báo này không còn khả dụng.';
+
+  @override
+  String apiErrorFeedbackCooldown(int hours) {
+    return 'Bạn chỉ có thể gửi phản hồi mỗi $hours giờ.';
+  }
 }

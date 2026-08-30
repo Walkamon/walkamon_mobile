@@ -2284,4 +2284,322 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pvpRaceCountdownGo => 'Go!';
+
+  @override
+  String get pvpLoadoutTitle => 'Race items';
+
+  @override
+  String get pvpLoadoutSubtitle => 'Choose up to two items for your next race';
+
+  @override
+  String pvpLoadoutSummary(int equipped, int limit) {
+    return 'Items $equipped/$limit';
+  }
+
+  @override
+  String pvpLoadoutSlot(int slot) {
+    return 'Slot $slot';
+  }
+
+  @override
+  String get pvpLoadoutEmptySlot => 'Tap an item to equip';
+
+  @override
+  String get pvpLoadoutChooseReplacement =>
+      'Choose the slot you want to replace';
+
+  @override
+  String get pvpLoadoutAvailableTitle => 'Available items';
+
+  @override
+  String pvpLoadoutQuantity(int quantity) {
+    return 'Owned: $quantity';
+  }
+
+  @override
+  String get pvpLoadoutSave => 'Save loadout';
+
+  @override
+  String get pvpLoadoutSaved => 'Loadout saved';
+
+  @override
+  String get pvpLoadoutDiscardTitle => 'Discard changes?';
+
+  @override
+  String get pvpLoadoutDiscardBody => 'Your item choices have not been saved.';
+
+  @override
+  String get pvpLoadoutDiscard => 'Discard';
+
+  @override
+  String get pvpLoadoutKeepEditing => 'Keep editing';
+
+  @override
+  String get pvpLoadoutNoItems => 'You do not own a PvP item yet.';
+
+  @override
+  String get pvpLoadoutGoToShop => 'Visit shop';
+
+  @override
+  String get pvpLoadoutLocked => 'Loadout is locked after matchmaking starts';
+
+  @override
+  String get pvpItemHasteName => 'Haste Nectar';
+
+  @override
+  String get pvpItemHasteDescription =>
+      'Boosts your Lumina\'s speed for a short time.';
+
+  @override
+  String get pvpItemSlowName => 'Slow Mist';
+
+  @override
+  String get pvpItemSlowDescription => 'Slows the opponent for a short time.';
+
+  @override
+  String get pvpItemCleanseName => 'Cleansing Dew';
+
+  @override
+  String get pvpItemCleanseDescription =>
+      'Removes negative speed effects from your Lumina.';
+
+  @override
+  String get pvpItemShieldName => 'Shield Acorn';
+
+  @override
+  String get pvpItemShieldDescription => 'Blocks the next harmful item effect.';
+
+  @override
+  String get pvpItemTargetSelf => 'Target: you';
+
+  @override
+  String get pvpItemTargetOpponent => 'Target: opponent';
+
+  @override
+  String pvpItemDurationSeconds(num seconds) {
+    return 'Duration: ${seconds}s';
+  }
+
+  @override
+  String get apiErrorBadRequest =>
+      'Please check the information and try again.';
+
+  @override
+  String get apiErrorUnauthorized =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get apiErrorForbidden => 'You do not have permission to do that.';
+
+  @override
+  String get apiErrorNotFound => 'The requested content could not be found.';
+
+  @override
+  String get apiErrorConflict => 'The data changed. Refresh and try again.';
+
+  @override
+  String get apiErrorTooManyRequests =>
+      'Too many requests. Please wait a moment.';
+
+  @override
+  String get apiErrorInternal =>
+      'The server is having trouble. Please try again later.';
+
+  @override
+  String get apiErrorNetworkUnavailable =>
+      'No network connection. Check your connection and try again.';
+
+  @override
+  String get apiErrorRequestTimeout =>
+      'The request took too long. Please try again.';
+
+  @override
+  String get apiErrorUnexpectedResponse =>
+      'Something went wrong. Please try again.';
+
+  @override
+  String get apiErrorValidationFailed =>
+      'Some information is invalid. Please check it again.';
+
+  @override
+  String get apiErrorAccountNotActive => 'This account has not been activated.';
+
+  @override
+  String get apiErrorPvpInvalidSlot => 'Only two PvP item slots are available.';
+
+  @override
+  String get apiErrorPvpDuplicateItem =>
+      'Each PvP item can only occupy one slot.';
+
+  @override
+  String get apiErrorPvpInvalidItem => 'This item cannot be used in PvP.';
+
+  @override
+  String get apiErrorPvpItemNotOwned => 'You no longer own this item.';
+
+  @override
+  String get apiErrorPvpLoadoutLocked =>
+      'You cannot change items after matchmaking starts.';
+
+  @override
+  String get apiErrorPvpActionInvalid =>
+      'That PvP item action is invalid. Please try again.';
+
+  @override
+  String get apiErrorPvpMatchNotFound =>
+      'This PvP match is no longer available.';
+
+  @override
+  String get apiErrorPvpNotParticipant =>
+      'You are not a participant in this PvP match.';
+
+  @override
+  String get apiErrorPvpMatchNotRunning =>
+      'Items can only be used while the race is running.';
+
+  @override
+  String get apiErrorPvpSlotNotFound =>
+      'This item slot is not available in the current race.';
+
+  @override
+  String get apiErrorPvpItemAlreadyUsed => 'This item has already been used.';
+
+  @override
+  String get apiErrorPvpItemUnavailable =>
+      'This item is no longer in your inventory.';
+
+  @override
+  String get apiErrorPvpEffectConflict =>
+      'That effect cannot be applied right now.';
+
+  @override
+  String get apiErrorPvpBotUnavailable =>
+      'No suitable opponent is available right now.';
+
+  @override
+  String apiErrorPvpInsufficientEnergy(int requiredEnergy) {
+    return 'At least $requiredEnergy energy is required to play PvP.';
+  }
+
+  @override
+  String get apiErrorPvpReadyTimeout =>
+      'The match was cancelled because a player was not ready in time.';
+
+  @override
+  String get apiErrorPvpMatchmakingFailed =>
+      'Matchmaking could not start. Please try again.';
+
+  @override
+  String get apiErrorAuthEmailExists => 'This email is already registered.';
+
+  @override
+  String get apiErrorAuthUsernameExists => 'This username is already in use.';
+
+  @override
+  String get apiErrorAuthIdentityExists =>
+      'This email or username is already registered.';
+
+  @override
+  String get apiErrorAuthOtpRequestInvalid =>
+      'This OTP request is no longer valid.';
+
+  @override
+  String get apiErrorAuthOtpExpired =>
+      'This OTP has expired. Request a new one.';
+
+  @override
+  String get apiErrorAuthOtpInvalid => 'The OTP is incorrect.';
+
+  @override
+  String get apiErrorAuthResetInvalid =>
+      'This password reset request has expired.';
+
+  @override
+  String get apiErrorAuthAccountLocked => 'This account is locked.';
+
+  @override
+  String get apiErrorAuthCurrentPassword =>
+      'The current password is incorrect.';
+
+  @override
+  String get apiErrorAuthGoogleInvalid =>
+      'Google sign-in could not be verified.';
+
+  @override
+  String get apiErrorAuthGoogleUnverified =>
+      'The Google email has not been verified.';
+
+  @override
+  String get apiErrorUserNotFound => 'This player could not be found.';
+
+  @override
+  String get apiErrorProfileNotFound =>
+      'This player profile could not be found.';
+
+  @override
+  String get apiErrorPetNotFound => 'Your Lumina could not be found.';
+
+  @override
+  String get apiErrorPetAlreadyExists => 'You already have a Lumina.';
+
+  @override
+  String get apiErrorPetBondFull => 'Your Lumina\'s Bond is already full.';
+
+  @override
+  String get apiErrorPetTapLimit => 'You have reached today\'s greeting limit.';
+
+  @override
+  String get apiErrorPetLifeForceFull =>
+      'Your Lumina\'s Life Force is already full.';
+
+  @override
+  String get apiErrorPetFeedLimit => 'You have reached today\'s feeding limit.';
+
+  @override
+  String get apiErrorPetFinalStage =>
+      'Your Lumina is already at its final stage.';
+
+  @override
+  String get apiErrorMissionNotFound => 'This mission is no longer available.';
+
+  @override
+  String get apiErrorMissionNotCompleted =>
+      'Complete the mission before claiming its reward.';
+
+  @override
+  String get apiErrorMissionCancelled => 'This mission has been cancelled.';
+
+  @override
+  String get apiErrorAchievementNotFound =>
+      'This achievement is no longer available.';
+
+  @override
+  String get apiErrorAchievementNotCompleted =>
+      'This achievement has not been completed yet.';
+
+  @override
+  String get apiErrorRewardAlreadyClaimed =>
+      'This reward has already been claimed.';
+
+  @override
+  String get apiErrorShopQuantity => 'Choose a valid purchase quantity.';
+
+  @override
+  String get apiErrorWalletBalance => 'You do not have enough Dewdrops.';
+
+  @override
+  String get apiErrorItemNotFound => 'This item is no longer available.';
+
+  @override
+  String get apiErrorFriendSelf =>
+      'You cannot send a friend request to yourself.';
+
+  @override
+  String get apiErrorNotificationNotFound =>
+      'This notification is no longer available.';
+
+  @override
+  String apiErrorFeedbackCooldown(int hours) {
+    return 'You can send feedback once every $hours hours.';
+  }
 }

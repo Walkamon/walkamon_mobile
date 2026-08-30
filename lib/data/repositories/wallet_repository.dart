@@ -1,3 +1,4 @@
+import '../../core/network/app_failure.dart';
 import '../datasources/remote/wallet_datasource.dart';
 import '../models/wallet_balance_response.dart';
 
@@ -14,10 +15,6 @@ class WalletRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Không thể tải số dư ví.',
-    );
+    throw apiResponse.failure;
   }
 }

@@ -104,6 +104,9 @@ class PvpSprintDatasource {
         status: pageResp.status,
         message: pageResp.message,
         data: pageResp.data!.items,
+        errorCode: pageResp.errorCode,
+        params: pageResp.params,
+        traceId: pageResp.traceId,
       );
     }
     return ApiResponse<List<PvpInviteResponse>>(
@@ -111,6 +114,9 @@ class PvpSprintDatasource {
       status: pageResp.status,
       message: pageResp.message,
       data: [],
+      errorCode: pageResp.errorCode,
+      params: pageResp.params,
+      traceId: pageResp.traceId,
     );
   }
 
@@ -131,6 +137,9 @@ class PvpSprintDatasource {
         status: pageResp.status,
         message: pageResp.message,
         data: pageResp.data!.items,
+        errorCode: pageResp.errorCode,
+        params: pageResp.params,
+        traceId: pageResp.traceId,
       );
     }
     return ApiResponse<List<PvpInviteResponse>>(
@@ -138,6 +147,9 @@ class PvpSprintDatasource {
       status: pageResp.status,
       message: pageResp.message,
       data: [],
+      errorCode: pageResp.errorCode,
+      params: pageResp.params,
+      traceId: pageResp.traceId,
     );
   }
 

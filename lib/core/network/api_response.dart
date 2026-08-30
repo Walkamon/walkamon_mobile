@@ -6,6 +6,8 @@ class ApiResponse<T> {
   final bool success;
   final int status;
   final String message;
+  final String? errorCode;
+  final Map<String, dynamic> params;
   final T? data;
   final String? traceId;
 
@@ -13,6 +15,8 @@ class ApiResponse<T> {
     required this.success,
     required this.status,
     required this.message,
+    this.errorCode,
+    this.params = const <String, dynamic>{},
     this.data,
     this.traceId,
   });
@@ -72,8 +76,17 @@ class ApiResponse<T> {
       success: successValue,
       status: statusValue,
       message: parsedMessage,
+      errorCode: read('errorCode', 'ErrorCode')?.toString(),
+      params: _parseParams(read('params', 'Params')),
       data: (rawData != null && fromJsonT != null) ? fromJsonT(rawData) : null,
       traceId: read('traceId', 'TraceId')?.toString(),
+    );
+  }
+
+  static Map<String, dynamic> _parseParams(dynamic raw) {
+    if (raw is! Map) return const <String, dynamic>{};
+    return Map<String, dynamic>.unmodifiable(
+      raw.map((key, value) => MapEntry(key.toString(), value)),
     );
   }
 }

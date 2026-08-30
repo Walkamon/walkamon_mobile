@@ -1,4 +1,4 @@
-import '../../../core/network/api_response.dart';
+import '../../../core/network/app_failure.dart';
 import '../datasources/remote/activity_stats_datasource.dart';
 import '../models/daily_step_statistic_response.dart';
 
@@ -18,10 +18,6 @@ class ActivityStatsRepository {
       return apiResponse.data!;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : 'Khong the tai thong ke hoat dong.',
-    );
+    throw apiResponse.failure;
   }
 }

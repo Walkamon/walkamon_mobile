@@ -5,6 +5,7 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_dual_bottom_tabs.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/localization/translation_resolver.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/activity_stats_datasource.dart';
 import '../../data/models/daily_step_statistic_response.dart';
@@ -211,7 +212,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _statsError = e.toString().replaceAll('Exception: ', '');
+        _statsError = TranslationResolver.resolveError(context, e);
         _isStatsLoading = false;
       });
     }
@@ -233,7 +234,7 @@ class _ActivityStatsScreenState extends State<ActivityStatsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _historyError = e.toString().replaceAll('Exception: ', '');
+        _historyError = TranslationResolver.resolveError(context, e);
         _isHistoryLoading = false;
       });
     }

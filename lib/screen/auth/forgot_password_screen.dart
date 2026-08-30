@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/translation_resolver.dart';
 
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
@@ -7,7 +8,6 @@ import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/utils/register_screen_error_translator.dart';
 import '../../data/repositories/forgot_password_screen_repository.dart';
 import 'widgets/auth_style.dart';
 
@@ -109,11 +109,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     }
 
     setState(() {
-      _errorMessage = translateError(
-        response.message.isNotEmpty
-            ? response.message
-            : l10n.forgotPasswordRequestFailed,
-      );
+      _errorMessage = TranslationResolver.resolveResponse(context, response);
     });
   }
 

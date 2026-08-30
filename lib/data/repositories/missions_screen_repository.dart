@@ -1,4 +1,5 @@
 import '../../core/network/api_response.dart';
+import '../../core/network/app_failure.dart';
 import '../datasources/remote/missions_screen_datasource.dart';
 import '../models/player_challenge_response.dart';
 import '../models/player_mission_response.dart';
@@ -11,7 +12,7 @@ class MissionsScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   Future<ClaimMissionRewardResponse> claimMission(String missionId) async {
@@ -19,7 +20,7 @@ class MissionsScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   Future<PlayerChallengeStateResponse> getChallengeState() async {
@@ -27,7 +28,7 @@ class MissionsScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   Future<ClaimChallengeRewardResponse> claimChallenge(
@@ -37,7 +38,7 @@ class MissionsScreenRepository {
     if (resp.success && resp.data != null) {
       return resp.data!;
     }
-    throw Exception(resp.message);
+    throw resp.failure;
   }
 
   Future<ApiResponse<PlayerChallengeStateResponse>>
