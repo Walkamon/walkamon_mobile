@@ -9,6 +9,15 @@ import 'auth_interceptor.dart';
 
 class DioProvider {
   static Dio? _instance;
+  static String _languageCode = 'vi-VN';
+
+  /// Keeps the API locale aligned with the locale currently rendered by
+  /// Flutter.  The server uses this header before falling back to the profile
+  /// preference, so every newly-created request gets the same language.
+  static void setLanguageCode(String languageCode) {
+    final normalized = languageCode.trim();
+    if (normalized.isNotEmpty) _languageCode = normalized;
+  }
 
   static Dio get instance {
     if (_instance == null) {
@@ -18,6 +27,15 @@ class DioProvider {
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
           headers: {'Accept': '*/*'},
+        ),
+      );
+
+      _instance!.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            options.headers['Accept-Language'] = _languageCode;
+            handler.next(options);
+          },
         ),
       );
 

@@ -1652,6 +1652,72 @@ abstract class AppLocalizations {
   /// **'Complete the challenge to receive a reward.'**
   String get missionsChallengeDescription;
 
+  /// No description provided for @systemQuestUnknownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get systemQuestUnknownTitle;
+
+  /// No description provided for @systemQuestStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk {count} steps'**
+  String systemQuestStepsTitle(int count);
+
+  /// No description provided for @systemQuestStepsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete {count} valid steps.'**
+  String systemQuestStepsDescription(int count);
+
+  /// No description provided for @systemQuestFeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Care for Lumina {count} times'**
+  String systemQuestFeedTitle(int count);
+
+  /// No description provided for @systemQuestFeedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a care item for Lumina {count} times.'**
+  String systemQuestFeedDescription(int count);
+
+  /// No description provided for @systemQuestMissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete {count} missions'**
+  String systemQuestMissionTitle(int count);
+
+  /// No description provided for @systemQuestMissionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim rewards from {count} missions.'**
+  String systemQuestMissionDescription(int count);
+
+  /// No description provided for @systemQuestWalletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect {count} Dewdrops'**
+  String systemQuestWalletTitle(int count);
+
+  /// No description provided for @systemQuestWalletDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn {count} Dewdrops.'**
+  String systemQuestWalletDescription(int count);
+
+  /// No description provided for @systemQuestPetLevelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Lumina level {count}'**
+  String systemQuestPetLevelTitle(int count);
+
+  /// No description provided for @systemQuestPetLevelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise Lumina to level {count}.'**
+  String systemQuestPetLevelDescription(int count);
+
   /// No description provided for @missionsLoadError.
   ///
   /// In en, this message translates to:
@@ -2227,6 +2293,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shop'**
   String get shopTitle;
+
+  /// No description provided for @shopAllItems.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get shopAllItems;
+
+  /// No description provided for @shopCareItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Care'**
+  String get shopCareItems;
+
+  /// No description provided for @shopPvpItems.
+  ///
+  /// In en, this message translates to:
+  /// **'PvP'**
+  String get shopPvpItems;
+
+  /// No description provided for @shopOtherItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get shopOtherItems;
+
+  /// No description provided for @shopNotEnoughDew.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough Dewdrops'**
+  String get shopNotEnoughDew;
+
+  /// No description provided for @shopUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get shopUnavailable;
+
+  /// No description provided for @shopEnergyItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Dew'**
+  String get shopEnergyItemName;
+
+  /// No description provided for @shopEnergyItemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Restores Lumina\'s current energy.'**
+  String get shopEnergyItemDescription;
+
+  /// No description provided for @shopLifeForceItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Force Dew'**
+  String get shopLifeForceItemName;
+
+  /// No description provided for @shopLifeForceItemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Restores Lumina\'s current life force.'**
+  String get shopLifeForceItemDescription;
+
+  /// No description provided for @shopBondItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonding Dew'**
+  String get shopBondItemName;
+
+  /// No description provided for @shopBondItemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengthens your bond with Lumina.'**
+  String get shopBondItemDescription;
 
   /// No description provided for @shopCurrency.
   ///
@@ -2863,6 +3001,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lumina has reached the current maximum evolution form!'**
   String get spiritMaxEvolution;
+
+  /// No description provided for @spiritEvolutionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution could not be completed right now.'**
+  String get spiritEvolutionFailed;
 
   /// No description provided for @spiritEvolving.
   ///
@@ -4309,6 +4453,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loadout is locked after matchmaking starts'**
   String get pvpLoadoutLocked;
+
+  /// No description provided for @pvpPracticeRace.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice race — no rank or rewards'**
+  String get pvpPracticeRace;
 
   /// No description provided for @pvpItemHasteName.
   ///

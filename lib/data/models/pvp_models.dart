@@ -101,6 +101,10 @@ class PvpMatchResponse {
   final String matchTypeCode;
   final String statusCode;
   final String? sourceCode;
+  final String progressionModeCode;
+  final bool rewardEligible;
+  final bool ratingEligible;
+  final String? restrictionReasonCode;
   final String? cancelReasonCode;
   final DateTime? serverTime;
   final DateTime? createdAt;
@@ -120,6 +124,10 @@ class PvpMatchResponse {
     required this.matchTypeCode,
     required this.statusCode,
     this.sourceCode,
+    this.progressionModeCode = 'ranked',
+    this.rewardEligible = true,
+    this.ratingEligible = true,
+    this.restrictionReasonCode,
     this.cancelReasonCode,
     this.serverTime,
     this.createdAt,
@@ -181,6 +189,16 @@ class PvpMatchResponse {
       matchTypeCode: json['matchTypeCode'] as String? ?? '',
       statusCode: json['statusCode'] as String? ?? '',
       sourceCode: json['sourceCode'] as String?,
+      progressionModeCode:
+          json['progressionModeCode']?.toString().trim().toLowerCase() ??
+              'ranked',
+      rewardEligible: json['rewardEligible'] is bool
+          ? json['rewardEligible'] as bool
+          : true,
+      ratingEligible: json['ratingEligible'] is bool
+          ? json['ratingEligible'] as bool
+          : true,
+      restrictionReasonCode: json['restrictionReasonCode']?.toString(),
       cancelReasonCode: json['cancelReasonCode'] as String?,
       serverTime: parsedServerTime,
       createdAt: parsedCreatedAt,
@@ -457,6 +475,7 @@ class PvpMatchResultResponse {
 
   /// Ranked matches change MMR; friendly/event keep `mmrDelta = 0`.
   bool get isRanked => matchTypeCode.toLowerCase() == 'ranked';
+  bool get isBotPractice => match.progressionModeCode == 'bot_practice';
 
   PvpParticipantResponse? participantForUser(String? userId) {
     if (userId != null && userId.isNotEmpty) {

@@ -17,6 +17,8 @@ class StepTrackingProvider extends ChangeNotifier {
   int _serverPendingSteps = 0;
   int _lastRejectedSteps = 0;
   StepTrackingStatus _status = StepTrackingStatus.idle;
+  String? _desiredUserId;
+  Future<void> _userSync = Future<void>.value();
 
   int get dailySteps => _dailySteps;
   int get pendingSteps => _pendingSteps;
@@ -27,12 +29,36 @@ class StepTrackingProvider extends ChangeNotifier {
   bool get isTracking => _service.isTracking;
   StepTrackingStatus get status => _status;
 
-  Future<void> startForUser(String userId) => _service.startForUser(userId);
-  Future<void> stopForUser() => _service.stopForUser();
+  Future<void> startForUser(String userId) => synchronizeUser(userId);
+  Future<void> stopForUser() => synchronizeUser(null);
   Future<void> resumeTracking() => _service.resumeTracking();
   Future<void> requestActivityPermission() =>
       _service.requestActivityPermission();
   Future<void> openActivitySettings() => _service.openActivitySettings();
+
+  /// Keeps step collection aligned with the authenticated account, including
+  /// cold starts where no login screen callback runs. Calls are serialized so
+  /// a logout/login transition cannot leave the native collector on the
+  /// previous account.
+  Future<void> synchronizeUser(String? userId) {
+    final normalized = userId?.trim();
+    final desired = normalized == null || normalized.isEmpty
+        ? null
+        : normalized;
+    if (_desiredUserId == desired) return _userSync;
+    _desiredUserId = desired;
+
+    _userSync = _userSync.then((_) async {
+      if (_desiredUserId != desired) return;
+      if (desired == null) {
+        if (_service.activeUserId != null) await _service.stopForUser();
+        return;
+      }
+      if (_service.activeUserId == desired && _service.isTracking) return;
+      await _service.startForUser(desired);
+    });
+    return _userSync;
+  }
 
   void _onSteps(int steps) {
     if (steps == _dailySteps) return;

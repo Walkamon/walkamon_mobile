@@ -1007,6 +1007,10 @@ class PvpProvider extends ChangeNotifier {
       matchTypeCode: match.matchTypeCode,
       statusCode: match.statusCode,
       sourceCode: match.sourceCode,
+      progressionModeCode: match.progressionModeCode,
+      rewardEligible: match.rewardEligible,
+      ratingEligible: match.ratingEligible,
+      restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
@@ -1100,6 +1104,10 @@ class PvpProvider extends ChangeNotifier {
       matchTypeCode: match.matchTypeCode,
       statusCode: match.statusCode,
       sourceCode: match.sourceCode,
+      progressionModeCode: match.progressionModeCode,
+      rewardEligible: match.rewardEligible,
+      ratingEligible: match.ratingEligible,
+      restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
@@ -1127,6 +1135,14 @@ class PvpProvider extends ChangeNotifier {
 
   List<PvpLoadoutSlot> get itemLoadout =>
       _currentMatch?.loadout ?? const <PvpLoadoutSlot>[];
+  List<PvpLoadoutSlot> get raceItemLoadout {
+    final snapshot = itemLoadout;
+    if (snapshot.isNotEmpty) return snapshot;
+    final hasActiveMatch = _activeMatchId?.isNotEmpty == true;
+    if (!hasActiveMatch || _serverFinished) return const <PvpLoadoutSlot>[];
+    return _configuredLoadout.slots;
+  }
+
   PvpLoadoutResponse _configuredLoadout = const PvpLoadoutResponse();
   PvpLoadoutResponse get configuredLoadout => _configuredLoadout;
   List<PvpLoadoutSlot> get configuredLoadoutSlots => _configuredLoadout.slots;
@@ -1238,6 +1254,10 @@ class PvpProvider extends ChangeNotifier {
       matchTypeCode: match.matchTypeCode,
       statusCode: statusCode ?? match.statusCode,
       sourceCode: match.sourceCode,
+      progressionModeCode: match.progressionModeCode,
+      rewardEligible: match.rewardEligible,
+      ratingEligible: match.ratingEligible,
+      restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
@@ -1267,23 +1287,51 @@ class PvpProvider extends ChangeNotifier {
 
   Future<bool> useItem(int slotNo) async {
     final matchId = _activeMatchId;
-    final acceptsItemInput =
-        _matchmakingState == PvpMatchmakingState.running && !_serverFinished;
-    if (matchId == null || matchId.isEmpty || !acceptsItemInput) {
+    if (matchId == null || matchId.isEmpty || _serverFinished) {
       _itemFailure = null;
       _itemFeedback = PvpItemFeedbackCode.onlyDuringRace;
       notifyListeners();
       return false;
     }
+
+    bool acceptsItemInput() {
+      final serverStatus = _currentMatch?.statusCode.trim().toLowerCase();
+      return !_serverFinished &&
+          (_matchmakingState == PvpMatchmakingState.running ||
+              serverStatus == 'running');
+    }
+
+    // SignalR can arrive after the visible countdown on an interrupted or
+    // resumed connection. Reconcile once with the authoritative match before
+    // rejecting a legitimate in-race tap based on stale local state.
+    if (!acceptsItemInput()) {
+      await syncMatch(matchId);
+      if (!acceptsItemInput()) {
+        _itemFailure = null;
+        _itemFeedback = PvpItemFeedbackCode.onlyDuringRace;
+        notifyListeners();
+        return false;
+      }
+    }
     PvpLoadoutSlot? slot;
-    for (final candidate in itemLoadout) {
+    for (final candidate in raceItemLoadout) {
       if (candidate.slotNo == slotNo) {
         slot = candidate;
         break;
       }
     }
+    if (itemLoadout.isEmpty) {
+      await syncMatch(matchId);
+      for (final candidate in raceItemLoadout) {
+        if (candidate.slotNo == slotNo) {
+          slot = candidate;
+          break;
+        }
+      }
+    }
     if (slot == null ||
-        !slot.isAvailable ||
+        !slot.isConfigured ||
+        slot.isUsed ||
         _pendingItemActions.containsKey(slotNo)) {
       _itemFeedback = PvpItemFeedbackCode.slotUnavailable;
       _itemFailure = null;
@@ -1322,7 +1370,10 @@ class PvpProvider extends ChangeNotifier {
     if (action.effect != null) {
       _applyEffectFromEvent(action.effect!, 'applied');
     }
-    _markSlotUsed(slotNo);
+    _markSlotUsed(slotNo, remainingQuantity: action.remainingQuantity);
+    if (slot.itemId != null && action.remainingQuantity != null) {
+      _updateConfiguredItemQuantity(slot.itemId!, action.remainingQuantity!);
+    }
     _pendingItemActions.remove(slotNo);
     _itemFeedback = _friendlyItemResult(action.resultCode);
     _itemFailure = null;
@@ -1356,17 +1407,56 @@ class PvpProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _markSlotUsed(int slotNo) {
+  void _markSlotUsed(int slotNo, {int? remainingQuantity}) {
     final match = _currentMatch;
     if (match == null) return;
-    final slots = match.loadout
+    final source = match.loadout.isEmpty ? raceItemLoadout : match.loadout;
+    final slots = source
         .map(
           (slot) => slot.slotNo == slotNo
-              ? slot.copyWith(usedAt: estimatedServerNow())
+              ? slot.copyWith(
+                  usedAt: estimatedServerNow(),
+                  quantity: remainingQuantity,
+                )
               : slot,
         )
         .toList(growable: false);
     _currentMatch = _copyMatch(match, loadout: slots);
+  }
+
+  void _updateConfiguredItemQuantity(String itemId, int quantity) {
+    final slots = _configuredLoadout.slots
+        .map(
+          (slot) =>
+              slot.itemId == itemId ? slot.copyWith(quantity: quantity) : slot,
+        )
+        .toList(growable: false);
+    final availableItems = _configuredLoadout.availableItems
+        .map(
+          (item) => item.itemId == itemId
+              ? PvpAvailableLoadoutItem(
+                  itemId: item.itemId,
+                  itemName: item.itemName,
+                  itemNameVi: item.itemNameVi,
+                  itemNameEn: item.itemNameEn,
+                  descriptionVi: item.descriptionVi,
+                  descriptionEn: item.descriptionEn,
+                  effectCode: item.effectCode,
+                  targetCode: item.targetCode,
+                  magnitudeBps: item.magnitudeBps,
+                  durationMs: item.durationMs,
+                  cooldownMs: item.cooldownMs,
+                  assetKey: item.assetKey,
+                  quantity: quantity,
+                )
+              : item,
+        )
+        .toList(growable: false);
+    _configuredLoadout = PvpLoadoutResponse(
+      slotLimit: _configuredLoadout.slotLimit,
+      slots: slots,
+      availableItems: availableItems,
+    );
   }
 
   void _applyEffectFromEvent(PvpActiveEffect effect, String eventType) {
@@ -1404,10 +1494,9 @@ class PvpProvider extends ChangeNotifier {
     final details = rawDetails is Map
         ? Map<String, dynamic>.from(rawDetails)
         : payload;
+    final rawSlot = details['slotNo'] ?? details['slot'];
     final slotNo =
-        (details['slotNo'] as num?)?.toInt() ??
-        int.tryParse('${details['slotNo'] ?? 0}') ??
-        0;
+        (rawSlot as num?)?.toInt() ?? int.tryParse('${rawSlot ?? 0}') ?? 0;
     final actionId =
         details['clientActionId']?.toString() ??
         details['actionId']?.toString();
@@ -2141,21 +2230,32 @@ class PvpProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final futures = await Future.wait([
-        _petDatasource.getPetOverview(),
-        _activityDatasource.getStatistic(ActivityStatsRange.daily),
-        _friendsDatasource.getFriends(),
-        _pvpDatasource.getIncomingInvites(),
-        _pvpDatasource.getMatchHistory(includeActive: false),
+      final futures = await Future.wait<dynamic>([
+        _loadWaitingRoomPart('pet overview', _petDatasource.getPetOverview()),
+        _loadWaitingRoomPart(
+          'activity statistic',
+          _activityDatasource.getStatistic(ActivityStatsRange.daily),
+        ),
+        _loadWaitingRoomPart('friends', _friendsDatasource.getFriends()),
+        _loadWaitingRoomPart(
+          'incoming invites',
+          _pvpDatasource.getIncomingInvites(),
+        ),
+        _loadWaitingRoomPart(
+          'match history',
+          _pvpDatasource.getMatchHistory(includeActive: false),
+        ),
       ]);
 
-      final petOverviewResp = futures[0] as dynamic;
-      final activityResp = futures[1] as dynamic;
-      final friendsResp = futures[2] as List<FriendsResponse>;
-      final invitesResp = futures[3] as dynamic;
-      final historyResp = futures[4] as dynamic;
+      final petOverviewResp = futures[0];
+      final activityResp = futures[1];
+      final friendsResp = futures[2] as List<FriendsResponse>?;
+      final invitesResp = futures[3];
+      final historyResp = futures[4];
 
-      if (petOverviewResp.success && petOverviewResp.data != null) {
+      if (petOverviewResp != null &&
+          petOverviewResp.success &&
+          petOverviewResp.data != null) {
         final overview = petOverviewResp.data!;
         final nickname = overview.nickname.trim();
         if (nickname.isNotEmpty) {
@@ -2173,7 +2273,9 @@ class PvpProvider extends ChangeNotifier {
         _spiritAffinityLabel = formName;
       }
 
-      if (activityResp.success && activityResp.data != null) {
+      if (activityResp != null &&
+          activityResp.success &&
+          activityResp.data != null) {
         int total = 0;
         for (var item in activityResp.data!.data) {
           total += (item.stepCount as int);
@@ -2181,13 +2283,19 @@ class PvpProvider extends ChangeNotifier {
         _todaySteps = total;
       }
 
-      _friendsList = friendsResp;
+      if (friendsResp != null) {
+        _friendsList = friendsResp;
+      }
 
-      if (invitesResp.success && invitesResp.data != null) {
+      if (invitesResp != null &&
+          invitesResp.success &&
+          invitesResp.data != null) {
         _incomingInvites = invitesResp.data!;
       }
 
-      if (historyResp.success && historyResp.data != null) {
+      if (historyResp != null &&
+          historyResp.success &&
+          historyResp.data != null) {
         final page = historyResp.data as PvpMatchHistoryPage;
         _matchHistory = List<PvpMatchResponse>.from(page.items);
         _historyPage = page.page;
@@ -2198,6 +2306,15 @@ class PvpProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<T?> _loadWaitingRoomPart<T>(String label, Future<T> request) async {
+    try {
+      return await request;
+    } catch (error) {
+      debugPrint('[PvP] $label request failed: $error');
+      return null;
     }
   }
 
@@ -2540,6 +2657,9 @@ class PvpProvider extends ChangeNotifier {
     if (eventType == 'match.started') {
       debugPrint('[PvP] MatchStarted matchId=$matchId');
       startRace(reason: 'match.started event', matchId: matchId);
+      if (matchId != null && matchId.isNotEmpty) {
+        unawaited(syncMatch(matchId));
+      }
       return;
     }
 
@@ -2914,6 +3034,10 @@ class PvpProvider extends ChangeNotifier {
       matchId: match.matchId,
       matchTypeCode: match.matchTypeCode,
       statusCode: 'finished',
+      progressionModeCode: match.progressionModeCode,
+      rewardEligible: match.rewardEligible,
+      ratingEligible: match.ratingEligible,
+      restrictionReasonCode: match.restrictionReasonCode,
       sourceCode: match.sourceCode,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
@@ -3049,7 +3173,8 @@ class PvpProvider extends ChangeNotifier {
   Future<void> cancelMatchmaking() async {
     _log('DELETE Matchmaking');
     _stopMatchmakingRecovery();
-    if (_matchmakingState != PvpMatchmakingState.waiting) {
+    if (_matchmakingState != PvpMatchmakingState.waiting &&
+        _matchmakingState != PvpMatchmakingState.connecting) {
       return;
     }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/localization/translation_resolver.dart';
+import '../../core/localization/notification_content_resolver.dart';
 import '../../core/network/api_client.dart';
 import '../../data/datasources/remote/notification_datasource.dart';
 import '../../data/models/notification_response.dart';
@@ -125,7 +126,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       GameButtonLabel(
-                        item.title,
+                        NotificationContentResolver.title(
+                          context,
+                          typeCode: item.typeCode,
+                          contentCode: item.contentCode,
+                          params: item.params,
+                          fallback: item.title,
+                        ),
                         fontSize: 21,
                         color: isDark
                             ? AppColors.darkForeground
@@ -213,8 +220,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       ),
                                     ),
                                     child: Text(
-                                      _translateTypeCode(
-                                        snapshot.data!.typeCode,
+                                      NotificationContentResolver.title(
+                                        context,
+                                        typeCode: snapshot.data!.typeCode,
+                                        contentCode:
+                                            snapshot.data!.contentCode,
+                                        params: snapshot.data!.params,
+                                        fallback: snapshot.data!.typeCode ?? '',
                                       ),
                                       style: TextStyle(
                                         fontSize: 12,
@@ -358,66 +370,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return AppAssets.notificationEvent;
     }
     return AppAssets.iconNotificationBell;
-  }
-
-  String _translateTypeCode(String? typeCode) {
-    if (typeCode == null || typeCode.isEmpty) return '';
-    switch (typeCode) {
-      case 'daily_reward':
-        return AppLocalizations.of(context).notificationsTypeDailyReward;
-      case 'daily_step_goal_reminder':
-        return AppLocalizations.of(
-          context,
-        ).notificationsTypeDailyStepGoalReminder;
-      case 'streak_reward':
-        return AppLocalizations.of(context).notificationsTypeStreakReward;
-      case 'mission_complete':
-        return AppLocalizations.of(context).notificationsTypeMissionComplete;
-      case 'achievement_complete':
-        return AppLocalizations.of(
-          context,
-        ).notificationsTypeAchievementComplete;
-      case 'challenge_invite':
-        return AppLocalizations.of(context).notificationsTypeChallengeInvite;
-      case 'pvp_invite':
-        return AppLocalizations.of(context).notificationsTypePvpInvite;
-      case 'friend_request':
-        return AppLocalizations.of(context).notificationsTypeFriendRequest;
-      case 'friend_accepted':
-        return AppLocalizations.of(context).notificationsTypeFriendAccepted;
-      case 'friend_removed':
-        return AppLocalizations.of(context).notificationsTypeFriendRemoved;
-      case 'spirit_hungry':
-        return AppLocalizations.of(context).notificationsTypeSpiritHungry;
-      case 'spirit_ready_evolution':
-        return AppLocalizations.of(
-          context,
-        ).notificationsTypeSpiritReadyEvolution;
-      case 'spirit_energy_full':
-        return AppLocalizations.of(context).notificationsTypeSpiritEnergyFull;
-      case 'spirit_bond_low':
-        return AppLocalizations.of(context).notificationsTypeSpiritBondLow;
-      case 'spirit_level_up':
-        return AppLocalizations.of(context).notificationsTypeSpiritLevelUp;
-      case 'item_purchased':
-        return AppLocalizations.of(context).notificationsTypeItemPurchased;
-      case 'pvp_result':
-        return AppLocalizations.of(context).notificationsTypePvpResult;
-      case 'maintenance':
-        return AppLocalizations.of(context).notificationsTypeMaintenance;
-      case 'patch_notes':
-        return AppLocalizations.of(context).notificationsTypePatchNotes;
-      case 'news':
-        return AppLocalizations.of(context).notificationsTypeNews;
-      case 'event':
-        return AppLocalizations.of(context).notificationsTypeEvent;
-      case 'compensation':
-        return AppLocalizations.of(context).notificationsTypeCompensation;
-      case 'server_announcement':
-        return AppLocalizations.of(context).notificationsTypeServerAnnouncement;
-      default:
-        return typeCode;
-    }
   }
 
   @override
@@ -570,7 +522,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.title,
+                                    NotificationContentResolver.title(
+                                      context,
+                                      typeCode: item.typeCode,
+                                      contentCode: item.contentCode,
+                                      params: item.params,
+                                      fallback: item.title,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(

@@ -106,6 +106,10 @@ class TranslationResolver {
       ),
       'PVP_READY_TIMEOUT' => l10n.apiErrorPvpReadyTimeout,
       'PVP_MATCHMAKING_FAILED' => l10n.apiErrorPvpMatchmakingFailed,
+      'UNSUPPORTED_ITEM_EFFECT' => l10n.apiErrorPvpInvalidItem,
+      'PVP_ITEM_NOT_IN_SNAPSHOT' => l10n.apiErrorPvpSlotNotFound,
+      'TRANSLATION_REQUIRED' || 'TRANSLATION_UNAVAILABLE' =>
+          l10n.apiErrorUnexpectedResponse,
       _ => null,
     };
     if (translated != null) return translated;

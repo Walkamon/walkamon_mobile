@@ -854,6 +854,59 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hoàn thành thử thách để nhận thưởng.';
 
   @override
+  String get systemQuestUnknownTitle => 'Mục tiêu mới';
+
+  @override
+  String systemQuestStepsTitle(int count) {
+    return 'Đi $count bước';
+  }
+
+  @override
+  String systemQuestStepsDescription(int count) {
+    return 'Hoàn thành $count bước hợp lệ.';
+  }
+
+  @override
+  String systemQuestFeedTitle(int count) {
+    return 'Chăm Lumina $count lần';
+  }
+
+  @override
+  String systemQuestFeedDescription(int count) {
+    return 'Dùng vật phẩm chăm sóc Lumina $count lần.';
+  }
+
+  @override
+  String systemQuestMissionTitle(int count) {
+    return 'Hoàn thành $count nhiệm vụ';
+  }
+
+  @override
+  String systemQuestMissionDescription(int count) {
+    return 'Nhận thưởng từ $count nhiệm vụ.';
+  }
+
+  @override
+  String systemQuestWalletTitle(int count) {
+    return 'Tích lũy $count Giọt Sương';
+  }
+
+  @override
+  String systemQuestWalletDescription(int count) {
+    return 'Kiếm được $count Giọt Sương.';
+  }
+
+  @override
+  String systemQuestPetLevelTitle(int count) {
+    return 'Đạt Lumina cấp $count';
+  }
+
+  @override
+  String systemQuestPetLevelDescription(int count) {
+    return 'Đưa Lumina lên cấp $count.';
+  }
+
+  @override
   String get missionsLoadError => 'Không tải được nhiệm vụ.';
 
   @override
@@ -1164,6 +1217,43 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get shopTitle => 'Cửa Hàng';
+
+  @override
+  String get shopAllItems => 'Tất cả';
+
+  @override
+  String get shopCareItems => 'Chăm sóc';
+
+  @override
+  String get shopPvpItems => 'PvP';
+
+  @override
+  String get shopOtherItems => 'Khác';
+
+  @override
+  String get shopNotEnoughDew => 'Chưa đủ Giọt Sương';
+
+  @override
+  String get shopUnavailable => 'Chưa mở bán';
+
+  @override
+  String get shopEnergyItemName => 'Giọt Năng Lượng';
+
+  @override
+  String get shopEnergyItemDescription => 'Hồi năng lượng hiện tại cho Lumina.';
+
+  @override
+  String get shopLifeForceItemName => 'Giọt Sinh Lực';
+
+  @override
+  String get shopLifeForceItemDescription =>
+      'Hồi sinh mệnh lực hiện tại cho Lumina.';
+
+  @override
+  String get shopBondItemName => 'Giọt Gắn Kết';
+
+  @override
+  String get shopBondItemDescription => 'Tăng độ gắn kết với Lumina.';
 
   @override
   String get shopCurrency => 'Giọt Sương';
@@ -1531,6 +1621,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get spiritMaxEvolution =>
       'Lumina đã đạt dạng tiến hóa tối đa hiện tại!';
+
+  @override
+  String get spiritEvolutionFailed =>
+      'Chưa thể tiến hóa lúc này. Vui lòng thử lại.';
 
   @override
   String get spiritEvolving => 'Đang Tiến Hóa...';
@@ -2327,6 +2421,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get pvpLoadoutLocked =>
       'Không thể đổi vật phẩm sau khi bắt đầu ghép trận';
+
+  @override
+  String get pvpPracticeRace =>
+      'Trận luyện tập — không tính hạng hoặc phần thưởng';
 
   @override
   String get pvpItemHasteName => 'Mật Tăng Tốc';

@@ -8,6 +8,7 @@ import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
+import '../../data/models/pvp_item_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/app_icon.dart';
@@ -31,6 +32,12 @@ class _InventoryDisplayItem {
     this.description,
     this.effectTypeCode,
     this.effectValue,
+    this.usageContextCode = 'none',
+    this.canEquipForPvp = false,
+    this.itemNameVi,
+    this.itemNameEn,
+    this.descriptionVi,
+    this.descriptionEn,
   });
 
   final String itemId;
@@ -42,6 +49,12 @@ class _InventoryDisplayItem {
   final String? description;
   final String? effectTypeCode;
   final int? effectValue;
+  final String usageContextCode;
+  final bool canEquipForPvp;
+  final String? itemNameVi;
+  final String? itemNameEn;
+  final String? descriptionVi;
+  final String? descriptionEn;
 }
 
 class _InventoryCategoryTab {
@@ -91,6 +104,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return InventoryCategory.materials;
   }
 
+  String _localizedName(
+    String name,
+    String? effectTypeCode, {
+    String? vi,
+    String? en,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final kind = PvpEffectPresentationMapper.itemKind(effectTypeCode);
+    final mapped = switch (kind) {
+      PvpItemKind.haste => l10n.pvpItemHasteName,
+      PvpItemKind.slow => l10n.pvpItemSlowName,
+      PvpItemKind.cleanse => l10n.pvpItemCleanseName,
+      PvpItemKind.shield => l10n.pvpItemShieldName,
+      PvpItemKind.unknown => name,
+    };
+    if (kind != PvpItemKind.unknown) return mapped;
+    final localized = l10n.localeName.startsWith('en') ? en : vi;
+    return localized?.trim().isNotEmpty == true ? localized!.trim() : name;
+  }
+
   Future<void> _loadInventory() async {
     setState(() {
       _isLoading = true;
@@ -105,14 +138,31 @@ class _InventoryScreenState extends State<InventoryScreen> {
       for (final item in apiItems) {
         final mapped = _InventoryDisplayItem(
           itemId: item.itemId,
-          name: item.itemName,
+          name: _localizedName(
+            item.itemNameEn ?? item.itemName,
+            item.effectTypeCode,
+            vi: item.itemNameVi,
+            en: item.itemNameEn,
+          ),
           quantity: item.quantity,
           category: _resolveCategory(item.itemTypeName),
           itemTypeName: item.itemTypeName,
           image: item.image,
-          description: item.description,
+          description:
+              (AppLocalizations.of(context).localeName.startsWith('en')
+                  ? item.descriptionEn
+                  : item.descriptionVi) ??
+              item.description,
           effectTypeCode: item.effectTypeCode,
           effectValue: item.effectValue,
+          usageContextCode: item.usageContextCode,
+          canEquipForPvp:
+              item.canEquipForPvp ||
+              item.effectTypeCode?.toLowerCase().startsWith('pvp_') == true,
+          itemNameVi: item.itemNameVi,
+          itemNameEn: item.itemNameEn,
+          descriptionVi: item.descriptionVi,
+          descriptionEn: item.descriptionEn,
         );
 
         if (mapped.category == InventoryCategory.food) {
@@ -161,22 +211,43 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    showGameNotificationDialog(context, message: message, isSuccess: false);
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: false,
+      region: GameNoticeRegion.shop,
+    );
   }
 
   void _showSuccess(String message) {
     if (!mounted) return;
-    showGameNotificationDialog(context, message: message, isSuccess: true);
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: true,
+      region: GameNoticeRegion.shop,
+    );
   }
 
   String _formatEffect(_InventoryDisplayItem item) {
     final code = item.effectTypeCode?.trim();
     final value = item.effectValue;
+    final l10n = AppLocalizations.of(context);
+    final kind = PvpEffectPresentationMapper.itemKind(code);
+    if (kind != PvpItemKind.unknown) {
+      return switch (kind) {
+        PvpItemKind.haste => l10n.pvpItemHasteDescription,
+        PvpItemKind.slow => l10n.pvpItemSlowDescription,
+        PvpItemKind.cleanse => l10n.pvpItemCleanseDescription,
+        PvpItemKind.shield => l10n.pvpItemShieldDescription,
+        PvpItemKind.unknown => l10n.inventoryNoEffect,
+      };
+    }
     if (code != null && code.isNotEmpty && value != null) {
       final prefix = value > 0 ? '+' : '';
-      return '$prefix$value $code';
+      return '$prefix$value';
     }
-    if (code != null && code.isNotEmpty) return code;
+    if (code != null && code.isNotEmpty) return l10n.inventoryNoEffect;
     return AppLocalizations.of(context).inventoryNoEffect;
   }
 
@@ -209,6 +280,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _handleUse(_InventoryDisplayItem item) async {
+    if (item.canEquipForPvp || item.usageContextCode == 'pvp_loadout') {
+      _closeItemPopup();
+      if (mounted) Navigator.pushNamed(context, '/pvp');
+      return;
+    }
     AppAudioService.instance.suppressNextTabSound();
     setState(() => _usingItemId = item.itemId);
     try {
@@ -339,6 +415,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 itemIcon: _itemIcon(selectedItem),
                 onClose: _closeItemPopup,
                 onUse: () => _handleUse(selectedItem),
+                actionLabel:
+                    selectedItem.canEquipForPvp ||
+                        selectedItem.usageContextCode == 'pvp_loadout'
+                    ? l10n.pvpLoadoutTitle
+                    : null,
               ),
           ],
         ),
@@ -1109,6 +1190,7 @@ class _ItemDetailPopup extends StatelessWidget {
     required this.itemIcon,
     required this.onClose,
     required this.onUse,
+    this.actionLabel,
   });
 
   final _InventoryDisplayItem item;
@@ -1126,6 +1208,7 @@ class _ItemDetailPopup extends StatelessWidget {
   final IconData itemIcon;
   final VoidCallback onClose;
   final VoidCallback onUse;
+  final String? actionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1300,7 +1383,7 @@ class _ItemDetailPopup extends StatelessWidget {
                               child: _PopupButton(
                                 label: isUsing
                                     ? l10n.processing
-                                    : l10n.inventoryUse,
+                                    : (actionLabel ?? l10n.inventoryUse),
                                 backgroundColor: isDark
                                     ? accent
                                     : AppColors.buttonYellow,

@@ -9,7 +9,7 @@ import '../../../data/models/pvp_item_models.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/pvp_provider.dart';
 import '../../../widgets/common/game_back_button.dart';
-import '../../../widgets/layouts/root_layout.dart';
+import '../../../widgets/common/game_notification_dialog.dart';
 import 'pvp_asset_resolver.dart';
 
 class PvpLoadoutScreen extends StatefulWidget {
@@ -123,7 +123,11 @@ class _PvpLoadoutScreenState extends State<PvpLoadoutScreen> {
     final saved = await widget.pvpProvider.savePvpLoadout(slots);
     if (!mounted || !saved) return;
     _seedFromProvider(force: true);
-    RootLayout.showToast(AppLocalizations.of(context).pvpLoadoutSaved);
+    showGameNotificationDialog(
+      context,
+      message: AppLocalizations.of(context).pvpLoadoutSaved,
+      isSuccess: true,
+    );
   }
 
   Future<bool> _confirmDiscard() async {

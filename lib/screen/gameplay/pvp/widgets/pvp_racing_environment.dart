@@ -296,7 +296,15 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
         );
         final trackPhaseIndex = route.phaseIndex;
         final activeMap = maps[trackPhaseIndex];
-        final nextMap = maps[route.nextPhaseIndex];
+        // The loop artwork is the continuous visual base. Start and finish
+        // markings are composited independently, so neither landmark vanishes
+        // through a full-texture swap while the runners are moving.
+        final baseMap = maps[1];
+        final finishRevealProgress = trackPhaseIndex == 2
+            ? 1.0
+            : route.nextPhaseIndex == 2
+            ? route.nextMapOpacity
+            : 0.0;
         final remainingSeconds =
             ((1 - normalizedTrackProgress) * pvpRaceDurationSeconds)
                 .ceil()
@@ -391,8 +399,8 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    activeMap,
-                    key: ValueKey(activeMap),
+                    baseMap,
+                    key: ValueKey(baseMap),
                     width: width,
                     height: height,
                     fit: BoxFit.cover,
@@ -400,18 +408,58 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                     filterQuality: FilterQuality.medium,
                     gaplessPlayback: true,
                   ),
-                  if (route.nextMapOpacity > 0 && nextMap != activeMap)
+                  if (route.startLineOpacity > 0)
                     Opacity(
-                      opacity: route.nextMapOpacity,
-                      child: Image.asset(
-                        nextMap,
-                        key: ValueKey(nextMap),
-                        width: width,
-                        height: height,
-                        fit: BoxFit.cover,
-                        alignment: Alignment(route.cameraAlignmentX, 0),
-                        filterQuality: FilterQuality.medium,
-                        gaplessPlayback: true,
+                      opacity: route.startLineOpacity,
+                      child: Transform.translate(
+                        key: const ValueKey('pvp-outgoing-start-line'),
+                        offset: Offset(
+                          width * route.startLineOffsetFraction,
+                          0,
+                        ),
+                        child: ClipPath(
+                          clipper: _PvpStartStripeClipper(
+                            alignmentX: route.cameraAlignmentX,
+                            isNight: maps[0].contains('_night_'),
+                          ),
+                          child: Image.asset(
+                            maps[0],
+                            key: ValueKey(maps[0]),
+                            width: width,
+                            height: height,
+                            fit: BoxFit.cover,
+                            alignment: Alignment(route.cameraAlignmentX, 0),
+                            filterQuality: FilterQuality.medium,
+                            gaplessPlayback: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (finishRevealProgress > 0)
+                    Opacity(
+                      opacity: finishRevealProgress,
+                      child: Transform.translate(
+                        key: const ValueKey('pvp-incoming-finish-line'),
+                        offset: Offset(
+                          width * route.incomingMapOffsetFraction,
+                          0,
+                        ),
+                        child: ClipPath(
+                          clipper: _PvpFinishStripeClipper(
+                            alignmentX: route.cameraAlignmentX,
+                            isNight: maps[2].contains('_night_'),
+                          ),
+                          child: Image.asset(
+                            maps[2],
+                            key: ValueKey(maps[2]),
+                            width: width,
+                            height: height,
+                            fit: BoxFit.cover,
+                            alignment: Alignment(route.cameraAlignmentX, 0),
+                            filterQuality: FilterQuality.medium,
+                            gaplessPlayback: true,
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -705,20 +753,35 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                         ),
                       ],
                     ),
-                    child: Text(
-                      switch (widget.racePhase.toLowerCase()) {
-                        '3' => l10n.pvpRaceCountdownReady,
-                        '2' => l10n.pvpRaceCountdownSet,
-                        'go' => l10n.pvpRaceGo,
-                        _ => widget.racePhase,
-                      },
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.woodDeep,
-                        letterSpacing: .4,
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.racePhase.toLowerCase() != 'go') ...[
+                          Text(
+                            l10n.pvpRaceCountdownReady,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.inkBrown,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          widget.racePhase.toLowerCase() == 'go'
+                              ? l10n.pvpRaceGo
+                              : widget.racePhase,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 34,
+                            height: 1,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.woodDeep,
+                            letterSpacing: .4,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -773,11 +836,25 @@ class _Runner extends StatelessWidget {
   Widget build(BuildContext context) {
     final runnerWidth = petSize + 24;
     final runnerHeight = petSize + 50;
-    final effects = <String>[...activeEffects];
-    if (transientEffect != null) {
-      effects.add(transientEffect!);
+    // Realtime responses can expose the same effect in the active snapshot
+    // and as the just-triggered transient event. Render one canonical layer;
+    // stacking both was making bubbles/mist opaque and visually oversized.
+    final effects = <String>[];
+    final effectFamilies = <String>{};
+    void addEffect(String? effect) {
+      final value = effect?.trim();
+      if (value == null || value.isEmpty) return;
+      if (effectFamilies.add(_pvpEffectFamily(value))) effects.add(value);
     }
-    final normalizedEffects = effects.map((effect) => effect.toLowerCase());
+
+    addEffect(transientEffect);
+    for (final effect in activeEffects) {
+      addEffect(effect);
+    }
+    final transientFamily = transientEffect == null
+        ? null
+        : _pvpEffectFamily(transientEffect!);
+    final normalizedEffects = effects.map(_pvpEffectFamily);
     final isSlowed = normalizedEffects.any(
       (effect) => effect.contains('slow') || effect.contains('mud'),
     );
@@ -836,6 +913,7 @@ class _Runner extends StatelessWidget {
             height: petSize + 24,
             child: Stack(
               alignment: Alignment.bottomCenter,
+              clipBehavior: Clip.none,
               children: [
                 Positioned(
                   bottom: baselineCorrection - 2,
@@ -867,13 +945,13 @@ class _Runner extends StatelessWidget {
                   ),
                 for (final effect in effects.where(_isUnderlayEffect))
                   if (PvpAssetResolver.vfxFrames(effect).isNotEmpty)
-                    PvpFrameAnimation(
+                    _RunnerVfxLayer(
                       key: ValueKey(
-                        'vfx-$effect-${effect == transientEffect ? transientVfxSequence : 0}',
+                        'vfx-${_pvpEffectFamily(effect)}-${_pvpEffectFamily(effect) == transientFamily ? transientVfxSequence : 0}',
                       ),
                       effectCode: effect,
-                      width: runnerWidth,
-                      height: petSize + 24,
+                      petSize: petSize,
+                      runnerWidth: runnerWidth,
                       playing: !animationsPaused && (isMoving || progress > 0),
                     ),
                 if (isSlowed || isShielded)
@@ -915,13 +993,13 @@ class _Runner extends StatelessWidget {
                   (e) => !_isUnderlayEffect(e),
                 ))
                   if (PvpAssetResolver.vfxFrames(effect).isNotEmpty)
-                    PvpFrameAnimation(
+                    _RunnerVfxLayer(
                       key: ValueKey(
-                        'vfx-overlay-$effect-${effect == transientEffect ? transientVfxSequence : 0}',
+                        'vfx-overlay-${_pvpEffectFamily(effect)}-${_pvpEffectFamily(effect) == transientFamily ? transientVfxSequence : 0}',
                       ),
                       effectCode: effect,
-                      width: runnerWidth,
-                      height: petSize + 24,
+                      petSize: petSize,
+                      runnerWidth: runnerWidth,
                       playing: !animationsPaused && (isMoving || progress > 0),
                     ),
                 if (effects.isNotEmpty)
@@ -956,10 +1034,80 @@ class _Runner extends StatelessWidget {
   }
 
   bool _isUnderlayEffect(String effect) {
-    final normalized = effect.toLowerCase();
-    return normalized.contains('haste') ||
-        normalized.contains('speed') ||
-        normalized.contains('slow');
+    final family = _pvpEffectFamily(effect);
+    return family == 'haste' || family == 'slow';
+  }
+}
+
+String _pvpEffectFamily(String effect) {
+  final normalized = effect.trim().toLowerCase();
+  if (normalized.contains('slow') || normalized.contains('mud')) return 'slow';
+  if (normalized.contains('shield') || normalized.contains('barrier')) {
+    return 'shield';
+  }
+  if (normalized.contains('cleanse') || normalized.contains('purif')) {
+    return 'cleanse';
+  }
+  if (normalized.contains('haste') || normalized.contains('speed')) {
+    return 'haste';
+  }
+  return normalized;
+}
+
+class _RunnerVfxLayer extends StatelessWidget {
+  const _RunnerVfxLayer({
+    super.key,
+    required this.effectCode,
+    required this.petSize,
+    required this.runnerWidth,
+    required this.playing,
+  });
+
+  final String effectCode;
+  final double petSize;
+  final double runnerWidth;
+  final bool playing;
+
+  @override
+  Widget build(BuildContext context) {
+    final family = _pvpEffectFamily(effectCode);
+    final (width, height, bottom, horizontalOffset, opacity) = switch (family) {
+      // A speed trail belongs behind the runner and should read as motion,
+      // not as a ribbon laid across the pet's face.
+      'haste' => (
+        runnerWidth * 1.10,
+        petSize * .58,
+        petSize * .06,
+        -runnerWidth * .24,
+        .62,
+      ),
+      // Keep mist around the paws; the authored ring has a large footprint.
+      'slow' => (petSize * .82, petSize * .55, -2.0, 0.0, .58),
+      // Cleanse is a short burst, scaled below the silhouette height so the
+      // face remains readable throughout the action.
+      'cleanse' => (petSize * .82, petSize * .82, petSize * .04, 0.0, .68),
+      // Shield remains visible but translucent instead of replacing the pet.
+      'shield' => (petSize * .96, petSize * .96, 0.0, 0.0, .56),
+      _ => (petSize * .82, petSize * .82, 0.0, 0.0, .62),
+    };
+
+    return Positioned(
+      left: (runnerWidth - width) / 2 + horizontalOffset,
+      bottom: bottom,
+      width: width,
+      height: height,
+      child: IgnorePointer(
+        child: Opacity(
+          opacity: opacity,
+          child: PvpFrameAnimation(
+            effectCode: effectCode,
+            width: width,
+            height: height,
+            playing: playing,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1001,6 +1149,143 @@ class _DustDot extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PvpStartStripeClipper extends CustomClipper<Path> {
+  const _PvpStartStripeClipper({
+    required this.alignmentX,
+    required this.isNight,
+  });
+
+  final double alignmentX;
+  final bool isNight;
+
+  @override
+  Path getClip(Size size) {
+    final geometry = PvpCoverGeometry.resolve(
+      viewportWidth: size.width,
+      viewportHeight: size.height,
+      sourceWidth: _mapSourceWidth,
+      sourceHeight: _mapSourceHeight,
+      alignmentX: alignmentX,
+    );
+    final sourcePolygons = isNight
+        ? const [
+            [
+              Offset(507, 725),
+              Offset(576, 725),
+              Offset(541, 1294),
+              Offset(470, 1294),
+            ],
+            [
+              Offset(507, 1405),
+              Offset(576, 1405),
+              Offset(541, 1960),
+              Offset(470, 1960),
+            ],
+          ]
+        : const [
+            [
+              Offset(507, 1115),
+              Offset(579, 1115),
+              Offset(542, 1460),
+              Offset(468, 1460),
+            ],
+            [
+              Offset(507, 1508),
+              Offset(579, 1508),
+              Offset(542, 1898),
+              Offset(468, 1898),
+            ],
+          ];
+    final path = Path();
+    Offset project(Offset source) => Offset(
+      geometry.left + source.dx * geometry.scale,
+      geometry.top + source.dy * geometry.scale,
+    );
+    for (final polygon in sourcePolygons) {
+      final first = project(polygon.first);
+      path.moveTo(first.dx, first.dy);
+      for (final source in polygon.skip(1)) {
+        final point = project(source);
+        path.lineTo(point.dx, point.dy);
+      }
+      path.close();
+    }
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _PvpStartStripeClipper oldClipper) =>
+      oldClipper.alignmentX != alignmentX || oldClipper.isNight != isNight;
+}
+
+class _PvpFinishStripeClipper extends CustomClipper<Path> {
+  const _PvpFinishStripeClipper({
+    required this.alignmentX,
+    required this.isNight,
+  });
+
+  final double alignmentX;
+  final bool isNight;
+
+  @override
+  Path getClip(Size size) {
+    final geometry = PvpCoverGeometry.resolve(
+      viewportWidth: size.width,
+      viewportHeight: size.height,
+      sourceWidth: _mapSourceWidth,
+      sourceHeight: _mapSourceHeight,
+      alignmentX: alignmentX,
+    );
+    final sourcePolygons = isNight
+        ? const [
+            [
+              Offset(808, 730),
+              Offset(892, 730),
+              Offset(892, 1290),
+              Offset(808, 1290),
+            ],
+            [
+              Offset(808, 1410),
+              Offset(892, 1410),
+              Offset(892, 1975),
+              Offset(808, 1975),
+            ],
+          ]
+        : const [
+            [
+              Offset(806, 1115),
+              Offset(888, 1115),
+              Offset(918, 1455),
+              Offset(832, 1455),
+            ],
+            [
+              Offset(837, 1515),
+              Offset(920, 1515),
+              Offset(960, 1895),
+              Offset(876, 1895),
+            ],
+          ];
+    final path = Path();
+    Offset project(Offset source) => Offset(
+      geometry.left + source.dx * geometry.scale,
+      geometry.top + source.dy * geometry.scale,
+    );
+    for (final polygon in sourcePolygons) {
+      path.moveTo(project(polygon.first).dx, project(polygon.first).dy);
+      for (final source in polygon.skip(1)) {
+        final point = project(source);
+        path.lineTo(point.dx, point.dy);
+      }
+      path.close();
+    }
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _PvpFinishStripeClipper oldClipper) =>
+      oldClipper.alignmentX != alignmentX || oldClipper.isNight != isNight;
 }
 
 class _PvpAmbientPainter extends CustomPainter {

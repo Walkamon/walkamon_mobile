@@ -830,35 +830,6 @@ class _SpiritThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imagePath = imageUrl?.trim() ?? '';
-    final scheme = Uri.tryParse(imagePath)?.scheme.toLowerCase();
-    final isNetworkImage = scheme == 'http' || scheme == 'https';
-    final fallback = AppIcon(
-      Icons.auto_awesome_rounded,
-      asset: AppAssets.iconSpiritNav,
-      color: AppColors.oliveDeep,
-      size: size * 0.62,
-    );
-
-    Widget image = fallback;
-    if (imagePath.startsWith('asset://')) {
-      image = PetRuntimePreview(
-        assetReference: imagePath,
-        compact: true,
-        height: size,
-      );
-    } else if (imagePath.isNotEmpty) {
-      image = isNetworkImage
-          ? Image.network(
-              imagePath,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => fallback,
-            )
-          : Image.asset(
-              imagePath,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => fallback,
-            );
-    }
     return Container(
       width: size,
       height: size,
@@ -868,7 +839,11 @@ class _SpiritThumb extends StatelessWidget {
         borderRadius: BorderRadius.circular(size >= 100 ? 28 : 16),
         border: Border.all(color: AppColors.wood, width: 1.4),
       ),
-      child: image,
+      child: PetRuntimePreview(
+        assetReference: imagePath,
+        compact: true,
+        height: size,
+      ),
     );
   }
 }

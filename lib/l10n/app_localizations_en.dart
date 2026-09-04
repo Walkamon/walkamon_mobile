@@ -858,6 +858,59 @@ class AppLocalizationsEn extends AppLocalizations {
       'Complete the challenge to receive a reward.';
 
   @override
+  String get systemQuestUnknownTitle => 'New goal';
+
+  @override
+  String systemQuestStepsTitle(int count) {
+    return 'Walk $count steps';
+  }
+
+  @override
+  String systemQuestStepsDescription(int count) {
+    return 'Complete $count valid steps.';
+  }
+
+  @override
+  String systemQuestFeedTitle(int count) {
+    return 'Care for Lumina $count times';
+  }
+
+  @override
+  String systemQuestFeedDescription(int count) {
+    return 'Use a care item for Lumina $count times.';
+  }
+
+  @override
+  String systemQuestMissionTitle(int count) {
+    return 'Complete $count missions';
+  }
+
+  @override
+  String systemQuestMissionDescription(int count) {
+    return 'Claim rewards from $count missions.';
+  }
+
+  @override
+  String systemQuestWalletTitle(int count) {
+    return 'Collect $count Dewdrops';
+  }
+
+  @override
+  String systemQuestWalletDescription(int count) {
+    return 'Earn $count Dewdrops.';
+  }
+
+  @override
+  String systemQuestPetLevelTitle(int count) {
+    return 'Reach Lumina level $count';
+  }
+
+  @override
+  String systemQuestPetLevelDescription(int count) {
+    return 'Raise Lumina to level $count.';
+  }
+
+  @override
   String get missionsLoadError => 'Could not load missions.';
 
   @override
@@ -1168,6 +1221,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopTitle => 'Shop';
+
+  @override
+  String get shopAllItems => 'All';
+
+  @override
+  String get shopCareItems => 'Care';
+
+  @override
+  String get shopPvpItems => 'PvP';
+
+  @override
+  String get shopOtherItems => 'Other';
+
+  @override
+  String get shopNotEnoughDew => 'Not enough Dewdrops';
+
+  @override
+  String get shopUnavailable => 'Unavailable';
+
+  @override
+  String get shopEnergyItemName => 'Energy Dew';
+
+  @override
+  String get shopEnergyItemDescription => 'Restores Lumina\'s current energy.';
+
+  @override
+  String get shopLifeForceItemName => 'Life Force Dew';
+
+  @override
+  String get shopLifeForceItemDescription =>
+      'Restores Lumina\'s current life force.';
+
+  @override
+  String get shopBondItemName => 'Bonding Dew';
+
+  @override
+  String get shopBondItemDescription => 'Strengthens your bond with Lumina.';
 
   @override
   String get shopCurrency => 'Dewdrops';
@@ -1536,6 +1626,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get spiritMaxEvolution =>
       'Lumina has reached the current maximum evolution form!';
+
+  @override
+  String get spiritEvolutionFailed =>
+      'Evolution could not be completed right now.';
 
   @override
   String get spiritEvolving => 'Evolving...';
@@ -2342,6 +2436,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pvpLoadoutLocked => 'Loadout is locked after matchmaking starts';
+
+  @override
+  String get pvpPracticeRace => 'Practice race — no rank or rewards';
 
   @override
   String get pvpItemHasteName => 'Haste Nectar';

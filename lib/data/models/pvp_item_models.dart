@@ -74,6 +74,10 @@ class PvpLoadoutSlot {
     required this.slotNo,
     this.itemId,
     this.itemName,
+    this.itemNameVi,
+    this.itemNameEn,
+    this.descriptionVi,
+    this.descriptionEn,
     this.effectCode,
     this.targetCode,
     this.magnitudeBps,
@@ -87,6 +91,10 @@ class PvpLoadoutSlot {
   final int slotNo;
   final String? itemId;
   final String? itemName;
+  final String? itemNameVi;
+  final String? itemNameEn;
+  final String? descriptionVi;
+  final String? descriptionEn;
   final String? effectCode;
   final String? targetCode;
   final int? magnitudeBps;
@@ -112,6 +120,10 @@ class PvpLoadoutSlot {
       slotNo: slotNo,
       itemId: itemId,
       itemName: itemName,
+      itemNameVi: itemNameVi,
+      itemNameEn: itemNameEn,
+      descriptionVi: descriptionVi,
+      descriptionEn: descriptionEn,
       effectCode: effectCode,
       targetCode: targetCode,
       magnitudeBps: magnitudeBps,
@@ -131,6 +143,10 @@ class PvpLoadoutSlot {
           0,
       itemId: json['itemId']?.toString(),
       itemName: json['itemName']?.toString(),
+      itemNameVi: json['itemNameVi']?.toString(),
+      itemNameEn: json['itemNameEn']?.toString(),
+      descriptionVi: json['descriptionVi']?.toString(),
+      descriptionEn: json['descriptionEn']?.toString(),
       effectCode: json['effectCode']?.toString(),
       targetCode: json['targetCode']?.toString(),
       magnitudeBps: (json['magnitudeBps'] as num?)?.toInt(),
@@ -147,6 +163,10 @@ class PvpAvailableLoadoutItem {
   const PvpAvailableLoadoutItem({
     required this.itemId,
     required this.itemName,
+    this.itemNameVi,
+    this.itemNameEn,
+    this.descriptionVi,
+    this.descriptionEn,
     required this.effectCode,
     required this.targetCode,
     required this.magnitudeBps,
@@ -158,6 +178,10 @@ class PvpAvailableLoadoutItem {
 
   final String itemId;
   final String itemName;
+  final String? itemNameVi;
+  final String? itemNameEn;
+  final String? descriptionVi;
+  final String? descriptionEn;
   final String effectCode;
   final String targetCode;
   final int magnitudeBps;
@@ -175,6 +199,10 @@ class PvpAvailableLoadoutItem {
     slotNo: slotNo,
     itemId: itemId,
     itemName: itemName,
+    itemNameVi: itemNameVi,
+    itemNameEn: itemNameEn,
+    descriptionVi: descriptionVi,
+    descriptionEn: descriptionEn,
     effectCode: effectCode,
     targetCode: targetCode,
     magnitudeBps: magnitudeBps,
@@ -190,6 +218,10 @@ class PvpAvailableLoadoutItem {
     return PvpAvailableLoadoutItem(
       itemId: json['itemId']?.toString() ?? '',
       itemName: json['itemName']?.toString() ?? '',
+      itemNameVi: json['itemNameVi']?.toString(),
+      itemNameEn: json['itemNameEn']?.toString(),
+      descriptionVi: json['descriptionVi']?.toString(),
+      descriptionEn: json['descriptionEn']?.toString(),
       effectCode: json['effectCode']?.toString() ?? '',
       targetCode: json['targetCode']?.toString() ?? 'self',
       magnitudeBps: readInt('magnitudeBps'),

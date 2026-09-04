@@ -21,6 +21,8 @@ class NotificationItem {
   final DateTime createdAt;
   bool isRead;
   final String? typeCode;
+  final String? contentCode;
+  final Map<String, dynamic> params;
 
   NotificationItem({
     required this.notificationId,
@@ -29,6 +31,8 @@ class NotificationItem {
     required this.createdAt,
     required this.isRead,
     this.typeCode,
+    this.contentCode,
+    this.params = const {},
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,10 @@ class NotificationItem {
           : DateTime.now(),
       isRead: json['isRead'] ?? false, //[cite: 2]
       typeCode: json['typeCode'], //[cite: 2]
+      contentCode: json['contentCode']?.toString(),
+      params: json['params'] is Map
+          ? Map<String, dynamic>.from(json['params'] as Map)
+          : const {},
     );
   }
 }
@@ -55,6 +63,8 @@ class NotificationDetail {
   final String? imageUrl;
   final bool isRead;
   final DateTime? readAt;
+  final String? contentCode;
+  final Map<String, dynamic> params;
 
   NotificationDetail({
     required this.notificationId,
@@ -66,6 +76,8 @@ class NotificationDetail {
     this.imageUrl,
     required this.isRead,
     this.readAt,
+    this.contentCode,
+    this.params = const {},
   });
 
   factory NotificationDetail.fromJson(Map<String, dynamic> json) {
@@ -81,6 +93,10 @@ class NotificationDetail {
       imageUrl: json['imageUrl'],
       isRead: json['isRead'] ?? false,
       readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
+      contentCode: json['contentCode']?.toString(),
+      params: json['params'] is Map
+          ? Map<String, dynamic>.from(json['params'] as Map)
+          : const {},
     );
   }
 }
