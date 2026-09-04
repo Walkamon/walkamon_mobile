@@ -11,6 +11,9 @@ class PvpRoutePresentation {
     required this.phaseProgress,
     required this.nextMapOpacity,
     required this.cameraAlignmentX,
+    required this.incomingMapOffsetFraction,
+    required this.startLineOpacity,
+    required this.startLineOffsetFraction,
   });
 
   final int phaseIndex;
@@ -18,13 +21,24 @@ class PvpRoutePresentation {
   final double phaseProgress;
   final double nextMapOpacity;
   final double cameraAlignmentX;
+
+  /// Horizontal entrance for the incoming map, measured in viewport widths.
+  /// Only the finish segment uses this so its stripe travels in from the
+  /// right instead of fading into existence underneath the runners.
+  final double incomingMapOffsetFraction;
+
+  /// The start stripe is an overlay on the continuous route background. It
+  /// travels left with the opening camera move before fading out, instead of
+  /// disappearing when the start texture is swapped for the loop texture.
+  final double startLineOpacity;
+  final double startLineOffsetFraction;
 }
 
 /// Single source of truth for the 5s / 20s / 5s presentation route.
 ///
-/// The final 18% of each segment is a deterministic overlap. Both outgoing
-/// and incoming maps use the same camera alignment, so a crossfade cannot
-/// introduce a horizontal camera snap.
+/// The final 18% of each segment is a deterministic overlap. The finish map
+/// additionally slides in from the right during that overlap, making the
+/// checker stripe a landmark the runners approach instead of a sudden swap.
 class PvpRoutePresentationContract {
   const PvpRoutePresentationContract._();
 
@@ -63,12 +77,18 @@ class PvpRoutePresentationContract {
                 .clamp(0.0, 1.0)
                 .toDouble(),
           );
+    final startDeparture = phase == 0
+        ? _smooth(((local - .45) / .55).clamp(0.0, 1.0).toDouble())
+        : 1.0;
     return PvpRoutePresentation(
       phaseIndex: phase,
       nextPhaseIndex: phase == 2 ? 2 : phase + 1,
       phaseProgress: local,
       nextMapOpacity: fade,
       cameraAlignmentX: pan,
+      incomingMapOffsetFraction: phase == 1 && fade > 0 ? (1 - fade) * .52 : 0,
+      startLineOpacity: 1 - startDeparture,
+      startLineOffsetFraction: -startDeparture * .42,
     );
   }
 

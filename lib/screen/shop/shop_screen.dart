@@ -27,7 +27,12 @@ class ShopCatalogItem {
     required this.isActive,
     this.image,
     this.itemTypeName,
+    this.effectTypeCode,
     this.description,
+    this.itemNameVi,
+    this.itemNameEn,
+    this.descriptionVi,
+    this.descriptionEn,
   });
 
   final String shopItemId;
@@ -36,7 +41,12 @@ class ShopCatalogItem {
   final bool isActive;
   final String? image;
   final String? itemTypeName;
+  final String? effectTypeCode;
   final String? description;
+  final String? itemNameVi;
+  final String? itemNameEn;
+  final String? descriptionVi;
+  final String? descriptionEn;
 }
 
 class ShopScreen extends StatefulWidget {
@@ -57,6 +67,104 @@ class _ShopScreenState extends State<ShopScreen> {
   String? _buyingItemId;
   int _walletBalance = 0;
   bool _isWalletLoading = true;
+  String _selectedCategory = 'all';
+
+  String _categoryOf(ShopCatalogItem item) {
+    final effectCode = item.effectTypeCode?.trim().toLowerCase() ?? '';
+    if (effectCode.startsWith('pvp_')) return 'pvp';
+    if (const {'energy', 'life_force', 'bond'}.contains(effectCode)) {
+      return 'care';
+    }
+    final value =
+        '${item.itemTypeName ?? ''} ${item.name} ${item.description ?? ''}'
+            .trim()
+            .toLowerCase();
+    if (value.contains('pvp') ||
+        value.contains('battle') ||
+        value.contains('đua')) {
+      return 'pvp';
+    }
+    if (value.contains('food') ||
+        value.contains('feed') ||
+        value.contains('care') ||
+        value.contains('chăm') ||
+        value.contains('thức ăn')) {
+      return 'care';
+    }
+    return 'other';
+  }
+
+  List<String> get _visibleCategories {
+    final values = _items.map(_categoryOf).toSet();
+    return <String>[
+      'all',
+      if (values.contains('care')) 'care',
+      if (values.contains('pvp')) 'pvp',
+      if (values.contains('other')) 'other',
+    ];
+  }
+
+  ShopCatalogItem _localizedItem(ShopCatalogItem item) {
+    final code = item.effectTypeCode?.trim().toLowerCase() ?? '';
+    if (code.isEmpty) {
+      final english = AppLocalizations.of(context).localeName.startsWith('en');
+      return ShopCatalogItem(
+        shopItemId: item.shopItemId,
+        name: (english ? item.itemNameEn : item.itemNameVi) ?? item.name,
+        price: item.price,
+        isActive: item.isActive,
+        image: item.image,
+        itemTypeName: item.itemTypeName,
+        effectTypeCode: item.effectTypeCode,
+        description:
+            (english ? item.descriptionEn : item.descriptionVi) ??
+            item.description,
+        itemNameVi: item.itemNameVi,
+        itemNameEn: item.itemNameEn,
+        descriptionVi: item.descriptionVi,
+        descriptionEn: item.descriptionEn,
+      );
+    }
+    final l10n = AppLocalizations.of(context);
+    final content = switch (code) {
+      'pvp_speed_up' => (l10n.pvpItemHasteName, l10n.pvpItemHasteDescription),
+      'pvp_speed_down' => (l10n.pvpItemSlowName, l10n.pvpItemSlowDescription),
+      'pvp_cleanse' => (
+        l10n.pvpItemCleanseName,
+        l10n.pvpItemCleanseDescription,
+      ),
+      'pvp_shield' => (l10n.pvpItemShieldName, l10n.pvpItemShieldDescription),
+      'energy' => (l10n.shopEnergyItemName, l10n.shopEnergyItemDescription),
+      'life_force' => (
+        l10n.shopLifeForceItemName,
+        l10n.shopLifeForceItemDescription,
+      ),
+      'bond' => (l10n.shopBondItemName, l10n.shopBondItemDescription),
+      _ => null,
+    };
+    if (content == null) return item;
+    return ShopCatalogItem(
+      shopItemId: item.shopItemId,
+      name: content.$1,
+      price: item.price,
+      isActive: item.isActive,
+      image: item.image,
+      itemTypeName: item.itemTypeName,
+      effectTypeCode: item.effectTypeCode,
+      description: content.$2,
+      itemNameVi: item.itemNameVi,
+      itemNameEn: item.itemNameEn,
+      descriptionVi: item.descriptionVi,
+      descriptionEn: item.descriptionEn,
+    );
+  }
+
+  List<ShopCatalogItem> get _filteredItems => _selectedCategory == 'all'
+      ? _items.map(_localizedItem).toList(growable: false)
+      : _items
+            .where((item) => _categoryOf(item) == _selectedCategory)
+            .map(_localizedItem)
+            .toList(growable: false);
 
   @override
   void initState() {
@@ -79,7 +187,9 @@ class _ShopScreenState extends State<ShopScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+      final cachedBalance = context.read<GameStateProvider>().user?.coins ?? 0;
       setState(() {
+        _walletBalance = cachedBalance;
         _isWalletLoading = false;
       });
     }
@@ -102,7 +212,12 @@ class _ShopScreenState extends State<ShopScreen> {
               isActive: item.isActive,
               image: item.image,
               itemTypeName: item.itemTypeName,
+              effectTypeCode: item.effectTypeCode,
               description: item.description,
+              itemNameVi: item.itemNameVi,
+              itemNameEn: item.itemNameEn,
+              descriptionVi: item.descriptionVi,
+              descriptionEn: item.descriptionEn,
             ),
           )
           .toList();
@@ -132,12 +247,22 @@ class _ShopScreenState extends State<ShopScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    showGameNotificationDialog(context, message: message, isSuccess: false);
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: false,
+      region: GameNoticeRegion.shop,
+    );
   }
 
   void _showSuccess(String message) {
     if (!mounted) return;
-    showGameNotificationDialog(context, message: message, isSuccess: true);
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: true,
+      region: GameNoticeRegion.shop,
+    );
   }
 
   int? _extractWalletBalance(dynamic data) {
@@ -280,17 +405,42 @@ class _ShopScreenState extends State<ShopScreen> {
                                             label: l10n.loading,
                                           ),
                                         )
-                                      : ShopCatalog(
-                                          items: _items,
-                                          borderColor: borderColor,
-                                          accent: accent,
-                                          isDark: isDark,
-                                          formatMoney: _formatMoney,
-                                          onSelect: _openDetail,
-                                          emptyMessage: _items.isEmpty
-                                              ? (_errorMessage ??
-                                                    l10n.shopNoItems)
-                                              : null,
+                                      : Column(
+                                          children: [
+                                            _ShopCategoryBar(
+                                              categories: _visibleCategories,
+                                              selected: _selectedCategory,
+                                              labelFor: (category) =>
+                                                  switch (category) {
+                                                    'care' =>
+                                                      l10n.shopCareItems,
+                                                    'pvp' => l10n.shopPvpItems,
+                                                    'other' =>
+                                                      l10n.shopOtherItems,
+                                                    _ => l10n.shopAllItems,
+                                                  },
+                                              onSelected: (category) =>
+                                                  setState(
+                                                    () => _selectedCategory =
+                                                        category,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Expanded(
+                                              child: ShopCatalog(
+                                                items: _filteredItems,
+                                                borderColor: borderColor,
+                                                accent: accent,
+                                                isDark: isDark,
+                                                formatMoney: _formatMoney,
+                                                onSelect: _openDetail,
+                                                emptyMessage: _items.isEmpty
+                                                    ? (_errorMessage ??
+                                                          l10n.shopNoItems)
+                                                    : l10n.shopNoItems,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                 ),
                               ],
@@ -323,195 +473,21 @@ class _ShopScreenState extends State<ShopScreen> {
               closeLabel: l10n.close,
               buyLabel: l10n.shopBuy,
               processingLabel: l10n.processing,
+              unavailableLabel: _isWalletLoading
+                  ? l10n.loading
+                  : (_selectedItem!.isActive
+                        ? l10n.shopNotEnoughDew
+                        : l10n.shopUnavailable),
+              canBuy:
+                  _selectedItem!.isActive &&
+                  !_isWalletLoading &&
+                  _walletBalance >= _selectedItem!.price,
               formatMoney: _formatMoney,
               onClose: _closeDetail,
               onBuy: () => _handleBuy(_selectedItem!),
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildDetailRow(
-    String label,
-    String value,
-    Color foreground,
-    Color mutedForeground,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            '$label:',
-            style: TextStyle(
-              fontSize: 13,
-              color: mutedForeground,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              color: foreground,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNavigation(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final activeIconColor = isDark
-        ? const Color(0xFF1E2E24)
-        : const Color(0xFFFFF8F0);
-    final inactiveColor = isDark
-        ? AppColors.darkMutedForeground.withValues(alpha: 0.66)
-        : AppColors.lightMutedForeground.withValues(alpha: 0.66);
-
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(color: Colors.transparent),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                iconWidget: AppIcon(
-                  Icons.bolt_rounded,
-                  asset: AppAssets.iconFriendsNav,
-                  size: 22,
-                  color: inactiveColor,
-                ),
-                label: l10n.inventoryCommunity,
-                color: inactiveColor,
-                onTap: () => Navigator.pushNamed(context, '/friends'),
-              ),
-              _buildNavItem(
-                iconWidget: _SwordsIcon(size: 22, color: inactiveColor),
-                label: 'PvP',
-                color: inactiveColor,
-                onTap: () => Navigator.pushNamed(context, '/pvp'),
-              ),
-              const SizedBox(width: 64),
-              _buildNavItem(
-                iconWidget: AppIcon(
-                  Icons.backpack_outlined,
-                  size: 22,
-                  color: inactiveColor,
-                ),
-                label: l10n.inventoryBag,
-                color: inactiveColor,
-                onTap: () => Navigator.pushNamed(context, '/inventory'),
-              ),
-              _buildNavItem(
-                iconWidget: AppIcon(
-                  Icons.storefront_outlined,
-                  size: 22,
-                  color: inactiveColor,
-                ),
-                label: l10n.inventoryStore,
-                color: inactiveColor,
-                onTap: () => Navigator.pushNamed(context, '/shop'),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 0,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/home',
-                  (route) => false,
-                );
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD89A70),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF895B3D),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(
-                            0xFFD89A70,
-                          ).withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: AppIcon(
-                        Icons.home_rounded,
-                        size: 36,
-                        color: activeIconColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required Widget iconWidget,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD89A70),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF895B3D), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.16),
-                  blurRadius: 3,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Transform.scale(scale: 1.65, child: iconWidget),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -560,10 +536,93 @@ class _ShopWalletPill extends StatelessWidget {
             width: 22,
             height: 22,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) =>
+            errorBuilder: (context, error, stackTrace) =>
                 const _DewdropIcon(size: 19, color: AppColors.lightDew),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ShopCategoryBar extends StatelessWidget {
+  const _ShopCategoryBar({
+    required this.categories,
+    required this.selected,
+    required this.labelFor,
+    required this.onSelected,
+  });
+
+  final List<String> categories;
+  final String selected;
+  final String Function(String category) labelFor;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 46,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        itemCount: categories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final active = selected == category;
+          final iconAsset = switch (category) {
+            'pvp' => AppAssets.iconPvpBattle,
+            'care' => AppAssets.iconInventoryNav,
+            'other' => AppAssets.iconShoppingBag,
+            _ => AppAssets.iconShopNav,
+          };
+          return Semantics(
+            button: true,
+            selected: active,
+            label: labelFor(category),
+            child: Material(
+              color: active ? AppColors.buttonGreen : AppColors.creamLight,
+              borderRadius: BorderRadius.circular(999),
+              child: InkWell(
+                onTap: () => onSelected(category),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 88),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: active ? AppColors.oliveDeep : AppColors.wood,
+                      width: active ? 2 : 1.4,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        iconAsset,
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        labelFor(category),
+                        style: const TextStyle(
+                          color: AppColors.woodDeep,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -588,6 +647,8 @@ class ShopDetailModal extends StatelessWidget {
     required this.closeLabel,
     required this.buyLabel,
     required this.processingLabel,
+    this.unavailableLabel = '',
+    this.canBuy = true,
     required this.formatMoney,
     required this.onClose,
     required this.onBuy,
@@ -608,6 +669,8 @@ class ShopDetailModal extends StatelessWidget {
   final String closeLabel;
   final String buyLabel;
   final String processingLabel;
+  final String unavailableLabel;
+  final bool canBuy;
   final String Function(int value) formatMoney;
   final VoidCallback onClose;
   final VoidCallback onBuy;
@@ -714,37 +777,6 @@ class ShopDetailModal extends StatelessWidget {
                                 outlineWidth: 3,
                                 maxLines: 2,
                               ),
-                              if (item.itemTypeName?.trim().isNotEmpty ==
-                                  true) ...[
-                                const SizedBox(height: 10),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 13,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.leafLight.withValues(
-                                      alpha: 0.42,
-                                    ),
-                                    borderRadius: BorderRadius.circular(999),
-                                    border: Border.all(
-                                      color: AppColors.wood.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '$typeLabel: ${item.itemTypeName!.trim()}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? foreground
-                                          : AppColors.woodDeep,
-                                    ),
-                                  ),
-                                ),
-                              ],
                               const SizedBox(height: 12),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -807,6 +839,17 @@ class ShopDetailModal extends StatelessWidget {
                                   ),
                                 ],
                               ),
+                              if (!canBuy && !isBuying) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  unavailableLabel,
+                                  style: const TextStyle(
+                                    color: AppColors.danger,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 18),
                               Text(
                                 description?.isNotEmpty == true
@@ -842,14 +885,18 @@ class ShopDetailModal extends StatelessWidget {
                                     child: _ShopModalButton(
                                       label: isBuying
                                           ? processingLabel
-                                          : buyLabel,
+                                          : (canBuy
+                                                ? buyLabel
+                                                : unavailableLabel),
                                       backgroundColor: isDark
                                           ? AppColors.darkAccent
                                           : AppColors.buttonYellow,
                                       foregroundColor: isDark
                                           ? AppColors.darkPrimaryForeground
                                           : AppColors.buttonText,
-                                      onPressed: isBuying ? null : onBuy,
+                                      onPressed: isBuying || !canBuy
+                                          ? null
+                                          : onBuy,
                                     ),
                                   ),
                                 ],
@@ -1194,19 +1241,6 @@ class _ShopFeaturedCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    if (item.itemTypeName?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: 5),
-                      Text(
-                        item.itemTypeName!.trim(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AppColors.inkBrown.withValues(alpha: 0.78),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
                     const Spacer(),
                     _ShopPricePill(
                       value: formatMoney(item.price),
@@ -1325,7 +1359,7 @@ class _ShopItemArtwork extends StatelessWidget {
         height: size,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.medium,
-        errorBuilder: (_, __, ___) => Center(
+        errorBuilder: (context, error, stackTrace) => Center(
           child: AppIcon(
             Icons.broken_image_outlined,
             asset: AppAssets.iconShoppingBag,
@@ -1341,7 +1375,7 @@ class _ShopItemArtwork extends StatelessWidget {
       height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
-      errorBuilder: (_, __, ___) => Center(
+      errorBuilder: (context, error, stackTrace) => Center(
         child: AppIcon(
           Icons.broken_image_outlined,
           asset: AppAssets.iconShoppingBag,
@@ -1507,60 +1541,4 @@ class _DewdropPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DewdropPainter oldDelegate) => oldDelegate.color != color;
-}
-
-class _SwordsIcon extends StatelessWidget {
-  const _SwordsIcon({this.size = 22, this.color});
-
-  final double size;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _SwordsPainter(color: color ?? Colors.white),
-    );
-  }
-}
-
-class _SwordsPainter extends CustomPainter {
-  const _SwordsPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    final w = size.width;
-    final h = size.height;
-    canvas.drawLine(
-      Offset(w * 0.25, h * 0.75),
-      Offset(w * 0.75, h * 0.25),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.2, h * 0.55),
-      Offset(w * 0.45, h * 0.8),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.75, h * 0.75),
-      Offset(w * 0.25, h * 0.25),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(w * 0.8, h * 0.55),
-      Offset(w * 0.55, h * 0.8),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _SwordsPainter oldDelegate) =>
-      oldDelegate.color != color;
 }

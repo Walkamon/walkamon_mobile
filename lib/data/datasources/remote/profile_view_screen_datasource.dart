@@ -27,6 +27,13 @@ class ProfileViewScreenDatasource {
     );
   }
 
+  Future<ApiResponse<void>> updateLanguage(String languageCode) async {
+    return await _apiClient.patch<void>(
+      ApiConstants.profileLanguage,
+      data: {'languageCode': languageCode},
+    );
+  }
+
   /// Gửi dữ liệu cập nhật hồ sơ lên hệ thống C# Backend
   Future<ApiResponse<ProfileViewResponse>> updateProfileData({
     required String username,

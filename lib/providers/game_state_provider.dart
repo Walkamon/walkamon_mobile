@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/auth/token_storage.dart';
 import '../core/l10n/locale_helper.dart';
 import '../core/network/app_failure.dart';
+import '../core/network/dio_provider.dart';
 import '../data/repositories/login_screen_repository.dart';
 import '../data/repositories/setting_screen_repository.dart';
 import '../data/repositories/profile_view_screen_repository.dart';
@@ -498,6 +499,14 @@ class GameStateProvider extends ChangeNotifier {
             ? profileData.themeCode
             : 'light',
       );
+      DioProvider.setLanguageCode(preferredLanguageCode);
+      if (profileData.languageCode.trim() != preferredLanguageCode) {
+        try {
+          await _profileRepository.updateLanguage(preferredLanguageCode);
+        } catch (e) {
+          debugPrint('Could not synchronize saved language preference: $e');
+        }
+      }
 
       // The dedicated Pet story-status endpoint is authoritative for routing.
       // Keep the profile value only as a temporary fallback if that request fails.
@@ -576,15 +585,30 @@ class GameStateProvider extends ChangeNotifier {
   }
 
   Future<void> setLanguageCode(String languageCode) async {
+    final normalized = LocaleHelper.isVietnamese(languageCode)
+        ? 'vi-VN'
+        : 'en-US';
     _hasLocalLanguagePreference = true;
-    _settings = _settings.copyWith(languageCode: languageCode);
+    _settings = _settings.copyWith(languageCode: normalized);
+    // Apply the header before notifying listeners so any screen opened during
+    // this rebuild immediately requests content in the selected locale.
+    DioProvider.setLanguageCode(normalized);
     notifyListeners();
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_languageCodeKey, languageCode);
+      await prefs.setString(_languageCodeKey, normalized);
     } catch (e) {
       debugPrint('Không thể lưu ngôn ngữ: $e');
+    }
+
+    try {
+      // Notification list/detail localization currently uses the language in
+      // the user profile. Keep it synchronized with the local selection so
+      // legacy editorial notifications do not fall back to Vietnamese.
+      await _profileRepository.updateLanguage(normalized);
+    } catch (e) {
+      debugPrint('Could not synchronize language preference: $e');
     }
   }
 

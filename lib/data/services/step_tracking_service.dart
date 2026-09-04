@@ -15,6 +15,8 @@ import 'step_tracking_store.dart';
 typedef CurrentTimeProvider = DateTime Function();
 typedef NativeMotionStreamFactory = Stream<NativeMotionEvent> Function();
 typedef ActivityPermissionChecker = Future<bool> Function();
+typedef ActivityPermissionStatusProvider = Future<PermissionStatus> Function();
+typedef ActivityPermissionRequester = Future<PermissionStatus> Function();
 typedef StepCountChanged = void Function(int acceptedSteps, int pendingSteps);
 typedef StepBreakdownChanged =
     void Function(
@@ -43,6 +45,8 @@ class StepTrackingService extends WidgetsBindingObserver {
     AndroidStepBridge? androidBridge,
     NativeMotionStreamFactory? motionStreamFactory,
     ActivityPermissionChecker? activityPermissionChecker,
+    ActivityPermissionStatusProvider? activityPermissionStatusProvider,
+    ActivityPermissionRequester? activityPermissionRequester,
     CurrentTimeProvider? currentTimeProvider,
     this.syncInterval = const Duration(seconds: 2),
   }) : _store = store ?? StepTrackingStore(),
@@ -53,6 +57,12 @@ class StepTrackingService extends WidgetsBindingObserver {
        _activityPermissionChecker =
            activityPermissionChecker ??
            (() => Permission.activityRecognition.isGranted),
+       _activityPermissionStatusProvider =
+           activityPermissionStatusProvider ??
+           (() => Permission.activityRecognition.status),
+       _activityPermissionRequester =
+           activityPermissionRequester ??
+           (() => Permission.activityRecognition.request()),
        _currentTimeProvider = currentTimeProvider ?? DateTime.now {
     WidgetsBinding.instance.addObserver(this);
   }
@@ -65,6 +75,8 @@ class StepTrackingService extends WidgetsBindingObserver {
   final AndroidStepBridge _androidBridge;
   final NativeMotionStreamFactory _motionStreamFactory;
   final ActivityPermissionChecker _activityPermissionChecker;
+  final ActivityPermissionStatusProvider _activityPermissionStatusProvider;
+  final ActivityPermissionRequester _activityPermissionRequester;
   final CurrentTimeProvider _currentTimeProvider;
   final Duration syncInterval;
 
@@ -129,6 +141,10 @@ class StepTrackingService extends WidgetsBindingObserver {
       }
 
       _notifyStepCounts();
+      if (!await _activityPermissionChecker() &&
+          !await _requestActivityPermission()) {
+        return;
+      }
       await resumeTracking();
     } catch (error) {
       debugPrint('Step tracking start failed: $error');
@@ -201,21 +217,28 @@ class StepTrackingService extends WidgetsBindingObserver {
   }
 
   Future<void> requestActivityPermission() async {
-    final current = await Permission.activityRecognition.status;
+    if (await _requestActivityPermission()) {
+      await resumeTracking();
+    }
+  }
+
+  Future<bool> _requestActivityPermission() async {
+    final current = await _activityPermissionStatusProvider();
+    if (current.isGranted) return true;
     if (current.isPermanentlyDenied) {
       _setStatus(StepTrackingStatus.permissionPermanentlyDenied);
-      return;
+      return false;
     }
-    final result = await Permission.activityRecognition.request();
+    final result = await _activityPermissionRequester();
     if (!result.isGranted) {
       _setStatus(
         result.isPermanentlyDenied
             ? StepTrackingStatus.permissionPermanentlyDenied
             : StepTrackingStatus.permissionDenied,
       );
-      return;
+      return false;
     }
-    await resumeTracking();
+    return true;
   }
 
   Future<void> openActivitySettings() => openAppSettings();

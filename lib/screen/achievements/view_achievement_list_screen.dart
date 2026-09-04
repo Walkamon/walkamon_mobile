@@ -8,6 +8,7 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/audio/app_audio_service.dart';
+import '../../core/localization/game_content_localizer.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/models/achievement_response.dart';
@@ -85,6 +86,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
           context,
           message: l10n.achievementClaimSuccess(result.walletAmount),
           isSuccess: true,
+          isReward: true,
         );
       }
       await _loadAchievements();
@@ -104,6 +106,22 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
 
   List<AchievementResponse> get _claimedAchievements =>
       _achievements.where((item) => item.claimedAt != null).toList();
+
+  String _localizedTitle(AchievementResponse item) =>
+      GameContentLocalizer.questTitle(
+        context,
+        metricCode: item.metricCode ?? '',
+        targetValue: item.targetValue,
+        fallback: item.title,
+      );
+
+  String _localizedDescription(AchievementResponse item) =>
+      GameContentLocalizer.questDescription(
+        context,
+        metricCode: item.metricCode ?? '',
+        targetValue: item.targetValue,
+        fallback: item.description,
+      );
 
   List<AchievementResponse> get _unclaimedAchievements {
     final list = _achievements.where((item) => item.claimedAt == null).toList();
@@ -591,8 +609,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                       : () => setState(
                           () => _selectedAchievement = {
                             'achievementId': item.achievementId,
-                            'title': item.title,
-                            'desc': item.description,
+                            'title': _localizedTitle(item),
+                            'desc': _localizedDescription(item),
                             'iconUrl': item.iconUrl,
                             'isLocked': false,
                             'canClaim': item.canClaim,
@@ -699,8 +717,8 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                     onTap: () => setState(
                       () => _selectedAchievement = {
                         'achievementId': item.achievementId,
-                        'title': item.title,
-                        'desc': item.description,
+                        'title': _localizedTitle(item),
+                        'desc': _localizedDescription(item),
                         'iconUrl': item.iconUrl,
                         'isLocked': !item.isUnlocked,
                         'date': item.unlockedAt ?? '',
@@ -761,7 +779,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.title,
+                                  _localizedTitle(item),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -772,7 +790,7 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  item.description,
+                                  _localizedDescription(item),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(

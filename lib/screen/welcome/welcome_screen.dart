@@ -7,6 +7,7 @@ import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_wordmark.dart';
+import 'package:walkamon_mobile/widgets/common/game_notice_host.dart';
 
 import '../../core/auth/google_sign_in_auth.dart';
 import '../../core/constants/app_assets.dart';
@@ -62,14 +63,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _showGoogleLoginError(String? message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message?.trim().isNotEmpty == true
-              ? message!.trim()
-              : AppLocalizations.of(context).googleLoginFailed,
-        ),
-      ),
+    showGameNotice(
+      message?.trim().isNotEmpty == true
+          ? message!.trim()
+          : AppLocalizations.of(context).googleLoginFailed,
+      type: GameNoticeType.error,
+      region: GameNoticeRegion.generic,
     );
   }
 

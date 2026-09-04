@@ -28,6 +28,15 @@ class ProfileViewScreenRepository {
     if (!response.success) throw response.failure;
   }
 
+  Future<void> updateLanguage(String languageCode) async {
+    final normalized = languageCode.trim();
+    if (!{'vi-VN', 'en-US'}.contains(normalized)) {
+      throw ArgumentError.value(languageCode, 'languageCode');
+    }
+    final response = await _remoteDatasource.updateLanguage(normalized);
+    if (!response.success) throw response.failure;
+  }
+
   /// Xử lý cập nhật thông tin và kiểm tra trạng thái thành công/thất bại
   Future<void> updateUserProfile({
     required String username,

@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../widgets/common/game_button_label.dart';
 import '../../../../widgets/pet_runtime/pet_runtime_preview.dart';
 import '../../../../data/models/pvp_models.dart';
+import '../../../../providers/pvp_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/common/app_icon.dart';
 import '../pvp_asset_resolver.dart';
@@ -61,6 +62,88 @@ class PvPMatchingOverlay extends StatelessWidget {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One authoritative overlay for queueing, match reveal and the server
+/// countdown.  Keeping these phases in one card prevents the old searching
+/// dialog and success dialog from being stacked or racing a local timer.
+class PvpMatchTransitionOverlay extends StatelessWidget {
+  const PvpMatchTransitionOverlay({
+    super.key,
+    required this.state,
+    required this.opponentName,
+    required this.countdown,
+    this.isPractice = false,
+    this.onCancel,
+  });
+
+  final PvpMatchmakingState state;
+  final String opponentName;
+  final int countdown;
+  final bool isPractice;
+  final VoidCallback? onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final matched = opponentName.trim().isNotEmpty &&
+        state == PvpMatchmakingState.countdown;
+    final title = matched ? l10n.pvpMatchSuccess : l10n.pvpSearchingOpponent;
+    final subtitle = matched
+        ? l10n.pvpPrepareForMatch
+        : l10n.pvpSearchingOpponent;
+    return Positioned.fill(
+      child: ColoredBox(
+        color: const Color(0x8A0F1A12),
+        child: Center(
+          child: SafeArea(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 330),
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+              decoration: BoxDecoration(
+                color: AppColors.authCard,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: AppColors.woodDeep, width: 2),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, 8)),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    matched ? Icons.sports_kabaddi_rounded : Icons.search_rounded,
+                    color: AppColors.leaf,
+                    size: 38,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.woodDeep, fontSize: 20, fontWeight: FontWeight.w900)),
+                  if (isPractice) ...[
+                    const SizedBox(height: 5),
+                    Text(l10n.pvpPracticeRace, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.coral, fontSize: 12, fontWeight: FontWeight.w800)),
+                  ],
+                  if (matched) ...[
+                    const SizedBox(height: 4),
+                    Text(opponentName, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.inkBrown, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text(countdown > 0 ? '$countdown' : subtitle, style: TextStyle(color: AppColors.coral, fontSize: countdown > 0 ? 42 : 14, fontWeight: FontWeight.w900)),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.leaf)),
+                  ],
+                  if (onCancel != null) ...[
+                    const SizedBox(height: 14),
+                    OutlinedButton(onPressed: onCancel, child: Text(l10n.pvpCancelRequest)),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

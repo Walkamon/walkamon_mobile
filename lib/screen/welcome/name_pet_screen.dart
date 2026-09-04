@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_preview.dart';
+import 'package:walkamon_mobile/widgets/common/game_notice_host.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
@@ -85,10 +86,10 @@ class _NamePetScreenState extends State<NamePetScreen>
       final prepared = await gameState.preparePetForHome();
       if (!mounted) return;
       if (!prepared) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).namePetCreateFailed),
-          ),
+        showGameNotice(
+          AppLocalizations.of(context).namePetCreateFailed,
+          type: GameNoticeType.error,
+          region: GameNoticeRegion.generic,
         );
         return;
       }
@@ -99,8 +100,10 @@ class _NamePetScreenState extends State<NamePetScreen>
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).namePetCreateFailed)),
+    showGameNotice(
+      AppLocalizations.of(context).namePetCreateFailed,
+      type: GameNoticeType.error,
+      region: GameNoticeRegion.generic,
     );
   }
 

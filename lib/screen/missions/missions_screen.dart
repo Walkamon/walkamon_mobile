@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/audio/app_audio_service.dart';
+import '../../core/localization/game_content_localizer.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/player_challenge_response.dart';
 import '../../data/models/player_mission_response.dart';
@@ -128,6 +129,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
   String? _claimingMissionId;
   String? _creatingChallenge;
   String? _cancellingChallengeId;
+  Locale? _contentLocale;
 
   @override
   void initState() {
@@ -135,18 +137,40 @@ class _MissionsScreenState extends State<MissionsScreen> {
     _loadData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextLocale = Localizations.localeOf(context);
+    final previousLocale = _contentLocale;
+    _contentLocale = nextLocale;
+    if (previousLocale != null && previousLocale != nextLocale && !_isLoading) {
+      unawaited(_loadData());
+    }
+  }
+
   _QuestDisplayItem _fromMission(
     PlayerMissionItemResponse mission,
     AppLocalizations l10n,
   ) {
     final claimed = mission.statusCode.toLowerCase() == 'claimed';
+    final fallbackDescription = mission.description?.trim().isNotEmpty == true
+        ? mission.description!.trim()
+        : l10n.missionsDefaultDescription;
     return _QuestDisplayItem(
       missionId: mission.missionId,
       userMissionId: mission.userMissionId,
-      title: mission.title,
-      description: mission.description?.trim().isNotEmpty == true
-          ? mission.description!.trim()
-          : l10n.missionsDefaultDescription,
+      title: GameContentLocalizer.questTitle(
+        context,
+        metricCode: mission.metricCode,
+        targetValue: mission.targetValue,
+        fallback: mission.title,
+      ),
+      description: GameContentLocalizer.questDescription(
+        context,
+        metricCode: mission.metricCode,
+        targetValue: mission.targetValue,
+        fallback: fallbackDescription,
+      ),
       target: mission.targetValue,
       current: mission.progressValue,
       reward: mission.walletAmount,
@@ -163,14 +187,25 @@ class _MissionsScreenState extends State<MissionsScreen> {
   ) {
     final claimed = challenge.statusCode.toLowerCase() == 'claimed';
     final completed = challenge.progressValue >= challenge.targetValue;
+    final fallbackDescription = challenge.description?.trim().isNotEmpty == true
+        ? challenge.description!.trim()
+        : l10n.missionsChallengeDescription;
 
     return _QuestDisplayItem(
       missionId: challenge.challengeId,
       userMissionId: challenge.userMissionId,
-      title: challenge.title,
-      description: challenge.description?.trim().isNotEmpty == true
-          ? challenge.description!.trim()
-          : l10n.missionsChallengeDescription,
+      title: GameContentLocalizer.questTitle(
+        context,
+        metricCode: challenge.metricCode,
+        targetValue: challenge.targetValue,
+        fallback: challenge.title,
+      ),
+      description: GameContentLocalizer.questDescription(
+        context,
+        metricCode: challenge.metricCode,
+        targetValue: challenge.targetValue,
+        fallback: fallbackDescription,
+      ),
       target: challenge.targetValue,
       current: challenge.progressValue,
       reward: challenge.walletAmount,
@@ -194,9 +229,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
     }
 
     indexedQuests.sort((a, b) {
-      final priorityComparison = priority(
-        a.value,
-      ).compareTo(priority(b.value));
+      final priorityComparison = priority(a.value).compareTo(priority(b.value));
       return priorityComparison != 0
           ? priorityComparison
           : a.key.compareTo(b.key);
@@ -268,7 +301,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
         unawaited(AppAudioService.instance.playReward());
 
         if (mounted) {
-          _showSuccess(
+          _showReward(
             AppLocalizations.of(
               context,
             ).missionsClaimSuccess(result.walletAmount),
@@ -301,7 +334,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
       unawaited(AppAudioService.instance.playReward());
 
       if (mounted) {
-        _showSuccess(
+        _showReward(
           AppLocalizations.of(
             context,
           ).missionsClaimSuccess(result.walletAmount),
@@ -426,6 +459,16 @@ class _MissionsScreenState extends State<MissionsScreen> {
   void _showSuccess(String message) {
     if (!mounted) return;
     showGameNotificationDialog(context, message: message, isSuccess: true);
+  }
+
+  void _showReward(String message) {
+    if (!mounted) return;
+    showGameNotificationDialog(
+      context,
+      message: message,
+      isSuccess: true,
+      isReward: true,
+    );
   }
 
   @override
@@ -1273,34 +1316,39 @@ class _QuestItemCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 if (showClaim)
-                  Material(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      onTap: isClaimLoading ? null : onClaim,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 72,
+                      minHeight: 44,
+                    ),
+                    child: Material(
+                      color: accent,
                       borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                      child: InkWell(
+                        onTap: isClaimLoading ? null : onClaim,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          child: Center(
+                            child: isClaimLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : GameButtonLabel(
+                                    l10n.missionsClaim,
+                                    fontSize: 13.5,
+                                    color: resolvedForeground,
+                                    outlineWidth: 0,
+                                  ),
+                          ),
                         ),
-                        child: isClaimLoading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : GameButtonLabel(
-                                l10n.missionsClaim,
-                                fontSize: 12,
-                                color: resolvedForeground,
-                                outlineColor: isDark
-                                    ? AppColors.darkTextOutline
-                                    : AppColors.woodDeep,
-                                outlineWidth: 2,
-                              ),
                       ),
                     ),
                   )

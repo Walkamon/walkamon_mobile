@@ -15,6 +15,7 @@ import 'core/feedback/app_haptics.dart';
 import 'core/navigation/app_route_observer.dart';
 
 import 'core/network/api_client.dart';
+import 'core/network/dio_provider.dart';
 import 'core/permissions/startup_permission_service.dart';
 import 'data/datasources/remote/profile_view_screen_datasource.dart';
 import 'data/repositories/profile_view_screen_repository.dart';
@@ -124,8 +125,11 @@ class _WalkamonAppState extends State<WalkamonApp> {
       if (injectedProvider != null) {
         unawaited(injectedProvider.bootstrapAuthentication());
       }
-      await (widget.startupPermissionService ?? StartupPermissionService())
-          .requestOnce();
+      // Tests and embedding hosts can still inject a startup permission
+      // service. Production requests activity recognition only after an
+      // authenticated user exists, so Android presents the prompt in context
+      // and step collection starts for cold-restored sessions as well.
+      await widget.startupPermissionService?.requestOnce();
     });
   }
 
@@ -174,7 +178,19 @@ class _WalkamonAppState extends State<WalkamonApp> {
             return provider;
           },
         ),
-        ChangeNotifierProvider(create: (_) => StepTrackingProvider()),
+        ChangeNotifierProxyProvider<GameStateProvider, StepTrackingProvider>(
+          create: (_) => StepTrackingProvider(),
+          update: (_, gameState, stepTracking) {
+            final provider = stepTracking ?? StepTrackingProvider();
+            final userId = gameState.isAuthenticated
+                ? gameState.user?.id
+                : null;
+            scheduleMicrotask(
+              () => unawaited(provider.synchronizeUser(userId)),
+            );
+            return provider;
+          },
+        ),
         ChangeNotifierProvider(
           create: (_) => DailyLoginProvider(DailyLoginRepository()),
         ),
@@ -190,6 +206,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
             gameState.settings.backgroundMusicEnabled,
           );
           AppHaptics.setEnabled(gameState.settings.hapticsEnabled);
+          DioProvider.setLanguageCode(
+            LocaleHelper.codeFromLocale(gameState.locale),
+          );
           return MaterialApp(
             key: ValueKey(
               gameState.isAuthBootstrapPending

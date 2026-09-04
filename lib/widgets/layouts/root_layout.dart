@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../common/game_notice_host.dart';
 
 /// Equivalent of the React RootLayout component.
 ///
@@ -31,27 +31,13 @@ class RootLayout extends StatelessWidget {
     String message, {
     Duration duration = const Duration(seconds: 3),
   }) {
-    messengerKey.currentState
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          margin: const EdgeInsets.only(
-            // offset={240} in Sonner → push snackbar down from top
-            top: 240,
-            left: 16,
-            right: 16,
-          ),
-          duration: duration,
-        ),
-      );
+    // Keep the old API for callers, but use the cozy root notice host. The
+    // host owns queueing, dedupe, safe placement and dismissal.
+    GameNoticeHost.show(
+      message,
+      type: GameNoticeType.info,
+      region: GameNoticeRegion.generic,
+    );
   }
 
   final Widget child;
@@ -70,7 +56,7 @@ class RootLayout extends StatelessWidget {
           // fixed inset-0 pointer-events-none opacity-[0.02]
 
           // ─── Main Content (<Outlet />) ────────────────────────────────
-          child,
+          GameNoticeHost(key: GameNoticeHost.globalKey, child: child),
         ],
       ),
     );

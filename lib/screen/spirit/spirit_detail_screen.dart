@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
+import 'package:walkamon_mobile/widgets/common/game_notice_host.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/localization/translation_resolver.dart';
@@ -26,8 +24,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
   bool _isLoading = true;
   bool _isSubmitting = false;
   bool _isEvolved = false;
-  String? _petAnimationOverride;
-  Timer? _petAnimationTimer;
   PetOverviewResponse? _petOverview;
   List<PetEvolutionStageResponse> _evolutionStages =
       <PetEvolutionStageResponse>[];
@@ -37,7 +33,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       <PetEvolutionOptionResponse>[];
   List<PetEvolutionPreviewResponse> _evolutionPreviews =
       <PetEvolutionPreviewResponse>[];
-  PetCurrentAnimationResponse? _currentAnimation;
 
   @override
   void initState() {
@@ -45,12 +40,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPetData();
     });
-  }
-
-  @override
-  void dispose() {
-    _petAnimationTimer?.cancel();
-    super.dispose();
   }
 
   Future<void> _loadPetData({bool showLoading = true}) async {
@@ -83,13 +72,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         history = await petRepository.getEvolutionHistory();
       } catch (error) {
         debugPrint('[SpiritDetail] evolution history unavailable: $error');
-      }
-
-      var animation = _currentAnimation;
-      try {
-        animation = await petRepository.getCurrentAnimation();
-      } catch (error) {
-        debugPrint('[SpiritDetail] current animation unavailable: $error');
       }
 
       var options = _evolutionOptions;
@@ -125,18 +107,13 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         _evolutionHistory = sortedHistory;
         _evolutionOptions = options;
         _evolutionPreviews = previews;
-        _currentAnimation = animation;
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).petDataLoadError),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        showGameNotice(
+          AppLocalizations.of(context).petDataLoadError,
+          type: GameNoticeType.error,
+          region: GameNoticeRegion.generic,
         );
       }
     } finally {
@@ -165,14 +142,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       if (!mounted) return false;
 
       if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Không thể tiến hóa lúc này.'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        showGameNotice(
+          AppLocalizations.of(context).spiritEvolutionFailed,
+          type: GameNoticeType.warning,
+          region: GameNoticeRegion.generic,
         );
         return false;
       }
@@ -184,14 +157,10 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       return true;
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(TranslationResolver.resolveError(context, e)),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        showGameNotice(
+          TranslationResolver.resolveError(context, e),
+          type: GameNoticeType.error,
+          region: GameNoticeRegion.generic,
         );
       }
       return false;
@@ -199,43 +168,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
-    }
-  }
-
-  Future<void> _handleAction(
-    Future<bool> Function() action,
-    String successMessage,
-    String successAnimation,
-  ) async {
-    if (_isSubmitting) return;
-
-    setState(() => _isSubmitting = true);
-    final success = await action();
-
-    if (!mounted) return;
-
-    setState(() {
-      _isSubmitting = false;
-      if (success) _petAnimationOverride = successAnimation;
-    });
-
-    if (success) {
-      _petAnimationTimer?.cancel();
-      _petAnimationTimer = Timer(
-        Duration(milliseconds: successAnimation == 'feed_eat' ? 900 : 600),
-        () {
-          if (mounted) setState(() => _petAnimationOverride = null);
-        },
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(successMessage),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
     }
   }
 
@@ -387,9 +319,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               PetRuntimePreview(
-                                                assetReference:
-                                                    _currentAnimation
-                                                        ?.animationUrl,
                                                 affinityCode:
                                                     _petOverview
                                                         ?.affinityCode ??
@@ -398,9 +327,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
                                                     _petOverview?.stageNo ??
                                                     gameState.petStageNo,
                                                 animationType:
-                                                    _petAnimationOverride ??
-                                                    _currentAnimation
-                                                        ?.animationType ??
                                                     _petOverview
                                                         ?.animationType ??
                                                     gameState.animationType,
@@ -756,38 +682,6 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _ActionButton(
-                label: l10n.spiritTapLumina,
-                icon: Icons.touch_app,
-                onPressed: _isSubmitting
-                    ? null
-                    : () => _handleAction(
-                        () => context.read<GameStateProvider>().tapSpirit(),
-                        l10n.spiritTapSuccess,
-                        'excited',
-                      ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _ActionButton(
-                label: l10n.spiritFeed,
-                icon: Icons.restaurant,
-                onPressed: _isSubmitting
-                    ? null
-                    : () => _handleAction(
-                        () => context.read<GameStateProvider>().feedSpirit(),
-                        l10n.spiritFeedSuccess,
-                        'feed_eat',
-                      ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -1057,62 +951,4 @@ class _ProgressLeafPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-    super.key,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-
-    return Material(
-      color: enabled
-          ? AppColors.buttonGreen
-          : AppColors.buttonSecondary.withValues(alpha: 0.75),
-      shape: const StadiumBorder(
-        side: BorderSide(color: AppColors.woodDeep, width: 2),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const StadiumBorder(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AppIcon(
-                icon,
-                size: 19,
-                color: enabled ? AppColors.buttonText : AppColors.outlineBrown,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: GameButtonLabel(
-                  label,
-                  fontSize: 12,
-                  color: enabled
-                      ? AppColors.buttonText
-                      : AppColors.outlineBrown,
-                  outlineColor: enabled
-                      ? AppColors.woodDeep
-                      : AppColors.authCard,
-                  outlineWidth: 2.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

@@ -30,7 +30,11 @@ class GameButtonLabel extends StatelessWidget {
       fontSize: fontSize,
       fontWeight: FontWeight.w900,
       letterSpacing: letterSpacing,
-      height: 1,
+      // Quicksand's Vietnamese tone marks extend beyond a 1.0 line box.
+      // Keep a little vertical leading so labels such as "Nhận" are not
+      // clipped while retaining the compact game-button proportions.
+      height: 1.15,
+      leadingDistribution: TextLeadingDistribution.even,
     );
   }
 
@@ -43,6 +47,7 @@ class GameButtonLabel extends StatelessWidget {
     final resolvedOutline = isDark
         ? AppColors.darkTextOutline
         : (outlineColor ?? AppColors.buttonBorder);
+    final shadowOffset = (outlineWidth / 2).clamp(0.0, 1.25).toDouble();
     // A single text node keeps hit testing, semantics and widget tests
     // deterministic while the small four-way shadow preserves the game
     // label's outlined appearance without duplicating the glyph tree.
@@ -52,12 +57,20 @@ class GameButtonLabel extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
       style: _style(color: resolvedColor).copyWith(
-        shadows: [
-          Shadow(offset: const Offset(1, 0), color: resolvedOutline),
-          Shadow(offset: const Offset(-1, 0), color: resolvedOutline),
-          Shadow(offset: const Offset(0, 1), color: resolvedOutline),
-          Shadow(offset: const Offset(0, -1), color: resolvedOutline),
-        ],
+        shadows: shadowOffset == 0
+            ? const <Shadow>[]
+            : [
+                Shadow(offset: Offset(shadowOffset, 0), color: resolvedOutline),
+                Shadow(
+                  offset: Offset(-shadowOffset, 0),
+                  color: resolvedOutline,
+                ),
+                Shadow(offset: Offset(0, shadowOffset), color: resolvedOutline),
+                Shadow(
+                  offset: Offset(0, -shadowOffset),
+                  color: resolvedOutline,
+                ),
+              ],
       ),
     );
   }

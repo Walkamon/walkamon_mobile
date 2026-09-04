@@ -1009,40 +1009,15 @@ class LuminaSprite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = stageImage.trim();
-    final imageScheme = Uri.tryParse(imagePath)?.scheme.toLowerCase();
-    final isRuntimeReference = imageScheme == 'asset';
-    final isNetworkImage = imageScheme == 'http' || imageScheme == 'https';
-    final fallback = const AppIcon(
-      Icons.emoji_nature_rounded,
-      asset: AppAssets.iconSpiritNav,
-      size: 112,
-      color: AppColors.leafShadow,
-    );
-
     return SizedBox(
       width: 230,
       height: 210,
       child: Center(
-        child: isRuntimeReference
-            ? PetRuntimePreview(
-                assetReference: imagePath,
-                compact: true,
-                height: 178,
-              )
-            : imagePath.isNotEmpty
-            ? (isNetworkImage
-                  ? Image.network(
-                      imagePath,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => fallback,
-                    )
-                  : Image.asset(
-                      imagePath,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => fallback,
-                    ))
-            : fallback,
+        child: PetRuntimePreview(
+          assetReference: stageImage.trim(),
+          compact: true,
+          height: 178,
+        ),
       ),
     );
   }

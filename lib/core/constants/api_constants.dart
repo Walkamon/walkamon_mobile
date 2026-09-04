@@ -21,6 +21,7 @@ class ApiConstants {
       '/api/auth/profile-friend/$userId';
 
   // settings Endpoints
+  static const String profileLanguage = '/api/auth/profile/language';
   static const String profileTheme = '/api/auth/profile/theme';
   static const String userFeedback = '/api/user-feedback';
 
