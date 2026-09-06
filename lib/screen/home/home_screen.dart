@@ -27,6 +27,9 @@ import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/tutorial/tutorial_spotlight_overlay.dart';
 import 'home_pet_ambient.dart';
 import 'home_pet_world_contract.dart';
+import '../../widgets/motion/animated_game_value.dart';
+import '../../core/motion/motion_tokens.dart';
+import '../../widgets/motion/game_presentation_host.dart';
 
 Widget _assetIcon(String path, {double size = 20, Color? color}) {
   return Image.asset(
@@ -87,6 +90,14 @@ class _StatBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // The Home dashboard is compact at the default text size, but the value
+    // must still remain inside its track when the platform text scale is
+    // enlarged for accessibility. Keep the default dimensions unchanged so
+    // the normal layout/goldens remain stable.
+    final textScaler = MediaQuery.textScalerOf(context);
+    final barScale = (textScaler.scale(11) / 11).clamp(1.0, 1.6);
+    final barHeight = (17 * barScale).clamp(17.0, 28.0);
+    final trackHeight = (barHeight + 13).clamp(30.0, 41.0);
     final safeMaximum = maximum <= 0 ? 1 : maximum;
     final safeValue = value.clamp(0, safeMaximum);
     final progress = (safeValue / safeMaximum).clamp(0.0, 1.0);
@@ -100,7 +111,7 @@ class _StatBar extends StatelessWidget {
         SizedBox(
           // Keep the compact Home bars proportional to the full Spirit Detail
           // bars: 17px track, 29px leaf and centered value text.
-          height: 30,
+          height: trackHeight,
           child: Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
@@ -109,7 +120,7 @@ class _StatBar extends StatelessWidget {
                 left: 0,
                 right: 14,
                 child: Container(
-                  height: 17,
+                  height: barHeight,
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkMuted : AppColors.creamLight,
@@ -119,10 +130,8 @@ class _StatBar extends StatelessWidget {
                       width: 1.5,
                     ),
                   ),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: progress),
-                    duration: const Duration(milliseconds: 700),
-                    curve: Curves.easeOutCubic,
+                  child: AnimatedGameProgress(
+                    value: progress,
                     builder: (context, animatedValue, child) => Align(
                       alignment: Alignment.centerLeft,
                       child: FractionallySizedBox(
@@ -250,7 +259,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
+  String? _observedProgression;
+  bool _progressionBaseline = false;
+  bool _foreground = true;
   String? _petAnimationOverride;
   int _petActionSerial = 0;
   bool _isRefreshingMetrics = false;
@@ -288,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   double? _petAreaGlobalTop;
   bool _petAreaMeasurementScheduled = false;
   final List<_FloatingNum> _floatingNums = [];
+  Timer? _deltaTimer;
   final List<_FloatingBubble> _bubbles = [
     _FloatingBubble(id: 1, top: 0.20, left: 0.12, size: 30),
     _FloatingBubble(id: 2, top: 0.18, left: 0.72, size: 38),
@@ -305,6 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // Feed ripple
     _rippleCtrl = AnimationController(
@@ -343,10 +358,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     unawaited(context.read<TutorialProvider>().synchronizeAccount(accountKey));
   }
 
-  void _playLevelUpEffectIfNeeded(int previousLevel, int currentLevel) {
-    if (currentLevel <= previousLevel) return;
-    unawaited(AppAudioService.instance.playLevelUp());
-    unawaited(AppHaptics.success());
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    _progressionBaseline = false;
+    _deltaTimer?.cancel();
+    _floatingNums.clear();
+    _petAnimationTimer?.cancel();
+    _petAnimationOverride = null;
+  }
+
+  void _observeProgression(GameStateProvider gameState) {
+    final event = gameState.latestProgressionChange;
+    final id = event == null ? null : '${gameState.user?.id}:${event.id}';
+    if (!_progressionBaseline ||
+        !_foreground ||
+        ModalRoute.isCurrentOf(context) == false) {
+      _progressionBaseline = true;
+      _observedProgression = id;
+      return;
+    }
+    if (id == _observedProgression) return;
+    _observedProgression = id;
+    if (event == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_foreground ||
+          _observedProgression != id ||
+          ModalRoute.isCurrentOf(context) == false)
+        return;
+      if (GamePresentationHost.showLevelUp(
+        context,
+        id: 'level:$id',
+        before: event.before.level,
+        after: event.after.level,
+      )) {
+        unawaited(AppAudioService.instance.playLevelUp());
+        unawaited(AppHaptics.success());
+        if (_petAnimationOverride == null &&
+            gameState.animationType == 'idle') {
+          _playPetAnimation('excited', MotionTokens.levelUp);
+        }
+      }
+    });
   }
 
   Future<void> _openRouteAndRefresh(String route) async {
@@ -440,6 +494,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _deltaTimer?.cancel();
     _refreshTimer?.cancel();
     _petAnimationTimer?.cancel();
     _ambientTimer?.cancel();
@@ -449,6 +505,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _playPetAnimation(String animation, Duration duration) {
+    if (_petAnimationOverride == animation &&
+        (animation == 'tap_hello' || animation == 'feed_eat')) {
+      return;
+    }
     _petAnimationTimer?.cancel();
     setState(() {
       _petAnimationOverride = animation;
@@ -465,6 +525,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _tryPlayAmbientAnimation() {
     if (!mounted || _petAnimationOverride != null) return;
+    if (MotionPolicy.of(context).reduced ||
+        !TickerMode.valuesOf(context).enabled ||
+        ModalRoute.isCurrentOf(context) == false ||
+        (WidgetsBinding.instance.lifecycleState != null &&
+            WidgetsBinding.instance.lifecycleState !=
+                AppLifecycleState.resumed)) {
+      return;
+    }
 
     final now = DateTime.now();
     if (now.difference(_lastPetInteractionAt) < const Duration(seconds: 24) ||
@@ -509,10 +577,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _handlePetTap(GameStateProvider gameState) async {
+    if (gameState.isPetActionBusy) return;
     _markPetInteraction();
+    _rippleCtrl.forward(from: 0);
     AppAudioService.instance.suppressNextTabSound();
-    final previousLevel = gameState.spiritLevel;
+    final previousBond = gameState.bondingLevel;
+    final account = gameState.user?.id;
     final success = await gameState.tapSpirit();
+    if (!mounted || gameState.user?.id != account) return;
 
     if (!success) {
       if (gameState.isPetActionBusy) {
@@ -521,27 +593,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       return;
     }
 
-    _playLevelUpEffectIfNeeded(previousLevel, gameState.spiritLevel);
-
-    setState(() {
-      final id = DateTime.now().millisecondsSinceEpoch;
-      _floatingNums.add(
-        _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
-      );
-    });
+    _showPetDelta(
+      gameState.bondingLevel - previousBond,
+      AppLocalizations.of(context).bonding,
+    );
     _playPetAnimation('tap_hello', const Duration(milliseconds: 2800));
     unawaited(AppHaptics.lightImpact());
 
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) {
-        setState(() {
-          _floatingNums.removeWhere(
-            (n) => n.id == _floatingNums.firstOrNull?.id,
-          );
-        });
-      }
+  }
+
+  void _showPetDelta(int delta, String label) {
+    if (delta <= 0 || ModalRoute.isCurrentOf(context) == false) return;
+    _deltaTimer?.cancel();
+    setState(() {
+      _floatingNums
+        ..clear()
+        ..add(
+          _FloatingNum(
+            id: DateTime.now().microsecondsSinceEpoch,
+            xOffset: 0,
+            label: '+$delta $label',
+          ),
+        );
+    });
+    _deltaTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(_floatingNums.clear);
     });
   }
 
@@ -568,9 +646,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _handleDewdropTap(GameStateProvider gameState) async {
     _markPetInteraction();
     AppAudioService.instance.suppressNextTabSound();
-    final previousLevel = gameState.spiritLevel;
+    final previousLife = gameState.spiritHealth;
+    final account = gameState.user?.id;
     final success = await gameState.feedSpirit();
-    if (!mounted) return;
+    if (!mounted || gameState.user?.id != account) return;
     if (!success) {
       _showFeedNotice(gameState.lastFeedFailure);
       return;
@@ -578,14 +657,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     unawaited(AppAudioService.instance.playFeed());
     unawaited(AppHaptics.mediumImpact());
-    _playLevelUpEffectIfNeeded(previousLevel, gameState.spiritLevel);
 
-    setState(() {
-      final id = DateTime.now().millisecondsSinceEpoch;
-      _floatingNums.add(
-        _FloatingNum(id: id, xOffset: (math.Random().nextDouble() * 40 - 20)),
-      );
-    });
+    _showPetDelta(
+      gameState.spiritHealth - previousLife,
+      AppLocalizations.of(context).lifeForce,
+    );
     _playPetAnimation('feed_eat', const Duration(milliseconds: 4200));
     _rippleCtrl.forward(from: 0);
     unawaited(gameState.fetchPetVisual());
@@ -707,6 +783,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final gameState = Provider.of<GameStateProvider>(context);
+    _observeProgression(gameState);
     final tutorial = context.watch<TutorialProvider>();
     final user = gameState.user;
 
@@ -736,6 +813,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final int spiritHealth = gameState.spiritHealth;
     final int spiritExpMax = gameState.spiritExpMax;
     final int spiritExpMaxSafe = spiritExpMax <= 0 ? 1 : spiritExpMax;
+    final homeTextScaler = MediaQuery.textScalerOf(context);
+    final expBarScale = (homeTextScaler.scale(11) / 11)
+        .clamp(1.0, 1.6)
+        .toDouble();
+    final expBarHeight = (17 * expBarScale).clamp(17.0, 28.0).toDouble();
+    final expTrackHeight = (expBarHeight + 15).clamp(32.0, 43.0).toDouble();
     final String spiritName = gameState.spiritName;
     final homeBg = _homeBackgroundForAffinity(
       gameState.affinityCode,
@@ -861,8 +944,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     ),
                                                   ],
                                                 ),
-                                                Text(
-                                                  '${_formatNumber(dailySteps)} / ${_formatNumber(goalSteps)}',
+                                                AnimatedGameCounter(
+                                                  value: dailySteps,
+                                                  format: _formatNumber,
+                                                  suffix:
+                                                      ' / ${_formatNumber(goalSteps)}',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w800,
@@ -872,15 +958,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               ],
                                             ),
                                             const SizedBox(height: 12),
-                                            TweenAnimationBuilder<double>(
-                                              tween: Tween(
-                                                begin: 0.0,
-                                                end: stepPct,
-                                              ),
-                                              duration: const Duration(
-                                                milliseconds: 800,
-                                              ),
-                                              curve: Curves.easeOutCubic,
+                                            AnimatedGameProgress(
+                                              value: stepPct,
                                               builder: (_, val, __) => Container(
                                                 height: 10,
                                                 width: double.infinity,
@@ -1083,8 +1162,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 6),
-                                        Text(
-                                          l10n.step,
+                                        AnimatedGameCounter(
+                                          value: dailySteps,
+                                          format: _formatNumber,
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w700,
@@ -1287,6 +1367,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             (n) => _FloatingHeartWidget(
                                               key: ValueKey(n.id),
                                               xOffset: n.xOffset,
+                                              label: n.label,
                                               primary: primary,
                                             ),
                                           ),
@@ -1410,7 +1491,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           ),
                                           const SizedBox(height: 6),
                                           SizedBox(
-                                            height: 32,
+                                            height: expTrackHeight,
                                             child: Stack(
                                               clipBehavior: Clip.none,
                                               children: [
@@ -1419,7 +1500,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   right: 0,
                                                   top: 7,
                                                   child: Container(
-                                                    height: 17,
+                                                    height: expBarHeight,
                                                     clipBehavior:
                                                         Clip.antiAlias,
                                                     decoration: BoxDecoration(
@@ -2111,9 +2192,10 @@ class _LuminaSprite extends StatelessWidget {
 
 // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Floating Heart Number ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬
 class _FloatingNum {
-  _FloatingNum({required this.id, required this.xOffset});
+  _FloatingNum({required this.id, required this.xOffset, required this.label});
   final int id;
   final double xOffset;
+  final String label;
 }
 
 class _FloatingHeartWidget extends StatefulWidget {
@@ -2121,9 +2203,11 @@ class _FloatingHeartWidget extends StatefulWidget {
     super.key,
     required this.xOffset,
     required this.primary,
+    required this.label,
   });
   final double xOffset;
   final Color primary;
+  final String label;
 
   @override
   State<_FloatingHeartWidget> createState() => _FloatingHeartWidgetState();
@@ -2153,16 +2237,23 @@ class _FloatingHeartWidgetState extends State<_FloatingHeartWidget>
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, __) => Positioned(
-        top: 16 - (_ctrl.value * 70),
-        left: 100 + widget.xOffset - 12,
+        top: 16 - (_ctrl.value * (MotionPolicy.of(context).reduced ? 0 : 40)),
+        left: 8,
+        right: 8,
         child: Opacity(
           opacity: (1 - _ctrl.value).clamp(0, 1),
           child: Text(
-            '+♥',
+            widget.label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,
               color: widget.primary,
+              shadows: const [
+                Shadow(color: Color(0xFFFDF5E6), blurRadius: 5),
+                Shadow(color: Color(0xFFFDF5E6), offset: Offset(1, 1)),
+                Shadow(color: Color(0xFFFDF5E6), offset: Offset(-1, -1)),
+              ],
             ),
           ),
         ),
