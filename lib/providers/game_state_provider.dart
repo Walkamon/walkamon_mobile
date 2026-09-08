@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../core/motion/pet_progression_change.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -185,6 +186,9 @@ class GameStateProvider extends ChangeNotifier {
   bool _isFeedingSpirit = false;
   bool _isPetActionBusy = false;
   int _petSnapshotRequestSerial = 0;
+  final _progressionTracker = PetProgressionTracker();
+  PetProgressionChange? get latestProgressionChange =>
+      _progressionTracker.latest;
   int _petStateEpoch = 0;
   int _petActionSerial = 0;
   PetFeedFailureReason _lastFeedFailure = PetFeedFailureReason.none;
@@ -265,6 +269,7 @@ class GameStateProvider extends ChangeNotifier {
     _isFeedingSpirit = false;
     _isPetActionBusy = false;
     _petSnapshotRequestSerial++;
+    _progressionTracker.reset();
     _petStateEpoch++;
     _petActionSerial++;
     _lastFeedFailure = PetFeedFailureReason.none;
@@ -940,6 +945,14 @@ class GameStateProvider extends ChangeNotifier {
           : 100;
       _bondingLevel = overview.currentBond;
       _bondingMax = overview.maxBond > 0 ? overview.maxBond : 100;
+      _progressionTracker.accept(
+        PetProgressionSnapshot(
+          petId: overview.petId,
+          level: _spiritLevel,
+          exp: _spiritExp,
+          maxExp: _spiritExpMax,
+        ),
+      );
 
       notifyListeners();
       return true;

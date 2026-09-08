@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../common/game_notice_host.dart';
+import '../motion/game_presentation_host.dart';
 
 /// Equivalent of the React RootLayout component.
 ///
@@ -19,7 +20,8 @@ import '../common/game_notice_host.dart';
 /// scaffoldMessengerKey: RootLayout.messengerKey,
 /// ```
 class RootLayout extends StatelessWidget {
-  const RootLayout({super.key, required this.child});
+  const RootLayout({super.key, required this.child, this.sessionKey});
+  final String? sessionKey;
 
   /// Drop-in replacement for Sonner's <Toaster />.
   /// Pass this to [MaterialApp.scaffoldMessengerKey] so any screen
@@ -56,7 +58,10 @@ class RootLayout extends StatelessWidget {
           // fixed inset-0 pointer-events-none opacity-[0.02]
 
           // ─── Main Content (<Outlet />) ────────────────────────────────
-          GameNoticeHost(key: GameNoticeHost.globalKey, child: child),
+          GameNoticeHost(
+            key: GameNoticeHost.globalKey,
+            child: GamePresentationHost(sessionKey: sessionKey, child: child),
+          ),
         ],
       ),
     );

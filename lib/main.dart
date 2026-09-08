@@ -238,8 +238,9 @@ class _WalkamonAppState extends State<WalkamonApp> {
                 : ThemeMode.light,
 
             scaffoldMessengerKey: RootLayout.messengerKey,
-            builder: (context, child) =>
-                AppTapSoundRegion(child: RootLayout(child: child!)),
+            builder: (context, child) => AppTapSoundRegion(
+              child: RootLayout(sessionKey: gameState.user?.id, child: child!),
+            ),
 
             // ── CẤU HÌNH ĐIỀU HƯỚNG AN TOÀN (ROUTE GUARD) ──────────────────
             home: gameState.isAuthBootstrapPending
