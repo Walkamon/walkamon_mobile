@@ -7,6 +7,7 @@ import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/pet_evolution_policy.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/pet_runtime/pet_runtime_preview.dart';
@@ -135,7 +136,6 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
         ? AppColors.darkMutedForeground
         : AppColors.lightMutedForeground;
 
-    final readyForEvolution = widget.overview?.canEvolve ?? widget.level >= 15;
     final currentStage =
         widget.stages.where((stage) => stage.isCurrent).isNotEmpty
         ? widget.stages.firstWhere((stage) => stage.isCurrent)
@@ -148,29 +148,21 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     })();
     final stageDisplayName =
         currentStage?.stageName ?? widget.overview?.stageName ?? '';
-    final canEvolveBE = widget.overview?.canEvolve ?? false;
-
-    // Required level from options (next tier above current)
     final currentLvl = widget.overview?.level ?? widget.level;
-    final nextRequiredLevel = widget.evolutionOptions.isNotEmpty
-        ? widget.evolutionOptions
-              .map((o) => o.requiredLevel)
-              .where((lvl) => lvl > currentLvl)
-              .fold<int?>(
-                null,
-                (prev, lvl) => prev == null || lvl < prev ? lvl : prev,
-              )
-        : null;
-
-    // Ưu tiên dùng nextEvolutionLevel từ API /api/pet/me
-    final conditionLevelTarget =
-        (widget.overview != null && widget.overview!.nextEvolutionLevel > 0)
-        ? widget.overview!.nextEvolutionLevel
-        : nextRequiredLevel;
-
+    // Do not infer evolution from level, or override an explicit API denial.
+    final fallbackTarget = PetEvolutionPolicy.nextLevel(
+      evolved: widget.initialIsEvolved,
+      stageNo: currentStage?.stageNo ?? 1,
+    );
+    final conditionLevelTarget = widget.overview != null
+        ? (widget.overview!.nextEvolutionLevel > 0
+              ? widget.overview!.nextEvolutionLevel
+              : null)
+        : fallbackTarget;
     final canEvolve =
-        canEvolveBE ||
+        widget.overview?.canEvolve ??
         (conditionLevelTarget != null && currentLvl >= conditionLevelTarget);
+    final readyForEvolution = canEvolve;
     final bool actuallyHasNextStage =
         hasNextStage || conditionLevelTarget != null;
 

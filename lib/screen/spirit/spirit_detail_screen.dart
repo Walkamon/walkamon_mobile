@@ -5,6 +5,7 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_notice_host.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/pet_evolution_policy.dart';
 import '../../core/localization/translation_resolver.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
@@ -57,7 +58,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
       if (!mounted) return;
       setState(() {
         _petOverview = overview;
-        _isEvolved = overview.stageNo > 1;
+        _isEvolved = PetEvolutionPolicy.isBranch(overview.affinityCode);
       });
 
       var stages = _evolutionStages;
@@ -210,11 +211,13 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
           maxExp,
         );
         final spiritName = _petOverview?.nickname ?? gameState.spiritName;
-        final isEvolved = _isEvolved || level >= 15;
         final affinityCode =
             (_petOverview?.affinityCode ?? gameState.affinityCode)
                 .trim()
                 .toLowerCase();
+        final isEvolved = affinityCode.isEmpty
+            ? _isEvolved
+            : PetEvolutionPolicy.isBranch(affinityCode);
         final formLabel = switch (affinityCode) {
           'dawn' => l10n.seedPath1Name,
           'moonlight' => l10n.seedPath2Name,
