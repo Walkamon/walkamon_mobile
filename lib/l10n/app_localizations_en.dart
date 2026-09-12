@@ -359,6 +359,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'New password must be at least 6 characters.';
 
   @override
+  String get changePasswordRequirements =>
+      'At least 6 characters, including uppercase, lowercase, a number and a special character.';
+
+  @override
+  String get changePasswordDifferent =>
+      'The new password must differ from the current password.';
+
+  @override
   String get changePasswordConfirmPassword => 'Confirm New Password';
 
   @override

@@ -355,6 +355,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Mật khẩu mới phải có ít nhất 6 ký tự.';
 
   @override
+  String get changePasswordRequirements =>
+      'Ít nhất 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.';
+
+  @override
+  String get changePasswordDifferent =>
+      'Mật khẩu mới phải khác mật khẩu hiện tại.';
+
+  @override
   String get changePasswordConfirmPassword => 'Xác nhận mật khẩu mới';
 
   @override

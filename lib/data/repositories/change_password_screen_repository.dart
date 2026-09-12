@@ -2,8 +2,10 @@ import '../datasources/remote/change_password_screen_datasource.dart';
 import '../../core/network/api_response.dart';
 
 class ChangePasswordScreenRepository {
-  final ChangePasswordScreenDatasource _remoteDataSource =
-      ChangePasswordScreenDatasource();
+  ChangePasswordScreenRepository({ChangePasswordScreenDatasource? datasource})
+    : _remoteDataSource = datasource ?? ChangePasswordScreenDatasource();
+
+  final ChangePasswordScreenDatasource _remoteDataSource;
 
   Future<ApiResponse<void>> changePassword({
     required String currentPassword,
