@@ -96,6 +96,7 @@ dependencies {
     implementation("com.google.android.play:integrity:1.6.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20180813")
 }
 
 flutter {

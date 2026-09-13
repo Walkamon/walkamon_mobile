@@ -134,6 +134,8 @@
 "changePasswordNewPasswordHint": "Enter your new password",
 "changePasswordNewPasswordRequired": "New password is required.",
 "changePasswordNewPasswordMinLength": "New password must be at least 6 characters.",
+"changePasswordRequirements": "At least 6 characters, including uppercase, lowercase, a number and a special character.",
+"changePasswordDifferent": "The new password must differ from the current password.",
 
 "changePasswordConfirmPassword": "Confirm New Password",
 "changePasswordConfirmPasswordHint": "Confirm your new password",

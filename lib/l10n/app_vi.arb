@@ -812,6 +812,8 @@
 "changePasswordNewPasswordHint": "Nhập mật khẩu mới của bạn",
 "changePasswordNewPasswordRequired": "Mật khẩu mới không được để trống.",
 "changePasswordNewPasswordMinLength": "Mật khẩu mới phải có ít nhất 6 ký tự.",
+"changePasswordRequirements": "Ít nhất 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+"changePasswordDifferent": "Mật khẩu mới phải khác mật khẩu hiện tại.",
 
 "changePasswordConfirmPassword": "Xác nhận mật khẩu mới",
 "changePasswordConfirmPasswordHint": "Xác nhận mật khẩu mới của bạn",

@@ -3,7 +3,10 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 
 class ChangePasswordScreenDatasource {
-  final ApiClient _apiClient = ApiClient();
+  ChangePasswordScreenDatasource({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
+
+  final ApiClient _apiClient;
 
   Future<ApiResponse<void>> changePassword({
     required String currentPassword,

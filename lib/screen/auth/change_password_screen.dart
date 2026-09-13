@@ -1,293 +1,364 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+
 import '../../core/localization/translation_resolver.dart';
-import 'package:walkamon_mobile/l10n/app_localizations.dart';
-import 'package:walkamon_mobile/widgets/common/app_icon.dart';
-import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
-
-import '../../core/constants/app_assets.dart';
+import '../../core/network/api_response.dart';
 import '../../core/theme/app_colors.dart';
-import '../../data/repositories/forgot_password_screen_repository.dart';
-import '../../widgets/common/error_message_widget.dart';
-import '../../widgets/common/game_button_label.dart';
-import 'widgets/auth_style.dart';
+import '../../data/repositories/change_password_screen_repository.dart';
+import '../../l10n/app_localizations.dart';
+import '../../widgets/common/game_back_button.dart';
 
+/// Settings-only password change. Uses the authenticated PUT endpoint; it must
+/// never invoke Forgot Password, request an OTP, or replace the login session.
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key});
+  const ChangePasswordScreen({super.key, this.repository});
+
+  final ChangePasswordScreenRepository? repository;
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen>
-    with SingleTickerProviderStateMixin {
-  final _emailController = TextEditingController();
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final ForgotPasswordScreenRepository _authRepository =
-      ForgotPasswordScreenRepository();
-  late final AnimationController _animationController;
-  late final Animation<double> _opacityAnimation;
-  late final Animation<Offset> _slideAnimation;
-  bool _isLoading = false;
-  String? _errorMessage;
-  String? _successMessage;
+  final _currentPassword = TextEditingController();
+  final _newPassword = TextEditingController();
+  final _newPasswordFocus = FocusNode();
+  late final ChangePasswordScreenRepository _repository;
+  bool _busy = false;
+  bool _complete = false;
+  bool _hideCurrent = true;
+  bool _hideNew = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-    _opacityAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.25, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
-
-    _animationController.forward();
+    _repository = widget.repository ?? ChangePasswordScreenRepository();
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _animationController.dispose();
+    _currentPassword.dispose();
+    _newPassword.dispose();
+    _newPasswordFocus.dispose();
     super.dispose();
   }
 
-  String? _validateEmail(BuildContext context, String? value) {
+  String? _validateNew(String? value) {
     final l10n = AppLocalizations.of(context);
-    final trimmed = value?.trim() ?? '';
-    if (trimmed.isEmpty) {
-      return l10n.loginEmailRequired;
-    }
-    if (!RegExp(r"^[\w.+\-]+@[\w\-]+\.[\w\-.]+$").hasMatch(trimmed)) {
-      return l10n.loginEmailInvalid;
+    final password = value ?? '';
+    if (password.isEmpty) return l10n.changePasswordNewPasswordRequired;
+    if (password.length < 6) return l10n.changePasswordNewPasswordMinLength;
+    if (password == _currentPassword.text) return l10n.changePasswordDifferent;
+    // Match ChangePasswordRequestValidator; the server remains authoritative.
+    if (!RegExp(r'[A-Z]').hasMatch(password) ||
+        !RegExp(r'[a-z]').hasMatch(password) ||
+        !RegExp(r'\d').hasMatch(password) ||
+        !RegExp(r'[\W_]').hasMatch(password)) {
+      return l10n.changePasswordRequirements;
     }
     return null;
   }
 
-  Future<void> _handleReset() async {
+  String _responseError(ApiResponse<void> response) {
     final l10n = AppLocalizations.of(context);
-
-    setState(() {
-      _errorMessage = null;
-      _successMessage = null;
-    });
-
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
+    final message = response.message.toLowerCase();
+    if (response.errorCode == 'AUTH_CURRENT_PASSWORD_INVALID' ||
+        message.contains('current password is invalid')) {
+      return l10n.apiErrorAuthCurrentPassword;
     }
+    if (message.contains('new password must be different')) {
+      return l10n.changePasswordDifferent;
+    }
+    if (message.contains('new password must')) {
+      return l10n.changePasswordRequirements;
+    }
+    return TranslationResolver.resolveResponse(context, response);
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    final response = await _authRepository.forgotPassword(
-      email: _emailController.text.trim(),
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (response.success && response.data != null) {
-      Navigator.pushNamed(
-        context,
-        '/auth/otp_verification',
-        arguments: {
-          'requestCode': response.data!.requestCode,
-          'email': _emailController.text.trim(),
-          'nextRoute': '/auth/reset-password',
-        },
+  Future<void> _submit() async {
+    if (_busy || _complete) return;
+    setState(() => _error = null);
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
+    try {
+      // Passwords are opaque values. Do not trim, normalize, log or store them.
+      final response = await _repository.changePassword(
+        currentPassword: _currentPassword.text,
+        newPassword: _newPassword.text,
       );
-      return;
+      if (!mounted) return;
+      if (response.success) {
+        _currentPassword.clear();
+        _newPassword.clear();
+        setState(() => _complete = true);
+      } else {
+        setState(() => _error = _responseError(response));
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(context).changePasswordFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
-
-    if (response.success) {
-      setState(() {
-        _successMessage = l10n.forgotPasswordResetSent;
-      });
-      return;
-    }
-
-    setState(() {
-      _errorMessage = TranslationResolver.resolveResponse(context, response);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-
-    final primary = theme.colorScheme.primary;
-    final onPrimary = theme.colorScheme.onPrimary;
-    final cardColor = theme.colorScheme.surface;
-    return FadeTransition(
-      opacity: _opacityAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Stack(
-          children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 80,
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final foreground = dark ? theme.colorScheme.onSurface : AppColors.woodDeep;
+    return Stack(
+      children: [
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(24, 76, 24, 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: math.max(0, constraints.maxHeight - 100),
                 ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
-                  child: AuthCard(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          GameButtonLabel(
-                            l10n.forgotPasswordTitle,
-                            fontSize: 23,
-                            color: AppColors.woodDeep,
-                            outlineColor: AppColors.creamDeep,
-                            outlineWidth: 2.5,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.forgotPasswordSubtitle,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.oliveDeep,
-                              fontWeight: FontWeight.w600,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          if (_errorMessage != null) ...[
-                            ErrorMessageWidget(message: _errorMessage!),
-                            const SizedBox(height: 12),
-                          ],
-                          if (_successMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                _successMessage!,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.wood,
-                                width: 1.8,
-                              ),
-                            ),
-                            child: Row(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: dark
+                            ? theme.colorScheme.surface
+                            : AppColors.authCard,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: dark
+                              ? theme.colorScheme.outline
+                              : AppColors.wood,
+                          width: 2,
+                        ),
+                      ),
+                      child: _complete
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                AppIcon(
-                                  Icons.directions_walk,
-                                  asset: AppAssets.authMail,
-                                  size: 22,
-                                  color: primary,
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: theme.colorScheme.primary,
+                                  size: 48,
                                 ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.send,
-                                    validator: (value) =>
-                                        _validateEmail(context, value),
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: theme.colorScheme.onSurface,
-                                        ),
-                                    decoration: InputDecoration(
-                                      hintText: l10n.loginEmail,
-                                      hintStyle: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            color: theme.colorScheme.onSurface
-                                                .withAlpha((0.6 * 255).round()),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      border: InputBorder.none,
-                                      isDense: true,
+                                const SizedBox(height: 16),
+                                Semantics(
+                                  liveRegion: true,
+                                  child: Text(
+                                    l10n.changePasswordSuccessTitle,
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: foreground,
                                     ),
-                                    onFieldSubmitted: (_) => _handleReset(),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  l10n.changePasswordSuccessSubtitle,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: foreground,
+                                    fontSize: 14,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton(
+                                    style: FilledButton.styleFrom(
+                                      minimumSize: const Size(48, 56),
+                                    ),
+                                    onPressed: () =>
+                                        Navigator.maybePop(context),
+                                    child: Text(
+                                      l10n.changePasswordBackToSettings,
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          FilledButton(
-                            onPressed: _isLoading ? null : _handleReset,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: primary,
-                              foregroundColor: onPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: const StadiumBorder(
-                                side: BorderSide(
-                                  color: AppColors.woodDeep,
-                                  width: 2,
-                                ),
-                              ),
-                              textStyle: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
+                            )
+                          : Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    l10n.changePasswordTitle,
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          color: foreground,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.changePasswordSubtitle,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: foreground,
+                                      fontSize: 14,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  _passwordField(
+                                    key: const ValueKey(
+                                      'change-password-current',
+                                    ),
+                                    controller: _currentPassword,
+                                    label: l10n.changePasswordCurrentPassword,
+                                    hint:
+                                        l10n.changePasswordCurrentPasswordHint,
+                                    hidden: _hideCurrent,
+                                    toggle: () => setState(
+                                      () => _hideCurrent = !_hideCurrent,
+                                    ),
+                                    action: TextInputAction.next,
+                                    submitted: (_) =>
+                                        _newPasswordFocus.requestFocus(),
+                                    validator: (value) =>
+                                        value == null || value.trim().isEmpty
+                                        ? l10n.changePasswordCurrentPasswordRequired
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _passwordField(
+                                    key: const ValueKey('change-password-new'),
+                                    controller: _newPassword,
+                                    label: l10n.changePasswordNewPassword,
+                                    hint: l10n.changePasswordNewPasswordHint,
+                                    hidden: _hideNew,
+                                    toggle: () =>
+                                        setState(() => _hideNew = !_hideNew),
+                                    focusNode: _newPasswordFocus,
+                                    action: TextInputAction.done,
+                                    submitted: (_) => _submit(),
+                                    validator: _validateNew,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    l10n.changePasswordRequirements,
+                                    style: TextStyle(
+                                      color: foreground,
+                                      fontSize: 12,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  if (_error != null) ...[
+                                    const SizedBox(height: 16),
+                                    Semantics(
+                                      liveRegion: true,
+                                      child: Text(
+                                        _error!,
+                                        style: TextStyle(
+                                          color: theme.colorScheme.error,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
-                                  )
-                                : Text(l10n.forgotPasswordSendSignal),
-                          ),
-                        ],
-                      ),
+                                  ],
+                                  const SizedBox(height: 24),
+                                  FilledButton(
+                                    key: const ValueKey('change-password-save'),
+                                    style: FilledButton.styleFrom(
+                                      minimumSize: const Size(48, 56),
+                                    ),
+                                    onPressed: _busy ? null : _submit,
+                                    child: _busy
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                            child: Text(
+                                              l10n.changePasswordSave,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
                     ),
                   ),
                 ),
               ),
             ),
-            PositionedGameBackButton(
-              semanticLabel: MaterialLocalizations.of(
-                context,
-              ).backButtonTooltip,
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
+          ),
+        ),
+        PositionedGameBackButton(
+          semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => Navigator.maybePop(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _passwordField({
+    required Key key,
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required bool hidden,
+    required VoidCallback toggle,
+    required TextInputAction action,
+    required FormFieldValidator<String> validator,
+    required ValueChanged<String> submitted,
+    FocusNode? focusNode,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    return TextFormField(
+      key: key,
+      controller: controller,
+      focusNode: focusNode,
+      enabled: !_busy,
+      obscureText: hidden,
+      autocorrect: false,
+      enableSuggestions: false,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: action,
+      validator: validator,
+      onFieldSubmitted: submitted,
+      onChanged: (_) {
+        if (_error != null) setState(() => _error = null);
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        errorMaxLines: 4,
+        filled: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        suffixIcon: IconButton(
+          tooltip: hidden ? l10n.showPassword : l10n.hidePassword,
+          onPressed: _busy ? null : toggle,
+          icon: Icon(
+            hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          ),
         ),
       ),
     );

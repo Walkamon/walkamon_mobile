@@ -746,6 +746,18 @@ abstract class AppLocalizations {
   /// **'New password must be at least 6 characters.'**
   String get changePasswordNewPasswordMinLength;
 
+  /// No description provided for @changePasswordRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 6 characters, including uppercase, lowercase, a number and a special character.'**
+  String get changePasswordRequirements;
+
+  /// No description provided for @changePasswordDifferent.
+  ///
+  /// In en, this message translates to:
+  /// **'The new password must differ from the current password.'**
+  String get changePasswordDifferent;
+
   /// No description provided for @changePasswordConfirmPassword.
   ///
   /// In en, this message translates to:

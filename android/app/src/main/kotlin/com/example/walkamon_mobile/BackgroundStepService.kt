@@ -359,7 +359,12 @@ class BackgroundStepService : Service() {
             if (config.expiresAtMs <= System.currentTimeMillis()) {
                 config = createDailySession(config) ?: return
             }
-            val batch = store.pendingBatch() ?: createPendingBatch(config) ?: return
+            val pending = store.pendingBatch() ?: createPendingBatch(config) ?: return
+            val batch = repairPendingV2Hash(config.sessionId, config.sensorMode, pending)
+            if (batch !== pending) {
+                store.savePendingBatch(batch)
+                Log.i(TAG, "Rebuilt pending v2 hash; requesting fresh attestation")
+            }
             if (batch.attestationToken.isNullOrBlank() ||
                 batch.attestationRequestedAtMs == null ||
                 System.currentTimeMillis() - batch.attestationRequestedAtMs > ATTESTATION_REFRESH_MS
@@ -441,15 +446,15 @@ class BackgroundStepService : Service() {
         }
         if (windows.isEmpty()) return null
 
-        val hash = canonicalHash(config, events, windows)
         val body = JSONObject()
             .put("contractVersion", config.contractVersion)
             .put("sequence", config.nextSequence)
             .put("nonce", config.nonce)
-            .put("payloadHash", hash)
             .put("attestationToken", "")
             .put("events", JSONArray(events.map { it.json.forApi() }))
             .put("motionWindows", JSONArray(windows.map { it.json.forApi() }))
+        val hash = computeStepBatchV2Hash(config.sessionId, config.sensorMode, body)
+        body.put("payloadHash", hash)
         return PendingStepBatch(
             payloadHash = hash,
             body = body,
@@ -560,42 +565,6 @@ class BackgroundStepService : Service() {
             (end - start).coerceAtLeast(0L)
         }
         return covered * 10_000L / duration >= 8_000L
-    }
-
-    private fun canonicalHash(
-        config: ServiceConfig,
-        events: List<StoredSensorEvent>,
-        windows: List<StoredMotionWindow>,
-    ): String {
-        val lines = mutableListOf(
-            "V2",
-            config.sessionId.lowercase(),
-            config.nextSequence.toString(),
-            config.nonce,
-            config.sensorMode,
-        )
-        events.forEach { stored ->
-            val value = stored.json
-            lines += "E:${stored.intervalStartedAtMs}:${stored.recordedAtMs}:" +
-                "${value.getInt("stepCount")}:${value.nullableString("sensorStartTotal")}:" +
-                value.nullableString("sensorEndTotal")
-        }
-        windows.forEach { stored ->
-            val value = stored.json
-            lines += "M:${stored.windowStartedAtMs}:${stored.windowEndedAtMs}:" +
-                "${value.getInt("sampleCount")}:${value.getString("accelerometerSource")}:" +
-                "${value.booleanInt("gyroscopeAvailable")}:${value.booleanInt("activityAvailable")}:" +
-                "${value.getInt("accelerationRmsMilli")}:${value.getInt("accelerationPeakMilli")}:" +
-                "${value.getInt("jerkRmsMilli")}:${value.nullableString("gyroscopeRmsMilli")}:" +
-                "${value.nullableString("gyroscopePeakMilli")}:" +
-                "${value.nullableString("orientationDeltaMilliDegrees")}:" +
-                "${value.getInt("dominantFrequencyMilliHz")}:${value.getInt("periodicityBps")}:" +
-                "${value.getInt("gaitCycleCount")}:${value.getString("activityCode")}:" +
-                value.getInt("activityConfidence")
-        }
-        return MessageDigest.getInstance("SHA-256")
-            .digest(lines.joinToString("\n").toByteArray(StandardCharsets.UTF_8))
-            .joinToString("") { "%02X".format(it) }
     }
 
     private fun canonicalV3Hash(
