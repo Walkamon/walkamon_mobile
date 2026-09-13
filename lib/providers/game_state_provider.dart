@@ -333,7 +333,15 @@ class GameStateProvider extends ChangeNotifier {
   Future<bool> tryAutoLogin() => bootstrapAuthentication();
 
   Future<bool> _runAuthBootstrap() async {
+    final splashClock = Stopwatch()..start();
     final authenticated = await _restorePersistedSession();
+    if (kReleaseMode) {
+      const minimumSplash = Duration(milliseconds: 1800);
+      final remaining = minimumSplash - splashClock.elapsed;
+      if (remaining > Duration.zero) {
+        await Future<void>.delayed(remaining);
+      }
+    }
     _authBootstrapStatus = authenticated
         ? AuthBootstrapStatus.authenticated
         : AuthBootstrapStatus.unauthenticated;
