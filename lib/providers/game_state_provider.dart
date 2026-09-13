@@ -336,7 +336,7 @@ class GameStateProvider extends ChangeNotifier {
     final splashClock = Stopwatch()..start();
     final authenticated = await _restorePersistedSession();
     if (kReleaseMode) {
-      const minimumSplash = Duration(milliseconds: 1800);
+      const minimumSplash = Duration(milliseconds: 3000);
       final remaining = minimumSplash - splashClock.elapsed;
       if (remaining > Duration.zero) {
         await Future<void>.delayed(remaining);

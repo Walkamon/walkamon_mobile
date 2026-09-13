@@ -551,17 +551,22 @@ class _AuthBootstrapScreen extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: 132,
-            right: 132,
-            bottom: 34,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: const SizedBox(
-                height: 5,
-                child: LinearProgressIndicator(
-                  backgroundColor: Color(0x55FFF8E8),
+            left: 96,
+            right: 96,
+            bottom: 48,
+            child: Container(
+              height: 16,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: const Color(0xD9FFF8E8),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: const LinearProgressIndicator(
+                  backgroundColor: Color(0x667F9A76),
                   color: Color(0xFFD8B76A),
-                  minHeight: 5,
+                  minHeight: 10,
                 ),
               ),
             ),
