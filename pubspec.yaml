@@ -120,6 +120,7 @@ flutter:
     - assets/Mobile/Onboarding/onboarding_name_pet_portrait.webp
     - assets/Mobile/Onboarding/onboarding_seed_portrait.webp
     - assets/Mobile/Onboarding/welcome_portrait.webp
+    - assets/Mobile/Splash/walkamon_splash.png
     - assets/Mobile/PVP/
     - assets/Mobile/PVP/items/
     # Only maps used by the current scrolling race contract are packaged.

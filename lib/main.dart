@@ -537,16 +537,36 @@ class _AuthBootstrapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFFFF6E8),
-      body: Center(
-        child: SizedBox.square(
-          dimension: 34,
-          child: CircularProgressIndicator(
-            strokeWidth: 3,
-            color: Color(0xFF9A6539),
+    return Scaffold(
+      backgroundColor: const Color(0xFFEEF5D9),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Semantics(
+            label: 'Đang tải Walkamon',
+            child: Image.asset(
+              'assets/Mobile/Splash/walkamon_splash.png',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
           ),
-        ),
+          Positioned(
+            left: 132,
+            right: 132,
+            bottom: 34,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: const SizedBox(
+                height: 5,
+                child: LinearProgressIndicator(
+                  backgroundColor: Color(0x55FFF8E8),
+                  color: Color(0xFFD8B76A),
+                  minHeight: 5,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
