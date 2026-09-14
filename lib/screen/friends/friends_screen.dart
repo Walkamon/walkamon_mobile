@@ -9,6 +9,7 @@ import 'package:walkamon_mobile/widgets/common/asset_only_icon_button.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_confirmation_dialog.dart';
 import 'package:walkamon_mobile/widgets/common/game_notification_dialog.dart';
+import 'package:walkamon_mobile/widgets/motion/walkamon_pressable.dart';
 
 import '../../data/repositories/friends_repository.dart';
 import '../../data/models/friends_response.dart';
@@ -425,107 +426,114 @@ class _FriendsScreenState extends State<FriendsScreen>
       );
     }
 
-    return Material(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? AppColors.darkNestedCard
-          : AppColors.authCard.withValues(alpha: 0.98),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(13),
-        side: BorderSide(
-          color: isDark ? AppColors.darkCardBorder : AppColors.wood,
-          width: 1.6,
+    return WalkamonPressable(
+      child: Material(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkNestedCard
+            : AppColors.authCard.withValues(alpha: 0.98),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(13),
+          side: BorderSide(
+            color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+            width: 1.6,
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: openProfile,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 62),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 5, 6),
-            child: Row(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.creamDeep,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? AppColors.darkIconBorder : AppColors.wood,
-                      width: 1.5,
-                    ),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: hasAvatar
-                      ? Image.network(
-                          friend.avatarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _avatarInitial(friend),
-                        )
-                      : _avatarInitial(friend),
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        friend.username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
-                          height: 1.05,
-                        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: openProfile,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 62),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 5, 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: AppColors.creamDeep,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkIconBorder
+                            : AppColors.wood,
+                        width: 1.5,
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Image.asset(
-                            friend.isOnline
-                                ? AppAssets.iconOnline
-                                : AppAssets.iconOffline,
-                            width: 18,
-                            height: 18,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: hasAvatar
+                        ? Image.network(
+                            friend.avatarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _avatarInitial(friend),
+                          )
+                        : _avatarInitial(friend),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          friend.username,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            height: 1.05,
                           ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Image.asset(
                               friend.isOnline
-                                  ? (isVietnamese ? 'Đang online' : 'Online')
-                                  : (isVietnamese ? 'Ngoại tuyến' : 'Offline'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: friend.isOnline
-                                    ? AppColors.oliveDeep
-                                    : mutedColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
+                                  ? AppAssets.iconOnline
+                                  : AppAssets.iconOffline,
+                              width: 18,
+                              height: 18,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                friend.isOnline
+                                    ? (isVietnamese ? 'Đang online' : 'Online')
+                                    : (isVietnamese
+                                          ? 'Ngoại tuyến'
+                                          : 'Offline'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: friend.isOnline
+                                      ? AppColors.oliveDeep
+                                      : mutedColor,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                _friendAction(
-                  tooltip: l10n.friendProfileTitle,
-                  asset: AppAssets.iconFriendProfile,
-                  onTap: openProfile,
-                ),
-                const SizedBox(width: 3),
-                _friendAction(
-                  tooltip: l10n.friendsRemove,
-                  asset: AppAssets.iconRemoveFriend,
-                  onTap: () => _removeFriend(friend),
-                ),
-              ],
+                  _friendAction(
+                    tooltip: l10n.friendProfileTitle,
+                    asset: AppAssets.iconFriendProfile,
+                    onTap: openProfile,
+                  ),
+                  const SizedBox(width: 3),
+                  _friendAction(
+                    tooltip: l10n.friendsRemove,
+                    asset: AppAssets.iconRemoveFriend,
+                    onTap: () => _removeFriend(friend),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -555,15 +563,17 @@ class _FriendsScreenState extends State<FriendsScreen>
   }) {
     return Tooltip(
       message: tooltip,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 23,
-        child: SizedBox(
-          width: 41,
-          height: 41,
-          child: Padding(
-            padding: const EdgeInsets.all(3),
-            child: Image.asset(asset, fit: BoxFit.contain),
+      child: WalkamonPressable(
+        child: InkResponse(
+          onTap: onTap,
+          radius: 23,
+          child: SizedBox(
+            width: 41,
+            height: 41,
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: Image.asset(asset, fit: BoxFit.contain),
+            ),
           ),
         ),
       ),

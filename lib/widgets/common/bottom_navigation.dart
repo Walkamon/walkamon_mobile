@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_icon.dart';
+import '../motion/walkamon_pressable.dart';
 
 class BottomNavigation extends StatelessWidget {
   const BottomNavigation({super.key, this.currentRoute});
@@ -99,38 +100,41 @@ class BottomNavigation extends StatelessWidget {
             return Semantics(
               button: true,
               selected: active,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _open(context, item.route, active),
-                child: AnimatedContainer(
-                  key: ValueKey('bottom-nav-${item.route}'),
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOutCubic,
-                  width: itemSize,
-                  height: itemSize,
-                  decoration: BoxDecoration(
-                    color: active ? selectedColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: active
-                          ? (isDark
-                                    ? AppColors.darkBorder
-                                    : AppColors.oliveDeep)
-                                .withValues(alpha: 0.58)
-                          : Colors.transparent,
-                      width: 1.2,
+              child: WalkamonPressable(
+                enabled: !active,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _open(context, item.route, active),
+                  child: AnimatedContainer(
+                    key: ValueKey('bottom-nav-${item.route}'),
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    width: itemSize,
+                    height: itemSize,
+                    decoration: BoxDecoration(
+                      color: active ? selectedColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: active
+                            ? (isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.oliveDeep)
+                                  .withValues(alpha: 0.58)
+                            : Colors.transparent,
+                        width: 1.2,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: AnimatedScale(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOutBack,
-                      scale: active ? 1.06 : 0.94,
-                      child: AppIcon(
-                        item.fallback,
-                        asset: item.asset,
-                        size: iconSize,
-                        color: iconColor,
+                    child: Center(
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutBack,
+                        scale: active ? 1.06 : 0.94,
+                        child: AppIcon(
+                          item.fallback,
+                          asset: item.asset,
+                          size: iconSize,
+                          color: iconColor,
+                        ),
                       ),
                     ),
                   ),

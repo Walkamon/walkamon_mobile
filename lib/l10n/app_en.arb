@@ -52,6 +52,7 @@
   "todayStepsDesc": "Steps you've walked today",
   "petActionBusy": "Your pet is finishing another action. Please wait a moment.",
   "petLifeForceFull": "Your pet has reached its Life Force limit.",
+  "inventoryStatFull": "Stat already full",
   "petFeedLimitReached": "You have reached the feeding limit. Please come back later.",
   "petFeedInsufficientDew": "You do not have enough Dewdrops to feed your pet.",
   "petFeedUnavailable": "Unable to feed your pet right now. Please try again.",

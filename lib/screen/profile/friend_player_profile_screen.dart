@@ -17,6 +17,7 @@ import '../../data/repositories/friends_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class FriendPlayerProfileArguments {
   final String userId;
@@ -353,7 +354,7 @@ class _ProfileCard extends StatelessWidget {
         border: Border.all(color: AppColors.wood, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -368,7 +369,7 @@ class _ProfileCard extends StatelessWidget {
               color: theme.colorScheme.primary,
               shape: BoxShape.circle,
               border: Border.all(
-                color: theme.colorScheme.surface.withOpacity(0.7),
+                color: theme.colorScheme.surface.withValues(alpha: 0.7),
                 width: 4,
               ),
               image: avatarUrl.isNotEmpty
@@ -379,7 +380,7 @@ class _ProfileCard extends StatelessWidget {
                   : null,
               boxShadow: [
                 BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.25),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.25),
                   blurRadius: 14,
                   offset: const Offset(0, 5),
                 ),
@@ -450,87 +451,92 @@ class _SpiritCard extends StatelessWidget {
       l10n.friendProfileSpiritTypeUnknown,
     ]);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: spirit == null
-            ? null
-            : () => Navigator.pushNamed(
-                context,
-                '/spirit/friend',
-                arguments: userId,
-              ),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkCard
-                : AppColors.authCard.withValues(alpha: 0.97),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.woodDeep, width: 1.8),
-          ),
-          child: Row(
-            children: [
-              _SpiritThumb(imageUrl: spirit?.stageImage, size: 68),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        Text(
-                          l10n.friendProfileSpiritName(petName),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest
-                                .withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: theme.colorScheme.outlineVariant,
-                            ),
-                          ),
-                          child: Text(
-                            l10n.friendProfileViewStats,
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: 10,
+    return WalkamonPressable(
+      enabled: spirit != null,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: spirit == null
+              ? null
+              : () => Navigator.pushNamed(
+                  context,
+                  '/spirit/friend',
+                  arguments: userId,
+                ),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkCard
+                  : AppColors.authCard.withValues(alpha: 0.97),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.woodDeep, width: 1.8),
+            ),
+            child: Row(
+              children: [
+                _SpiritThumb(imageUrl: spirit?.stageImage, size: 68),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          Text(
+                            l10n.friendProfileSpiritName(petName),
+                            style: const TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.friendProfileSpiritMeta(type, spirit?.level ?? 0),
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: theme.colorScheme.outlineVariant,
+                              ),
+                            ),
+                            child: Text(
+                              l10n.friendProfileViewStats,
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.friendProfileSpiritMeta(type, spirit?.level ?? 0),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              AppIcon(
-                Icons.chevron_right_rounded,
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.55),
-              ),
-            ],
+                AppIcon(
+                  Icons.chevron_right_rounded,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.55,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -681,9 +687,9 @@ class _AchievementsCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.14),
+              color: Colors.amber.withValues(alpha: 0.14),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.amber.withOpacity(0.2)),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.2)),
             ),
             child: const AppIcon(
               Icons.emoji_events_rounded,
@@ -811,7 +817,7 @@ class _SpiritMetricBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: color.withOpacity(0.12),
+              backgroundColor: color.withValues(alpha: 0.12),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -943,10 +949,12 @@ class _ErrorState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: onRetry,
-            icon: const AppIcon(Icons.refresh_rounded, size: 18),
-            label: Text(l10n.retry),
+          WalkamonPressable(
+            child: OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const AppIcon(Icons.refresh_rounded, size: 18),
+              label: Text(l10n.retry),
+            ),
           ),
         ],
       ),

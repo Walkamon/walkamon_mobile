@@ -5,8 +5,10 @@ import '../../core/localization/translation_resolver.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
+import '../../core/constants/care_item_policy.dart';
 import '../../core/audio/app_audio_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/motion/motion_tokens.dart';
 import '../../data/repositories/inventory_screen_repository.dart';
 import '../../data/models/pvp_item_models.dart';
 import '../../l10n/app_localizations.dart';
@@ -70,7 +72,8 @@ class _InventoryCategoryTab {
 }
 
 class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({super.key});
+  const InventoryScreen({super.key, this.repository});
+  final InventoryScreenRepository? repository;
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -79,7 +82,7 @@ class InventoryScreen extends StatefulWidget {
 class _InventoryScreenState extends State<InventoryScreen> {
   static const int _gridSlotCount = 24;
 
-  final InventoryScreenRepository _repository = InventoryScreenRepository();
+  late final InventoryScreenRepository _repository;
   bool _isLoading = true;
   bool _showItemPopup = false;
   String? _errorMessage;
@@ -90,7 +93,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? InventoryScreenRepository();
     _loadInventory();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(context.read<GameStateProvider>().fetchPetStatus());
+      }
+    });
   }
 
   InventoryCategory _resolveCategory(String itemTypeName) {
@@ -132,6 +141,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     try {
       final apiItems = await _repository.getInventory();
+      if (!mounted) return;
       final food = <_InventoryDisplayItem>[];
       final materials = <_InventoryDisplayItem>[];
 
@@ -279,23 +289,40 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return Icons.auto_awesome;
   }
 
+  bool _isFull(_InventoryDisplayItem item, GameStateProvider state) =>
+      !item.canEquipForPvp &&
+      item.usageContextCode != 'pvp_loadout' &&
+      isCareItemStatFull(
+        effectTypeCode: item.effectTypeCode,
+        energy: state.spiritEnergy,
+        maxEnergy: state.spiritEnergyMax,
+        lifeForce: state.spiritHealth,
+        maxLifeForce: state.spiritHealthMax,
+        bond: state.bondingLevel,
+        maxBond: state.bondingMax,
+      );
+
   Future<void> _handleUse(_InventoryDisplayItem item) async {
+    if (_usingItemId != null || item.quantity <= 0) return;
     if (item.canEquipForPvp || item.usageContextCode == 'pvp_loadout') {
       _closeItemPopup();
       if (mounted) Navigator.pushNamed(context, '/pvp');
       return;
     }
+    final gameState = context.read<GameStateProvider>();
+    if (_isFull(item, gameState)) return;
+    final userId = gameState.user?.id;
     AppAudioService.instance.suppressNextTabSound();
     setState(() => _usingItemId = item.itemId);
     try {
       final resp = await _repository.useItem(item.itemId);
+      if (!mounted || gameState.user?.id != userId) return;
       if (resp.success) {
         unawaited(AppAudioService.instance.playUseItem());
         if (mounted) {
           _showSuccess(AppLocalizations.of(context).inventoryUsed(item.name));
         }
         if (!mounted) return;
-        final gameState = context.read<GameStateProvider>();
         await Future.wait([
           gameState.fetchPetStatus(),
           gameState.fetchPetVisual(),
@@ -318,6 +345,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final gameState = context.watch<GameStateProvider>();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = theme.colorScheme.surface;
@@ -414,10 +442,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 itemColor: _itemColor(selectedItem, isDark),
                 itemIcon: _itemIcon(selectedItem),
                 onClose: _closeItemPopup,
-                onUse: () => _handleUse(selectedItem),
-                actionLabel:
-                    selectedItem.canEquipForPvp ||
-                        selectedItem.usageContextCode == 'pvp_loadout'
+                onUse: _usingItemId != null || _isFull(selectedItem, gameState)
+                    ? null
+                    : () => _handleUse(selectedItem),
+                actionLabel: _isFull(selectedItem, gameState)
+                    ? l10n.inventoryStatFull
+                    : selectedItem.canEquipForPvp ||
+                          selectedItem.usageContextCode == 'pvp_loadout'
                     ? l10n.pvpLoadoutTitle
                     : null,
               ),
@@ -935,7 +966,7 @@ class _FloralCornerPainter extends CustomPainter {
       oldDelegate.showFlower != showFlower;
 }
 
-class _ItemGrid extends StatelessWidget {
+class _ItemGrid extends StatefulWidget {
   const _ItemGrid({
     required this.slotCount,
     required this.items,
@@ -957,10 +988,23 @@ class _ItemGrid extends StatelessWidget {
   final ValueChanged<String> onSelectItem;
 
   @override
+  State<_ItemGrid> createState() => _ItemGridState();
+}
+
+class _ItemGridState extends State<_ItemGrid> {
+  final Set<String> _revealed = {};
+
+  @override
   Widget build(BuildContext context) {
+    final items = widget.items;
+    final slotCount = widget.slotCount;
+    final selectedItemId = widget.selectedItemId;
+    final borderColor = widget.borderColor;
+    final isDark = widget.isDark;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columnCount = constraints.maxWidth >= 310 ? 5 : 4;
+        // Keep art legible and hit targets above 48dp on compact phones.
+        final columnCount = (constraints.maxWidth / 72).floor().clamp(3, 5);
         return GridView.builder(
           padding: const EdgeInsets.fromLTRB(2, 2, 2, 72),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -973,13 +1017,14 @@ class _ItemGrid extends StatelessWidget {
             if (index < items.length) {
               final item = items[index];
               return _AnimatedItemSlot(
-                index: index,
+                key: ValueKey(item.itemId),
+                index: index < 6 && _revealed.add(item.itemId) ? index : -1,
                 item: item,
                 isSelected: selectedItemId == item.itemId,
-                color: itemColor(item, isDark),
-                icon: itemIcon(item),
+                color: widget.itemColor(item, isDark),
+                icon: widget.itemIcon(item),
                 isDark: isDark,
-                onTap: () => onSelectItem(item.itemId),
+                onTap: () => widget.onSelectItem(item.itemId),
               );
             }
 
@@ -1011,6 +1056,7 @@ class _ItemGrid extends StatelessWidget {
 
 class _AnimatedItemSlot extends StatefulWidget {
   const _AnimatedItemSlot({
+    super.key,
     required this.index,
     required this.item,
     required this.isSelected,
@@ -1041,19 +1087,31 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
+    _controller = AnimationController(vsync: this, duration: MotionTokens.card);
     _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(
-      begin: 0.8,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _scale = Tween<double>(begin: 0.97, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: MotionTokens.enterCurve),
+    );
+  }
 
-    Future<void>.delayed(Duration(milliseconds: widget.index * 30), () {
-      if (mounted) _controller.forward();
-    });
+  bool _started = false;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MotionPolicy.of(context).reduced ||
+        !TickerMode.valuesOf(context).enabled) {
+      _controller.value = 1;
+      _started = true;
+    }
+    if (_started) return;
+    _started = true;
+    if (widget.index < 0) {
+      _controller.value = 1;
+    } else {
+      Future<void>.delayed(Duration(milliseconds: widget.index * 25), () {
+        if (mounted && _controller.value < 1) _controller.forward();
+      });
+    }
   }
 
   @override
@@ -1155,10 +1213,12 @@ class _AnimatedItemSlotState extends State<_AnimatedItemSlot>
                       ),
                       child: Text(
                         'x${widget.item.quantity}',
-                        style: const TextStyle(
-                          fontSize: 11,
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.woodDeep,
+                          color: widget.isDark
+                              ? AppColors.darkForeground
+                              : AppColors.woodDeep,
                         ),
                       ),
                     ),
@@ -1207,7 +1267,7 @@ class _ItemDetailPopup extends StatelessWidget {
   final Color itemColor;
   final IconData itemIcon;
   final VoidCallback onClose;
-  final VoidCallback onUse;
+  final VoidCallback? onUse;
   final String? actionLabel;
 
   @override
@@ -1423,25 +1483,31 @@ class _PopupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: backgroundColor,
-      elevation: 0,
-      shape: const StadiumBorder(
-        side: BorderSide(color: AppColors.woodDeep, width: 2),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: GameButtonLabel(
-            label,
-            fontSize: 14,
-            color: foregroundColor,
-            outlineColor: foregroundColor == AppColors.buttonText
-                ? AppColors.woodDeep
-                : AppColors.authCard,
-            outlineWidth: 2.2,
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      child: Material(
+        color: onPressed == null
+            ? backgroundColor.withValues(alpha: .45)
+            : backgroundColor,
+        elevation: 0,
+        shape: const StadiumBorder(
+          side: BorderSide(color: AppColors.woodDeep, width: 2),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: GameButtonLabel(
+              label,
+              fontSize: 14,
+              color: foregroundColor,
+              outlineColor: foregroundColor == AppColors.buttonText
+                  ? AppColors.woodDeep
+                  : AppColors.authCard,
+              outlineWidth: 2.2,
+            ),
           ),
         ),
       ),

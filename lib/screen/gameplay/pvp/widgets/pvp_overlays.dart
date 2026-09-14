@@ -91,7 +91,8 @@ class PvpMatchTransitionOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final matched = opponentName.trim().isNotEmpty &&
+    final matched =
+        opponentName.trim().isNotEmpty &&
         state == PvpMatchmakingState.countdown;
     final title = matched ? l10n.pvpMatchSuccess : l10n.pvpSearchingOpponent;
     final subtitle = matched
@@ -111,35 +112,81 @@ class PvpMatchTransitionOverlay extends StatelessWidget {
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: AppColors.woodDeep, width: 2),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 18, offset: Offset(0, 8)),
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    matched ? Icons.sports_kabaddi_rounded : Icons.search_rounded,
+                    matched
+                        ? Icons.sports_kabaddi_rounded
+                        : Icons.search_rounded,
                     color: AppColors.leaf,
                     size: 38,
                   ),
                   const SizedBox(height: 8),
-                  Text(title, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.woodDeep, fontSize: 20, fontWeight: FontWeight.w900)),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.woodDeep,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                   if (isPractice) ...[
                     const SizedBox(height: 5),
-                    Text(l10n.pvpPracticeRace, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.coral, fontSize: 12, fontWeight: FontWeight.w800)),
+                    Text(
+                      l10n.pvpPracticeRace,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.coral,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                   if (matched) ...[
                     const SizedBox(height: 4),
-                    Text(opponentName, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.inkBrown, fontWeight: FontWeight.w700)),
+                    Text(
+                      opponentName,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.inkBrown,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(countdown > 0 ? '$countdown' : subtitle, style: TextStyle(color: AppColors.coral, fontSize: countdown > 0 ? 42 : 14, fontWeight: FontWeight.w900)),
+                    Text(
+                      countdown > 0 ? '$countdown' : subtitle,
+                      style: TextStyle(
+                        color: AppColors.coral,
+                        fontSize: countdown > 0 ? 42 : 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ] else ...[
                     const SizedBox(height: 12),
-                    const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.leaf)),
+                    const SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: AppColors.leaf,
+                      ),
+                    ),
                   ],
                   if (onCancel != null) ...[
                     const SizedBox(height: 14),
-                    OutlinedButton(onPressed: onCancel, child: Text(l10n.pvpCancelRequest)),
+                    OutlinedButton(
+                      onPressed: onCancel,
+                      child: Text(l10n.pvpCancelRequest),
+                    ),
                   ],
                 ],
               ),
@@ -430,6 +477,7 @@ class PvPFinishedOverlay extends StatelessWidget {
   final bool isLoading;
   final String? currentUserId;
   final String? forcedResultCode;
+  final bool isForfeit;
   final String opponentName;
   final VoidCallback onContinue;
   final Future<void> Function()? onClaimReward;
@@ -442,6 +490,7 @@ class PvPFinishedOverlay extends StatelessWidget {
     required this.isLoading,
     required this.currentUserId,
     this.forcedResultCode,
+    this.isForfeit = false,
     required this.opponentName,
     required this.onContinue,
     this.onClaimReward,
@@ -480,7 +529,7 @@ class PvPFinishedOverlay extends StatelessWidget {
       case 'draw':
         return l10n.pvpResultScoresTied;
       case 'lose':
-        if (forcedResultCode == 'lose') {
+        if (isForfeit || forcedResultCode == 'lose') {
           return opponentName.isEmpty
               ? l10n.pvpResultForfeitGeneric
               : l10n.pvpResultForfeitOpponentWon(opponentName);

@@ -148,6 +148,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get petLifeForceFull => 'Sinh Mệnh Lực của pet đã đạt giới hạn rồi.';
 
   @override
+  String get inventoryStatFull => 'Chỉ số đã đầy';
+
+  @override
   String get petFeedLimitReached =>
       'Bạn đã đạt giới hạn cho pet ăn. Hãy quay lại sau nhé.';
 

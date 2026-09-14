@@ -1,5 +1,6 @@
 ﻿{
   "@@locale": "vi",
+  "inventoryStatFull": "Chỉ số đã đầy",
   "appTitle": "Walkamon",
   "system": "Hệ thống",
   "notificationsRemind": "Thông báo nhắc nhở",

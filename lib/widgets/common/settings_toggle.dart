@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../motion/walkamon_pressable.dart';
 
 class SettingsToggle extends StatelessWidget {
   const SettingsToggle({
@@ -19,38 +20,44 @@ class SettingsToggle extends StatelessWidget {
     final muted = isDark ? AppColors.darkCard : AppColors.lightMuted;
     final activeColor = isDark ? AppColors.darkLife : primary;
 
-    return GestureDetector(
-      onTap: onChanged,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 24,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: active ? activeColor : muted,
-          border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-            width: 1.2,
-          ),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          alignment: active ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 16,
-            height: 16,
+    return Semantics(
+      button: true,
+      toggled: active,
+      child: WalkamonPressable(
+        child: GestureDetector(
+          onTap: onChanged,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 48,
+            height: 24,
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
+              color: active ? activeColor : muted,
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                width: 1.2,
+              ),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutBack,
+              alignment: active ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

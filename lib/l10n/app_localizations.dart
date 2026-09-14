@@ -368,6 +368,12 @@ abstract class AppLocalizations {
   /// **'Your pet has reached its Life Force limit.'**
   String get petLifeForceFull;
 
+  /// No description provided for @inventoryStatFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Stat already full'**
+  String get inventoryStatFull;
+
   /// No description provided for @petFeedLimitReached.
   ///
   /// In en, this message translates to:

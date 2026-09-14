@@ -118,6 +118,7 @@ class ClaimMissionRewardResponse {
   final int walletAmount;
   final int walletBalance;
   final String? claimedAt;
+  final List<PlayerMissionRewardItemResponse> rewardItems;
 
   ClaimMissionRewardResponse({
     required this.missionId,
@@ -125,6 +126,7 @@ class ClaimMissionRewardResponse {
     required this.walletAmount,
     required this.walletBalance,
     this.claimedAt,
+    this.rewardItems = const [],
   });
 
   factory ClaimMissionRewardResponse.fromJson(Map<String, dynamic> json) {
@@ -138,6 +140,14 @@ class ClaimMissionRewardResponse {
           ? json['walletBalance'] as int
           : int.tryParse('${json['walletBalance']}') ?? 0,
       claimedAt: json['claimedAt'] as String?,
+      rewardItems: (json['rewardItems'] as List? ?? const [])
+          .whereType<Map>()
+          .map(
+            (item) => PlayerMissionRewardItemResponse.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList(),
     );
   }
 }

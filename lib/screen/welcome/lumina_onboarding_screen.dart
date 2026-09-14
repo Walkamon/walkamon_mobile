@@ -8,6 +8,7 @@ import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class _LuminaOnboardingSlide {
   const _LuminaOnboardingSlide({
@@ -28,7 +29,8 @@ class LuminaOnboardingScreen extends StatefulWidget {
   State<LuminaOnboardingScreen> createState() => _LuminaOnboardingScreenState();
 }
 
-class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen> {
+class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen>
+    with WidgetsBindingObserver {
   static const _slideDuration = Duration(seconds: 9);
 
   final PageController _pageController = PageController();
@@ -41,12 +43,23 @@ class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleNextSlide());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _scheduleNextSlide();
+    } else {
+      _autoSlideTimer?.cancel();
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _scheduleNextSlide();
     if (_didPrecache) return;
     _didPrecache = true;
     for (final asset in _storyAssets) {
@@ -56,6 +69,7 @@ class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoSlideTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -63,12 +77,21 @@ class _LuminaOnboardingScreenState extends State<LuminaOnboardingScreen> {
 
   void _scheduleNextSlide() {
     _autoSlideTimer?.cancel();
-    if (!mounted || _isFinishing) return;
+    if (!_canAdvance) return;
     _autoSlideTimer = Timer(_slideDuration, _advanceAutomatically);
   }
 
+  bool get _canAdvance =>
+      mounted &&
+      !_isFinishing &&
+      (WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState ==
+              AppLifecycleState.resumed) &&
+      TickerMode.valuesOf(context).enabled &&
+      (ModalRoute.isCurrentOf(context) ?? true);
+
   Future<void> _advanceAutomatically() async {
-    if (!mounted || _isFinishing) return;
+    if (!_canAdvance) return;
     if (_currentPage >= _storyAssets.length - 1) {
       await _finishOnboarding();
       return;
@@ -303,24 +326,26 @@ class _SkipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.authCard.withValues(alpha: 0.96),
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onPressed,
+    return WalkamonPressable(
+      child: Material(
+        color: AppColors.authCard.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.woodDeep, width: 1.7),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.woodDeep,
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppColors.woodDeep, width: 1.7),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.woodDeep,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ),

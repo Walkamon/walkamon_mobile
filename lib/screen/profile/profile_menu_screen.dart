@@ -12,6 +12,7 @@ import '../../data/datasources/remote/achievement_screen_datasource.dart';
 import '../../data/repositories/achievement_screen_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class ProfileMenuScreen extends StatefulWidget {
   const ProfileMenuScreen({super.key});
@@ -407,70 +408,75 @@ class _MenuItemRow extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Material(
-        color: cardColor.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(17),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(
-              color: isDark ? AppColors.darkCardBorder : AppColors.wood,
-              width: 1.35,
+      child: WalkamonPressable(
+        child: Material(
+          color: cardColor.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(17),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(
+                color: isDark ? AppColors.darkCardBorder : AppColors.wood,
+                width: 1.35,
+              ),
             ),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(17),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Center(
-                      child: AppIcon(
-                        icon,
-                        asset: asset,
-                        color: iconColor,
-                        size: 42,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(17),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: AppIcon(
+                          icon,
+                          asset: asset,
+                          color: iconColor,
+                          size: 42,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: textColor,
-                          ),
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 3),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Text(
-                            subtitle!,
+                            title,
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: mutedColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
                             ),
                           ),
+                          if (subtitle != null) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              subtitle!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: mutedColor,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  AppIcon(
-                    Icons.chevron_right_rounded,
-                    size: 24,
-                    color: textColor,
-                  ),
-                ],
+                    AppIcon(
+                      Icons.chevron_right_rounded,
+                      size: 24,
+                      color: textColor,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

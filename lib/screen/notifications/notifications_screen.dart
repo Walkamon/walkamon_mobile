@@ -13,6 +13,7 @@ import '../../widgets/common/game_button_label.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -223,8 +224,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       NotificationContentResolver.title(
                                         context,
                                         typeCode: snapshot.data!.typeCode,
-                                        contentCode:
-                                            snapshot.data!.contentCode,
+                                        contentCode: snapshot.data!.contentCode,
                                         params: snapshot.data!.params,
                                         fallback: snapshot.data!.typeCode ?? '',
                                       ),
@@ -423,180 +423,182 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               itemBuilder: (context, index) {
                 final item = _notifications[index];
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkNestedCard.withValues(
-                            alpha: item.isRead ? 0.72 : 0.9,
-                          )
-                        : item.isRead
-                        ? AppColors.authCard.withValues(alpha: 0.82)
-                        : AppColors.authCard.withValues(alpha: 0.96),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
+                return WalkamonPressable(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? AppColors.darkCardBorder.withValues(
-                              alpha: item.isRead ? 0.55 : 0.95,
+                          ? AppColors.darkNestedCard.withValues(
+                              alpha: item.isRead ? 0.72 : 0.9,
                             )
                           : item.isRead
-                          ? AppColors.wood.withValues(alpha: 0.65)
-                          : AppColors.oliveDeep,
-                      width: item.isRead ? 1.5 : 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.woodDeep.withValues(alpha: 0.12),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                          ? AppColors.authCard.withValues(alpha: 0.82)
+                          : AppColors.authCard.withValues(alpha: 0.96),
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () => _showNotificationDetail(item),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Opacity(
-                                  opacity: item.isRead ? 0.65 : 1,
-                                  child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    padding: const EdgeInsets.all(7),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? AppColors.darkMuted
-                                          : AppColors.leafLight.withValues(
-                                              alpha: 0.48,
-                                            ),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: isDark
-                                            ? AppColors.darkBorder.withValues(
-                                                alpha: 0.35,
-                                              )
-                                            : AppColors.wood.withValues(
-                                                alpha: 0.55,
-                                              ),
-                                      ),
-                                    ),
-                                    child: AppIcon(
-                                      _getNotificationIcon(item.typeCode),
-                                      asset: _getNotificationIconAsset(
-                                        item.typeCode,
-                                      ),
-                                      size: 34,
-                                      color: isDark
-                                          ? AppColors.darkForeground
-                                          : item.isRead
-                                          ? AppColors.outlineBrown
-                                          : AppColors.oliveDeep,
-                                    ),
-                                  ),
-                                ),
-                                if (!item.isRead)
-                                  const Positioned(
-                                    top: -2,
-                                    right: -2,
-                                    child: DecoratedBox(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.success,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: SizedBox(width: 11, height: 11),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(width: 11),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkCardBorder.withValues(
+                                alpha: item.isRead ? 0.55 : 0.95,
+                              )
+                            : item.isRead
+                            ? AppColors.wood.withValues(alpha: 0.65)
+                            : AppColors.oliveDeep,
+                        width: item.isRead ? 1.5 : 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.woodDeep.withValues(alpha: 0.12),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => _showNotificationDetail(item),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                clipBehavior: Clip.none,
                                 children: [
-                                  Text(
-                                    NotificationContentResolver.title(
-                                      context,
-                                      typeCode: item.typeCode,
-                                      contentCode: item.contentCode,
-                                      params: item.params,
-                                      fallback: item.title,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: isDark
-                                          ? AppColors.darkForeground
-                                          : item.isRead
-                                          ? AppColors.outlineBrown
-                                          : AppColors.inkDark,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    item.shortBody,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      height: 1.4,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppColors.darkForeground
-                                          : item.isRead
-                                          ? AppColors.outlineBrown
-                                          : AppColors.inkBrown,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _formatTimeAgo(item.createdAt),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.darkMutedForeground
-                                          : AppColors.outlineBrown,
+                                  Opacity(
+                                    opacity: item.isRead ? 0.65 : 1,
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.darkMuted
+                                            : AppColors.leafLight.withValues(
+                                                alpha: 0.48,
+                                              ),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? AppColors.darkBorder.withValues(
+                                                  alpha: 0.35,
+                                                )
+                                              : AppColors.wood.withValues(
+                                                  alpha: 0.55,
+                                                ),
+                                        ),
+                                      ),
+                                      child: AppIcon(
+                                        _getNotificationIcon(item.typeCode),
+                                        asset: _getNotificationIconAsset(
+                                          item.typeCode,
+                                        ),
+                                        size: 34,
+                                        color: isDark
+                                            ? AppColors.darkForeground
+                                            : item.isRead
+                                            ? AppColors.outlineBrown
+                                            : AppColors.oliveDeep,
+                                      ),
                                     ),
                                   ),
+                                  if (!item.isRead)
+                                    const Positioned(
+                                      top: -2,
+                                      right: -2,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: AppColors.success,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: SizedBox(width: 11, height: 11),
+                                      ),
+                                    ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            IconButton(
-                              tooltip: MaterialLocalizations.of(
-                                context,
-                              ).deleteButtonTooltip,
-                              onPressed: () {
-                                final deletedId = item.notificationId;
-                                setState(() {
-                                  _notifications.removeAt(index);
-                                });
-                                _deleteNotification(deletedId, index);
-                              },
-                              constraints: const BoxConstraints.tightFor(
-                                width: 40,
-                                height: 40,
+                              const SizedBox(width: 11),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      NotificationContentResolver.title(
+                                        context,
+                                        typeCode: item.typeCode,
+                                        contentCode: item.contentCode,
+                                        params: item.params,
+                                        fallback: item.title,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: isDark
+                                            ? AppColors.darkForeground
+                                            : item.isRead
+                                            ? AppColors.outlineBrown
+                                            : AppColors.inkDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      item.shortBody,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        height: 1.4,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppColors.darkForeground
+                                            : item.isRead
+                                            ? AppColors.outlineBrown
+                                            : AppColors.inkBrown,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _formatTimeAgo(item.createdAt),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppColors.darkMutedForeground
+                                            : AppColors.outlineBrown,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              padding: EdgeInsets.zero,
-                              icon: AppIcon(
-                                Icons.delete_outline,
-                                size: 26,
-                                color: isDark
-                                    ? AppColors.darkForeground
-                                    : AppColors.woodDeep,
+                              const SizedBox(width: 6),
+                              IconButton(
+                                tooltip: MaterialLocalizations.of(
+                                  context,
+                                ).deleteButtonTooltip,
+                                onPressed: () {
+                                  final deletedId = item.notificationId;
+                                  setState(() {
+                                    _notifications.removeAt(index);
+                                  });
+                                  _deleteNotification(deletedId, index);
+                                },
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 40,
+                                  height: 40,
+                                ),
+                                padding: EdgeInsets.zero,
+                                icon: AppIcon(
+                                  Icons.delete_outline,
+                                  size: 26,
+                                  color: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.woodDeep,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

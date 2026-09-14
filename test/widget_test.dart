@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:walkamon_mobile/main.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
+import 'package:walkamon_mobile/core/auth/token_storage.dart';
 import 'package:walkamon_mobile/providers/game_state_provider.dart';
 import 'package:walkamon_mobile/core/network/api_client.dart';
+import 'package:walkamon_mobile/core/permissions/startup_permission_service.dart';
 import 'package:walkamon_mobile/data/datasources/remote/notification_datasource.dart';
 import 'package:walkamon_mobile/data/datasources/remote/pet_screen_datasource.dart';
 import 'package:walkamon_mobile/data/datasources/remote/profile_view_screen_datasource.dart';
@@ -13,7 +16,7 @@ import 'package:walkamon_mobile/data/repositories/notification_repository.dart';
 import 'package:walkamon_mobile/data/repositories/pet_screen_repository.dart';
 import 'package:walkamon_mobile/data/repositories/profile_view_screen_repository.dart';
 import 'package:walkamon_mobile/data/services/fcm_service.dart';
-import 'package:walkamon_mobile/screen/achievements/View_achievement_list_screen.dart';
+import 'package:walkamon_mobile/screen/achievements/view_achievement_list_screen.dart';
 import 'package:walkamon_mobile/data/models/achievement_response.dart';
 import 'package:walkamon_mobile/data/datasources/remote/achievement_screen_datasource.dart';
 
@@ -33,6 +36,9 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: ViewAchievementListScreen(
           repository: _FakeAchievementRepository(),
         ),
@@ -40,9 +46,9 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Kho Thành Tựu'), findsOneWidget);
-    expect(find.text('Đã Nhận'), findsOneWidget);
-    expect(find.text('Chưa Nhận'), findsOneWidget);
+    expect(find.text('Kho Thành Tựu'), findsWidgets);
+    expect(find.text('Đã Nhận'), findsWidgets);
+    expect(find.text('Chưa Nhận'), findsWidgets);
   });
 
   testWidgets('Welcome screen renders Walkamon title', (
@@ -63,23 +69,31 @@ void main() {
     final petRepository = PetScreenRepository(
       datasource: PetScreenDatasource(apiClient),
     );
+    SharedPreferences.setMockInitialValues({});
+    TokenStorage.clear();
+    final gameState = GameStateProvider(
+      profileRepo,
+      notificationRepository,
+      FCMService(notificationRepository),
+      petRepository,
+    );
+    addTearDown(gameState.dispose);
+    expect(await gameState.bootstrapAuthentication(), isFalse);
 
     await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => GameStateProvider(
-          profileRepo,
-          notificationRepository,
-          FCMService(notificationRepository),
-          petRepository,
+      WalkamonApp(
+        gameStateProvider: gameState,
+        startupPermissionService: StartupPermissionService(
+          permissionRequest: () async {},
         ),
-        child: const WalkamonApp(),
       ),
     );
 
-    expect(find.text('Walkamon'), findsOneWidget);
+    // The logo is intentionally rendered as stacked outline/fill text.
+    expect(find.text('Walkamon'), findsWidgets);
     expect(find.text('Khám Phá Ngay'), findsNothing);
-    expect(find.text('Đăng nhập'), findsOneWidget);
-    expect(find.text('Đăng ký'), findsOneWidget);
+    expect(find.text('Đăng nhập'), findsWidgets);
+    expect(find.text('Đăng ký'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }

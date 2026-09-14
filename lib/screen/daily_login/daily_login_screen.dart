@@ -16,6 +16,7 @@ import '../../core/localization/translation_resolver.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class DailyLoginScreen extends StatefulWidget {
   const DailyLoginScreen({super.key});
@@ -183,259 +184,274 @@ class _DailyLoginScreenState extends State<DailyLoginScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton(
-                        onPressed: provider.isLoading || !data.canClaimToday
-                            ? null
-                            : () async {
-                                // Xác định rõ kiểu dữ liệu trả về để compiler không nhận nhầm thành bool
-                                AppAudioService.instance.suppressNextTabSound();
-                                final ClaimDailyRewardData? result =
-                                    await provider.claimReward();
+                      child: WalkamonPressable(
+                        enabled: !provider.isLoading && data.canClaimToday,
+                        child: ElevatedButton(
+                          onPressed: provider.isLoading || !data.canClaimToday
+                              ? null
+                              : () async {
+                                  // Xác định rõ kiểu dữ liệu trả về để compiler không nhận nhầm thành bool
+                                  AppAudioService.instance
+                                      .suppressNextTabSound();
+                                  final ClaimDailyRewardData? result =
+                                      await provider.claimReward();
 
-                                if (result != null && context.mounted) {
-                                  final gameState = context
-                                      .read<GameStateProvider>();
-                                  final user = gameState.user;
-                                  if (user != null) {
-                                    gameState.setUser(
-                                      user.copyWith(coins: result.balance),
+                                  if (result != null && context.mounted) {
+                                    final gameState = context
+                                        .read<GameStateProvider>();
+                                    final user = gameState.user;
+                                    if (user != null) {
+                                      gameState.setUser(
+                                        user.copyWith(coins: result.balance),
+                                      );
+                                    }
+                                    unawaited(
+                                      AppAudioService.instance.playReward(),
                                     );
-                                  }
-                                  unawaited(
-                                    AppAudioService.instance.playReward(),
-                                  );
-                                  unawaited(AppHaptics.success());
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    barrierColor: Colors.black.withValues(
-                                      alpha: 0.45,
-                                    ),
-                                    builder: (dialogContext) {
-                                      final isDark =
-                                          Theme.of(dialogContext).brightness ==
-                                          Brightness.dark;
-                                      return Dialog(
-                                        insetPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 24,
-                                              vertical: 24,
-                                            ),
-                                        backgroundColor: Colors.transparent,
-                                        elevation: 0,
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                            maxWidth: 390,
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.fromLTRB(
-                                              24,
-                                              26,
-                                              24,
-                                              22,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: isDark
-                                                  ? AppColors.darkCard
-                                                  : AppColors.authCard,
-                                              borderRadius:
-                                                  BorderRadius.circular(28),
-                                              border: Border.all(
-                                                color: isDark
-                                                    ? AppColors.darkBorder
-                                                    : AppColors.woodDeep,
-                                                width: 2,
+                                    unawaited(AppHaptics.success());
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      barrierColor: Colors.black.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      builder: (dialogContext) {
+                                        final isDark =
+                                            Theme.of(
+                                              dialogContext,
+                                            ).brightness ==
+                                            Brightness.dark;
+                                        return Dialog(
+                                          insetPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 24,
+                                                vertical: 24,
                                               ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.24),
-                                                  blurRadius: 18,
-                                                  offset: const Offset(0, 8),
-                                                ),
-                                              ],
+                                          backgroundColor: Colors.transparent,
+                                          elevation: 0,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 390,
                                             ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                GameButtonLabel(
-                                                  l10n.dailyLoginSuccessTitle,
-                                                  fontSize: 24,
-                                                  color: isDark
-                                                      ? AppColors.darkForeground
-                                                      : AppColors.woodDeep,
-                                                  outlineColor: isDark
-                                                      ? AppColors
-                                                            .darkTextOutline
-                                                      : AppColors.creamLight,
-                                                  outlineWidth: 3,
-                                                ),
-                                                const SizedBox(height: 14),
-                                                Text(
-                                                  l10n.dailyLoginSuccessMessage(
-                                                    result.claimedDay,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                    24,
+                                                    26,
+                                                    24,
+                                                    22,
                                                   ),
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? AppColors.darkCard
+                                                    : AppColors.authCard,
+                                                borderRadius:
+                                                    BorderRadius.circular(28),
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? AppColors.darkBorder
+                                                      : AppColors.woodDeep,
+                                                  width: 2,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withValues(
+                                                          alpha: 0.24,
+                                                        ),
+                                                    blurRadius: 18,
+                                                    offset: const Offset(0, 8),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  GameButtonLabel(
+                                                    l10n.dailyLoginSuccessTitle,
+                                                    fontSize: 24,
                                                     color: isDark
                                                         ? AppColors
                                                               .darkForeground
-                                                        : AppColors.inkBrown,
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w600,
-                                                    height: 1.4,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 18),
-                                                Container(
-                                                  width: double.infinity,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 16,
-                                                        vertical: 14,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: isDark
-                                                        ? AppColors.darkMuted
+                                                        : AppColors.woodDeep,
+                                                    outlineColor: isDark
+                                                        ? AppColors
+                                                              .darkTextOutline
                                                         : AppColors.creamLight,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          18,
-                                                        ),
-                                                    border: Border.all(
+                                                    outlineWidth: 3,
+                                                  ),
+                                                  const SizedBox(height: 14),
+                                                  Text(
+                                                    l10n.dailyLoginSuccessMessage(
+                                                      result.claimedDay,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
                                                       color: isDark
-                                                          ? AppColors.darkBorder
-                                                          : AppColors
-                                                                .outlineBrown,
-                                                      width: 1.5,
+                                                          ? AppColors
+                                                                .darkForeground
+                                                          : AppColors.inkBrown,
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      height: 1.4,
                                                     ),
                                                   ),
-                                                  child: Row(
-                                                    children: [
-                                                      Image.asset(
-                                                        AppAssets.iconDewDrop,
-                                                        width: 42,
-                                                        height: 42,
-                                                        fit: BoxFit.contain,
-                                                      ),
-                                                      const SizedBox(width: 12),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              l10n.dailyLoginSuccessReward(
-                                                                result.reward,
-                                                              ),
-                                                              style: TextStyle(
-                                                                color: isDark
-                                                                    ? AppColors
-                                                                          .darkForeground
-                                                                    : AppColors
-                                                                          .woodDeep,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w800,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Text(
-                                                              l10n.dailyLoginSuccessBalance(
-                                                                result.balance,
-                                                              ),
-                                                              style: TextStyle(
-                                                                color: isDark
-                                                                    ? AppColors
-                                                                          .darkMutedForeground
-                                                                    : AppColors
-                                                                          .outlineBrown,
-                                                                fontSize: 13,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
-                                                            ),
-                                                          ],
+                                                  const SizedBox(height: 18),
+                                                  Container(
+                                                    width: double.infinity,
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 16,
+                                                          vertical: 14,
                                                         ),
+                                                    decoration: BoxDecoration(
+                                                      color: isDark
+                                                          ? AppColors.darkMuted
+                                                          : AppColors
+                                                                .creamLight,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            18,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: isDark
+                                                            ? AppColors
+                                                                  .darkBorder
+                                                            : AppColors
+                                                                  .outlineBrown,
+                                                        width: 1.5,
                                                       ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 22),
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: FilledButton(
-                                                    onPressed: () =>
-                                                        Navigator.of(
-                                                          dialogContext,
-                                                        ).pop(),
-                                                    child: GameButtonLabel(
-                                                      l10n.dailyLoginSuccessAction,
-                                                      fontSize: 16,
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Image.asset(
+                                                          AppAssets.iconDewDrop,
+                                                          width: 42,
+                                                          height: 42,
+                                                          fit: BoxFit.contain,
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 12,
+                                                        ),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                l10n.dailyLoginSuccessReward(
+                                                                  result.reward,
+                                                                ),
+                                                                style: TextStyle(
+                                                                  color: isDark
+                                                                      ? AppColors
+                                                                            .darkForeground
+                                                                      : AppColors
+                                                                            .woodDeep,
+                                                                  fontSize: 15,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                height: 5,
+                                                              ),
+                                                              Text(
+                                                                l10n.dailyLoginSuccessBalance(
+                                                                  result
+                                                                      .balance,
+                                                                ),
+                                                                style: TextStyle(
+                                                                  color: isDark
+                                                                      ? AppColors
+                                                                            .darkMutedForeground
+                                                                      : AppColors
+                                                                            .outlineBrown,
+                                                                  fontSize: 13,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                  const SizedBox(height: 22),
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: FilledButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(
+                                                            dialogContext,
+                                                          ).pop(),
+                                                      child: GameButtonLabel(
+                                                        l10n.dailyLoginSuccessAction,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                } else {
-                                  if (mounted &&
+                                        );
+                                      },
+                                    );
+                                  } else if (context.mounted &&
                                       provider.errorMessage != null) {
+                                    final failure = provider.failure;
                                     _showDailyNotice(
-                                      provider.failure == null
+                                      failure == null
                                           ? l10n.apiErrorUnexpectedResponse
                                           : TranslationResolver.resolveFailure(
                                               context,
-                                              provider.failure!,
+                                              failure,
                                             ),
                                     );
                                   }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: !data.canClaimToday
-                              ? (isDark
-                                    ? AppColors.darkMuted
-                                    : AppColors.panelMuted)
-                              : (isDark
-                                    ? AppColors.darkLife
-                                    : AppColors.buttonGreen),
-                          disabledBackgroundColor: isDark
-                              ? AppColors.darkMuted
-                              : AppColors.panelMuted,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                            side: BorderSide(
-                              color: isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.buttonBorder,
-                              width: 2,
-                            ),
-                          ),
-                          elevation: !data.canClaimToday ? 0 : 2,
-                        ),
-                        child: provider.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : GameButtonLabel(
-                                !data.canClaimToday
-                                    ? l10n.dailyLoginClaimedToday
-                                    : l10n.dailyLoginClaimNow,
-                                fontSize: 17,
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: !data.canClaimToday
+                                ? (isDark
+                                      ? AppColors.darkMuted
+                                      : AppColors.panelMuted)
+                                : (isDark
+                                      ? AppColors.darkLife
+                                      : AppColors.buttonGreen),
+                            disabledBackgroundColor: isDark
+                                ? AppColors.darkMuted
+                                : AppColors.panelMuted,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                              side: BorderSide(
                                 color: isDark
-                                    ? AppColors.darkForeground
-                                    : AppColors.buttonText,
+                                    ? AppColors.darkBorder
+                                    : AppColors.buttonBorder,
+                                width: 2,
                               ),
+                            ),
+                            elevation: !data.canClaimToday ? 0 : 2,
+                          ),
+                          child: provider.isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : GameButtonLabel(
+                                  !data.canClaimToday
+                                      ? l10n.dailyLoginClaimedToday
+                                      : l10n.dailyLoginClaimNow,
+                                  fontSize: 17,
+                                  color: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.buttonText,
+                                ),
+                        ),
                       ),
                     ),
                   ),

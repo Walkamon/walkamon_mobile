@@ -16,6 +16,7 @@ import '../../data/repositories/step_goal_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 import 'activity_stats_screen.dart' show formatStepCount;
 
 class StepGoalScreen extends StatefulWidget {
@@ -300,42 +301,46 @@ class _StepGoalScreenState extends State<StepGoalScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton(
-                          onPressed: () async {
-                            if (isClosing) return;
-                            if (formKey.currentState?.validate() != true) {
-                              return;
-                            }
-                            isClosing = true;
-                            final target = int.parse(controller.text);
-                            focusNode.unfocus();
-                            await Future<void>.delayed(
-                              const Duration(milliseconds: 100),
-                            );
-                            if (sheetContext.mounted) {
-                              Navigator.of(sheetContext).pop(target);
-                            }
-                          },
-                          child: Text(l10n.profileEditConfirm),
+                        child: WalkamonPressable(
+                          child: FilledButton(
+                            onPressed: () async {
+                              if (isClosing) return;
+                              if (formKey.currentState?.validate() != true) {
+                                return;
+                              }
+                              isClosing = true;
+                              final target = int.parse(controller.text);
+                              focusNode.unfocus();
+                              await Future<void>.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+                              if (sheetContext.mounted) {
+                                Navigator.of(sheetContext).pop(target);
+                              }
+                            },
+                            child: Text(l10n.profileEditConfirm),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            if (isClosing) return;
-                            isClosing = true;
-                            focusNode.unfocus();
-                            await Future<void>.delayed(
-                              const Duration(milliseconds: 100),
-                            );
-                            if (sheetContext.mounted) {
-                              Navigator.of(sheetContext).pop();
-                            }
-                          },
-                          child: Text(
-                            l10n.friendsCancel,
-                            style: TextStyle(color: mutedForeground),
+                        child: WalkamonPressable(
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              if (isClosing) return;
+                              isClosing = true;
+                              focusNode.unfocus();
+                              await Future<void>.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+                              if (sheetContext.mounted) {
+                                Navigator.of(sheetContext).pop();
+                              }
+                            },
+                            child: Text(
+                              l10n.friendsCancel,
+                              style: TextStyle(color: mutedForeground),
+                            ),
                           ),
                         ),
                       ),
@@ -754,54 +759,59 @@ class _PresetGoalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: selected
-              ? (Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkPrimary
-                    : AppColors.buttonGreen)
-              : cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
+    return WalkamonPressable(
+      enabled: enabled,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
             color: selected
                 ? (Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkBorder
-                      : AppColors.woodDeep)
-                : borderColor,
-            width: selected ? 2 : 1.5,
+                      ? AppColors.darkPrimary
+                      : AppColors.buttonGreen)
+                : cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? (Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkBorder
+                        : AppColors.woodDeep)
+                  : borderColor,
+              width: selected ? 2 : 1.5,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              formatStepCount(steps),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: selected
-                    ? AppColors.buttonText
-                    : foreground.withValues(alpha: 0.85),
-                shadows: selected
-                    ? const [Shadow(color: AppColors.woodDeep, blurRadius: 1.5)]
-                    : null,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                formatStepCount(steps),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: selected
+                      ? AppColors.buttonText
+                      : foreground.withValues(alpha: 0.85),
+                  shadows: selected
+                      ? const [
+                          Shadow(color: AppColors.woodDeep, blurRadius: 1.5),
+                        ]
+                      : null,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              AppLocalizations.of(context).activityStatsStepsPerDay,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.buttonText : mutedForeground,
+              const SizedBox(height: 2),
+              Text(
+                AppLocalizations.of(context).activityStatsStepsPerDay,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? AppColors.buttonText : mutedForeground,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -952,77 +962,80 @@ class _StreakRewardCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Material(
-                color: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(32),
-                  side: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
-                    width: 2,
-                  ),
-                ),
-                child: InkWell(
-                  onTap: canClaim && !isClaiming ? onClaim : null,
-                  borderRadius: BorderRadius.circular(32),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: 124,
-                      minHeight: 54,
+              WalkamonPressable(
+                enabled: canClaim && !isClaiming,
+                child: Material(
+                  color: isDark ? AppColors.darkPrimary : AppColors.buttonGreen,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.woodDeep,
+                      width: 2,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 15,
+                  ),
+                  child: InkWell(
+                    onTap: canClaim && !isClaiming ? onClaim : null,
+                    borderRadius: BorderRadius.circular(32),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: 124,
+                        minHeight: 54,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const RotatedBox(
-                            quarterTurns: 3,
-                            child: Icon(
-                              Icons.eco_rounded,
-                              size: 22,
-                              color: AppColors.oliveDeep,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          if (isClaiming) ...[
-                            SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: isDark
-                                    ? AppColors.darkForeground
-                                    : AppColors.buttonText,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 15,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const RotatedBox(
+                              quarterTurns: 3,
+                              child: Icon(
+                                Icons.eco_rounded,
+                                size: 22,
+                                color: AppColors.oliveDeep,
                               ),
                             ),
-                            const SizedBox(width: 7),
-                          ],
-                          GameButtonLabel(
-                            isClaiming
-                                ? l10n.stepGoalClaiming
-                                : l10n.missionsClaim,
-                            fontSize: 14,
-                            color: isDark
-                                ? AppColors.darkForeground
-                                : AppColors.buttonText,
-                            outlineColor: isDark
-                                ? AppColors.darkTextOutline
-                                : AppColors.woodDeep,
-                            outlineWidth: 2.4,
-                          ),
-                          const SizedBox(width: 6),
-                          const RotatedBox(
-                            quarterTurns: 1,
-                            child: Icon(
-                              Icons.eco_rounded,
-                              size: 22,
-                              color: AppColors.oliveDeep,
+                            const SizedBox(width: 6),
+                            if (isClaiming) ...[
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: isDark
+                                      ? AppColors.darkForeground
+                                      : AppColors.buttonText,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                            ],
+                            GameButtonLabel(
+                              isClaiming
+                                  ? l10n.stepGoalClaiming
+                                  : l10n.missionsClaim,
+                              fontSize: 14,
+                              color: isDark
+                                  ? AppColors.darkForeground
+                                  : AppColors.buttonText,
+                              outlineColor: isDark
+                                  ? AppColors.darkTextOutline
+                                  : AppColors.woodDeep,
+                              outlineWidth: 2.4,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            const RotatedBox(
+                              quarterTurns: 1,
+                              child: Icon(
+                                Icons.eco_rounded,
+                                size: 22,
+                                color: AppColors.oliveDeep,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1105,34 +1118,37 @@ class _CustomGoalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: borderColor,
-            width: 1.5,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppIcon(Icons.tune_rounded, color: mutedForeground, size: 20),
-            const SizedBox(height: 6),
-            Text(
-              AppLocalizations.of(context).stepGoalCustomShort,
-              style: TextStyle(
-                color: mutedForeground,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-              ),
+    return WalkamonPressable(
+      enabled: enabled,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: borderColor,
+              width: 1.5,
+              style: BorderStyle.solid,
             ),
-          ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppIcon(Icons.tune_rounded, color: mutedForeground, size: 20),
+              const SizedBox(height: 6),
+              Text(
+                AppLocalizations.of(context).stepGoalCustomShort,
+                style: TextStyle(
+                  color: mutedForeground,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

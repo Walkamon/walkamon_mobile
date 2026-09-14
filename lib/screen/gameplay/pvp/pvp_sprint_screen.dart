@@ -7,6 +7,7 @@ import '../../../core/feedback/app_haptics.dart';
 import '../../../core/localization/translation_resolver.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../widgets/common/game_button_label.dart';
+import '../../../widgets/common/game_notice_host.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/game_state_provider.dart';
 import '../../../providers/pvp_provider.dart';
@@ -40,6 +41,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   bool _battleMusicActive = false;
   String? _lastFinishFeedbackKey;
   String? _tutorialAccountKey;
+  String? _warmedMapKey;
   final GlobalKey _tutorialLobbyKey = GlobalKey(
     debugLabel: 'pvp-tutorial-lobby',
   );
@@ -66,6 +68,13 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final maps = PvpAssetResolver.mapsForNow(
+      context.read<PvpProvider>().estimatedServerNow(),
+    );
+    if (_warmedMapKey != maps.first) {
+      _warmedMapKey = maps.first;
+      unawaited(_warmMaps(maps));
+    }
     final accountKey = context.read<GameStateProvider>().user?.id.trim();
     if (accountKey == null ||
         accountKey.isEmpty ||
@@ -80,6 +89,15 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
   void dispose() {
     AppAudioService.instance.playHomeMusic();
     super.dispose();
+  }
+
+  Future<void> _warmMaps(List<String> maps) async {
+    // Decode during the lobby, not all at once beside the countdown sprites.
+    // This never gates matchmaking or extends the server countdown.
+    for (final asset in maps) {
+      if (!mounted) return;
+      await precacheImage(AssetImage(asset), context, onError: (_, _) {});
+    }
   }
 
   void _enterServerCountdown({required String opponentName}) {
@@ -323,20 +341,30 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
     if (confirmed != true || !mounted) return;
 
     setState(() {
-      _gameState = 'finished';
       _isLoadingResult = true;
     });
 
-    await provider.forfeitMatch();
+    final confirmedByServer = await provider.forfeitMatch();
     if (!mounted) return;
 
     setState(() {
       _isLoadingResult = false;
-      _gameState = 'finished';
+      _gameState = confirmedByServer
+          ? 'finished'
+          : provider.matchmakingState == PvpMatchmakingState.countdown
+          ? 'room-countdown'
+          : 'racing';
       _opponentName = provider.currentOpponentName.isNotEmpty
           ? provider.currentOpponentName
           : _opponentName;
     });
+    if (!confirmedByServer && provider.forfeitFailure != null) {
+      GameNoticeHost.show(
+        TranslationResolver.resolveFailure(context, provider.forfeitFailure!),
+        type: GameNoticeType.error,
+        region: GameNoticeRegion.pvpRace,
+      );
+    }
   }
 
   Future<void> _ensureMatchResultLoaded(PvpProvider provider) async {
@@ -937,6 +965,7 @@ class _PvPSprintScreenState extends State<PvPSprintScreen> {
                       pvpProvider.forcedResultCode == null),
               currentUserId: currentUserId,
               forcedResultCode: pvpProvider.forcedResultCode,
+              isForfeit: pvpProvider.isForfeitMatch,
               opponentName: _opponentName.isNotEmpty
                   ? _opponentName
                   : pvpProvider.currentOpponentName,

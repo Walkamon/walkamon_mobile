@@ -6,6 +6,7 @@ import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/game_state_provider.dart';
 import '../auth/widgets/auth_style.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class StorySlide {
   const StorySlide({required this.image, required this.text});
@@ -43,6 +44,23 @@ class _StoryScreenState extends State<StoryScreen> {
     }
   }
 
+  Future<void> _goBack() async {
+    if (_currentPage > 0) {
+      await _pageController.previousPage(
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    await _goToPetOnboarding();
+  }
+
   Future<void> _skipStory() async {
     await _goToPetOnboarding();
   }
@@ -56,7 +74,6 @@ class _StoryScreenState extends State<StoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final storySlides = _storySlides(l10n);
     final currentSlide = storySlides[_currentPage];
@@ -185,41 +202,51 @@ class _StoryScreenState extends State<StoryScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: _skipStory,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AuthStyle.forest,
-                              side: const BorderSide(color: Color(0xFFD8CDAE)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                          child: WalkamonPressable(
+                            child: OutlinedButton(
+                              onPressed: _goBack,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AuthStyle.forest,
+                                side: const BorderSide(
+                                  color: Color(0xFFD8CDAE),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Text(l10n.storyBack),
                             ),
-                            child: Text(l10n.storyBack),
                           ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: FilledButton(
-                            onPressed: _goNext,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AuthStyle.forest,
-                              foregroundColor: AuthStyle.cream,
-                              shape: const StadiumBorder(
-                                side: BorderSide(
-                                  color: AppColors.woodDeep,
-                                  width: 2,
+                          child: WalkamonPressable(
+                            child: FilledButton(
+                              onPressed: _goNext,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AuthStyle.forest,
+                                foregroundColor: AuthStyle.cream,
+                                shape: const StadiumBorder(
+                                  side: BorderSide(
+                                    color: AppColors.woodDeep,
+                                    width: 2,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(
-                              _currentPage < storySlides.length - 1
-                                  ? l10n.storyContinue
-                                  : l10n.storyExplore,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
+                              child: Text(
+                                _currentPage < storySlides.length - 1
+                                    ? l10n.storyContinue
+                                    : l10n.storyExplore,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                           ),

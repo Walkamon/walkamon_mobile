@@ -44,9 +44,9 @@ HomePetAmbientCue? selectHomePetAmbientCue({
 
   return switch (normalizedCycle) {
     0 => const HomePetAmbientCue('happy', Duration(milliseconds: 4400)),
-    1 => const HomePetAmbientCue('tap_hello', Duration(milliseconds: 3400)),
+    1 => const HomePetAmbientCue('happy', Duration(milliseconds: 3400)),
     2 => const HomePetAmbientCue('happy', Duration(milliseconds: 4200)),
-    _ => const HomePetAmbientCue('tap_hello', Duration(milliseconds: 3200)),
+    _ => null,
   };
 }
 

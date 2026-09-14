@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -11,6 +10,9 @@ import '../../core/constants/pet_evolution_policy.dart';
 import '../../data/models/pet_evolution_models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/pet_runtime/pet_runtime_preview.dart';
+import '../../widgets/motion/evolution_sequence.dart';
+import '../../widgets/common/game_notice_host.dart';
+import '../../core/motion/motion_tokens.dart';
 
 class SpiritEvolutionScreen extends StatefulWidget {
   const SpiritEvolutionScreen({
@@ -52,6 +54,11 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
     with SingleTickerProviderStateMixin {
   late bool _isEvolved;
   bool _isAnimating = false;
+  String? _committedForm;
+
+  String? get _currentForm => widget.overview == null
+      ? null
+      : '${widget.overview!.petId}:${widget.overview!.affinityCode}:${widget.overview!.stageNo}';
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   final ScrollController _animScrollController = ScrollController();
@@ -78,40 +85,66 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
 
   Future<void> _handleEvolveClick() async {
     if (_isAnimating || widget.isSubmitting || widget.onEvolve == null) return;
+    if (_committedForm != null && _committedForm == _currentForm) return;
+    if (widget.overview?.canEvolve != true) return;
+    final before = widget.overview;
+    setState(() => _isAnimating = true);
+    try {
+      String? selectedPetId;
 
-    String? selectedPetId;
-
-    if (widget.evolutionOptions.isNotEmpty) {
-      selectedPetId = await _showEvolutionOptionsBottomSheet();
-      if (selectedPetId == null) return; // User cancelled
-    }
-
-    _isAnimating = true;
-
-    await Navigator.of(context).push(
-      PageRouteBuilder<void>(
-        opaque: false,
-        pageBuilder: (_, __, ___) =>
-            _EvolutionOverlay(primary: Theme.of(context).colorScheme.primary),
-      ),
-    );
-
-    if (!mounted) return;
-
-    final success = await widget.onEvolve!(selectedPetId);
-
-    if (!mounted) return;
-
-    setState(() {
-      _isAnimating = false;
-      if (success) {
-        _isEvolved = true;
-        widget.onEvolved?.call();
+      if (widget.evolutionOptions.isNotEmpty) {
+        selectedPetId = await _showEvolutionOptionsBottomSheet();
+        if (selectedPetId == null) return; // User cancelled
       }
-    });
 
-    if (success) {
-      await widget.onRefresh?.call();
+      if (!mounted) return;
+      final success = await widget.onEvolve!(selectedPetId);
+      if (!mounted || !success) return;
+      _committedForm =
+          '${before!.petId}:${before.affinityCode}:${before.stageNo}';
+      setState(() => _isEvolved = true);
+      widget.onEvolved?.call();
+      // Refresh supplies the actual form, not a locally predicted stage. The
+      // committed action remains successful even if its cosmetic refresh fails.
+      try {
+        await widget.onRefresh?.call();
+      } catch (_) {
+        return;
+      }
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
+      if (WidgetsBinding.instance.lifecycleState != null &&
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return;
+      }
+      final after = widget.overview;
+      if (after == null ||
+          (after.affinityCode == before.affinityCode &&
+              after.stageNo == before.stageNo)) {
+        return;
+      }
+      await Navigator.of(context).push(
+        PageRouteBuilder<void>(
+          opaque: false,
+          transitionDuration: MotionPolicy.of(
+            context,
+          ).duration(MotionTokens.modal),
+          reverseTransitionDuration: MotionTokens.noticeOut,
+          pageBuilder: (_, _, _) =>
+              EvolutionSequence(before: before, after: after),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        GameNoticeHost.show(
+          AppLocalizations.of(context).spiritEvolutionFailed,
+          type: GameNoticeType.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAnimating = false);
     }
   }
 
@@ -159,9 +192,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
               ? widget.overview!.nextEvolutionLevel
               : null)
         : fallbackTarget;
-    final canEvolve =
-        widget.overview?.canEvolve ??
-        (conditionLevelTarget != null && currentLvl >= conditionLevelTarget);
+    final canEvolve = widget.overview?.canEvolve ?? false;
     final readyForEvolution = canEvolve;
     final bool actuallyHasNextStage =
         hasNextStage || conditionLevelTarget != null;
@@ -481,6 +512,8 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEnabled =
+        !_isAnimating &&
+        (_committedForm == null || _committedForm != _currentForm) &&
         !widget.isSubmitting &&
         canEvolve &&
         hasNextStage &&
@@ -506,7 +539,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.isSubmitting)
+              if (widget.isSubmitting || _isAnimating)
                 const SizedBox(
                   width: 18,
                   height: 18,
@@ -531,7 +564,7 @@ class _SpiritEvolutionScreenState extends State<SpiritEvolutionScreen>
                 ),
               const SizedBox(width: 8),
               GameButtonLabel(
-                widget.isSubmitting
+                widget.isSubmitting || _isAnimating
                     ? l10n.spiritEvolving
                     : l10n.spiritEvolveNow,
                 fontSize: 14,
@@ -868,137 +901,6 @@ class _ConditionCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 //  Evolution Overlay (animation khi nhấn tiến hóa)
 // ─────────────────────────────────────────────────────────
-class _EvolutionOverlayStateful extends StatefulWidget {
-  const _EvolutionOverlayStateful({required this.primary, super.key});
-
-  final Color primary;
-
-  @override
-  State<_EvolutionOverlayStateful> createState() =>
-      _EvolutionOverlayStatefulState();
-}
-
-class _EvolutionOverlayStatefulState extends State<_EvolutionOverlayStateful>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2400),
-    )..forward();
-
-    _scaleAnim = Tween<double>(
-      begin: 0.5,
-      end: 1.3,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
-      ),
-    );
-
-    Timer(const Duration(milliseconds: 2400), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return Opacity(
-          opacity: _fadeAnim.value,
-          child: Container(
-            color: theme.colorScheme.background.withOpacity(0.95),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          widget.primary.withOpacity(0.25 * _controller.value),
-                          widget.primary.withOpacity(0.08 * _controller.value),
-                          Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.45, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).spiritEvolving,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: widget.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Transform.scale(
-                        scale: _scaleAnim.value,
-                        child: Container(
-                          width: 180,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: widget.primary.withOpacity(0.12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: widget.primary.withOpacity(0.4),
-                                blurRadius: 60,
-                                spreadRadius: 20,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: AppIcon(
-                              Icons.spa_rounded,
-                              size: 80,
-                              color: widget.primary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _EvolutionOverlay extends StatelessWidget {
-  const _EvolutionOverlay({required this.primary, super.key});
-
-  final Color primary;
-
-  @override
-  Widget build(BuildContext context) {
-    return _EvolutionOverlayStateful(primary: primary);
-  }
-}
 
 // ─────────────────────────────────────────────────────────
 //  Preview Section

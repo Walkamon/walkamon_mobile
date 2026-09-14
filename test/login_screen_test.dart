@@ -12,6 +12,7 @@ import 'package:walkamon_mobile/data/repositories/profile_view_screen_repository
 import 'package:walkamon_mobile/data/services/fcm_service.dart';
 import 'package:walkamon_mobile/providers/game_state_provider.dart';
 import 'package:walkamon_mobile/providers/step_tracking_provider.dart';
+import 'package:walkamon_mobile/l10n/app_localizations.dart';
 import 'package:walkamon_mobile/screen/auth/login_screen.dart';
 import 'package:walkamon_mobile/widgets/layouts/auth_layout.dart';
 
@@ -43,6 +44,9 @@ void main() {
           ChangeNotifierProvider.value(value: stepTracking),
         ],
         child: MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: const AuthLayout(fullBleed: true, child: LoginScreen()),
         ),
@@ -50,8 +54,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Chào mừng trở lại!'), findsOneWidget);
-    expect(find.text('Đăng nhập'), findsOneWidget);
+    expect(find.text('Chào mừng trở lại!'), findsWidgets);
+    expect(find.text('Đăng nhập'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }

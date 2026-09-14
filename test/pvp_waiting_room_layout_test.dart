@@ -78,20 +78,23 @@ void _expectMatchmakingLayout(
 
   expect(statsScroller, findsOneWidget);
   expect(bond, findsOneWidget);
-  expect(status, findsOneWidget);
-  expect(cancel, findsOneWidget);
-  expect(friend, findsOneWidget);
+  // The modal title is stacked stroke/fill text.
+  expect(status, findsWidgets);
+  expect(cancel, findsWidgets);
+  expect(friend, findsWidgets);
 
   final scrollerRect = tester.getRect(statsScroller);
+  final screenRect = tester.getRect(find.byType(Scaffold));
   final bondRect = tester.getRect(bond);
-  final statusRect = tester.getRect(status);
-  final cancelRect = tester.getRect(cancel);
-  final friendRect = tester.getRect(friend);
+  final statusRect = tester.getRect(status.last);
+  final cancelRect = tester.getRect(cancel.last);
+  final friendRect = tester.getRect(friend.last);
 
   expect(bondRect.bottom, lessThanOrEqualTo(scrollerRect.bottom));
-  expect(bondRect.bottom, lessThan(statusRect.top));
+  expect(statusRect.top, greaterThanOrEqualTo(screenRect.top));
   expect(statusRect.bottom, lessThan(cancelRect.top));
-  expect(cancelRect.bottom, lessThan(friendRect.top));
+  expect(cancelRect.bottom, lessThanOrEqualTo(screenRect.bottom));
+  expect(friendRect.bottom, lessThanOrEqualTo(screenRect.bottom));
   expect(tester.takeException(), isNull);
 }
 
@@ -156,7 +159,7 @@ void main() {
     );
   });
 
-  testWidgets('matchmaking status pushes the action buttons down', (
+  testWidgets('matchmaking modal does not reflow the action buttons', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(500, 698));
@@ -175,8 +178,7 @@ void main() {
         .getRect(find.text('Thách đấu với bạn bè'))
         .top;
 
-    expect(waitingButtonTop, greaterThan(idleButtonTop));
-    expect(waitingButtonTop - idleButtonTop, closeTo(30, 0.1));
+    expect(waitingButtonTop, closeTo(idleButtonTop, 0.1));
     expect(tester.takeException(), isNull);
   });
 }

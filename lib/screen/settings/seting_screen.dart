@@ -17,6 +17,7 @@ import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -625,30 +626,32 @@ class _FeedbackTypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.leafLight : AppColors.creamLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? AppColors.oliveDeep : AppColors.wood,
-            width: selected ? 2 : 1.4,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.oliveDeep : AppColors.woodDeep,
-              ),
+    return WalkamonPressable(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.leafLight : AppColors.creamLight,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? AppColors.oliveDeep : AppColors.wood,
+              width: selected ? 2 : 1.4,
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? AppColors.oliveDeep : AppColors.woodDeep,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

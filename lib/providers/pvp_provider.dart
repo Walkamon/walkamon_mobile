@@ -886,6 +886,8 @@ class PvpProvider extends ChangeNotifier {
   final Duration _matchmakingRecoveryInterval;
   Timer? _matchmakingRecoveryTimer;
   int _matchmakingSessionGeneration = 0;
+  int _accountSessionGeneration = 0;
+  bool _disposed = false;
   bool _matchmakingRecoveryInFlight = false;
   Duration? _serverOffset;
   DateTime? _countdownStartsAt;
@@ -936,6 +938,13 @@ class PvpProvider extends ChangeNotifier {
   String? get currentUserId => _currentUserId;
 
   void setCurrentUserId(String? userId) {
+    if (_currentUserId != userId) {
+      _accountSessionGeneration++;
+      _isLoadingMatchResult = false;
+      _forfeitRequest = null;
+      _confirmedForfeitMatchId = null;
+      forfeitFailure = null;
+    }
     _currentUserId = userId;
   }
 
@@ -966,6 +975,18 @@ class PvpProvider extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+
+  /// Server-confirmed forfeit metadata used by the result presentation.
+  bool get isForfeitMatch {
+    final match = _currentMatch;
+    final resultMatch = _matchResult?.match;
+    return match?.finishReasonCode?.toLowerCase() == 'user_forfeit' ||
+        resultMatch?.finishReasonCode?.toLowerCase() == 'user_forfeit' ||
+        (_currentUserId != null &&
+            (match?.forfeitedByUserId == _currentUserId ||
+                resultMatch?.forfeitedByUserId == _currentUserId)) ||
+        (_activeMatchId != null && _confirmedForfeitMatchId == _activeMatchId);
   }
 
   PvpParticipantResponse? get _myParticipant {
@@ -1012,6 +1033,8 @@ class PvpProvider extends ChangeNotifier {
       ratingEligible: match.ratingEligible,
       restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
+      finishReasonCode: match.finishReasonCode,
+      forfeitedByUserId: match.forfeitedByUserId,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
       countdownStartsAt: match.countdownStartsAt,
@@ -1109,6 +1132,8 @@ class PvpProvider extends ChangeNotifier {
       ratingEligible: match.ratingEligible,
       restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
+      finishReasonCode: match.finishReasonCode,
+      forfeitedByUserId: match.forfeitedByUserId,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
       countdownStartsAt: match.countdownStartsAt,
@@ -1259,6 +1284,8 @@ class PvpProvider extends ChangeNotifier {
       ratingEligible: match.ratingEligible,
       restrictionReasonCode: match.restrictionReasonCode,
       cancelReasonCode: match.cancelReasonCode,
+      finishReasonCode: match.finishReasonCode,
+      forfeitedByUserId: match.forfeitedByUserId,
       serverTime: match.serverTime,
       createdAt: match.createdAt,
       countdownStartsAt: match.countdownStartsAt,
@@ -1888,6 +1915,18 @@ class PvpProvider extends ChangeNotifier {
   }
 
   void _beginFinishReconciliation() {
+    if (_currentMatch?.statusCode == 'finished' &&
+        (_currentMatch?.finishReasonCode == 'user_forfeit' ||
+            _confirmedForfeitMatchId == _currentMatch?.matchId)) {
+      _stopCountdownSchedule();
+      _stopRaceTicker();
+      _stopSettlementPoll();
+      _isRaceFinished = true;
+      _serverFinished = true;
+      _finishPresentationCompleted = true;
+      _finishPresentationState = PvpRacePresentationState.showingResult;
+      return;
+    }
     if (_finishPresentationCompleted) return;
     _serverFinished = true;
     _isRaceFinished = true;
@@ -2100,6 +2139,11 @@ class PvpProvider extends ChangeNotifier {
   }
 
   void clearMatchState() {
+    _accountSessionGeneration++;
+    _isLoadingMatchResult = false;
+    _forfeitRequest = null;
+    _confirmedForfeitMatchId = null;
+    forfeitFailure = null;
     _stopMatchmakingRecovery();
     _currentMatch = null;
     _activeMatchId = null;
@@ -2379,9 +2423,17 @@ class PvpProvider extends ChangeNotifier {
   }
 
   Future<bool> _joinAndSyncMatch(String matchId) async {
+    final accountGeneration = _accountSessionGeneration;
+    final expectedUserId = _currentUserId;
     _activeMatchId = matchId;
     _log('GET Match', matchId: matchId);
     final matchResponse = await _pvpDatasource.getMatch(matchId);
+    if (_disposed ||
+        accountGeneration != _accountSessionGeneration ||
+        _currentUserId != expectedUserId ||
+        _activeMatchId != matchId) {
+      return false;
+    }
     if (!matchResponse.success || matchResponse.data == null) {
       debugPrint(
         'GET match failed after assigned: code=${matchResponse.errorCode ?? '-'} '
@@ -2436,7 +2488,10 @@ class PvpProvider extends ChangeNotifier {
         reason: 'match snapshot finished',
       );
       await loadMatchResult(matchId);
-      return true;
+      return !_disposed &&
+          accountGeneration == _accountSessionGeneration &&
+          _currentUserId == expectedUserId &&
+          _activeMatchId == matchId;
     }
 
     if (normalizedStatus == 'cancelled') {
@@ -2667,6 +2722,7 @@ class PvpProvider extends ChangeNotifier {
       debugPrint('[PvP] MatchForfeited matchId=$matchId');
       stopCountdown(reason: 'match.forfeited', matchId: matchId);
       _stopRaceTicker();
+      _confirmedForfeitMatchId = matchId;
       _isRaceFinished = true;
       final details = payload['details'] as Map<String, dynamic>?;
       final forfeitedByUserId = details?['forfeitedByUserId']?.toString();
@@ -2883,9 +2939,17 @@ class PvpProvider extends ChangeNotifier {
   Future<void> loadMatchResult(String matchId, {int maxAttempts = 3}) async {
     if (_isLoadingMatchResult) return;
     _isLoadingMatchResult = true;
+    final userId = _currentUserId;
+    final accountGeneration = _accountSessionGeneration;
     try {
       for (var attempt = 0; attempt < maxAttempts; attempt++) {
         final response = await _pvpDatasource.getMatchResult(matchId);
+        if (_disposed ||
+            _accountSessionGeneration != accountGeneration ||
+            _currentUserId != userId ||
+            (_activeMatchId != null && _activeMatchId != matchId)) {
+          return;
+        }
         if (response.success && response.data != null) {
           _matchResult = response.data!;
           _setCurrentMatchSnapshot(_matchResult!.match);
@@ -2907,7 +2971,9 @@ class PvpProvider extends ChangeNotifier {
         return;
       }
     } finally {
-      _isLoadingMatchResult = false;
+      if (accountGeneration == _accountSessionGeneration) {
+        _isLoadingMatchResult = false;
+      }
     }
   }
 
@@ -2934,136 +3000,74 @@ class PvpProvider extends ChangeNotifier {
     return false;
   }
 
-  /// Quit mid-race via X: current user loses, opponent wins.
-  Future<bool> forfeitMatch() async {
+  Future<bool>? _forfeitRequest;
+  String? _confirmedForfeitMatchId;
+  AppFailure? forfeitFailure;
+
+  /// Only a confirmed response may change the result. A timeout is ambiguous.
+  Future<bool> forfeitMatch() {
+    final pending = _forfeitRequest;
+    if (pending != null) return pending;
+    final request = _performForfeitMatch();
+    _forfeitRequest = request;
+    unawaited(
+      request.whenComplete(() {
+        if (identical(_forfeitRequest, request)) _forfeitRequest = null;
+      }),
+    );
+    return request;
+  }
+
+  Future<bool> _performForfeitMatch() async {
     final matchId = _activeMatchId;
-    if (matchId == null || matchId.isEmpty) {
-      return false;
-    }
+    final userId = _currentUserId;
+    final generation = _accountSessionGeneration;
+    if (matchId == null || matchId.isEmpty) return false;
+    bool isCurrent() =>
+        !_disposed &&
+        _accountSessionGeneration == generation &&
+        _activeMatchId == matchId &&
+        _currentUserId == userId;
     if (_matchmakingState == PvpMatchmakingState.finished ||
         _matchmakingState == PvpMatchmakingState.cancelled) {
       return true;
     }
-
-    _stopRaceTicker();
-    _stopSettlementPoll();
-    _isRaceFinished = true;
-    _forcedResultCode = 'lose';
-    notifyListeners();
-
-    final response = await _pvpDatasource.forfeitMatch(matchId);
-    if (response.success && response.data != null) {
-      _setCurrentMatchSnapshot(response.data!);
-      final status = response.data!.statusCode.toLowerCase();
-      if (status == 'finished') {
-        _updateState(PvpMatchmakingState.finished, reason: 'forfeit finished');
+    forfeitFailure = null;
+    try {
+      final response = await _pvpDatasource.forfeitMatch(matchId);
+      if (!isCurrent()) return false;
+      if (response.success &&
+          response.data?.statusCode.toLowerCase() == 'finished') {
+        _confirmedForfeitMatchId = matchId;
+        _setCurrentMatchSnapshot(response.data!);
+        _updateState(PvpMatchmakingState.finished, reason: 'forfeit confirmed');
         await loadMatchResult(matchId);
-        if (_matchResult != null) {
-          _forcedResultCode = null;
-        } else {
-          _applyLocalForfeitResult();
-        }
-        return true;
+        return isCurrent();
       }
+      forfeitFailure = response.failure;
+    } catch (_) {
+      if (!isCurrent()) return false;
+      forfeitFailure = const AppFailure(
+        code: 'NETWORK_ERROR',
+        status: 0,
+        fallbackMessage:
+            'Could not confirm leaving the match. Please try again.',
+      );
     }
-
-    // 409 = state already moved; resync authoritative match/result.
-    if (response.status == 409) {
-      await _joinAndSyncMatch(matchId);
-      if (_matchmakingState == PvpMatchmakingState.finished) {
-        if (_matchResult == null) {
-          await loadMatchResult(matchId);
-        }
-        if (_matchResult != null) {
-          _forcedResultCode = null;
-        } else {
-          _applyLocalForfeitResult();
-        }
-        return true;
-      }
+    // Reconcile once for every ambiguous/error response, not just 409.
+    // Keep the existing race/ticker alive if the server still says running.
+    try {
+      if (isCurrent()) await _joinAndSyncMatch(matchId);
+    } catch (_) {
+      // Do not invent lose/win/MMR when both requests failed.
     }
-
-    debugPrint(
-      '[PvP] forfeitMatch API status=${response.status} '
-      'code=${response.errorCode ?? '-'} traceId=${response.traceId ?? '-'} '
-      '— applying local lose',
-    );
-
-    _applyLocalForfeitResult();
-    _updateState(PvpMatchmakingState.finished, reason: 'forfeit local');
-    return true;
-  }
-
-  void _applyLocalForfeitResult() {
-    final match = _currentMatch;
-    if (match == null) {
-      _forcedResultCode = 'lose';
-      _targetOpponentProgress = 1.0;
-      _beginFinishReconciliation();
-      return;
-    }
-
-    final me = _myParticipant;
-    final updatedParticipants = match.participants.map((p) {
-      final isMe = me != null
-          ? ((p.matchPlayerId != null &&
-                    me.matchPlayerId != null &&
-                    p.matchPlayerId == me.matchPlayerId) ||
-                (p.userId != null &&
-                    me.userId != null &&
-                    p.userId == me.userId) ||
-                identical(p, me))
-          : _isMyParticipant(p);
-      return p.copyWith(resultCode: isMe ? 'lose' : 'win');
-    }).toList();
-
-    // Ensure exactly one lose for me if identification failed.
-    final hasLose = updatedParticipants.any(
-      (p) => p.resultCode?.toLowerCase() == 'lose',
-    );
-    final participants = hasLose
-        ? updatedParticipants
-        : [
-            for (var i = 0; i < updatedParticipants.length; i++)
-              i == 0
-                  ? updatedParticipants[i].copyWith(resultCode: 'lose')
-                  : updatedParticipants[i].copyWith(resultCode: 'win'),
-          ];
-
-    final forfeitedMatch = PvpMatchResponse(
-      matchId: match.matchId,
-      matchTypeCode: match.matchTypeCode,
-      statusCode: 'finished',
-      progressionModeCode: match.progressionModeCode,
-      rewardEligible: match.rewardEligible,
-      ratingEligible: match.ratingEligible,
-      restrictionReasonCode: match.restrictionReasonCode,
-      sourceCode: match.sourceCode,
-      serverTime: match.serverTime,
-      createdAt: match.createdAt,
-      countdownStartsAt: match.countdownStartsAt,
-      countdownEndsAt: match.countdownEndsAt,
-      countdownSecondsRemaining: match.countdownSecondsRemaining,
-      startedAt: match.startedAt,
-      endedAt: DateTime.now().toUtc(),
-      settlementEndsAt: match.settlementEndsAt,
-      lastEventSequence: match.lastEventSequence,
-      participants: participants,
-    );
-
-    _currentMatch = forfeitedMatch;
-    _matchResult = PvpMatchResultResponse(
-      match: forfeitedMatch,
-      mmrBefore: 0,
-      mmrDelta: 0,
-      mmrAfter: 0,
-      tierChanged: false,
-      canClaimReward: false,
-      claimedAt: null,
-    );
-    _forcedResultCode = 'lose';
-    _beginFinishReconciliation();
+    if (!isCurrent()) return false;
+    final terminal =
+        _matchmakingState == PvpMatchmakingState.finished ||
+        _matchmakingState == PvpMatchmakingState.cancelled;
+    if (terminal) forfeitFailure = null;
     notifyListeners();
+    return terminal;
   }
 
   Future<void> startMatchmaking() async {
@@ -3339,6 +3343,7 @@ class PvpProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _countdownTicker?.cancel();
     _raceTicker?.cancel();
     _settlementPollTimer?.cancel();

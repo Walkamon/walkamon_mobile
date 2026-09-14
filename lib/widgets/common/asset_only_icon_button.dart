@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_icon.dart';
+import '../motion/walkamon_pressable.dart';
 
 /// A transparent touch target for Walkamon PNG controls.
 ///
@@ -39,29 +40,34 @@ class AssetOnlyIconButton extends StatelessWidget {
       return Colors.transparent;
     });
 
-    return Semantics(
-      button: true,
+    return WalkamonPressable(
       enabled: onPressed != null,
-      label: semanticLabel,
-      child: Tooltip(
-        message: semanticLabel,
-        child: IconButton(
-          onPressed: onPressed,
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints.tightFor(
-            width: buttonSize,
-            height: buttonSize,
-          ),
-          style: ButtonStyle(
-            backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
-            overlayColor: overlayColor,
-            elevation: const WidgetStatePropertyAll(0),
-            shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-            surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-            padding: const WidgetStatePropertyAll(EdgeInsets.zero),
-          ),
-          icon: ExcludeSemantics(
-            child: AppIcon(icon, asset: asset, size: assetSize, color: color),
+      child: Semantics(
+        button: true,
+        enabled: onPressed != null,
+        label: semanticLabel,
+        child: Tooltip(
+          message: semanticLabel,
+          child: IconButton(
+            onPressed: onPressed,
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints.tightFor(
+              width: buttonSize < 48 ? 48 : buttonSize,
+              height: buttonSize < 48 ? 48 : buttonSize,
+            ),
+            style: ButtonStyle(
+              backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+              overlayColor: overlayColor,
+              elevation: const WidgetStatePropertyAll(0),
+              shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+              surfaceTintColor: const WidgetStatePropertyAll(
+                Colors.transparent,
+              ),
+              padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+            ),
+            icon: ExcludeSemantics(
+              child: AppIcon(icon, asset: asset, size: assetSize, color: color),
+            ),
           ),
         ),
       ),

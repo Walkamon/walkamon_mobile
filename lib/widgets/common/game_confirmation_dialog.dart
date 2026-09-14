@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_icon.dart';
 import 'game_button_label.dart';
+import '../motion/walkamon_pressable.dart';
 
 Future<bool> showGameConfirmationDialog(
   BuildContext context, {
@@ -74,22 +75,26 @@ Future<bool> showGameConfirmationDialog(
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(dialogContext, false),
-                        child: Text(cancelLabel),
+                      child: WalkamonPressable(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: Text(cancelLabel),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: destructive
-                              ? AppColors.danger
-                              : AppColors.buttonGreen,
-                          foregroundColor: AppColors.buttonText,
+                      child: WalkamonPressable(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: destructive
+                                ? AppColors.danger
+                                : AppColors.buttonGreen,
+                            foregroundColor: AppColors.buttonText,
+                          ),
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: Text(confirmLabel),
                         ),
-                        onPressed: () => Navigator.pop(dialogContext, true),
-                        child: Text(confirmLabel),
                       ),
                     ),
                   ],

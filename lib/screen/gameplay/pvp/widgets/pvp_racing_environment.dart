@@ -13,6 +13,7 @@ import '../../../../widgets/common/asset_only_icon_button.dart';
 import '../pvp_asset_resolver.dart';
 import '../pvp_race_contract.dart';
 import 'pvp_frame_animation.dart';
+import '../../../../widgets/motion/animated_race_frame.dart';
 
 const double _mapSourceWidth = 1440;
 const double _mapSourceHeight = 2560;
@@ -221,40 +222,51 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
   }
 
   void _precacheRaceAssets() {
+    final warmFinish =
+        widget.trackProgress >= .75 ||
+        widget.showFinishReaction ||
+        widget.isFinished;
+    final key =
+        '${widget.mapAssets.join('|')}|${widget.myAffinityCode}:'
+        '${widget.myStageNo}|${widget.opponentAffinityCode}:'
+        '${widget.opponentStageNo}|$warmFinish';
+    if (_precacheKey == key) return;
+    _precacheKey = key;
     final assets = <String>{
       ...widget.mapAssets,
       ...PvpAssetResolver.petAnimationFrames(
         affinityCode: widget.myAffinityCode,
         stageNo: widget.myStageNo,
       ),
-      ...PvpAssetResolver.petAnimationFrames(
-        affinityCode: widget.myAffinityCode,
-        stageNo: widget.myStageNo,
-        state: 'win',
-      ),
-      ...PvpAssetResolver.petAnimationFrames(
-        affinityCode: widget.myAffinityCode,
-        stageNo: widget.myStageNo,
-        state: 'lose',
-      ),
-      ...PvpAssetResolver.petAnimationFrames(
-        affinityCode: widget.opponentAffinityCode,
-        stageNo: widget.opponentStageNo,
-      ),
+      if (warmFinish)
+        ...PvpAssetResolver.petAnimationFrames(
+          affinityCode: widget.myAffinityCode,
+          stageNo: widget.myStageNo,
+          state: 'win',
+        ),
+      if (warmFinish)
+        ...PvpAssetResolver.petAnimationFrames(
+          affinityCode: widget.myAffinityCode,
+          stageNo: widget.myStageNo,
+          state: 'lose',
+        ),
       ...PvpAssetResolver.petAnimationFrames(
         affinityCode: widget.opponentAffinityCode,
         stageNo: widget.opponentStageNo,
-        state: 'win',
       ),
-      ...PvpAssetResolver.petAnimationFrames(
-        affinityCode: widget.opponentAffinityCode,
-        stageNo: widget.opponentStageNo,
-        state: 'lose',
-      ),
+      if (warmFinish)
+        ...PvpAssetResolver.petAnimationFrames(
+          affinityCode: widget.opponentAffinityCode,
+          stageNo: widget.opponentStageNo,
+          state: 'win',
+        ),
+      if (warmFinish)
+        ...PvpAssetResolver.petAnimationFrames(
+          affinityCode: widget.opponentAffinityCode,
+          stageNo: widget.opponentStageNo,
+          state: 'lose',
+        ),
     };
-    final key = assets.join('|');
-    if (_precacheKey == key) return;
-    _precacheKey = key;
     for (final asset in assets) {
       unawaited(precacheImage(AssetImage(asset), context));
     }
@@ -280,17 +292,26 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedRaceFrame(
+      target: RaceFrame(
+        widget.trackProgress,
+        widget.myProgress,
+        widget.opponentProgress,
+      ),
+      snap: widget.animationsPaused || !widget.isMoving,
+      builder: _buildRaceFrame,
+    );
+  }
+
+  Widget _buildRaceFrame(BuildContext context, RaceFrame frame) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final maps = _trackMaps;
-        final normalizedTrackProgress = widget.trackProgress
-            .clamp(0.0, 1.0)
-            .toDouble();
+        final normalizedTrackProgress = frame.track.clamp(0.0, 1.0).toDouble();
         final route = PvpRoutePresentationContract.resolve(
           normalizedTrackProgress,
         );
@@ -354,7 +375,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
         final opponentRunnerX = pvpRunnerScreenX(
           viewportWidth: width,
           viewportHeight: height,
-          progress: widget.opponentProgress,
+          progress: frame.opponent,
           runnerWidth: opponentRunnerWidth,
           bodyCenterOffsetX: opponentBodyCenterOffsetX,
           crossingAnchorOffsetX: opponentTrailingEdgeOffsetX,
@@ -365,7 +386,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
         final myRunnerX = pvpRunnerScreenX(
           viewportWidth: width,
           viewportHeight: height,
-          progress: widget.myProgress,
+          progress: frame.mine,
           runnerWidth: myRunnerWidth,
           bodyCenterOffsetX: myBodyCenterOffsetX,
           crossingAnchorOffsetX: myTrailingEdgeOffsetX,
@@ -495,7 +516,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
               ),
             ),
             _Runner(
-              progress: widget.opponentProgress,
+              progress: frame.opponent,
               screenX: opponentRunnerX,
               laneCenterY: pvpLaneCenterY(
                 viewportWidth: width,
@@ -542,7 +563,7 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                 ),
               ),
             _Runner(
-              progress: widget.myProgress,
+              progress: frame.mine,
               screenX: myRunnerX,
               laneCenterY: pvpLaneCenterY(
                 viewportWidth: width,
@@ -584,137 +605,146 @@ class _PvPRacingEnvironmentState extends State<PvPRacingEnvironment>
                         buttonSize: 44,
                         assetSize: 38,
                       ),
-                      const Spacer(),
-                      Semantics(
-                        label: l10n.pvpRaceProgress(
-                          (normalizedTrackProgress * 100).round(),
-                        ),
-                        child: Container(
-                          key: const ValueKey('pvp-race-status'),
-                          constraints: const BoxConstraints(minWidth: 166),
-                          padding: const EdgeInsets.fromLTRB(13, 7, 13, 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.authCard.withValues(alpha: 0.88),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
-                              color: AppColors.woodDeep.withValues(alpha: 0.5),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
+                      if (!widget.isFinished) ...[
+                        const Spacer(),
+                        Semantics(
+                          label: l10n.pvpRaceProgress(
+                            (normalizedTrackProgress * 100).round(),
+                          ),
+                          child: Container(
+                            key: const ValueKey('pvp-race-status'),
+                            constraints: const BoxConstraints(minWidth: 166),
+                            padding: const EdgeInsets.fromLTRB(13, 7, 13, 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.authCard.withValues(alpha: 0.88),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
                                 color: AppColors.woodDeep.withValues(
-                                  alpha: 0.16,
+                                  alpha: 0.5,
                                 ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
+                                width: 1.2,
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 220),
-                                switchInCurve: Curves.easeOutBack,
-                                switchOutCurve: Curves.easeIn,
-                                child: widget.showFinishReaction
-                                    ? Row(
-                                        key: const ValueKey(
-                                          'pvp-finish-reaction',
-                                        ),
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          AppIcon(
-                                            switch (finishResultCode) {
-                                              'win' =>
-                                                Icons.emoji_events_rounded,
-                                              'draw' => Icons.handshake_rounded,
-                                              _ => Icons.favorite_rounded,
-                                            },
-                                            size: 18,
-                                            color: switch (finishResultCode) {
-                                              'win' => AppColors.gold,
-                                              'draw' => AppColors.sky,
-                                              _ => AppColors.pink,
-                                            },
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            outcomeLabel,
-                                            key: const ValueKey(
-                                              'pvp-finish-reaction-label',
-                                            ),
-                                            style: const TextStyle(
-                                              color: AppColors.woodDeep,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w900,
-                                              height: 1,
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : Row(
-                                        key: const ValueKey(
-                                          'pvp-race-time-row',
-                                        ),
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            l10n.pvpRaceTimeRemaining(
-                                              remainingSeconds,
-                                            ),
-                                            key: const ValueKey(
-                                              'pvp-race-time',
-                                            ),
-                                            style: const TextStyle(
-                                              color: AppColors.woodDeep,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w900,
-                                              height: 1,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                              const SizedBox(height: 5),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  for (var index = 0; index < 3; index++) ...[
-                                    AnimatedContainer(
-                                      key: ValueKey('pvp-race-phase-$index'),
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      width: index == trackPhaseIndex ? 14 : 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: index == trackPhaseIndex
-                                            ? AppColors.oliveDeep
-                                            : AppColors.woodLight.withValues(
-                                                alpha: 0.65,
-                                              ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                    if (index != 2) const SizedBox(width: 4),
-                                  ],
-                                  const SizedBox(width: 7),
-                                  Text(
-                                    segmentLabel,
-                                    key: const ValueKey('pvp-race-segment'),
-                                    style: const TextStyle(
-                                      color: AppColors.inkBrown,
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.woodDeep.withValues(
+                                    alpha: 0.16,
                                   ),
-                                ],
-                              ),
-                            ],
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 220),
+                                  switchInCurve: Curves.easeOutBack,
+                                  switchOutCurve: Curves.easeIn,
+                                  child: widget.showFinishReaction
+                                      ? Row(
+                                          key: const ValueKey(
+                                            'pvp-finish-reaction',
+                                          ),
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            AppIcon(
+                                              switch (finishResultCode) {
+                                                'win' =>
+                                                  Icons.emoji_events_rounded,
+                                                'draw' =>
+                                                  Icons.handshake_rounded,
+                                                _ => Icons.favorite_rounded,
+                                              },
+                                              size: 18,
+                                              color: switch (finishResultCode) {
+                                                'win' => AppColors.gold,
+                                                'draw' => AppColors.sky,
+                                                _ => AppColors.pink,
+                                              },
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              outcomeLabel,
+                                              key: const ValueKey(
+                                                'pvp-finish-reaction-label',
+                                              ),
+                                              style: const TextStyle(
+                                                color: AppColors.woodDeep,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w900,
+                                                height: 1,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          key: const ValueKey(
+                                            'pvp-race-time-row',
+                                          ),
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              l10n.pvpRaceTimeRemaining(
+                                                remainingSeconds,
+                                              ),
+                                              key: const ValueKey(
+                                                'pvp-race-time',
+                                              ),
+                                              style: const TextStyle(
+                                                color: AppColors.woodDeep,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w900,
+                                                height: 1,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    for (var index = 0; index < 3; index++) ...[
+                                      AnimatedContainer(
+                                        key: ValueKey('pvp-race-phase-$index'),
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        width: index == trackPhaseIndex
+                                            ? 14
+                                            : 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          color: index == trackPhaseIndex
+                                              ? AppColors.oliveDeep
+                                              : AppColors.woodLight.withValues(
+                                                  alpha: 0.65,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                      ),
+                                      if (index != 2) const SizedBox(width: 4),
+                                    ],
+                                    const SizedBox(width: 7),
+                                    Text(
+                                      segmentLabel,
+                                      key: const ValueKey('pvp-race-segment'),
+                                      style: const TextStyle(
+                                        color: AppColors.inkBrown,
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -862,9 +892,7 @@ class _Runner extends StatelessWidget {
       (effect) => effect.contains('shield') || effect.contains('barrier'),
     );
 
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 80),
-      curve: Curves.easeOutCubic,
+    return Positioned(
       left: screenX - runnerWidth / 2,
       top: laneCenterY + petSize * .42 - runnerHeight + baselineCorrection,
       width: runnerWidth,

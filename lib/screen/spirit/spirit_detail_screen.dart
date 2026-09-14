@@ -12,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/game_state_provider.dart';
 import '../evolution/spirit_evolution_screen.dart';
 import '../../widgets/pet_runtime/pet_runtime_preview.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class SpiritDetailScreen extends StatefulWidget {
   const SpiritDetailScreen({super.key});
@@ -128,6 +129,7 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
     if (_isSubmitting) return false;
 
     setState(() => _isSubmitting = true);
+    bool committed = false;
 
     try {
       final gameState = context.read<GameStateProvider>();
@@ -151,12 +153,16 @@ class _SpiritDetailScreenState extends State<SpiritDetailScreen> {
         return false;
       }
 
+      committed = true;
       await Future.wait([
         gameState.fetchPetStatus(),
         gameState.fetchPetVisual(),
       ]);
       return true;
     } catch (e) {
+      // A visual/status refresh is not a second evolution transaction. Report
+      // the committed result so the presentation layer suppresses resubmission.
+      if (committed) return true;
       if (mounted) {
         showGameNotice(
           TranslationResolver.resolveError(context, e),
@@ -705,50 +711,52 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: active
-          ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
-          : (isDark ? AppColors.darkCard : Colors.transparent),
-      borderRadius: BorderRadius.circular(13),
-      child: InkWell(
-        onTap: onTap,
+    return WalkamonPressable(
+      child: Material(
+        color: active
+            ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
+            : (isDark ? AppColors.darkCard : Colors.transparent),
         borderRadius: BorderRadius.circular(13),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          height: 46,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: active
-                  ? (isDark ? AppColors.woodDeep : AppColors.woodDeep)
-                  : (isDark ? AppColors.darkCardBorder : Colors.transparent),
-              width: 1.5,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(13),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(
+                color: active
+                    ? (isDark ? AppColors.woodDeep : AppColors.woodDeep)
+                    : (isDark ? AppColors.darkCardBorder : Colors.transparent),
+                width: 1.5,
+              ),
             ),
-          ),
-          child: Center(
-            child: active
-                ? GameButtonLabel(
-                    label,
-                    fontSize: 13,
-                    color: isDark
-                        ? AppColors.darkTextOutline
-                        : AppColors.buttonText,
-                    outlineColor: isDark
-                        ? AppColors.darkForeground
-                        : AppColors.woodDeep,
-                    outlineWidth: 2.5,
-                  )
-                : Text(
-                    label,
-                    style: TextStyle(
+            child: Center(
+              child: active
+                  ? GameButtonLabel(
+                      label,
                       fontSize: 13,
-                      fontWeight: FontWeight.w800,
                       color: isDark
+                          ? AppColors.darkTextOutline
+                          : AppColors.buttonText,
+                      outlineColor: isDark
                           ? AppColors.darkForeground
                           : AppColors.woodDeep,
+                      outlineWidth: 2.5,
+                    )
+                  : Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppColors.darkForeground
+                            : AppColors.woodDeep,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ),

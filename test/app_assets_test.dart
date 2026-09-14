@@ -1,8 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/constants/app_assets.dart';
 import 'package:walkamon_mobile/core/constants/app_audio_assets.dart';
-import 'package:walkamon_mobile/widgets/pet_runtime/pet_frame_animation.dart';
+import 'package:walkamon_mobile/widgets/pet_runtime/pet_runtime_models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -62,65 +64,32 @@ void main() {
     expect(AppAssets.iconDailyReward, AppAssets.iconDailyRewardRes);
   });
 
-  test('Pet runtime assets are bundled', () async {
-    expect(AppAssets.petRuntimeCatalogAssets, hasLength(16));
-
-    for (final path in AppAssets.petRuntimeCatalogAssets) {
-      final data = await rootBundle.load(path);
-      expect(data.lengthInBytes, greaterThan(0), reason: path);
-    }
-  });
-
-  test('Sprout default atlas is bundled', () async {
-    for (final path in [AppAssets.sproutDefaultAtlas]) {
-      final data = await rootBundle.load(path);
-      expect(data.lengthInBytes, greaterThan(0), reason: path);
-    }
-  });
-
-  test('Selected evolved default atlases are bundled', () async {
-    expect(AppAssets.evolvedDefaultAtlasAssets, hasLength(4));
-    for (final path in AppAssets.evolvedDefaultAtlasAssets) {
-      final data = await rootBundle.load(path);
-      expect(data.lengthInBytes, greaterThan(0), reason: path);
-    }
-  });
-
-  test('Selected evolved default excited frames are bundled', () async {
-    final frames = <String>{
-      ...petEvolvedExcitedAnimationFrames(
-        affinityCode: 'moonlight',
-        stageNo: 2,
-      ),
-      ...petEvolvedExcitedAnimationFrames(affinityCode: 'dawn', stageNo: 1),
-    };
-    expect(frames, hasLength(13));
-    for (final path in frames) {
-      final data = await rootBundle.load(path);
-      expect(data.lengthInBytes, greaterThan(0), reason: path);
-    }
-  });
-
-  test('All pet feed-success happy frames are bundled', () async {
-    final frames = <String>{
-      ...petFeedSuccessAnimationFrames(affinityCode: 'sprout', stageNo: 0),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'dawn', stageNo: 1),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'dawn', stageNo: 2),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'moonlight', stageNo: 1),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'moonlight', stageNo: 2),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'warm_sun', stageNo: 1),
-      ...petFeedSuccessAnimationFrames(affinityCode: 'warm_sun', stageNo: 2),
-    };
-
-    expect(frames, hasLength(44));
-    for (final path in frames) {
-      final data = await rootBundle.load(path);
-      expect(data.lengthInBytes, greaterThan(0), reason: path);
-    }
-  });
+  test(
+    'Production pet manifest and representative sheets are bundled',
+    () async {
+      final manifest = await PetRuntimeManifestLoader().load();
+      expect(manifest.forms, hasLength(7));
+      for (final form in manifest.forms.values) {
+        expect(form.states.keys.toSet(), containsAll(PetSemanticState.values));
+        final idle = form.states[PetSemanticState.idle]!.loop!;
+        final data = await rootBundle.load(idle.sheet);
+        expect(data.lengthInBytes, greaterThan(0), reason: idle.sheet);
+        final bytes = data.buffer.asUint8List(
+          data.offsetInBytes,
+          data.lengthInBytes,
+        );
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        expect(frame.image.width, idle.columns * manifest.runtimeSize);
+        expect(frame.image.height, idle.rows * manifest.runtimeSize);
+        frame.image.dispose();
+        codec.dispose();
+      }
+    },
+  );
 
   test('Home chrome icons and backgrounds are bundled', () async {
-    expect(AppAssets.homeChromeAssets, hasLength(19));
+    expect(AppAssets.homeChromeAssets, hasLength(23));
 
     for (final path in AppAssets.homeChromeAssets) {
       final data = await rootBundle.load(path);

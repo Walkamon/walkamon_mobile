@@ -5,8 +5,13 @@ class GamePresentationCoordinator {
   String? get active => _active;
 
   bool begin(String id) {
-    if (_active != null || _seen.contains(id)) return false;
+    if (_active != null || !acknowledge(id)) return false;
     _active = id;
+    return true;
+  }
+
+  bool acknowledge(String id) {
+    if (_seen.contains(id)) return false;
     _seen.add(id);
     if (_seen.length > 1024) _seen.remove(_seen.first);
     return true;

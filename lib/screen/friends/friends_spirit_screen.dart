@@ -15,6 +15,7 @@ import 'package:walkamon_mobile/l10n/app_localizations.dart';
 
 import 'package:walkamon_mobile/core/theme/app_colors.dart';
 import 'package:walkamon_mobile/core/localization/translation_resolver.dart';
+import 'package:walkamon_mobile/widgets/motion/walkamon_pressable.dart';
 
 class FriendSpiritScreen extends StatelessWidget {
   final String userId;
@@ -375,49 +376,51 @@ class _FriendSpiritScreenContentState
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: active
-          ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(13),
-      child: InkWell(
-        onTap: onTap,
+    return WalkamonPressable(
+      child: Material(
+        color: active
+            ? (isDark ? AppColors.woodLight : AppColors.buttonGreen)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(13),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: active
-                  ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
-                  : Colors.transparent,
-              width: 1.5,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(13),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(
+                color: active
+                    ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                    : Colors.transparent,
+                width: 1.5,
+              ),
             ),
-          ),
-          alignment: Alignment.center,
-          child: active
-              ? GameButtonLabel(
-                  label,
-                  fontSize: 13,
-                  color: isDark
-                      ? AppColors.darkForeground
-                      : AppColors.buttonText,
-                  outlineColor: isDark
-                      ? AppColors.darkTextOutline
-                      : AppColors.woodDeep,
-                  outlineWidth: 2.5,
-                )
-              : Text(
-                  label,
-                  style: TextStyle(
+            alignment: Alignment.center,
+            child: active
+                ? GameButtonLabel(
+                    label,
                     fontSize: 13,
-                    fontWeight: FontWeight.w800,
                     color: isDark
                         ? AppColors.darkForeground
+                        : AppColors.buttonText,
+                    outlineColor: isDark
+                        ? AppColors.darkTextOutline
                         : AppColors.woodDeep,
+                    outlineWidth: 2.5,
+                  )
+                : Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppColors.darkForeground
+                          : AppColors.woodDeep,
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );

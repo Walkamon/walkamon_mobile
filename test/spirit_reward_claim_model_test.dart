@@ -1,7 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/data/models/player_challenge_response.dart';
+import 'package:walkamon_mobile/data/models/player_mission_response.dart';
 
 void main() {
+  test(
+    'mission claim parses server reward items without altering the wallet',
+    () {
+      final response = ClaimMissionRewardResponse.fromJson({
+        'missionId': 'mission',
+        'userMissionId': 'assignment',
+        'walletAmount': 10,
+        'walletBalance': 120,
+        'rewardItems': [
+          {'itemId': 'potion', 'itemName': 'Potion', 'quantity': 2},
+        ],
+      });
+      expect(response.walletBalance, 120);
+      expect(response.rewardItems.single.itemName, 'Potion');
+      expect(response.rewardItems.single.quantity, 2);
+      expect(ClaimMissionRewardResponse.fromJson({}).rewardItems, isEmpty);
+    },
+  );
   group('Claim challenge reward response', () {
     test('parses reward items from API payload', () {
       final response = ClaimChallengeRewardResponse.fromJson({

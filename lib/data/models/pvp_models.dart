@@ -106,6 +106,8 @@ class PvpMatchResponse {
   final bool ratingEligible;
   final String? restrictionReasonCode;
   final String? cancelReasonCode;
+  final String? finishReasonCode;
+  final String? forfeitedByUserId;
   final DateTime? serverTime;
   final DateTime? createdAt;
   final DateTime? countdownStartsAt;
@@ -129,6 +131,8 @@ class PvpMatchResponse {
     this.ratingEligible = true,
     this.restrictionReasonCode,
     this.cancelReasonCode,
+    this.finishReasonCode,
+    this.forfeitedByUserId,
     this.serverTime,
     this.createdAt,
     this.countdownStartsAt,
@@ -191,7 +195,7 @@ class PvpMatchResponse {
       sourceCode: json['sourceCode'] as String?,
       progressionModeCode:
           json['progressionModeCode']?.toString().trim().toLowerCase() ??
-              'ranked',
+          'ranked',
       rewardEligible: json['rewardEligible'] is bool
           ? json['rewardEligible'] as bool
           : true,
@@ -200,6 +204,8 @@ class PvpMatchResponse {
           : true,
       restrictionReasonCode: json['restrictionReasonCode']?.toString(),
       cancelReasonCode: json['cancelReasonCode'] as String?,
+      finishReasonCode: json['finishReasonCode'] as String?,
+      forfeitedByUserId: json['forfeitedByUserId'] as String?,
       serverTime: parsedServerTime,
       createdAt: parsedCreatedAt,
       countdownStartsAt: parsedCountdownStartsAt,

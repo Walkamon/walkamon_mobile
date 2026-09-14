@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:walkamon_mobile/widgets/common/app_icon.dart';
 import 'package:walkamon_mobile/widgets/common/game_button_label.dart';
 import 'package:walkamon_mobile/widgets/common/game_back_button.dart';
+import '../../../widgets/motion/walkamon_pressable.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/theme/app_colors.dart';
@@ -214,42 +215,47 @@ class AuthPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: isLoading ? null : onPressed,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        backgroundColor: AppColors.buttonGreen,
-        foregroundColor: AppColors.buttonText,
-        disabledBackgroundColor: AppColors.buttonGreen.withValues(alpha: 0.55),
-        shape: const StadiumBorder(
-          side: const BorderSide(color: AppColors.woodDeep, width: 2),
+    return WalkamonPressable(
+      enabled: !isLoading && onPressed != null,
+      child: FilledButton(
+        onPressed: isLoading ? null : onPressed,
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          backgroundColor: AppColors.buttonGreen,
+          foregroundColor: AppColors.buttonText,
+          disabledBackgroundColor: AppColors.buttonGreen.withValues(
+            alpha: 0.55,
+          ),
+          shape: const StadiumBorder(
+            side: BorderSide(color: AppColors.woodDeep, width: 2),
+          ),
+          elevation: 2,
+          shadowColor: AuthStyle.forest.withValues(alpha: 0.35),
         ),
-        elevation: 2,
-        shadowColor: AuthStyle.forest.withValues(alpha: 0.35),
-      ),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 180),
-        child: isLoading
-            ? const SizedBox(
-                key: ValueKey('loading'),
-                width: 23,
-                height: 23,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: AuthStyle.cream,
-                ),
-              )
-            : Row(
-                key: const ValueKey('ready'),
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (iconAsset != null) ...[
-                    Image.asset(iconAsset!, width: 30, height: 30),
-                    const SizedBox(width: 10),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: isLoading
+              ? const SizedBox(
+                  key: ValueKey('loading'),
+                  width: 23,
+                  height: 23,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AuthStyle.cream,
+                  ),
+                )
+              : Row(
+                  key: const ValueKey('ready'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (iconAsset != null) ...[
+                      Image.asset(iconAsset!, width: 30, height: 30),
+                      const SizedBox(width: 10),
+                    ],
+                    GameButtonLabel(label),
                   ],
-                  GameButtonLabel(label),
-                ],
-              ),
+                ),
+        ),
       ),
     );
   }

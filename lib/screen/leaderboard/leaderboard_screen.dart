@@ -7,6 +7,7 @@ import '../../widgets/common/app_icon.dart';
 import '../../widgets/common/game_back_button.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 import '../../core/theme/app_colors.dart';
 import '../profile/friend_player_profile_screen.dart';
 
@@ -320,42 +321,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         children: frames.map((frame) {
           final active = _timeFrame == frame.$1;
           return Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (active) return;
-                setState(() => _timeFrame = frame.$1);
-                _loadLeaderboard();
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: active ? activeColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  border: Border.all(
-                    color: active
-                        ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
-                        : Colors.transparent,
-                    width: 1.2,
+            child: WalkamonPressable(
+              enabled: !active,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  if (active) return;
+                  setState(() => _timeFrame = frame.$1);
+                  _loadLeaderboard();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: active ? activeColor : Colors.transparent,
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(
+                      color: active
+                          ? (isDark ? AppColors.darkBorder : AppColors.woodDeep)
+                          : Colors.transparent,
+                      width: 1.2,
+                    ),
                   ),
-                ),
-                child: active
-                    ? GameButtonLabel(
-                        frame.$2,
-                        fontSize: 10.5,
-                        outlineWidth: 1.8,
-                      )
-                    : Text(
-                        frame.$2,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textColor,
+                  child: active
+                      ? GameButtonLabel(
+                          frame.$2,
                           fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
+                          outlineWidth: 1.8,
+                        )
+                      : Text(
+                          frame.$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
           );
@@ -592,73 +596,78 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       );
     }
 
-    return Material(
-      color: user.isMe
-          ? AppColors.leafBright.withValues(alpha: 0.84)
-          : AppColors.authCard.withValues(alpha: 0.98),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(11),
-        side: BorderSide(
-          color: user.isMe ? AppColors.oliveDeep : AppColors.wood,
-          width: user.isMe ? 1.8 : 1.4,
+    return WalkamonPressable(
+      enabled: !user.isMe && user.id.isNotEmpty,
+      child: Material(
+        color: user.isMe
+            ? AppColors.leafBright.withValues(alpha: 0.84)
+            : AppColors.authCard.withValues(alpha: 0.98),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(11),
+          side: BorderSide(
+            color: user.isMe ? AppColors.oliveDeep : AppColors.wood,
+            width: user.isMe ? 1.8 : 1.4,
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: user.isMe || user.id.isEmpty ? null : openProfile,
-        child: SizedBox(
-          height: 54,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            child: Row(
-              children: [
-                SizedBox(width: 50, child: _buildRankBadge(rank)),
-                Container(
-                  width: 38,
-                  height: 38,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.creamDeep,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.wood, width: 1.3),
-                  ),
-                  child: Text(
-                    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: AppColors.woodDeep,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: user.isMe || user.id.isEmpty ? null : openProfile,
+          child: SizedBox(
+            height: 54,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              child: Row(
+                children: [
+                  SizedBox(width: 50, child: _buildRankBadge(rank)),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.creamDeep,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.wood, width: 1.3),
+                    ),
+                    child: Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: AppColors.woodDeep,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.inkDark,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.inkDark,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 72,
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.right,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.inkBrown,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
+                  SizedBox(
+                    width: 72,
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.inkBrown,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -775,7 +784,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -805,7 +814,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withOpacity(0.4),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -883,24 +892,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? colorScheme.primary : colorScheme.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: active ? colorScheme.primary : colorScheme.outlineVariant,
+    return WalkamonPressable(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? colorScheme.primary : colorScheme.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: active ? colorScheme.primary : colorScheme.outlineVariant,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: active ? colorScheme.onPrimary : colorScheme.onSurface,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: active ? colorScheme.onPrimary : colorScheme.onSurface,
+            ),
           ),
         ),
       ),
@@ -1010,7 +1021,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -1022,7 +1033,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w900,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -1039,112 +1050,117 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final l10n = AppLocalizations.of(context);
     final displayName = isMe ? l10n.leaderboardYou : user.name;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: user.isMe || user.id.isEmpty
-            ? null
-            : () => Navigator.pushNamed(
-                context,
-                '/profile/friend',
-                arguments: FriendPlayerProfileArguments(
-                  userId: user.id,
-                  initialName: user.name,
+    return WalkamonPressable(
+      enabled: !user.isMe && user.id.isNotEmpty,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: user.isMe || user.id.isEmpty
+              ? null
+              : () => Navigator.pushNamed(
+                  context,
+                  '/profile/friend',
+                  arguments: FriendPlayerProfileArguments(
+                    userId: user.id,
+                    initialName: user.name,
+                  ),
                 ),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isMe ? Colors.amber.shade50 : colorScheme.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isMe
+                    ? Colors.amber.shade400
+                    : colorScheme.outlineVariant,
               ),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isMe ? Colors.amber.shade50 : colorScheme.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isMe ? Colors.amber.shade400 : colorScheme.outlineVariant,
+              boxShadow: isMe
+                  ? [
+                      BoxShadow(
+                        color: Colors.amber.withValues(alpha: 0.12),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
-            boxShadow: isMe
-                ? [
-                    BoxShadow(
-                      color: Colors.amber.withOpacity(0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  child: Text(
+                    '$rank',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: isMe
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
                     ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: Text(
-                  '$rank',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: isMe
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: isMe
-                    ? colorScheme.primary
-                    : colorScheme.surfaceContainerHighest,
-                child: Text(
-                  displayName.substring(0, 1),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: isMe ? Colors.white : colorScheme.onSurface,
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: isMe
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHighest,
+                  child: Text(
+                    displayName.substring(0, 1),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: isMe ? Colors.white : colorScheme.onSurface,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: isMe
+                              ? Colors.amber.shade800
+                              : colorScheme.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        l10n.levelShort(user.level),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      displayName,
-                      style: TextStyle(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: isMe
-                            ? Colors.amber.shade800
-                            : colorScheme.onSurface,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      l10n.levelShort(user.level),
+                      _metric == 'level' ? l10n.leaderboardLevel : l10n.step,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    _metric == 'level' ? l10n.leaderboardLevel : l10n.step,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

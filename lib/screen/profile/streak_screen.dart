@@ -9,6 +9,7 @@ import '../../data/models/step_goal_response.dart';
 import '../../data/repositories/step_goal_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/animated_game_value.dart';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({super.key});
@@ -158,14 +159,17 @@ class _StreakScreenState extends State<StreakScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            '$currentStreak',
-            style: TextStyle(
-              fontSize: 42,
-              fontWeight: FontWeight.w800,
-              color: colorScheme.brightness == Brightness.dark
-                  ? AppColors.darkForeground
-                  : AppColors.woodDeep,
+          AnimatedGameValue(
+            value: currentStreak.toDouble(),
+            builder: (context, value) => Text(
+              value.round().toString(),
+              style: TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w800,
+                color: colorScheme.brightness == Brightness.dark
+                    ? AppColors.darkForeground
+                    : AppColors.woodDeep,
+              ),
             ),
           ),
           Text(
@@ -246,11 +250,14 @@ class _StreakScreenState extends State<StreakScreen> {
                 const SizedBox(height: 6),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
+                  child: AnimatedGameValue(
                     value: progress,
-                    minHeight: 8,
-                    backgroundColor: AppColors.parchment,
-                    color: AppColors.buttonGreen,
+                    builder: (context, value) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 8,
+                      backgroundColor: AppColors.parchment,
+                      color: AppColors.buttonGreen,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 6),

@@ -3,8 +3,72 @@ import 'package:walkamon_mobile/widgets/motion/nine_slice_game_frame.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:walkamon_mobile/core/motion/game_presentation_coordinator.dart';
 import 'package:walkamon_mobile/widgets/motion/game_presentation_host.dart';
+import 'package:walkamon_mobile/widgets/common/game_notice_host.dart';
 
 void main() {
+  test(
+    'a fallback notice is deduplicated without finishing an active sequence',
+    () {
+      final coordinator = GamePresentationCoordinator();
+      expect(coordinator.begin('level:1'), isTrue);
+      expect(coordinator.acknowledge('claim:1'), isTrue);
+      expect(coordinator.active, 'level:1');
+      expect(coordinator.acknowledge('claim:1'), isFalse);
+      coordinator.finish();
+      expect(coordinator.begin('claim:1'), isFalse);
+      coordinator.reset();
+      expect(coordinator.begin('claim:1'), isTrue);
+    },
+  );
+
+  testWidgets(
+    'concurrent committed rewards use notice fallback instead of disappearing',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GameNoticeHost(
+            key: GameNoticeHost.globalKey,
+            child: GamePresentationHost(
+              child: Builder(
+                builder: (context) => Column(
+                  children: [
+                    TextButton(
+                      onPressed: () => GamePresentationHost.showReward(
+                        context,
+                        const GameRewardPresentation(
+                          id: 'first',
+                          message: 'First reward',
+                        ),
+                      ),
+                      child: const Text('First'),
+                    ),
+                    TextButton(
+                      onPressed: () => GamePresentationHost.showReward(
+                        context,
+                        const GameRewardPresentation(
+                          id: 'second',
+                          message: 'Second reward',
+                        ),
+                      ),
+                      child: const Text('Second'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('First'));
+      await tester.pump();
+      await tester.tap(find.text('Second'));
+      await tester.pump();
+      expect(find.text('First reward'), findsOneWidget);
+      expect(find.text('Second reward'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets('reward slice stays inside the scaled source and clears crest', (
     tester,
   ) async {

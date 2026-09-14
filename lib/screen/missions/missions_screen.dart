@@ -18,6 +18,9 @@ import '../../widgets/common/asset_only_icon_button.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/game_presentation_host.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
+import '../../core/motion/motion_tokens.dart';
 
 enum MissionTab { mission, challenge }
 
@@ -284,15 +287,16 @@ class _MissionsScreenState extends State<MissionsScreen> {
   }
 
   Future<void> _handleClaim(_QuestDisplayItem quest) async {
+    if (_claimingMissionId != null || !quest.canClaim) return;
     // Handle mission claim
     if (!quest.isChallenge) {
-      if (!quest.canClaim) return;
-
       AppAudioService.instance.suppressNextTabSound();
       setState(() => _claimingMissionId = quest.missionId);
       final provider = context.read<GameStateProvider>();
+      final requestUserId = provider.user?.id;
       try {
         final result = await _repository.claimMission(quest.missionId);
+        if (provider.user?.id != requestUserId) return;
         final user = provider.user;
         if (user != null) {
           provider.setUser(user.copyWith(coins: result.walletBalance));
@@ -301,15 +305,27 @@ class _MissionsScreenState extends State<MissionsScreen> {
         unawaited(AppAudioService.instance.playReward());
 
         if (mounted) {
-          _showReward(
-            AppLocalizations.of(
-              context,
-            ).missionsClaimSuccess(result.walletAmount),
+          GamePresentationHost.showReward(
+            context,
+            GameRewardPresentation(
+              id: 'mission:${result.userMissionId}:${result.claimedAt}',
+              items: result.rewardItems
+                  .map(
+                    (item) => GameRewardEntry(
+                      name: item.itemName,
+                      quantity: item.quantity,
+                    ),
+                  )
+                  .toList(),
+              message: AppLocalizations.of(
+                context,
+              ).missionsClaimSuccess(result.walletAmount),
+            ),
           );
         }
         await _loadData(showLoading: false);
       } catch (e) {
-        if (mounted) {
+        if (mounted && provider.user?.id == requestUserId) {
           _showError(AppLocalizations.of(context).missionsClaimFailed('$e'));
         }
       } finally {
@@ -324,8 +340,10 @@ class _MissionsScreenState extends State<MissionsScreen> {
     AppAudioService.instance.suppressNextTabSound();
     setState(() => _claimingMissionId = quest.missionId);
     final provider = context.read<GameStateProvider>();
+    final requestUserId = provider.user?.id;
     try {
       final result = await _repository.claimChallenge(quest.userMissionId!);
+      if (provider.user?.id != requestUserId) return;
       final user = provider.user;
       if (user != null) {
         provider.setUser(user.copyWith(coins: result.walletBalance));
@@ -334,15 +352,27 @@ class _MissionsScreenState extends State<MissionsScreen> {
       unawaited(AppAudioService.instance.playReward());
 
       if (mounted) {
-        _showReward(
-          AppLocalizations.of(
-            context,
-          ).missionsClaimSuccess(result.walletAmount),
+        GamePresentationHost.showReward(
+          context,
+          GameRewardPresentation(
+            id: 'challenge:${result.userMissionId}',
+            message: AppLocalizations.of(
+              context,
+            ).missionsClaimSuccess(result.walletAmount),
+            items: result.rewardItems
+                .map(
+                  (item) => GameRewardEntry(
+                    name: item.itemName,
+                    quantity: item.quantity,
+                  ),
+                )
+                .toList(),
+          ),
         );
       }
       await _loadData(showLoading: false);
     } catch (e) {
-      if (mounted) {
+      if (mounted && provider.user?.id == requestUserId) {
         _showError(TranslationResolver.resolveError(context, e));
       }
     } finally {
@@ -351,8 +381,9 @@ class _MissionsScreenState extends State<MissionsScreen> {
   }
 
   Future<void> _handleRandomChallenge() async {
+    final l10n = AppLocalizations.of(context);
     if (_challengeQuests.isNotEmpty) {
-      _showError(AppLocalizations.of(context).missionsChallengeExists);
+      _showError(l10n.missionsChallengeExists);
       return;
     }
 
@@ -363,24 +394,19 @@ class _MissionsScreenState extends State<MissionsScreen> {
         if (mounted) {
           setState(() {
             _challengeQuests = resp.data!.currentChallenge != null
-                ? [
-                    _fromChallenge(
-                      resp.data!.currentChallenge!,
-                      AppLocalizations.of(context),
-                    ),
-                  ]
+                ? [_fromChallenge(resp.data!.currentChallenge!, l10n)]
                 : [];
             _cancelLimit = resp.data!.cancelLimit;
             _cancelRemaining = resp.data!.cancelRemaining;
           });
-          _showSuccess(AppLocalizations.of(context).missionsChallengeCreated);
+          _showSuccess(l10n.missionsChallengeCreated);
         }
-      } else {
+      } else if (mounted) {
         _showError(TranslationResolver.resolveResponse(context, resp));
       }
     } catch (e) {
-      _showError(TranslationResolver.resolveError(context, e));
       if (mounted) {
+        _showError(TranslationResolver.resolveError(context, e));
         await _refreshChallengeState();
       }
     } finally {
@@ -407,6 +433,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
 
   Future<void> _handleCancelChallenge(_QuestDisplayItem quest) async {
     if (_cancelRemaining <= 0 || quest.userMissionId == null) return;
+    final l10n = AppLocalizations.of(context);
 
     setState(() => _cancellingChallengeId = quest.userMissionId);
     try {
@@ -420,25 +447,18 @@ class _MissionsScreenState extends State<MissionsScreen> {
           });
         }
         if (mounted) {
-          setState(() {
-            _challengeQuests = [];
-            _cancelRemaining = resp.data!.cancelRemaining;
-            _cancelLimit = resp.data!.cancelLimit;
-          });
-        }
-        _showMessage(AppLocalizations.of(context).missionsChallengeCanceled);
-        if (mounted) {
+          _showMessage(l10n.missionsChallengeCanceled);
           await _refreshChallengeState();
         }
-      } else {
+      } else if (mounted) {
         _showError(TranslationResolver.resolveResponse(context, resp));
         if (mounted) {
           await _refreshChallengeState();
         }
       }
     } catch (e) {
-      _showError(TranslationResolver.resolveError(context, e));
       if (mounted) {
+        _showError(TranslationResolver.resolveError(context, e));
         await _refreshChallengeState();
       }
     } finally {
@@ -459,16 +479,6 @@ class _MissionsScreenState extends State<MissionsScreen> {
   void _showSuccess(String message) {
     if (!mounted) return;
     showGameNotificationDialog(context, message: message, isSuccess: true);
-  }
-
-  void _showReward(String message) {
-    if (!mounted) return;
-    showGameNotificationDialog(
-      context,
-      message: message,
-      isSuccess: true,
-      isReward: true,
-    );
   }
 
   @override
@@ -670,52 +680,59 @@ class _MissionsScreenState extends State<MissionsScreen> {
                               ),
                               const SizedBox(height: 12),
                               if (_challengeQuests.isEmpty)
-                                Material(
-                                  color: AppColors.authCard.withValues(
-                                    alpha: 0.94,
-                                  ),
-                                  borderRadius: BorderRadius.circular(18),
-                                  child: InkWell(
-                                    onTap: _creatingChallenge != null
-                                        ? null
-                                        : _handleRandomChallenge,
+                                WalkamonPressable(
+                                  enabled: _creatingChallenge == null,
+                                  child: Material(
+                                    color: AppColors.authCard.withValues(
+                                      alpha: 0.94,
+                                    ),
                                     borderRadius: BorderRadius.circular(18),
-                                    child: Container(
-                                      width: double.infinity,
-                                      height: 72,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(18),
-                                        border: Border.all(
-                                          color: AppColors.wood,
-                                          width: 2,
+                                    child: InkWell(
+                                      onTap: _creatingChallenge != null
+                                          ? null
+                                          : _handleRandomChallenge,
+                                      borderRadius: BorderRadius.circular(18),
+                                      child: Container(
+                                        width: double.infinity,
+                                        height: 72,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.wood,
+                                            width: 2,
+                                          ),
                                         ),
-                                      ),
-                                      child: _creatingChallenge != null
-                                          ? const Center(
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
+                                        child: _creatingChallenge != null
+                                            ? const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  AppIcon(
+                                                    Icons.shuffle,
+                                                    asset:
+                                                        AppAssets.iconChallenge,
+                                                    size: 38,
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  GameButtonLabel(
+                                                    l10n.missionsNewChallenge,
+                                                    fontSize: 15,
+                                                    color: AppColors.woodDeep,
+                                                    outlineColor:
+                                                        AppColors.ivory,
+                                                    outlineWidth: 2.5,
+                                                  ),
+                                                ],
                                               ),
-                                            )
-                                          : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                AppIcon(
-                                                  Icons.shuffle,
-                                                  asset:
-                                                      AppAssets.iconChallenge,
-                                                  size: 38,
-                                                ),
-                                                const SizedBox(width: 12),
-                                                GameButtonLabel(
-                                                  l10n.missionsNewChallenge,
-                                                  fontSize: 15,
-                                                  color: AppColors.woodDeep,
-                                                  outlineColor: AppColors.ivory,
-                                                  outlineWidth: 2.5,
-                                                ),
-                                              ],
-                                            ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1223,10 +1240,12 @@ class _QuestItemCard extends StatelessWidget {
     final resolvedMutedForeground = isDark && isClaimed
         ? AppColors.darkMutedForeground.withValues(alpha: 0.72)
         : mutedForeground;
+    final motion = MotionPolicy.of(context);
 
     return TweenAnimationBuilder<double>(
+      key: ValueKey('quest-${quest.userMissionId ?? quest.missionId}'),
       tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 280 + index * 10),
+      duration: motion.duration(Duration(milliseconds: 280 + index * 10)),
       curve: Curves.easeOut,
       builder: (context, value, child) {
         return Opacity(
@@ -1321,32 +1340,35 @@ class _QuestItemCard extends StatelessWidget {
                       minWidth: 72,
                       minHeight: 44,
                     ),
-                    child: Material(
-                      color: accent,
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        onTap: isClaimLoading ? null : onClaim,
+                    child: WalkamonPressable(
+                      enabled: !isClaimLoading,
+                      child: Material(
+                        color: accent,
                         borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          child: Center(
-                            child: isClaimLoading
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                        child: InkWell(
+                          onTap: isClaimLoading ? null : onClaim,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            child: Center(
+                              child: isClaimLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : GameButtonLabel(
+                                      l10n.missionsClaim,
+                                      fontSize: 13.5,
+                                      color: resolvedForeground,
+                                      outlineWidth: 0,
                                     ),
-                                  )
-                                : GameButtonLabel(
-                                    l10n.missionsClaim,
-                                    fontSize: 13.5,
-                                    color: resolvedForeground,
-                                    outlineWidth: 0,
-                                  ),
+                            ),
                           ),
                         ),
                       ),

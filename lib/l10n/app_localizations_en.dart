@@ -151,6 +151,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petLifeForceFull => 'Your pet has reached its Life Force limit.';
 
   @override
+  String get inventoryStatFull => 'Stat already full';
+
+  @override
   String get petFeedLimitReached =>
       'You have reached the feeding limit. Please come back later.';
 

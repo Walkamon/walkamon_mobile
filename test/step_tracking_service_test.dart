@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:walkamon_mobile/data/models/step_sensor_models.dart';
 import 'package:walkamon_mobile/data/services/android_step_bridge.dart';
@@ -58,6 +59,41 @@ void main() {
     service.dispose();
     await motionEvents.close();
   });
+
+  test(
+    'fresh authenticated user requests activity permission before tracking',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      var granted = false;
+      var requests = 0;
+      final bridge = _FakeAndroidStepBridge(
+        const NativeTrackingStatus(
+          running: true,
+          userId: 'user-1',
+          acceptedTotal: 0,
+          pendingSteps: 0,
+          nextSequence: 1,
+          attested: true,
+        ),
+      );
+      final service = StepTrackingService(
+        androidBridge: bridge,
+        activityPermissionChecker: () async => granted,
+        activityPermissionStatusProvider: () async => PermissionStatus.denied,
+        activityPermissionRequester: () async {
+          requests++;
+          granted = true;
+          return PermissionStatus.granted;
+        },
+      );
+
+      await service.startForUser('user-1');
+
+      expect(requests, 1);
+      expect(service.status, StepTrackingStatus.tracking);
+      service.dispose();
+    },
+  );
 
   test(
     'counter settlement replaces detector estimate without double count',

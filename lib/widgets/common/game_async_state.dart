@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_icon.dart';
+import '../motion/walkamon_pressable.dart';
 
 class GameLoadingIndicator extends StatefulWidget {
   const GameLoadingIndicator({super.key, this.size = 54, this.label});
@@ -131,10 +132,13 @@ class GameAsyncStatePanel extends StatelessWidget {
               ),
               if (onRetry != null && retryLabel != null) ...[
                 const SizedBox(height: 14),
-                ElevatedButton.icon(
-                  onPressed: onRetry,
-                  icon: const AppIcon(Icons.refresh, size: 20),
-                  label: Text(retryLabel!),
+                WalkamonPressable(
+                  enabled: onRetry != null,
+                  child: ElevatedButton.icon(
+                    onPressed: onRetry,
+                    icon: const AppIcon(Icons.refresh, size: 20),
+                    label: Text(retryLabel!),
+                  ),
                 ),
               ],
             ],

@@ -17,6 +17,7 @@ import '../../widgets/common/home_page_backdrop.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_button_label.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 @visibleForTesting
 class ShopCatalogItem {
@@ -581,42 +582,44 @@ class _ShopCategoryBar extends StatelessWidget {
             button: true,
             selected: active,
             label: labelFor(category),
-            child: Material(
-              color: active ? AppColors.buttonGreen : AppColors.creamLight,
-              borderRadius: BorderRadius.circular(999),
-              child: InkWell(
-                onTap: () => onSelected(category),
+            child: WalkamonPressable(
+              child: Material(
+                color: active ? AppColors.buttonGreen : AppColors.creamLight,
                 borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 88),
-                  padding: const EdgeInsets.symmetric(horizontal: 13),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: active ? AppColors.oliveDeep : AppColors.wood,
-                      width: active ? 2 : 1.4,
+                child: InkWell(
+                  onTap: () => onSelected(category),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 88),
+                    padding: const EdgeInsets.symmetric(horizontal: 13),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: active ? AppColors.oliveDeep : AppColors.wood,
+                        width: active ? 2 : 1.4,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        iconAsset,
-                        width: 24,
-                        height: 24,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        labelFor(category),
-                        style: const TextStyle(
-                          color: AppColors.woodDeep,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          iconAsset,
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.contain,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          labelFor(category),
+                          style: const TextStyle(
+                            color: AppColors.woodDeep,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -932,25 +935,28 @@ class _ShopModalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: backgroundColor,
-      elevation: 0,
-      shape: const StadiumBorder(
-        side: BorderSide(color: AppColors.woodDeep, width: 2),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: GameButtonLabel(
-            label,
-            fontSize: 14,
-            color: foregroundColor,
-            outlineColor: foregroundColor == AppColors.buttonText
-                ? AppColors.woodDeep
-                : AppColors.authCard,
-            outlineWidth: 2.2,
+    return WalkamonPressable(
+      enabled: onPressed != null,
+      child: Material(
+        color: backgroundColor,
+        elevation: 0,
+        shape: const StadiumBorder(
+          side: BorderSide(color: AppColors.woodDeep, width: 2),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(999),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: GameButtonLabel(
+              label,
+              fontSize: 14,
+              color: foregroundColor,
+              outlineColor: foregroundColor == AppColors.buttonText
+                  ? AppColors.woodDeep
+                  : AppColors.authCard,
+              outlineWidth: 2.2,
+            ),
           ),
         ),
       ),
@@ -1196,60 +1202,66 @@ class _ShopFeaturedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      key: ValueKey('shop-featured-${item.shopItemId}'),
-      color: isDark ? AppColors.darkMuted : AppColors.creamLight,
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        onTap: () => onSelect(item),
+    return WalkamonPressable(
+      child: Material(
+        key: ValueKey('shop-featured-${item.shopItemId}'),
+        color: isDark ? AppColors.darkMuted : AppColors.creamLight,
         borderRadius: BorderRadius.circular(22),
-        child: Container(
-          height: 158,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.wood, width: 1.7),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [AppColors.darkMuted, AppColors.darkCard]
-                  : [AppColors.creamLight, AppColors.panelMuted],
+        child: InkWell(
+          onTap: () => onSelect(item),
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
+            height: 158,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.wood, width: 1.7),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [AppColors.darkMuted, AppColors.darkCard]
+                    : [AppColors.creamLight, AppColors.panelMuted],
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 5,
-                child: _ShopItemArtwork(item: item, accent: accent, size: 116),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                flex: 6,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.woodDeep,
-                        fontSize: 17,
-                        height: 1.1,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const Spacer(),
-                    _ShopPricePill(
-                      value: formatMoney(item.price),
-                      enabled: item.isActive,
-                    ),
-                  ],
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: _ShopItemArtwork(
+                    item: item,
+                    accent: accent,
+                    size: 116,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 14),
+                Expanded(
+                  flex: 6,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.woodDeep,
+                          fontSize: 17,
+                          height: 1.1,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Spacer(),
+                      _ShopPricePill(
+                        value: formatMoney(item.price),
+                        enabled: item.isActive,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1276,50 +1288,56 @@ class _ShopItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Opacity(
       opacity: item.isActive ? 1 : 0.58,
-      child: Material(
-        key: ValueKey('shop-card-${item.shopItemId}'),
-        color: isDark ? AppColors.darkMuted : AppColors.authCard,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          onTap: () => onSelect(item),
+      child: WalkamonPressable(
+        child: Material(
+          key: ValueKey('shop-card-${item.shopItemId}'),
+          color: isDark ? AppColors.darkMuted : AppColors.authCard,
           borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: AppColors.wood.withValues(alpha: 0.76),
-                width: 1.5,
+          child: InkWell(
+            onTap: () => onSelect(item),
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppColors.wood.withValues(alpha: 0.76),
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: _ShopItemArtwork(item: item, accent: accent, size: 92),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.woodDeep,
-                    fontSize: 13,
-                    height: 1.12,
-                    fontWeight: FontWeight.w900,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _ShopItemArtwork(
+                      item: item,
+                      accent: accent,
+                      size: 92,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 7),
-                Align(
-                  alignment: Alignment.center,
-                  child: _ShopPricePill(
-                    value: formatMoney(item.price),
-                    enabled: item.isActive,
+                  const SizedBox(height: 7),
+                  Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.woodDeep,
+                      fontSize: 13,
+                      height: 1.12,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 7),
+                  Align(
+                    alignment: Alignment.center,
+                    child: _ShopPricePill(
+                      value: formatMoney(item.price),
+                      enabled: item.isActive,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

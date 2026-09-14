@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/feedback/app_haptics.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/motion/motion_tokens.dart';
 import 'app_icon.dart';
 
 /// Transient feedback placement. The host owns placement so screens do not
@@ -158,13 +159,16 @@ class _NoticePositioned extends StatelessWidget {
         alignment: top != null ? Alignment.topCenter : Alignment.bottomCenter,
         child: TweenAnimationBuilder<double>(
           key: ValueKey('${notice.type.name}:${notice.message}'),
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutBack,
+          duration: MotionPolicy.of(context).duration(MotionTokens.noticeIn),
+          curve: MotionTokens.enterCurve,
           tween: Tween<double>(begin: 0, end: 1),
           builder: (context, value, child) => Opacity(
             opacity: value.clamp(0.0, 1.0),
             child: Transform.translate(
-              offset: Offset(0, (1 - value) * 12),
+              offset: Offset(
+                0,
+                MotionPolicy.of(context).reduced ? 0 : (1 - value) * 8,
+              ),
               child: Transform.scale(
                 scale: 0.96 + (0.04 * value),
                 child: child,

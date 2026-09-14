@@ -87,12 +87,20 @@ class _GamePresentationHostState extends State<GamePresentationHost>
   @override
   void initState() {
     super.initState();
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
   }
 
   bool _show(BuildContext source, GameRewardPresentation reward) {
     final route = ModalRoute.of(source);
     if (!_foreground || (route != null && !route.isCurrent)) return false;
+    // A concurrent level/reward sequence must not swallow a committed claim.
+    if (_coordinator.active != null) {
+      if (!_coordinator.acknowledge(reward.id)) return false;
+      GameNoticeHost.show(reward.message, type: GameNoticeType.reward);
+      return true;
+    }
     if (!_coordinator.begin(reward.id)) return false;
     _source = route;
     route?.animation?.addStatusListener(_routeStatus);

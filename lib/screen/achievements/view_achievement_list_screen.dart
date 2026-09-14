@@ -18,6 +18,7 @@ import '../../providers/game_state_provider.dart';
 import '../../widgets/common/game_notification_dialog.dart';
 import '../../widgets/common/game_dual_bottom_tabs.dart';
 import '../../widgets/common/game_async_state.dart';
+import '../../widgets/motion/walkamon_pressable.dart';
 
 class ViewAchievementListScreen extends StatefulWidget {
   const ViewAchievementListScreen({super.key, this.repository});
@@ -441,64 +442,76 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                                         final canClaimComputed =
                                             canClaim || completed;
 
-                                        return ElevatedButton(
-                                          onPressed: isLocked
-                                              ? () => setState(
-                                                  () => _selectedAchievement =
-                                                      null,
-                                                )
-                                              : (achId != null &&
-                                                    canClaimComputed)
-                                              ? () => _handleClaim(achId)
-                                              : () => setState(
-                                                  () => _selectedAchievement =
-                                                      null,
+                                        return WalkamonPressable(
+                                          enabled:
+                                              !isLocked &&
+                                              achId != null &&
+                                              canClaimComputed &&
+                                              _claimingAchievementId == null,
+                                          child: ElevatedButton(
+                                            onPressed:
+                                                _claimingAchievementId == achId
+                                                ? null
+                                                : isLocked
+                                                ? () => setState(
+                                                    () => _selectedAchievement =
+                                                        null,
+                                                  )
+                                                : (achId != null &&
+                                                      canClaimComputed)
+                                                ? () => _handleClaim(achId)
+                                                : () => setState(
+                                                    () => _selectedAchievement =
+                                                        null,
+                                                  ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: isDark
+                                                  ? AppColors.darkLife
+                                                  : AppColors.buttonGreen,
+                                              foregroundColor: isDark
+                                                  ? AppColors.darkTextOutline
+                                                  : AppColors.buttonText,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 14,
+                                                  ),
+                                              shape: StadiumBorder(
+                                                side: BorderSide(
+                                                  color: isDark
+                                                      ? AppColors.darkBorder
+                                                      : AppColors.woodDeep,
+                                                  width: 2,
                                                 ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: isDark
-                                                ? AppColors.darkLife
-                                                : AppColors.buttonGreen,
-                                            foregroundColor: isDark
-                                                ? AppColors.darkTextOutline
-                                                : AppColors.buttonText,
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 14,
-                                            ),
-                                            shape: StadiumBorder(
-                                              side: BorderSide(
-                                                color: isDark
-                                                    ? AppColors.darkBorder
-                                                    : AppColors.woodDeep,
-                                                width: 2,
                                               ),
                                             ),
+                                            child:
+                                                _claimingAchievementId !=
+                                                        null &&
+                                                    _claimingAchievementId ==
+                                                        achId
+                                                ? const SizedBox(
+                                                    width: 18,
+                                                    height: 18,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : GameButtonLabel(
+                                                    isLocked
+                                                        ? l10n.achievementsKeepTrying
+                                                        : (isClaimed
+                                                              ? l10n.dailyLoginSuccessAction
+                                                              : (canClaimComputed
+                                                                    ? l10n.dailyLoginClaimNow
+                                                                    : l10n.achievementsKeepTrying)),
+                                                    fontSize: 14,
+                                                    color: AppColors.buttonText,
+                                                    outlineColor:
+                                                        AppColors.woodDeep,
+                                                    outlineWidth: 2.5,
+                                                  ),
                                           ),
-                                          child:
-                                              _claimingAchievementId != null &&
-                                                  _claimingAchievementId ==
-                                                      achId
-                                              ? const SizedBox(
-                                                  width: 18,
-                                                  height: 18,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                )
-                                              : GameButtonLabel(
-                                                  isLocked
-                                                      ? l10n.achievementsKeepTrying
-                                                      : (isClaimed
-                                                            ? l10n.dailyLoginSuccessAction
-                                                            : (canClaimComputed
-                                                                  ? l10n.dailyLoginClaimNow
-                                                                  : l10n.achievementsKeepTrying)),
-                                                  fontSize: 14,
-                                                  color: AppColors.buttonText,
-                                                  outlineColor:
-                                                      AppColors.woodDeep,
-                                                  outlineWidth: 2.5,
-                                                ),
                                         );
                                       },
                                     ),
@@ -599,56 +612,62 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
             itemBuilder: (context, index) {
               final hasItem = index < _claimedAchievements.length;
               final item = hasItem ? _claimedAchievements[index] : null;
-              return Material(
-                color: (isDark ? AppColors.darkNestedCard : AppColors.authCard)
-                    .withValues(alpha: hasItem ? 0.97 : 0.55),
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  onTap: item == null
-                      ? null
-                      : () => setState(
-                          () => _selectedAchievement = {
-                            'achievementId': item.achievementId,
-                            'title': _localizedTitle(item),
-                            'desc': _localizedDescription(item),
-                            'iconUrl': item.iconUrl,
-                            'isLocked': false,
-                            'canClaim': item.canClaim,
-                            'date': item.unlockedAt ?? '',
-                            'claimedAt': item.claimedAt ?? '',
-                          },
-                        ),
+              return WalkamonPressable(
+                enabled: item != null,
+                child: Material(
+                  color:
+                      (isDark ? AppColors.darkNestedCard : AppColors.authCard)
+                          .withValues(alpha: hasItem ? 0.97 : 0.55),
                   borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: hasItem
-                            ? (isDark ? AppColors.darkBorder : AppColors.wood)
-                            : (isDark
-                                  ? AppColors.darkBorder.withValues(alpha: 0.38)
-                                  : AppColors.wood.withValues(alpha: 0.38)),
-                        width: hasItem ? 1.5 : 1,
+                  child: InkWell(
+                    onTap: item == null
+                        ? null
+                        : () => setState(
+                            () => _selectedAchievement = {
+                              'achievementId': item.achievementId,
+                              'title': _localizedTitle(item),
+                              'desc': _localizedDescription(item),
+                              'iconUrl': item.iconUrl,
+                              'isLocked': false,
+                              'canClaim': item.canClaim,
+                              'date': item.unlockedAt ?? '',
+                              'claimedAt': item.claimedAt ?? '',
+                            },
+                          ),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: hasItem
+                              ? (isDark ? AppColors.darkBorder : AppColors.wood)
+                              : (isDark
+                                    ? AppColors.darkBorder.withValues(
+                                        alpha: 0.38,
+                                      )
+                                    : AppColors.wood.withValues(alpha: 0.38)),
+                          width: hasItem ? 1.5 : 1,
+                        ),
                       ),
-                    ),
-                    child: item == null
-                        ? const SizedBox.expand()
-                        : (item.iconUrl?.isNotEmpty == true
-                              ? Image.network(
-                                  item.iconUrl!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => const AppIcon(
+                      child: item == null
+                          ? const SizedBox.expand()
+                          : (item.iconUrl?.isNotEmpty == true
+                                ? Image.network(
+                                    item.iconUrl!,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, _, _) => const AppIcon(
+                                      Icons.emoji_events_rounded,
+                                      size: 38,
+                                      color: AppColors.gold,
+                                    ),
+                                  )
+                                : const AppIcon(
                                     Icons.emoji_events_rounded,
                                     size: 38,
                                     color: AppColors.gold,
-                                  ),
-                                )
-                              : const AppIcon(
-                                  Icons.emoji_events_rounded,
-                                  size: 38,
-                                  color: AppColors.gold,
-                                )),
+                                  )),
+                    ),
                   ),
                 ),
               );
@@ -713,125 +732,132 @@ class _ViewAchievementListScreenState extends State<ViewAchievementListScreen> {
                   final progressValue = item.targetValue > 0
                       ? item.progressValue / item.targetValue
                       : 0.0;
-                  return InkWell(
-                    onTap: () => setState(
-                      () => _selectedAchievement = {
-                        'achievementId': item.achievementId,
-                        'title': _localizedTitle(item),
-                        'desc': _localizedDescription(item),
-                        'iconUrl': item.iconUrl,
-                        'isLocked': !item.isUnlocked,
-                        'date': item.unlockedAt ?? '',
-                        'claimedAt': item.claimedAt ?? '',
-                        'progress': item.progressValue,
-                        'target': item.targetValue,
-                        'reward': item.walletAmount,
-                        'canClaim': item.canClaim,
-                      },
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: completed
-                            ? AppColors.leafLight.withValues(alpha: 0.72)
-                            : AppColors.authCard,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: completed
-                              ? AppColors.oliveDeep
-                              : AppColors.wood,
-                          width: 1.8,
-                        ),
+                  return WalkamonPressable(
+                    child: InkWell(
+                      onTap: () => setState(
+                        () => _selectedAchievement = {
+                          'achievementId': item.achievementId,
+                          'title': _localizedTitle(item),
+                          'desc': _localizedDescription(item),
+                          'iconUrl': item.iconUrl,
+                          'isLocked': !item.isUnlocked,
+                          'date': item.unlockedAt ?? '',
+                          'claimedAt': item.claimedAt ?? '',
+                          'progress': item.progressValue,
+                          'target': item.targetValue,
+                          'reward': item.walletAmount,
+                          'canClaim': item.canClaim,
+                        },
                       ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Padding(
-                              padding: const EdgeInsets.all(3),
-                              child:
-                                  item.isUnlocked &&
-                                      item.iconUrl?.isNotEmpty == true
-                                  ? Image.network(
-                                      item.iconUrl!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, _, _) => const AppIcon(
-                                        Icons.emoji_events_rounded,
-                                        color: AppColors.gold,
-                                      ),
-                                    )
-                                  : AppIcon(
-                                      item.isUnlocked
-                                          ? Icons.emoji_events_rounded
-                                          : Icons.star_border_rounded,
-                                      color: item.isUnlocked
-                                          ? AppColors.gold
-                                          : AppColors.woodLight,
-                                      size: 38,
-                                    ),
-                            ),
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: completed
+                              ? AppColors.leafLight.withValues(alpha: 0.72)
+                              : AppColors.authCard,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: completed
+                                ? AppColors.oliveDeep
+                                : AppColors.wood,
+                            width: 1.8,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _localizedTitle(item),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.inkDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  _localizedDescription(item),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.outlineBrown,
-                                  ),
-                                ),
-                                const SizedBox(height: 7),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                        child: LinearProgressIndicator(
-                                          value: progressValue.clamp(0.0, 1.0),
-                                          minHeight: 8,
-                                          backgroundColor: AppColors.parchment,
-                                          color: completed
-                                              ? AppColors.buttonGreen
-                                              : AppColors.goldLight,
-                                        ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: Padding(
+                                padding: const EdgeInsets.all(3),
+                                child:
+                                    item.isUnlocked &&
+                                        item.iconUrl?.isNotEmpty == true
+                                    ? Image.network(
+                                        item.iconUrl!,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, _, _) =>
+                                            const AppIcon(
+                                              Icons.emoji_events_rounded,
+                                              color: AppColors.gold,
+                                            ),
+                                      )
+                                    : AppIcon(
+                                        item.isUnlocked
+                                            ? Icons.emoji_events_rounded
+                                            : Icons.star_border_rounded,
+                                        color: item.isUnlocked
+                                            ? AppColors.gold
+                                            : AppColors.woodLight,
+                                        size: 38,
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${_formatCompact(item.progressValue)}/${_formatCompact(item.targetValue)}',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.outlineBrown,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _localizedTitle(item),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.inkDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    _localizedDescription(item),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.outlineBrown,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 7),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          child: LinearProgressIndicator(
+                                            value: progressValue.clamp(
+                                              0.0,
+                                              1.0,
+                                            ),
+                                            minHeight: 8,
+                                            backgroundColor:
+                                                AppColors.parchment,
+                                            color: completed
+                                                ? AppColors.buttonGreen
+                                                : AppColors.goldLight,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${_formatCompact(item.progressValue)}/${_formatCompact(item.targetValue)}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.outlineBrown,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
